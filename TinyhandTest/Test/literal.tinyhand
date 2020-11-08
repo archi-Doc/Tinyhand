@@ -1,0 +1,8 @@
+"single"
+"1st\r\n2nd"
+"""aa
+bb"""
+""""a" is \a
+bb\"""
+@InputFolder = """current\prev"""
+"1\4"

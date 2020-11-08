@@ -1,0 +1,7 @@
+i32 x;
+@mode = "process\uD834\uDD1Ek" // test
+@process = "copy\u0020"
+"test.file"
+number1 = 1
+number2 = 2.34;
+{1,2,3,}

@@ -1,0 +1,8 @@
+mode = "process"
+process = "log test"
+// log = {"file", path="mylog.txt", console=true, format="log"}
+result = {"file", path="result.txt", format="Log"}
+
+"element"
+1
+2

@@ -1,0 +1,469 @@
+﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using Microsoft.CodeAnalysis;
+
+#pragma warning disable RS1024 // Compare symbols correctly
+
+namespace Arc.Visceral
+{
+    public class VisceralBody<T>
+        where T : VisceralObjectBase<T>, new()
+    {
+        public VisceralBody(GeneratorExecutionContext? context)
+        {
+            this.Context = context;
+        }
+
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            this.Context?.ReportDiagnostic(diagnostic);
+            if (diagnostic.Severity == DiagnosticSeverity.Error)
+            {
+                this.Abort = true; // Abort the process if an error occurred.
+            }
+        }
+
+        public void ReportDiagnostic(DiagnosticDescriptor descriptor, Location? location, params object?[]? messageArgs)
+        {
+            var diagnostic = Diagnostic.Create(descriptor, location, messageArgs);
+            this.ReportDiagnostic(diagnostic);
+        }
+
+        public bool AddDiagnostic(DiagnosticDescriptor descriptor, Location? location, params object?[]? messageArgs)
+        {
+            return this.DiagnosticItems.Add(new DiagnosticIdentification(descriptor, location, messageArgs));
+        }
+
+        public void FlushDiagnostic()
+        {
+            foreach (var x in this.DiagnosticItems)
+            {
+                var diagnostic = Diagnostic.Create(x.Descriptor, x.Location, x.Args);
+                this.ReportDiagnostic(diagnostic);
+            }
+
+            this.DiagnosticItems.Clear();
+        }
+
+        public T? Add(ISymbol symbol)
+        {
+            if (this.TryGet(symbol, out var result))
+            {// Search symbol.
+                return result;
+            }
+
+            var fullName = this.SymbolToFullName(symbol);
+            if (this.TryGet(fullName, out var result2))
+            {// Search full name.
+                return result2;
+            }
+
+            var t = new T();
+            if (!t.Initialize(this, symbol, fullName))
+            { // Failed.
+                return null;
+            }
+
+            if (t.Kind.IsType())
+            {
+                this.SymbolToObject.Add(symbol, t);
+                this.FullNameToObject.Add(fullName, t);
+            }
+
+            return t;
+        }
+
+        public T? Add(Type type)
+        {
+            if (this.TryGet(type, out var result))
+            {// Search type.
+                return result;
+            }
+
+            var fullName = VisceralHelper.TypeToFullName(type);
+            if (this.TryGet(fullName, out var result2))
+            {// Search full name.
+                return result2;
+            }
+
+            var t = new T();
+            if (!t.Initialize(this, type, fullName))
+            { // Failed.
+                return null;
+            }
+
+            if (t.Kind.IsType())
+            {
+                this.TypeToObject.Add(type, t);
+                this.FullNameToObject.Add(fullName, t);
+            }
+
+            return t;
+        }
+
+        public T? Add(MemberInfo memberInfo)
+        {
+            if (memberInfo.MemberType == MemberTypes.TypeInfo || memberInfo.MemberType == MemberTypes.NestedType)
+            {// Type
+                return this.Add((Type)memberInfo);
+            }
+
+            var t = new T();
+            if (!t.Initialize(this, memberInfo))
+            { // Failed.
+                return null;
+            }
+
+            return t;
+        }
+
+        public void StringToFile(string code, string path)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                using (var fs = File.Create(path))
+                {
+                    var b = Encoding.UTF8.GetBytes(code);
+                    fs.Write(b, 0, b.Length);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        public GeneratorExecutionContext? Context { get; }
+
+        public bool Abort { get; set; } // Set true to abort Prepare/Generate process.
+
+        public string SymbolToSimpleName(ISymbol symbol)
+        {
+            string name;
+
+            if (symbol is IMethodSymbol mb)
+            {// Method
+                if (mb.MethodKind == MethodKind.Constructor)
+                {
+                    return mb.ContainingType.Name;
+                }
+
+                return mb.Name;
+            }
+            else if (symbol is IArrayTypeSymbol ats)
+            {// Array []
+                return this.SymbolToSimpleName(ats.ElementType);
+            }
+            else if (symbol is ITypeParameterSymbol tps)
+            {// Generic parameter
+                return tps.Name;
+            }
+            else if (symbol is INamedTypeSymbol nts)
+            {
+                if (nts.IsTupleType)
+                {
+                    return "ValueTuple";
+                }
+                else if (nts.IsGenericType)
+                {
+                    if (nts.Name == "Nullable" && nts.ContainingNamespace.Name == "System" && nts.TypeArguments.Length == 1)
+                    {// Nullable<T>
+                        name = this.SymbolToName(nts.TypeArguments[0], false, false);
+                        return VisceralHelper.Primitives_ShortenSimpleName(name) ?? name; // + "?";
+                    }
+                }
+            }
+
+            name = symbol.Name;
+            return VisceralHelper.Primitives_ShortenSimpleName(name) ?? name;
+        }
+
+        public string GetNamespaceAndClass(ISymbol symbol)
+        {
+            if (symbol.ContainingType == null)
+            {
+                return symbol.ContainingNamespace.ToDisplayString();
+            }
+            else
+            {
+                var containingType = symbol.ContainingType;
+
+                var s = string.Empty;
+                while (containingType != null)
+                {
+                    symbol = containingType;
+                    s = "." + this.SymbolToLocalName(symbol) + s;
+                    containingType = symbol.ContainingType;
+                }
+
+                return symbol.ContainingNamespace.ToDisplayString() + s;
+            }
+        }
+
+        public string SymbolToFullName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, true, nullableAnnotation);
+
+        public string SymbolToLocalName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, false, nullableAnnotation);
+
+        /*public SymbolDisplayFormat FormatDisplayName { get; } = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
+        public SymbolDisplayFormat FormatFullName { get; } = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeParameters,
+            parameterOptions: SymbolDisplayParameterOptions.IncludeType
+            );*/
+
+        public bool TryGet(string fullName, out T result) => this.FullNameToObject.TryGetValue(fullName, out result);
+
+        public bool TryGet(ISymbol symbol, out T result) => this.SymbolToObject.TryGetValue(symbol, out result);
+
+        public bool TryGet(Type type, out T result) => this.TypeToObject.TryGetValue(type, out result);
+
+        public Dictionary<string, T> FullNameToObject { get; } = new();
+
+        public Dictionary<ISymbol, T> SymbolToObject { get; } = new();
+
+        public Dictionary<Type, T> TypeToObject { get; } = new();
+
+        private HashSet<DiagnosticIdentification> DiagnosticItems { get; } = new();
+
+        internal readonly struct DiagnosticIdentification
+        {
+            public DiagnosticIdentification(DiagnosticDescriptor descriptor, Location? location, params object?[]? args)
+            {
+                this.Descriptor = descriptor;
+                this.Location = location;
+                this.Args = args;
+            }
+
+            public readonly DiagnosticDescriptor Descriptor;
+            public readonly Location? Location;
+            public readonly object?[]? Args;
+
+            public override int GetHashCode()
+            {
+                var hash = this.Descriptor.GetHashCode();
+                if (this.Location != null)
+                {
+                    hash ^= this.Location.GetHashCode();
+                }
+
+                if (this.Args != null)
+                {
+                    hash ^= this.Args.GetHashCode();
+                }
+
+                return hash;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                if (obj == null || obj.GetType() != typeof(DiagnosticIdentification))
+                {
+                    return false;
+                }
+
+                var x = (DiagnosticIdentification)obj;
+                return this.Descriptor == x.Descriptor && this.Location == x.Location && this.Args == x.Args;
+            }
+        }
+
+        private string SymbolToName(ISymbol symbol, bool addNamespaceClass, bool addNullableAnnotation)
+        {
+            StringBuilder sb;
+
+            if (symbol is IMethodSymbol mb)
+            {// Method
+                sb = new StringBuilder();
+                if (addNamespaceClass)
+                {
+                    sb.Append(this.GetNamespaceAndClass(symbol));
+                    sb.Append('.');
+                }
+
+                if (mb.MethodKind == MethodKind.Constructor)
+                {
+                    sb.Append(mb.ContainingType.Name);
+                }
+                else
+                {
+                    sb.Append(mb.Name);
+                }
+
+                if (mb.IsGenericMethod)
+                {
+                    sb.Append('<');
+                    for (var i = 0; i < mb.TypeArguments.Length; i++)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+
+                        sb.Append(this.SymbolToName(mb.TypeArguments[i], true, addNullableAnnotation));
+                    }
+
+                    sb.Append('>');
+                }
+
+                sb.Append('(');
+                for (var i = 0; i < mb.Parameters.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append(", ");
+                    }
+
+                    sb.Append(this.SymbolToName(mb.Parameters[i].Type, true, addNullableAnnotation));
+                }
+
+                sb.Append(')');
+
+                return sb.ToString();
+            }
+            else if (symbol is IArrayTypeSymbol ats)
+            {// Array []
+                sb = new StringBuilder(this.SymbolToName(ats.ElementType, addNamespaceClass, addNullableAnnotation));
+                /*if (addNullableAnnotation && ats.ElementNullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated)
+                {
+                    sb.Append('?');
+                }*/
+
+                sb.Append('[');
+                for (var n = 1; n < ats.Rank; n++)
+                {
+                    sb.Append(',');
+                }
+
+                sb.Append(']');
+
+                if (addNullableAnnotation && ats.NullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated)
+                {
+                    sb.Append('?');
+                }
+
+                return sb.ToString();
+            }
+            else if (symbol is ITypeParameterSymbol tps)
+            {// Generic parameter
+                if (addNullableAnnotation && tps.NullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated)
+                {
+                    return tps.Name + "?";
+                }
+                else
+                {
+                    return tps.Name;
+                }
+            }
+
+            if (symbol is INamedTypeSymbol ts)
+            { // NamedType
+                if (ts.TypeArguments.Length == 0)
+                {
+                    var shortName = VisceralHelper.Primitives_ShortenSimpleName(ts.Name);
+                    if (shortName != null)
+                    {
+                        return shortName;
+                    }
+
+                    var name = ts.Name;
+                    if (addNullableAnnotation && ts.NullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated)
+                    {
+                        name += "?";
+                    }
+
+                    if (addNamespaceClass)
+                    {
+                        return this.GetNamespaceAndClass(symbol) + "." + name;
+                    }
+                    else
+                    {
+                        return name;
+                    }
+                }
+
+                if (ts.IsTupleType)
+                {
+                    sb = new StringBuilder();
+
+                    sb.Append('(');
+                    for (var i = 0; i < ts.TypeArguments.Length; i++)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+
+                        sb.Append(this.SymbolToName(ts.TypeArguments[i], true, addNullableAnnotation));
+                    }
+
+                    sb.Append(')');
+                }
+                else if (ts.Name == "Nullable" && ts.ContainingNamespace.Name == "System" && ts.TypeArguments.Length == 1)
+                {// Nullable<T>
+                    var name = this.SymbolToName(ts.TypeArguments[0], addNamespaceClass, addNullableAnnotation);
+                    if (addNamespaceClass)
+                    {
+                        var shortName = VisceralHelper.Primitives_ShortenFullName(name);
+                        if (shortName != null)
+                        {
+                            return shortName + "?";
+                        }
+                        else
+                        {
+                            return name + "?";
+                        }
+                    }
+                    else
+                    {
+                        return (VisceralHelper.Primitives_ShortenSimpleName(name) ?? name) + "?";
+                    }
+                }
+                else
+                {// Generic Class
+                    if (addNamespaceClass)
+                    {
+                        sb = new StringBuilder(this.GetNamespaceAndClass(symbol));
+                        sb.Append('.');
+                        sb.Append(ts.Name);
+                    }
+                    else
+                    {
+                        sb = new StringBuilder(ts.Name);
+                    }
+
+                    sb.Append('<');
+                    for (var i = 0; i < ts.TypeArguments.Length; i++)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+
+                        sb.Append(this.SymbolToName(ts.TypeArguments[i], true, addNullableAnnotation));
+                    }
+
+                    sb.Append('>');
+
+                    if (addNullableAnnotation && ts.NullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated)
+                    {
+                        sb.Append('?');
+                    }
+                }
+
+                return sb.ToString();
+            }
+            else
+            {
+                return addNamespaceClass ? this.GetNamespaceAndClass(symbol) + '.' + symbol.Name : symbol.Name;
+            }
+        }
+    }
+}

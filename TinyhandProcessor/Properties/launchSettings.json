@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TinyhandProcessor": {
+      "commandName": "Project",
+      "commandLineArgs": "\"process startup time.tinyhand\""
+    }
+  }
+}

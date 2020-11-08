@@ -1,0 +1,46 @@
+﻿app.name = "Conductor"
+
+// Dialog
+dialog.ok = "O K"
+dialog.cancel = "キャンセル"
+dialog.yes = "はい"
+dialog.no = "いいえ"
+dialog.exit = "終了してもよろしいですか？"
+
+// Hour/Minute/Second
+hms.hour = "時間"
+hms.minute = "分"
+hms.second = "秒"
+
+// Taskbar
+taskbar.open = "Conductorを開く"
+taskbar.exit = "終了"
+taskbar.preventscreenoff = "ディスプレイオフを防止する"
+taskbar.preventpc = "PCスリープを防止する"
+
+// Buttons
+button.settings = "設定"
+button.shutdown = "シャットダウン"
+button.clear = "消去"
+button.sleep = "スリープ"
+button.logoff = "ログオフ"
+button.abort = "中止"
+
+checkbox.prevent.shutdown.while.busy = "CPU使用率が高い間は、シャットダウンを待機する"
+
+core.shutdown.remaining = "シャットダウンまで"
+core.shuttingdown = "シャットダウン・・・実行まであと {0} 秒"
+core.shuttingdown.cpu = "シャットダウン・・・CPU使用率が下がるまで待機中（{0:F0} %）"
+
+// Settings
+settings.title = "設定/情報"
+settings.tab.general = "全般"
+settings.tab.information = "情報"
+settings.language = "表示言語"
+settings.displayscaling = "表示倍率"
+settings.closebutton = "閉じるボタン"
+settings.closebutton2 = "ウィンドウをタスクバーに格納する"
+
+// Language
+language.en = "英語（English）"
+language.ja = "日本語（Japanese）"

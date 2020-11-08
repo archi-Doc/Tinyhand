@@ -1,0 +1,46 @@
+app.name = null
+
+// Dialog
+dialog.ok = "O K"
+dialog.cancel = "Cancel"
+dialog.yes = "Yes"
+dialog.no = "No"
+dialog.exit = "Do you really want to exit？"
+
+// Hour/Minute/Second
+hms.hour = "hrs."
+hms.minute = "mins."
+hms.second = "secs."
+
+// Taskbar
+taskbar.open = "Open Conductor"
+taskbar.exit = "Exit"
+taskbar.preventscreenoff = "Prevent display off"
+taskbar.preventpc = "Prevent PC sleep"
+
+// Buttons
+button.settings = "Settings"
+button.shutdown = "Shutdown"
+button.clear = "Clear"
+button.sleep = "Sleep"
+button.logoff = "Log off"
+button.abort = "Abort"
+
+checkbox.prevent.shutdown.while.busy = "Wait for shutdown while CPU usage is high."
+
+core.shutdown.remaining = "Shutting down in "
+core.shuttingdown = "Waiting shutdown・・・{0} seconds"
+core.shuttingdown.cpu = "Waiting for shutdown due to high CPU usage（{0:F0} %）"
+
+// Settings
+settings.title = "Settings/Information"
+settings.tab.general = "General"
+settings.tab.information = "Information"
+settings.language = "Language"
+settings.displayscaling = "Display Scaling"
+settings.closebutton = "Close Button"
+settings.closebutton2 = "move the window to the taskbar."
+
+// Language
+language.en = "English (英語)"
+language.ja = "Japanese (日本語)"

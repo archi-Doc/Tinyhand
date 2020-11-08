@@ -1,0 +1,13 @@
+// test
+app.name = "standard app"
+app.description = "standard application"
+dialog.ok = null
+dialog.cancel = null
+dialog.yes = null
+dialog.no = null
+
+// comment
+button = null
+button2 = null
+time.text = "time is..."
+mit.license = "english"

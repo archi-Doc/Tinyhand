@@ -1,0 +1,6 @@
+mode = "process"
+process = "startup time"
+repeat = 3
+// log = {"file", path="mylog.txt", console=true, format="log"}
+
+"WpfApp1\\WpfApp1.exe"

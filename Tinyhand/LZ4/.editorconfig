@@ -1,0 +1,30 @@
+﻿# EditorConfig is awesome:http://EditorConfig.org
+
+[*]
+dotnet_diagnostic.CS8600.severity = silent
+dotnet_diagnostic.CS8601.severity = silent
+dotnet_diagnostic.CS8602.severity = silent
+dotnet_diagnostic.CS8603.severity = silent
+dotnet_diagnostic.CS8618.severity = silent
+dotnet_diagnostic.CS8622.severity = silent
+dotnet_diagnostic.CS8625.severity = silent
+
+dotnet_diagnostic.SA1108.severity = silent
+dotnet_diagnostic.SA1101.severity = silent
+dotnet_diagnostic.SA1121.severity = silent
+dotnet_diagnostic.SA1124.severity = silent
+dotnet_diagnostic.SA1129.severity = silent
+dotnet_diagnostic.SA1201.severity = silent
+dotnet_diagnostic.SA1202.severity = silent
+dotnet_diagnostic.SA1204.severity = silent
+dotnet_diagnostic.SA1311.severity = silent
+dotnet_diagnostic.SA1313.severity = silent
+dotnet_diagnostic.SA1400.severity = silent
+dotnet_diagnostic.SA1503.severity = silent
+dotnet_diagnostic.SA1513.severity = silent
+dotnet_diagnostic.SA1518.severity = silent
+dotnet_diagnostic.SA1602.severity = silent
+dotnet_diagnostic.SA1611.severity = silent
+dotnet_diagnostic.SA1633.severity = silent
+dotnet_diagnostic.SA1636.severity = silent
+dotnet_diagnostic.SA1649.severity = silent

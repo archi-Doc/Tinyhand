@@ -1,0 +1,3 @@
+﻿[Error] Error test. (Line:6 BytePosition:1)
+[Error] Error test. (Line:7 BytePosition:1)
+[Error] Error test. (Line:8 BytePosition:1)

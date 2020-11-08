@@ -1,0 +1,22 @@
+mode = "process"
+process = "language file"
+// log = {"file", path="mylog.txt", console=true}
+
+reference = "text-ja.tinyhand"
+"text-en.tinyhand"
+
+// result = "console"
+// result = {"file", path = "test.log"}
+
+process = "test"
+process = "copy file"
+source = "test\\"
+destination = "c:\\app"
+"test.file"
+all
+"*"
+@import = {"external.tinyhand"}
+e"external.tinyhand"
+// @import("external.tinyhand")
+
+// @mode = { process = "language text" }

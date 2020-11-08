@@ -1,0 +1,23 @@
+a = {// 12
+bin = b"R29kaGFuZCB0byBUaW55aGFuZA=="
+a = "single\r\n2nd\t" //abc
+a2 = """1
+2""
+3
+text"""
+
+//a2
+
+b = 1 // test
+c = /* test */ d
+ 2
+file = """test"""
+/* comment */
+/* comment2 
+a
+*/
+d = null
+e = {1,2,{3},}
+1234
+12.34
+}
