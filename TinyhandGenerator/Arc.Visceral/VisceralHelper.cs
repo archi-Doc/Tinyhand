@@ -224,9 +224,9 @@ namespace Arc.Visceral
             "System.Boolean" => "bool",
             "System.Boolean?" => "bool?",
             "System.Boolean[]" => "bool[]",
-            "System.Sbyte" => "sbyte",
-            "System.Sbyte?" => "sbyte?",
-            "System.Sbyte[]" => "sbyte[]",
+            "System.SByte" => "sbyte",
+            "System.SByte?" => "sbyte?",
+            "System.SByte[]" => "sbyte[]",
             "System.Byte" => "byte",
             "System.Byte?" => "byte?",
             "System.Byte[]" => "byte[]",
@@ -269,9 +269,9 @@ namespace Arc.Visceral
             "Boolean" => "bool",
             "Boolean?" => "bool?",
             "Boolean[]" => "bool[]",
-            "Sbyte" => "sbyte",
-            "Sbyte?" => "sbyte?",
-            "Sbyte[]" => "sbyte[]",
+            "SByte" => "sbyte",
+            "SByte?" => "sbyte?",
+            "SByte[]" => "sbyte[]",
             "Byte" => "byte",
             "Byte?" => "byte?",
             "Byte[]" => "byte[]",
@@ -364,9 +364,9 @@ namespace Arc.Visceral
             "System.Boolean" => "bool",
             "System.Boolean?" => "bool?",
             "System.Boolean[]" => "bool[]",
-            "System.Sbyte" => "sbyte",
-            "System.Sbyte?" => "sbyte?",
-            "System.Sbyte[]" => "sbyte[]",
+            "System.SByte" => "sbyte",
+            "System.SByte?" => "sbyte?",
+            "System.SByte[]" => "sbyte[]",
             "System.Byte" => "byte",
             "System.Byte?" => "byte?",
             "System.Byte[]" => "byte[]",
@@ -413,9 +413,9 @@ namespace Arc.Visceral
             "Boolean" => "bool",
             "Boolean?" => "bool?",
             "Boolean[]" => "bool[]",
-            "Sbyte" => "sbyte",
-            "Sbyte?" => "sbyte?",
-            "Sbyte[]" => "sbyte[]",
+            "SByte" => "sbyte",
+            "SByte?" => "sbyte?",
+            "SByte[]" => "sbyte[]",
             "Byte" => "byte",
             "Byte?" => "byte?",
             "Byte[]" => "byte[]",
@@ -461,9 +461,9 @@ namespace Arc.Visceral
             "System.Boolean" => typeof(bool),
             "System.Boolean?" => typeof(bool?),
             "System.Boolean[]" => typeof(bool[]),
-            "System.Sbyte" => typeof(sbyte),
-            "System.Sbyte?" => typeof(sbyte?),
-            "System.Sbyte[]" => typeof(sbyte[]),
+            "System.SByte" => typeof(sbyte),
+            "System.SByte?" => typeof(sbyte?),
+            "System.SByte[]" => typeof(sbyte[]),
             "System.Byte" => typeof(byte),
             "System.Byte?" => typeof(byte?),
             "System.Byte[]" => typeof(byte[]),
@@ -506,9 +506,9 @@ namespace Arc.Visceral
             "Boolean" => typeof(bool),
             "Boolean?" => typeof(bool?),
             "Boolean[]" => typeof(bool[]),
-            "Sbyte" => typeof(sbyte),
-            "Sbyte?" => typeof(sbyte?),
-            "Sbyte[]" => typeof(sbyte[]),
+            "SByte" => typeof(sbyte),
+            "SByte?" => typeof(sbyte?),
+            "SByte[]" => typeof(sbyte[]),
             "Byte" => typeof(byte),
             "Byte?" => typeof(byte?),
             "Byte[]" => typeof(byte[]),
@@ -951,6 +951,25 @@ namespace Arc.Visceral
                 || openType == typeof(ValueTuple<,,,,,>)
                 || openType == typeof(ValueTuple<,,,,,,>)
                 || (openType == typeof(ValueTuple<,,,,,,,>) && IsTuple(type.GetGenericArguments()[7]));
+        }
+
+        public static string GetProjectPath()
+        {
+            var current = System.IO.Directory.GetCurrentDirectory();
+
+            var debugIndex = current.IndexOf("\\bin\\Debug");
+            if (debugIndex >= 0)
+            {
+                return current.Substring(0, debugIndex);
+            }
+
+            var releaseIndex = current.IndexOf("\\bin\\Release");
+            if (releaseIndex >= 0)
+            {
+                return current.Substring(0, releaseIndex);
+            }
+
+            throw new Exception("Fatal error, no project path.");
         }
     }
 }

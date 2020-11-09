@@ -1,8 +1,10 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Tinyhand.Formatters;
 
 #pragma warning disable SA1509 // Opening braces should not be preceded by blank line
@@ -82,6 +84,25 @@ namespace Tinyhand.Resolvers
             { typeof(List<string>), StringListFormatter.Instance },
             { typeof(List<char>), CharListFormatter.Instance },
             { typeof(List<DateTime>), DateTimeListFormatter.Instance },
+
+            // StandardClassLibraryFormatter
+            { typeof(decimal), DecimalFormatter.Instance },
+            { typeof(decimal?), new StaticNullableFormatter<decimal>(DecimalFormatter.Instance) },
+            { typeof(TimeSpan), TimeSpanFormatter.Instance },
+            { typeof(TimeSpan?), new StaticNullableFormatter<TimeSpan>(TimeSpanFormatter.Instance) },
+            { typeof(DateTimeOffset), DateTimeOffsetFormatter.Instance },
+            { typeof(DateTimeOffset?), new StaticNullableFormatter<DateTimeOffset>(DateTimeOffsetFormatter.Instance) },
+            { typeof(Guid), GuidFormatter.Instance },
+            { typeof(Guid?), new StaticNullableFormatter<Guid>(GuidFormatter.Instance) },
+            { typeof(Uri), UriFormatter.Instance },
+            { typeof(Version), VersionFormatter.Instance },
+            { typeof(StringBuilder), StringBuilderFormatter.Instance },
+            { typeof(BitArray), BitArrayFormatter.Instance },
+            { typeof(Type), TypeFormatter<Type>.Instance },
+            { typeof(System.Numerics.BigInteger), BigIntegerFormatter.Instance },
+            { typeof(System.Numerics.BigInteger?), new StaticNullableFormatter<System.Numerics.BigInteger>(BigIntegerFormatter.Instance) },
+            { typeof(System.Numerics.Complex), ComplexFormatter.Instance },
+            { typeof(System.Numerics.Complex?), new StaticNullableFormatter<System.Numerics.Complex>(ComplexFormatter.Instance) },
         };
 
         private BuiltinResolver()

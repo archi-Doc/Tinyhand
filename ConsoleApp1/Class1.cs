@@ -12,132 +12,100 @@ using Tinyhand;
 namespace XUnitTest
 {
     [TinyhandObject]
-    [MessagePack.MessagePackObject]
     public partial class PrimitiveIntKeyClass
     {
         [Key(0)]
-        [MessagePack.Key(0)]
         public bool BoolField = true;
 
         [Key(1)]
-        [MessagePack.Key(1)]
         public bool BoolProperty { get; set; } = false;
 
-        /*[Key(2)]
-        [MessagePack.Key(2)]
+        [Key(2)]
         public byte ByteField = 10;
 
         [Key(3)]
-        [MessagePack.Key(3)]
         public byte ByteProperty { get; set; } = 20;
 
         [Key(4)]
-        [MessagePack.Key(4)]
         public sbyte SByteField = -11;
 
         [Key(5)]
-        [MessagePack.Key(5)]
         public sbyte SByteProperty { get; set; } = 22;
 
         [Key(6)]
-        [MessagePack.Key(6)]
         public short ShortField = -100;
 
         [Key(7)]
-        [MessagePack.Key(7)]
         public short ShortProperty { get; set; } = 220;
 
         [Key(8)]
-        [MessagePack.Key(8)]
         public ushort UShortField = 110;
 
         [Key(9)]
-        [MessagePack.Key(9)]
         public ushort UShortProperty { get; set; } = 222;
 
         [Key(10)]
-        [MessagePack.Key(10)]
         public int IntField = 1100;
 
         [Key(11)]
-        [MessagePack.Key(11)]
         public int IntProperty { get; set; } = -2200;
 
         [Key(12)]
-        [MessagePack.Key(12)]
         public uint UIntField = 11001;
 
         [Key(13)]
-        [MessagePack.Key(13)]
         public uint UIntProperty { get; set; } = 22001;
 
         [Key(14)]
-        [MessagePack.Key(14)]
         public long LongField = -1111222;
 
         [Key(15)]
-        [MessagePack.Key(15)]
         public long LongProperty { get; set; } = 211112222;
 
         [Key(16)]
-        [MessagePack.Key(16)]
         public ulong ULongField = 110011222;
 
         [Key(17)]
-        [MessagePack.Key(17)]
         public ulong ULongProperty { get; set; } = 1100112221;
 
         [Key(18)]
-        [MessagePack.Key(18)]
         public float FloatField = 1.1f;
 
         [Key(19)]
-        [MessagePack.Key(19)]
         public float FloatProperty { get; set; } = 22f;
 
         [Key(20)]
-        [MessagePack.Key(20)]
         public double DoubleField = 11d;
 
         [Key(21)]
-        [MessagePack.Key(21)]
         public double DoubleProperty { get; set; } = 22d;
 
         [Key(22)]
-        [MessagePack.Key(22)]
         public decimal DecimalField = 111m;
 
         [Key(23)]
-        [MessagePack.Key(23)]
         public decimal DecimalProperty { get; set; } = 222m;
 
         [Key(24)]
-        [MessagePack.Key(24)]
         public string StringField = "test";
 
         [Key(25)]
-        [MessagePack.Key(25)]
         public string StringProperty { get; set; } = "head";
 
         [Key(26)]
-        [MessagePack.Key(26)]
         public char CharField = 'c';
 
         [Key(27)]
-        [MessagePack.Key(27)]
         public char CharProperty { get; set; } = '@';
 
         [Key(28)]
-        [MessagePack.Key(28)]
         public DateTime DateTimeField = DateTime.Now;
 
         [Key(29)]
-        [MessagePack.Key(29)]
-        public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;*/
+        public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
     }
 
-    /*[TinyhandObject(KeyAsPropertyName = true)]
-    [MessagePack.MessagePackObject(true)]
+    [TinyhandObject(KeyAsPropertyName = true)]
     public partial class PrimitiveStringKeyClass
     {
         public bool BoolField = true;
@@ -199,5 +167,5 @@ namespace XUnitTest
         public DateTime DateTimeField = DateTime.Now;
 
         public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
-    }*/
+    }
 }

@@ -5,18 +5,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Tinyhand;
 using Xunit;
 
 namespace XUnitTest
 {
+    // [TinyhandGeneratorOption(AttachDebugger = true, GenerateToFile = true)]
     public class PrimitiveTest
     {
         [Fact]
-        public void Test1()
+        public void PrimitiveIntKeyTest()
         {
-            var t = new PrimitiveClass() { IntField = 10, };
-            var t2 = TestHelper.Convert(t);
-            t.IsStructuralEqual(t2);
+            var t = new PrimitiveIntKeyClass();
+            var t2 = TestHelper.TestWithMessagePack(t);
         }
+
+        /*[Fact]
+        public void PrimitiveStringKeyTest()
+        {
+            var t = new PrimitiveStringKeyClass();
+            var t2 = TestHelper.TestWithMessagePack(t);
+        }*/
     }
 }

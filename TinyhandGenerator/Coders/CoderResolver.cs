@@ -80,6 +80,11 @@ namespace Tinyhand.Coders
                 return true;
             }
 
+            if (withNullable.Object.FullName == "decimal")
+            {
+                return true;
+            }
+
             return false;
         }
 
