@@ -21,19 +21,10 @@ namespace Tinyhand.Generator
 
         private TinyhandBody body = default!;
         private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
-        private INamedTypeSymbol? tinyhandGeneratorTestAttributeSymbol;
-
-        private static readonly string AttributeName = typeof(TinyhandObjectAttribute).Name;
-        private static readonly string AttributeNameSimple;
-        private static readonly string AttributeNameFull = typeof(TinyhandObjectAttribute).FullName;
-        private static readonly string TestAttributeName = typeof(TinyhandGeneratorTestAttribute).Name;
-        private static readonly string TestAttributeNameSimple;
-        private static readonly string TestAttributeNameFull = typeof(TinyhandGeneratorTestAttribute).FullName;
+        private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
 
         static TinyhandGenerator()
         {
-            AttributeNameSimple = AttributeName.Remove(AttributeName.LastIndexOf("Attribute"));
-            TestAttributeNameSimple = TestAttributeName.Remove(TestAttributeName.LastIndexOf("Attribute"));
         }
 
         public void Execute(GeneratorExecutionContext context)
@@ -44,19 +35,19 @@ namespace Tinyhand.Generator
             }
 
             var compilation = context.Compilation;
-            this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(AttributeNameFull);
+            this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeFake.FullName);
             if (this.tinyhandObjectAttributeSymbol == null)
             {
                 return;
             }
 
-            this.tinyhandGeneratorTestAttributeSymbol = compilation.GetTypeByMetadataName(TestAttributeNameFull);
-            if (this.tinyhandGeneratorTestAttributeSymbol == null)
+            this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeFake.FullName);
+            if (this.tinyhandGeneratorOptionAttributeSymbol == null)
             {
                 return;
             }
 
-            this.ProcessGeneratorTest(receiver, compilation);
+            this.ProcessGeneratorOption(receiver, compilation);
             if (this.AttachDebugger)
             {
                 System.Diagnostics.Debugger.Launch();
@@ -112,21 +103,21 @@ namespace Tinyhand.Generator
             }
         }
 
-        private void ProcessGeneratorTest(TinyhandSyntaxReceiver receiver, Compilation compilation)
+        private void ProcessGeneratorOption(TinyhandSyntaxReceiver receiver, Compilation compilation)
         {
-            if (receiver.GeneratorTestSyntax == null)
+            if (receiver.GeneratorOptionSyntax == null)
             {
                 return;
             }
 
-            var model = compilation.GetSemanticModel(receiver.GeneratorTestSyntax.SyntaxTree);
-            if (model.GetDeclaredSymbol(receiver.GeneratorTestSyntax) is INamedTypeSymbol s)
+            var model = compilation.GetSemanticModel(receiver.GeneratorOptionSyntax.SyntaxTree);
+            if (model.GetDeclaredSymbol(receiver.GeneratorOptionSyntax) is INamedTypeSymbol s)
             {
-                var attr = s.GetAttributes().FirstOrDefault(x => x.AttributeClass?.Name == TestAttributeName);
+                var attr = s.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandGeneratorOptionAttributeSymbol));
                 if (attr != null)
                 {
-                    var va = new VisceralAttribute(TestAttributeNameFull, attr);
-                    var ta = TinyhandGeneratorTestAttribute.FromArray(va.ConstructorArguments, va.NamedArguments);
+                    var va = new VisceralAttribute(TinyhandGeneratorOptionAttributeFake.FullName, attr);
+                    var ta = TinyhandGeneratorOptionAttributeFake.FromArray(va.ConstructorArguments, va.NamedArguments);
 
                     this.AttachDebugger = ta.AttachDebugger;
                     this.GenerateToFile = ta.GenerateToFile;
@@ -136,7 +127,7 @@ namespace Tinyhand.Generator
 
         internal class TinyhandSyntaxReceiver : ISyntaxReceiver
         {
-            public TypeDeclarationSyntax? GeneratorTestSyntax { get; private set; }
+            public TypeDeclarationSyntax? GeneratorOptionSyntax { get; private set; }
 
             public HashSet<TypeDeclarationSyntax> CandidateSet { get; } = new HashSet<TypeDeclarationSyntax>();
 
@@ -169,15 +160,15 @@ namespace Tinyhand.Generator
                     foreach (var attribute in attributeList.Attributes)
                     {
                         var name = attribute.Name.ToString();
-                        if (this.GeneratorTestSyntax == null)
+                        if (this.GeneratorOptionSyntax == null)
                         {
-                            if (name.EndsWith(TestAttributeName) || name.EndsWith(TestAttributeNameSimple))
+                            if (name.EndsWith(TinyhandGeneratorOptionAttributeFake.Name) || name.EndsWith(TinyhandGeneratorOptionAttributeFake.SimpleName))
                             {
-                                this.GeneratorTestSyntax = typeSyntax;
+                                this.GeneratorOptionSyntax = typeSyntax;
                             }
                         }
 
-                        if (name.EndsWith(AttributeName) || name.EndsWith(AttributeNameSimple))
+                        if (name.EndsWith(TinyhandObjectAttributeFake.Name) || name.EndsWith(TinyhandObjectAttributeFake.SimpleName))
                         {
                             return true;
                         }

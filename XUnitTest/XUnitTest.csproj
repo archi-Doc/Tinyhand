@@ -8,6 +8,14 @@
     <EnableNETAnalyzers>false</EnableNETAnalyzers>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>C:\Users\kay\repos\archi-Doc\Tinyhand\XUnitTest\XUnitTest.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\Users\kay\repos\archi-Doc\Tinyhand\XUnitTest\XUnitTest.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <AdditionalFiles Include="..\stylecop.json" Link="stylecop.json" />
   </ItemGroup>
@@ -32,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TinyhandGenerator\TinyhandGenerator.csproj" />
+    <ProjectReference Include="..\TinyhandGenerator\TinyhandGenerator.csproj" ReferenceOutputAssembly="true" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
   </ItemGroup>
 

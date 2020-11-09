@@ -54,15 +54,15 @@ namespace Tinyhand.Generator
 
         public TinyhandObjectFlag ObjectFlag { get; private set; }
 
-        public TinyhandObjectAttribute? ObjectAttribute { get; private set; }
+        public TinyhandObjectAttributeFake? ObjectAttribute { get; private set; }
 
-        public KeyAttribute? KeyAttribute { get; private set; }
+        public KeyAttributeFake? KeyAttribute { get; private set; }
 
         public VisceralAttribute? KeyVisceralAttribute { get; private set; }
 
-        public IgnoreMemberAttribute? IgnoreMemberAttribute { get; private set; }
+        public IgnoreMemberAttributeFake? IgnoreMemberAttribute { get; private set; }
 
-        public ReconstructAttribute? ReconstructAttribute { get; private set; }
+        public ReconstructAttributeFake? ReconstructAttribute { get; private set; }
 
         public ReconstructState ReconstructState { get; private set; }
 
@@ -195,11 +195,11 @@ namespace Tinyhand.Generator
             }
 
             // ObjectAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == typeof(TinyhandObjectAttribute).FullName) is { } objectAttribute)
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == TinyhandObjectAttributeFake.FullName) is { } objectAttribute)
             {
                 try
                 {
-                    this.ObjectAttribute = TinyhandObjectAttribute.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
+                    this.ObjectAttribute = TinyhandObjectAttributeFake.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
                 }
                 catch (InvalidCastException)
                 {
@@ -208,12 +208,12 @@ namespace Tinyhand.Generator
             }
 
             // KeyAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == typeof(KeyAttribute).FullName) is { } keyAttribute)
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAttributeFake.FullName) is { } keyAttribute)
             {
                 this.KeyVisceralAttribute = keyAttribute;
                 try
                 {
-                    this.KeyAttribute = KeyAttribute.FromArray(keyAttribute.ConstructorArguments, keyAttribute.NamedArguments);
+                    this.KeyAttribute = KeyAttributeFake.FromArray(keyAttribute.ConstructorArguments, keyAttribute.NamedArguments);
                 }
                 catch (ArgumentNullException)
                 {
@@ -222,11 +222,11 @@ namespace Tinyhand.Generator
             }
 
             // IgnoreMemberAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == typeof(IgnoreMemberAttribute).FullName) is { } ignoreMemberAttribute)
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == IgnoreMemberAttributeFake.FullName) is { } ignoreMemberAttribute)
             {
                 try
                 {
-                    this.IgnoreMemberAttribute = IgnoreMemberAttribute.FromArray(ignoreMemberAttribute.ConstructorArguments, ignoreMemberAttribute.NamedArguments);
+                    this.IgnoreMemberAttribute = IgnoreMemberAttributeFake.FromArray(ignoreMemberAttribute.ConstructorArguments, ignoreMemberAttribute.NamedArguments);
                 }
                 catch (InvalidCastException)
                 {
@@ -235,11 +235,11 @@ namespace Tinyhand.Generator
             }
 
             // ReconstructAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == typeof(ReconstructAttribute).FullName) is { } reconstructAttribute)
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == ReconstructAttributeFake.FullName) is { } reconstructAttribute)
             {
                 try
                 {
-                    this.ReconstructAttribute = ReconstructAttribute.FromArray(reconstructAttribute.ConstructorArguments, reconstructAttribute.NamedArguments);
+                    this.ReconstructAttribute = ReconstructAttributeFake.FromArray(reconstructAttribute.ConstructorArguments, reconstructAttribute.NamedArguments);
                 }
                 catch (InvalidCastException)
                 {
@@ -429,7 +429,7 @@ namespace Tinyhand.Generator
                             continue;
                         }
 
-                        x.KeyAttribute = new KeyAttribute(x.SimpleName);
+                        x.KeyAttribute = new KeyAttributeFake(x.SimpleName);
                     }
                     else if (x.KeyAttribute.IntKey != null)
                     {

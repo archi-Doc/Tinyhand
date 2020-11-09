@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Tinyhand
+namespace Tinyhand.Generator
 {
     public static class AttributeHelper
     {
@@ -25,9 +25,12 @@ namespace Tinyhand
         }
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
-    public sealed class TinyhandObjectAttribute : Attribute
+    public sealed class TinyhandObjectAttributeFake
     {
+        public static readonly string SimpleName = "TinyhandObject";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
         /// <summary>
         /// Gets or sets a value indicating whether or not to include private members as serialization targets [Default value is false].
         /// </summary>
@@ -48,21 +51,9 @@ namespace Tinyhand
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
 
-        public TinyhandObjectAttribute()
+        public TinyhandObjectAttributeFake()
         {
         }
-
-        /*public TinyhandObjectAttribute(
-            bool includePrivateMembers = true,
-            bool keyAsPropertyName = false,
-            bool reconstructMember = true,
-            bool skipSerializingDefaultValue = false)
-        {
-            this.IncludePrivateMembers = includePrivateMembers;
-            this.KeyAsPropertyName = keyAsPropertyName;
-            this.ReconstructMember = reconstructMember;
-            this.SkipSerializingDefaultValue = skipSerializingDefaultValue;
-        }*/
 
         /// <summary>
         /// Create an attribute instance from constructor arguments and named arguments.
@@ -70,9 +61,9 @@ namespace Tinyhand
         /// <param name="constructorArguments">Constructor arguments.</param>
         /// <param name="namedArguments">Named arguments.</param>
         /// <returns>A new attribute instance.</returns>
-        public static TinyhandObjectAttribute FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static TinyhandObjectAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new TinyhandObjectAttribute();
+            var attribute = new TinyhandObjectAttributeFake();
 
             object? val;
             val = AttributeHelper.GetValue(0, nameof(IncludePrivateMembers), constructorArguments, namedArguments);
@@ -103,26 +94,29 @@ namespace Tinyhand
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-    public class KeyAttribute : Attribute
+    public class KeyAttributeFake
     {
+        public static readonly string SimpleName = "Key";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
         public int? IntKey { get; private set; }
 
         public string? StringKey { get; private set; }
 
-        public KeyAttribute(int x)
+        public KeyAttributeFake(int x)
         {
             this.IntKey = x;
         }
 
-        public KeyAttribute(string x)
+        public KeyAttributeFake(string x)
         {
             this.StringKey = x;
         }
 
-        public static KeyAttribute FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static KeyAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new KeyAttribute(null!);
+            var attribute = new KeyAttributeFake(null!);
 
             if (constructorArguments.Length > 0)
             {
@@ -146,30 +140,36 @@ namespace Tinyhand
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-    public class IgnoreMemberAttribute : Attribute
+    public class IgnoreMemberAttributeFake
     {
-        public static IgnoreMemberAttribute FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static readonly string SimpleName = "IgnoreMember";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
+        public static IgnoreMemberAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new IgnoreMemberAttribute();
+            var attribute = new IgnoreMemberAttributeFake();
 
             return attribute;
         }
     }
 
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class ReconstructAttribute : Attribute
+    public class ReconstructAttributeFake
     {
+        public static readonly string SimpleName = "Reconstruct";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
         public bool Reconstruct { get; set; }
 
-        public ReconstructAttribute(bool reconstruct)
+        public ReconstructAttributeFake(bool reconstruct)
         {
             this.Reconstruct = reconstruct;
         }
 
-        public static ReconstructAttribute FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static ReconstructAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new ReconstructAttribute(true);
+            var attribute = new ReconstructAttributeFake(true);
 
             object? val;
             val = AttributeHelper.GetValue(0, nameof(Reconstruct), constructorArguments, namedArguments);
@@ -182,31 +182,28 @@ namespace Tinyhand
         }
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
-    public sealed class TinyhandGeneratorTestAttribute : Attribute
+    public sealed class TinyhandGeneratorOptionAttributeFake : Attribute
     {
-        public bool AttachDebugger { get; set; }
+        public static readonly string SimpleName = "TinyhandGeneratorOption";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
 
-        public bool GenerateToFile { get; set; }
+        public bool AttachDebugger { get; set; } = false;
 
-        public TinyhandGeneratorTestAttribute(bool attachDebugger, bool generateToFile)
+        public bool GenerateToFile { get; set; } = false;
+
+        public static TinyhandGeneratorOptionAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            this.AttachDebugger = attachDebugger;
-            this.GenerateToFile = generateToFile;
-        }
-
-        public static TinyhandGeneratorTestAttribute FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
-        {
-            var attribute = new TinyhandGeneratorTestAttribute(false, false);
+            var attribute = new TinyhandGeneratorOptionAttributeFake();
 
             object? val;
-            val = AttributeHelper.GetValue(0, nameof(AttachDebugger), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(AttachDebugger), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.AttachDebugger = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(1, nameof(GenerateToFile), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(GenerateToFile), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.GenerateToFile = (bool)val;
@@ -214,12 +211,5 @@ namespace Tinyhand
 
             return attribute;
         }
-    }
-
-    public interface ITinyhandSerializationCallback
-    {
-        public void OnBeforeSerialize();
-
-        public void OnAfterDeserialize();
     }
 }

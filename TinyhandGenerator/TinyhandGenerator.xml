@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TinyhandGenerator</name>
+    </assembly>
+    <members>
+        <member name="T:Arc.Visceral.ScopingStringBuilder">
+            <summary>
+            Simple string builder with a scoping function, mainly created for a source generator.
+            </summary>
+        </member>
+        <member name="P:Arc.Visceral.ScopingStringBuilder.IndentSpaces">
+            <summary>
+            Gets the number of indent spaces.
+            </summary>
+        </member>
+        <member name="P:Arc.Visceral.ScopingStringBuilder.IndentString">
+            <summary>
+            Gets the cached indent string.
+            </summary>
+        </member>
+        <member name="M:Arc.Visceral.ScopingStringBuilder.Finalize">
+            <summary>
+            Finalize and get the result. All scopes will be disposed.
+            </summary>
+            <returns>A result string.</returns>
+        </member>
+        <member name="T:Arc.Visceral.VisceralGenerics">
+            <summary>
+            Process generic syntax.
+            </summary>
+        </member>
+        <member name="P:Arc.Visceral.VisceralAttribute.FullName">
+            <summary>
+            Gets the fully qualified name of the attribute.
+            </summary>
+        </member>
+        <member name="P:Arc.Visceral.VisceralAttribute.ConstructorArguments">
+            <summary>
+            Gets the constructor attribute arguments (object? value).
+            </summary>
+        </member>
+        <member name="P:Arc.Visceral.VisceralAttribute.NamedArguments">
+            <summary>
+            Gets the named attribute arguments (string name, object? value).
+            </summary>
+        </member>
+        <member name="F:Arc.Visceral.NullableAnnotation.None">
+            <summary>
+            The expression has not been analyzed, or the syntax is not an expression (such as a statement).
+            </summary>
+        </member>
+        <member name="F:Arc.Visceral.NullableAnnotation.NotAnnotated">
+            <summary>
+            The expression is not annotated (does not have a ?).
+            </summary>
+        </member>
+        <member name="F:Arc.Visceral.NullableAnnotation.Annotated">
+            <summary>
+            The expression is annotated (does have a ?).
+            </summary>
+        </member>
+        <member name="F:Tinyhand.Coders.ArrayResolver.Instance">
+            <summary>
+            The singleton instance that can be used.
+            </summary>
+        </member>
+        <member name="F:Tinyhand.Coders.BuiltinCoder.Instance">
+            <summary>
+            The singleton instance that can be used.
+            </summary>
+        </member>
+        <member name="F:Tinyhand.Coders.CoderResolver.Instance">
+            <summary>
+            The singleton instance that can be used.
+            </summary>
+        </member>
+        <member name="F:Tinyhand.Coders.EnumResolver.Instance">
+            <summary>
+            The singleton instance that can be used.
+            </summary>
+        </member>
+        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeSerializer(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GeneratorInformation)">
+            <summary>
+            Outputs the code to serialize an object.
+            </summary>
+            <param name="ssb">The scoping string builder to output code.</param>
+            <param name="info">The generator information.</param>
+        </member>
+        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeDeserializer(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GeneratorInformation,System.Boolean)">
+            <summary>
+            Outputs the code to deserialize an object.
+            </summary>
+            <param name="ssb">The scoping string builder to output code.</param>
+            <param name="info">The generator information.</param>
+            <param name="nilChecked">True if the next code is non-Nil.</param>
+        </member>
+        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeReconstruct(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GeneratorInformation)">
+            <summary>
+            Outputs the code to reconstruct an object (create a new instance).
+            </summary>
+            <param name="ssb">The scoping string builder to output code.</param>
+            <param name="info">The generator information.</param>
+        </member>
+        <member name="F:Tinyhand.Coders.ListResolver.Instance">
+            <summary>
+            The singleton instance that can be used.
+            </summary>
+        </member>
+        <member name="F:Tinyhand.Coders.NullableResolver.Instance">
+            <summary>
+            The singleton instance that can be used.
+            </summary>
+        </member>
+        <member name="T:Tinyhand.ICoderResolver">
+            <summary>
+            Allows querying for a coder for serializing or deserializing a particular <see cref="T:Tinyhand.Generator.TinyhandObject" />.
+            </summary>
+        </member>
+        <member name="M:Tinyhand.ICoderResolver.TryGetCoder(Arc.Visceral.WithNullable{Tinyhand.Generator.TinyhandObject})">
+            <summary>
+            Gets an <see cref="T:Tinyhand.Coders.ITinyhandCoder"/> instance that can serialize or deserialize some type <see cref="T:Tinyhand.Generator.TinyhandObject" />.
+            </summary>
+            <param name="withNullable">The <see cref="T:Tinyhand.Generator.TinyhandObject" /> to be serialized or deserialized.</param>
+            <returns>A coder, if this resolver supplies one for type <see cref="T:Tinyhand.Generator.TinyhandObject" />; otherwise <c>null</c>.</returns>
+        </member>
+        <member name="P:Tinyhand.Generator.TinyhandObjectAttributeFake.IncludePrivateMembers">
+            <summary>
+            Gets or sets a value indicating whether or not to include private members as serialization targets [Default value is false].
+            </summary>
+        </member>
+        <member name="P:Tinyhand.Generator.TinyhandObjectAttributeFake.KeyAsPropertyName">
+            <summary>
+            Gets or sets a value indicating whether or not to use property names as string keys. String key and Int key are exclusive [Default value is false].
+            </summary>
+        </member>
+        <member name="P:Tinyhand.Generator.TinyhandObjectAttributeFake.ReconstructMember">
+            <summary>
+            Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [Default value is true].
+            </summary>
+        </member>
+        <member name="P:Tinyhand.Generator.TinyhandObjectAttributeFake.SkipSerializingDefaultValue">
+            <summary>
+            Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [Default value is false].
+            </summary>
+        </member>
+        <member name="M:Tinyhand.Generator.TinyhandObjectAttributeFake.FromArray(System.Object[],System.Collections.Generic.KeyValuePair{System.String,System.Object}[])">
+            <summary>
+            Create an attribute instance from constructor arguments and named arguments.
+            </summary>
+            <param name="constructorArguments">Constructor arguments.</param>
+            <param name="namedArguments">Named arguments.</param>
+            <returns>A new attribute instance.</returns>
+        </member>
+        <member name="M:Tinyhand.Generator.TinyhandGenerator.TinyhandSyntaxReceiver.CheckAttribute(Microsoft.CodeAnalysis.CSharp.Syntax.TypeDeclarationSyntax)">
+            <summary>
+            Returns true if the Type Sytax contains the specific attribute.
+            </summary>
+            <param name="typeSyntax">A type syntax.</param>
+            <returns>True if the Type Sytax contains the specific attribute.</returns>
+        </member>
+        <member name="M:Tinyhand.Generator.TinyhandReconstruct.CheckCircular(Tinyhand.Generator.TinyhandObject)">
+            <summary>
+            Check circular dependency.
+            </summary>
+            <param name="obj">The object to check.</param>
+            <returns>Returns true if circular dependency detected.</returns>
+        </member>
+    </members>
+</doc>

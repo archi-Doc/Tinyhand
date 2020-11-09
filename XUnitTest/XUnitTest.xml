@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>XUnitTest</name>
+    </assembly>
+    <members>
+        <member name="T:XUnitTest.RoslynUnit">
+            <summary>
+            Parse a text file and get SyntaxTree, Compilation, SemanticModel.
+            </summary>
+        </member>
+        <member name="M:Xunit.AssertEx.Is``1(``0,``0)">
+            <summary>Assert.Equal, if T is IEnumerable then compare value equality</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.Is``1(``0,System.Linq.Expressions.Expression{System.Func{``0,System.Boolean}},System.String)">
+            <summary>Assert.True(predicate(value))</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.Is``1(``0,``0,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>Assert.Equal</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.Is``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>Assert.Equal(sequence value compare)</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.Is``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0})">
+            <summary>Assert.Equal(sequence value compare)</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.Is``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>Assert.True(actual.SequenceEqual(expected, comparer))</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.Is``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Func{``0,``0,System.Boolean})">
+            <summary>Assert.True(actual.SequenceEqual(expected, comparison))</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNot``1(``0,``0)">
+            <summary>Assert.NotEqual, if T is IEnumerable then check value equality</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNot``1(``0,``0,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>Assert.NotEqual</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNot``1(System.Collections.Generic.IEnumerable{``0},``0[])">
+            <summary>Assert.NotEqual(sequence value compare)</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNot``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0})">
+            <summary>Assert.NotEqual(sequence value compare)</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNot``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>Assert.False(actual.SequenceEqual(notExpected, comparer))</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNot``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Func{``0,``0,System.Boolean})">
+            <summary>Assert.False(actual.SequenceEqual(notExpected, comparison))</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNull``1(``0)">
+            <summary>Assert.Null</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNotNull``1(``0)">
+            <summary>Assert.NotNull</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsTrue(System.Boolean)">
+            <summary>Is(true)</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsFalse(System.Boolean)">
+            <summary>Is(false)</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsSameReferenceAs``1(``0,``0)">
+            <summary>Assert.Same</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNotSameReferenceAs``1(``0,``0)">
+            <summary>Assert.NotSame</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsInstanceOf``1(System.Object)">
+            <summary>Assert.IsType</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNotInstanceOf``1(System.Object)">
+            <summary>Assert.IsNotType</summary>
+        </member>
+        <member name="T:Xunit.AssertEx.EqualityComparer`1">
+            <summary>EqualityComparison to IEqualityComparer Converter for CollectionAssert</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsStructuralEqual(System.Object,System.Object,System.String)">
+            <summary>Assert by deep recursive value equality compare</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.IsNotStructuralEqual(System.Object,System.Object,System.String)">
+            <summary>Assert by deep recursive value equality compare</summary>
+        </member>
+        <member name="M:Xunit.AssertEx.AsDynamic``1(``0)">
+            <summary>to DynamicAccessor that can call private method/field/property/indexer.</summary>
+        </member>
+    </members>
+</doc>
