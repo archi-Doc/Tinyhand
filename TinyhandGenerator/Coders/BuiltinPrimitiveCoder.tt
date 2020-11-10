@@ -18,7 +18,7 @@ var allTypes = new (string Simple, string Name, string Reconstruct)[]
     ("float", "Single", "0"),
     ("double", "Double", "0"),
     ("bool", "Boolean", "false"),
-    ("char", "Char", "0"),
+    ("char", "Char", "(char)0"),
     ("DateTime", "DateTime", "default(DateTime)"),
     };
 #>

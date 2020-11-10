@@ -1078,7 +1078,7 @@ namespace Tinyhand.Generator
                     }
                     else
                     {
-                        if (x.HasNullableAnnotation)
+                        if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
                         {// T?
                             ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
                         }
@@ -1134,7 +1134,7 @@ namespace Tinyhand.Generator
                     }
                     else
                     {
-                        if (x.HasNullableAnnotation)
+                        if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
                         {// T?
                             ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
                         }

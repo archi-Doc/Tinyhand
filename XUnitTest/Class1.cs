@@ -23,7 +23,7 @@ namespace XUnitTest
         [MessagePack.Key(1)]
         public bool BoolProperty { get; set; } = false;
 
-        /*[Key(2)]
+        [Key(2)]
         [MessagePack.Key(2)]
         public byte ByteField = 10;
 
@@ -129,14 +129,14 @@ namespace XUnitTest
 
         [Key(28)]
         [MessagePack.Key(28)]
-        public DateTime DateTimeField = DateTime.Now;
+        public DateTime DateTimeField = DateTime.UtcNow;
 
         [Key(29)]
         [MessagePack.Key(29)]
-        public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;*/
+        public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
     }
 
-    /*[TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(KeyAsPropertyName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class PrimitiveStringKeyClass
     {
@@ -196,8 +196,8 @@ namespace XUnitTest
 
         public char CharProperty { get; set; } = '@';
 
-        public DateTime DateTimeField = DateTime.Now;
+        public DateTime DateTimeField = DateTime.UtcNow;
 
         public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
-    }*/
+    }
 }

@@ -163,7 +163,7 @@ namespace Tinyhand.Generator
                 if (generateToFile)
                 {
                     // this.StringToFile(result, Path.Combine(Directory.GetCurrentDirectory(), "Generated", $"gen.Tinyhand.{x.Key}.cs"));
-                    this.StringToFile(result, Path.Combine("C:\\app\\generated", "Generated", $"gen.Tinyhand.{x.Key}.cs"));
+                    this.StringToFile(result, Path.Combine("C:\\app", "Generated", $"gen.Tinyhand.{x.Key}.cs"));
                 }
                 else
                 {
@@ -235,7 +235,7 @@ namespace Tinyhand.Generator
 
             if (generateToFile)
             {
-                this.StringToFile(result, Path.Combine(Directory.GetCurrentDirectory(), "Generated", "gen.TinyhandGenerated.cs"));
+                this.StringToFile(result, Path.Combine("C:\\app", "Generated", "gen.TinyhandGenerated.cs"));
             }
             else
             {

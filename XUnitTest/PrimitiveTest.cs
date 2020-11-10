@@ -20,11 +20,11 @@ namespace XUnitTest
             var t2 = TestHelper.TestWithMessagePack(t);
         }
 
-        /*[Fact]
+        [Fact]
         public void PrimitiveStringKeyTest()
         {
             var t = new PrimitiveStringKeyClass();
             var t2 = TestHelper.TestWithMessagePack(t);
-        }*/
+        }
     }
 }

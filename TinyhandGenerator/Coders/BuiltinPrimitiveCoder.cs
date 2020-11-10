@@ -1772,7 +1772,7 @@ namespace Tinyhand.Coders
 
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            ssb.AppendLine($"{ssb.FullObject} = 0;");
+            ssb.AppendLine($"{ssb.FullObject} = (char)0;");
         }
     }
 
@@ -1819,7 +1819,7 @@ namespace Tinyhand.Coders
 
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            ssb.AppendLine($"{ssb.FullObject} = 0;");
+            ssb.AppendLine($"{ssb.FullObject} = (char)0;");
         }
     }
 

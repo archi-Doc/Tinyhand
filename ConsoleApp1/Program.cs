@@ -18,7 +18,7 @@ namespace ConsoleApp1
         }
     }
 
-    // [TinyhandGeneratorOption(AttachDebugger = true, GenerateToFile = true)]
+    [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = false)]
     class Program
     {
         static void Main(string[] args)

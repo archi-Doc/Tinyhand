@@ -165,6 +165,9 @@ namespace Arc.Visceral
             type == VisceralObjectKind.Class ||
             type == VisceralObjectKind.Record;
 
+        public static bool IsValueType(this VisceralObjectKind type) =>
+            type == VisceralObjectKind.Struct;
+
         public static bool IsValue(this VisceralObjectKind type) =>
             type == VisceralObjectKind.Field ||
             type == VisceralObjectKind.Property;
