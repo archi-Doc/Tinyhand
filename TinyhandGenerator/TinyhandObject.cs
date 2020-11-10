@@ -291,6 +291,8 @@ namespace Tinyhand.Generator
                 this.FormatterCondition_Reconstruct = FormatterCondition.StaticMethod;
             }
 
+            // Members
+
             foreach (var x in this.AllMembers)
             {
                 if (x.TypeObject != null && !x.IsStatic && x.Kind.IsValue())
