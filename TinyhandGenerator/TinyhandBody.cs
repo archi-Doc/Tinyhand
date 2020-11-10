@@ -121,7 +121,7 @@ namespace Tinyhand.Generator
 
         internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
 
-        public void Generate(bool generateToFile)
+        public void Generate(bool generateToFile, string? targetFolder)
         {
             ScopingStringBuilder ssb = new();
             GeneratorInformation info = new();
@@ -160,10 +160,9 @@ namespace Tinyhand.Generator
 
                 var result = ssb.Finalize();
 
-                if (generateToFile)
+                if (generateToFile && targetFolder != null && Directory.Exists(targetFolder))
                 {
-                    // this.StringToFile(result, Path.Combine(Directory.GetCurrentDirectory(), "Generated", $"gen.Tinyhand.{x.Key}.cs"));
-                    this.StringToFile(result, Path.Combine("C:\\app", "Generated", $"gen.Tinyhand.{x.Key}.cs"));
+                    this.StringToFile(result, Path.Combine(targetFolder, $"gen.Tinyhand.{x.Key}.cs"));
                 }
                 else
                 {
@@ -171,7 +170,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            this.GenerateLoader(generateToFile, info, rootObjects);
+            this.GenerateLoader(generateToFile, targetFolder, info, rootObjects);
             this.FlushDiagnostic();
         }
 
@@ -209,7 +208,7 @@ namespace Tinyhand.Generator
             }
         }
 
-        private void GenerateLoader(bool generateToFile, GeneratorInformation info, List<TinyhandObject> rootObjects)
+        private void GenerateLoader(bool generateToFile, string? targetFolder, GeneratorInformation info, List<TinyhandObject> rootObjects)
         {
             var ssb = new ScopingStringBuilder();
             ssb.AddUsing("System");
@@ -233,9 +232,9 @@ namespace Tinyhand.Generator
 
             var result = ssb.Finalize();
 
-            if (generateToFile)
+            if (generateToFile && targetFolder != null && Directory.Exists(targetFolder))
             {
-                this.StringToFile(result, Path.Combine("C:\\app", "Generated", "gen.TinyhandGenerated.cs"));
+                this.StringToFile(result, Path.Combine(targetFolder, "gen.TinyhandGenerated.cs"));
             }
             else
             {

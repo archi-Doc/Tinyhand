@@ -19,6 +19,8 @@ namespace Tinyhand.Generator
 
         public bool GenerateToFile { get; private set; } = false;
 
+        public string? TargetFolder { get; private set; }
+
         private TinyhandBody body = default!;
         private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
         private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
@@ -81,7 +83,7 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            this.body.Generate(this.GenerateToFile);
+            this.body.Generate(this.GenerateToFile, this.TargetFolder);
         }
 
         public void Initialize(GeneratorInitializationContext context)
@@ -121,6 +123,7 @@ namespace Tinyhand.Generator
 
                     this.AttachDebugger = ta.AttachDebugger;
                     this.GenerateToFile = ta.GenerateToFile;
+                    this.TargetFolder = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(receiver.GeneratorOptionSyntax.SyntaxTree.FilePath), "Generated");
                 }
             }
         }
