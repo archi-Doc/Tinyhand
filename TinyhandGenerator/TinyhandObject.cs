@@ -291,22 +291,22 @@ namespace Tinyhand.Generator
                 this.FormatterCondition_Reconstruct = FormatterCondition.StaticMethod;
             }
 
-            // Members
-
-            foreach (var x in this.AllMembers)
+            // Members: Property
+            foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Property))
             {
                 if (x.TypeObject != null && !x.IsStatic && x.Kind.IsValue())
                 {
                     x.Configure();
+                    this.Members.Add(x);
+                }
+            }
 
-                    if (this.ObjectAttribute?.ReconstructMember == false)
-                    {
-                        if (x.ReconstructState == ReconstructState.IfPreferable)
-                        {
-                            x.ReconstructState = ReconstructState.Dont;
-                        }
-                    }
-
+            // Members: Field
+            foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Field))
+            {
+                if (x.TypeObject != null && !x.IsStatic && x.Kind.IsValue())
+                {
+                    x.Configure();
                     this.Members.Add(x);
                 }
             }
@@ -576,7 +576,7 @@ namespace Tinyhand.Generator
 
         public void CheckMember(TinyhandObject parent)
         {
-            // this.TypeObject is not null. Avoid this.TypeObject!
+            // Avoid this.TypeObject!
             if (this.TypeObject == null)
             {
                 return;
@@ -620,6 +620,12 @@ namespace Tinyhand.Generator
 
             if (this.ReconstructState == ReconstructState.IfPreferable)
             {
+                // Parent's ReconstructMember is false
+                if (parent.ObjectAttribute?.ReconstructMember == false)
+                {
+                    this.ReconstructState = ReconstructState.Dont;
+                }
+
                 // Avoid reconstruct T?
                 if (this.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.Annotated)
                 {
