@@ -26,5 +26,12 @@ namespace XUnitTest
             var t = new PrimitiveStringKeyClass();
             var t2 = TestHelper.TestWithMessagePack(t);
         }
+
+        [Fact]
+        public void PrimitiveArrayTest()
+        {
+            var t = new PrimitiveArrayClass();
+            var t2 = TestHelper.TestWithMessagePack(t);
+        }
     }
 }

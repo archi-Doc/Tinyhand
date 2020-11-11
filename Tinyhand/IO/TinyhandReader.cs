@@ -663,6 +663,20 @@ namespace Tinyhand.IO
             return result;
         }
 
+        public byte[] ReadBytesToArray()
+        {
+            if (this.TryReadNil())
+            {
+                return Array.Empty<byte>();
+            }
+
+            int length = this.GetBytesLength();
+            ThrowInsufficientBufferUnless(this.reader.Remaining >= length);
+            var result = this.reader.Sequence.Slice(this.reader.Position, length);
+            this.reader.Advance(length);
+            return result.ToArray();
+        }
+
         /// <summary>
         /// Reads a string of bytes, whose length is determined by a header of one of these types:
         /// <see cref="MessagePackCode.Str8"/>,

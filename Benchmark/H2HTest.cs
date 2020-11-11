@@ -45,11 +45,36 @@ namespace Benchmark.H2HTest
         public int[] B { get; set; } = new int[0];
     }
 
+    [MessagePack.MessagePackObject(true)]
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class ObjectH2H2
+    {
+        public const int ArrayN = 10;
+
+        public ObjectH2H2()
+        {
+            this.B = Enumerable.Range(0, ArrayN).ToArray();
+        }
+
+        public int X { get; set; }
+
+        public int Y { get; set; }
+
+        public int Z { get; set; }
+
+        public string A { get; set; } = "H2Htest";
+
+        public int[] B { get; set; } = new int[0];
+    }
+
     [Config(typeof(BenchmarkConfig))]
     public class H2HBenchmark
     {
         ObjectH2H h2h = default!;
         byte[] data = default!;
+
+        ObjectH2H2 h2h2 = default!;
+        byte[] data2 = default!;
 
         public H2HBenchmark()
         {
@@ -60,6 +85,9 @@ namespace Benchmark.H2HTest
         {
             this.h2h = new ObjectH2H();
             this.data = MessagePack.MessagePackSerializer.Serialize(this.h2h);
+
+            this.h2h2 = new ObjectH2H2();
+            this.data2 = MessagePack.MessagePackSerializer.Serialize(this.h2h2);
         }
 
         [GlobalCleanup]
@@ -89,6 +117,30 @@ namespace Benchmark.H2HTest
         public ObjectH2H? DeserializeTinyhand()
         {
             return Tinyhand.TinyhandSerializer.Deserialize<ObjectH2H>(this.data);
+        }
+
+        [Benchmark]
+        public byte[] SerializeMessagePackString()
+        {
+            return MessagePack.MessagePackSerializer.Serialize(this.h2h2);
+        }
+
+        [Benchmark]
+        public byte[] SerializeTinyhandString()
+        {
+            return Tinyhand.TinyhandSerializer.Serialize(this.h2h2);
+        }
+
+        [Benchmark]
+        public ObjectH2H2 DeserializeMessagePackString()
+        {
+            return MessagePack.MessagePackSerializer.Deserialize<ObjectH2H2>(this.data2);
+        }
+
+        [Benchmark]
+        public ObjectH2H2? DeserializeTinyhandString()
+        {
+            return Tinyhand.TinyhandSerializer.Deserialize<ObjectH2H2>(this.data2);
         }
     }
 }

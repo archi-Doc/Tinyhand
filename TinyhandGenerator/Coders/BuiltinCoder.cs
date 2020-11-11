@@ -290,7 +290,7 @@ namespace Tinyhand.Coders
 
         public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
         {
-            ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytes()?.ToArray() ?? Array.Empty<byte>();");
+            ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToArray();");
         }
 
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)

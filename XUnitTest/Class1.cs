@@ -200,4 +200,39 @@ namespace XUnitTest
 
         public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
     }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    [MessagePack.MessagePackObject(true)]
+    public partial class PrimitiveArrayClass
+    {
+        public bool[] BoolArray { get; set; } = new bool[] { true, false, true, };
+
+        public byte[] ByteArray { get; set; } = new byte[] { 1, 10, 200, };
+
+        public sbyte[] SByteArray { get; set; } = new sbyte[] { -10, 10, 100, };
+
+        public short[] ShortArray { get; set; } = new short[] { -200, 123, 300, };
+
+        public ushort[] UShortrray { get; set; } = new ushort[] { 10, 123, 456, };
+
+        public int[] IntArray { get; set; } = new int[] { -100, 12, 5956, };
+
+        public uint[] UIntArray { get; set; } = new uint[] { 0, 33, 333, };
+
+        public long[] LongArray { get; set; } = new long[] { -444, 55, 666, 5, };
+
+        public ulong[] ULongArray { get; set; } = new ulong[] { 444, 5555, 6666, };
+
+        public float[] FloatArray { get; set; } = new float[] { -1f, 213f, 456789f, };
+
+        public double[] DoubleArray { get; set; } = new double[] { -100d, 0d, 123456d, 456789d, };
+
+        public decimal[] DecimalArray { get; set; } = new decimal[] { -144m, 456m, 78998m, };
+
+        public string[] StringArray { get; set; } = new string[] { string.Empty, "test", "head", };
+
+        public char[] CharArray { get; set; } = new char[] { 't', 'h', 'e', };
+
+        public DateTime[] DateTimeArray { get; set; } = new DateTime[] { DateTime.UtcNow, DateTime.UtcNow, };
+    }
 }

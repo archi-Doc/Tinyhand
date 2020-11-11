@@ -20,7 +20,7 @@ namespace XUnitTest
         {
             var b = TinyhandSerializer.Serialize<T>(obj);
             var b2 = MessagePack.MessagePackSerializer.Serialize<T>(obj);
-            var json = MessagePack.MessagePackSerializer.ConvertToJson(b2);
+            // var json = MessagePack.MessagePackSerializer.ConvertToJson(b2);
             b.IsStructuralEqual(b2);
 
             var t = TinyhandSerializer.Deserialize<T>(b);
