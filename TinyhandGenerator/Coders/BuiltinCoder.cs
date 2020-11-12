@@ -106,7 +106,7 @@ namespace Tinyhand.Coders
             { "string", StringCoder.Instance },
             { "string?", NullableStringCoder.Instance },
             { "string[]", StringArrayCoder.Instance },
-            { "string[]?", NullableStringArrayCoder.Instance },
+            { "string?[]", NullableStringArrayCoder.Instance },
             { "System.Collections.Generic.List<string>", StringListCoder.Instance },
             { "System.Collections.Generic.List<string>?", NullableStringListCoder.Instance },
 
@@ -120,13 +120,13 @@ namespace Tinyhand.Coders
 
         public ITinyhandCoder? TryGetCoder(WithNullable<TinyhandObject> withNullable)
         {
-            var nameWithNullable = withNullable.Object.FullName;
+            /*var nameWithNullable = withNullable.Object.FullName;
             if (withNullable.Object.Kind.IsReferenceType() && withNullable.Nullable != NullableAnnotation.NotAnnotated)
             {
                 nameWithNullable += "?";
-            }
+            }*/
 
-            this.NameToCoder.TryGetValue(nameWithNullable, out var coder);
+            this.NameToCoder.TryGetValue(withNullable.FullNameWithNullable, out var coder);
             return coder;
         }
     }
@@ -213,12 +213,12 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeStringArray(ref writer, {ssb.FullObject});");
+            ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeNullableStringArray(ref writer, {ssb.FullObject});");
         }
 
         public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
         {
-            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader);");
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeNullableStringArray(ref reader) ?? new string[0];");
         }
 
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)

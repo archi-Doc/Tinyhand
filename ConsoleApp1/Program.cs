@@ -12,13 +12,22 @@ namespace ConsoleApp1
         [Key(2)]
         public int y;
 
+        [Key(3)]
+        public string?[] stringList = default!;
+
+        [Key(4)]
+        public string?[]? stringList2 = default!;
+
+        [Key(5)]
+        public decimal?[] DecimalArray { get; set; } = { -144m, 456m, null, 78998m, };
+
         public void Print()
         {
             Console.WriteLine(x);
         }
     }
 
-    // [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = true)]
+     // [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = true)]
     class Program
     {
         static void Main(string[] args)

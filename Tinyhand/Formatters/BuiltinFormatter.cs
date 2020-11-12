@@ -169,6 +169,43 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void SerializeNullableStringArray(ref TinyhandWriter writer, string?[]? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNil();
+            }
+            else
+            {
+                writer.WriteArrayHeader(value.Length);
+                for (int i = 0; i < value.Length; i++)
+                {
+                    writer.Write(value[i]);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static string?[]? DeserializeNullableStringArray(ref TinyhandReader reader)
+        {
+            if (reader.TryReadNil())
+            {
+                return null; // new string[0];
+            }
+            else
+            {
+                var len = reader.ReadArrayHeader();
+                var array = new string?[len];
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = reader.ReadString();
+                }
+
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeStringList(ref TinyhandWriter writer, List<string>? value)
         {
             if (value == null)

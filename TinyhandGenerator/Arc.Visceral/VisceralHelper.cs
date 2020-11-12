@@ -450,7 +450,7 @@ namespace Arc.Visceral
             "Decimal?" => "decimal?",
             "Decimal[]" => "decimal[]",
             "String" => "string",
-            "String?" => "string",
+            "String?" => "string?",
             "String[]" => "string[]",
             "Char" => "char",
             "Char?" => "char?",

@@ -80,11 +80,6 @@ namespace Tinyhand.Coders
                 return true;
             }
 
-            if (withNullable.Object.FullName == "decimal")
-            {
-                return true;
-            }
-
             return false;
         }
 
@@ -134,40 +129,5 @@ namespace Tinyhand.Coders
         }
 
         private Dictionary<WithNullable<TinyhandObject>, ITinyhandCoder> objectToCoder = new();
-
-        private class TinyhandObjectCoder : ITinyhandCoder
-        {
-            public TinyhandObjectCoder(string fullName, bool nullable)
-            {
-                this.FullName = fullName;
-                this.Nullable = nullable;
-            }
-
-            public string FullName { get; }
-
-            public bool Nullable { get; }
-
-            public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
-            {
-                ssb.AppendLine($"options.Resolver.GetFormatter<{this.FullName}>().Serialize(ref writer, {ssb.FullObject}, options);");
-            }
-
-            public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
-            {
-                if (this.Nullable)
-                {
-                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Deserialize(ref reader, options);");
-                }
-                else
-                {
-                    ssb.AppendLine($"{ssb.FullObject} = options.ResolveAndDeserializeReconstruct<{this.FullName}>(ref reader);");
-                }
-            }
-
-            public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-            {
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Reconstruct(options);");
-            }
-        }
     }
 }

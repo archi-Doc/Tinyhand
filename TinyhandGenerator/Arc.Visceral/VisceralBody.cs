@@ -367,16 +367,16 @@ namespace Arc.Visceral
             { // NamedType
                 if (ts.TypeArguments.Length == 0)
                 {
-                    var shortName = VisceralHelper.Primitives_ShortenSimpleName(ts.Name);
-                    if (shortName != null)
-                    {
-                        return shortName;
-                    }
-
                     var name = ts.Name;
                     if (addNullableAnnotation && ts.NullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated)
                     {
                         name += "?";
+                    }
+
+                    var shortName = VisceralHelper.Primitives_ShortenSimpleName(name);
+                    if (shortName != null)
+                    {
+                        return shortName;
                     }
 
                     if (addNamespaceClass)

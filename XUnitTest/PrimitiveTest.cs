@@ -33,5 +33,19 @@ namespace XUnitTest
             var t = new PrimitiveArrayClass();
             var t2 = TestHelper.TestWithMessagePack(t);
         }
+
+        [Fact]
+        public void PrimitiveNullableArrayTest()
+        {
+            var t = new PrimitiveNullableArrayClass();
+            var t2 = TestHelper.TestWithMessagePack(t);
+        }
+
+        [Fact]
+        public void PrimitiveNullableArray2Test()
+        {
+            var t = new PrimitiveNullableArrayClass2();
+            var t2 = TestHelper.TestWithMessagePack(t);
+        }
     }
 }
