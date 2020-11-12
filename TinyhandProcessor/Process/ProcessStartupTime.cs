@@ -73,7 +73,7 @@ namespace Tinyhand
 
                     foreach (var checkProcess in System.Diagnostics.Process.GetProcessesByName(Path.GetFileNameWithoutExtension(path)))
                     {
-                        if (string.Compare(checkProcess.MainModule.FileName, path, true) == 0)
+                        if (string.Compare(checkProcess.MainModule?.FileName, path, true) == 0)
                         {
                             this.Environment.Log.Error(element, $"The executable file \"{path}\" is already running.");
                             return false;

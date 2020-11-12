@@ -161,9 +161,12 @@ AddToTable:
 
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
-                using var fs = new FileStream(destinationPath, FileMode.Create);
-                fs.Write(TinyhandComposer.Compose(group, TinyhandComposeOption.UseContextualInformation));
+                if (Path.GetDirectoryName(destinationPath) is { } destinationFolder)
+                {
+                    Directory.CreateDirectory(destinationFolder);
+                    using var fs = new FileStream(destinationPath, FileMode.Create);
+                    fs.Write(TinyhandComposer.Compose(group, TinyhandComposeOption.UseContextualInformation));
+                }
             }
             catch
             {

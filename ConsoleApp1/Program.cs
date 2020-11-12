@@ -26,7 +26,7 @@ namespace ConsoleApp1
             var tc = new TestClass() { x = 10 };
             var b = TinyhandSerializer.Serialize(tc);
             var tc2 = TinyhandSerializer.Deserialize<TestClass>(b);
-            tc2.Print();
+            tc2?.Print();
         }
     }
 }

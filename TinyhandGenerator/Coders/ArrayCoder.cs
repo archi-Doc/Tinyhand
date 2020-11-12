@@ -41,7 +41,7 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            if (this.block == null)
+            // if (this.block == null) // XUnitTest static issue
             {
                 this.GenerateMethod(info);
             }
@@ -51,7 +51,7 @@ namespace Tinyhand.Coders
 
         public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
         {
-            if (this.block == null)
+            // if (this.block == null) // XUnitTest static issue
             {
                 this.GenerateMethod(info);
             }
