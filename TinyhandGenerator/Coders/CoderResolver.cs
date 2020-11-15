@@ -21,6 +21,7 @@ namespace Tinyhand.Coders
             ArrayResolver.Instance,
             ListResolver.Instance,
             EnumResolver.Instance,
+            FormatterResolver.Instance,
         };
 
         private CoderResolver()
@@ -45,7 +46,13 @@ namespace Tinyhand.Coders
                 return true;
             }
 
-            if (withNullable.Object.Array_Rank > 0)
+            if (FormatterResolver.Instance.IsCoderOrFormatterAvailable(withNullable))
+            {
+                return true;
+            }
+
+            // Several types which have formatters AND coders.
+            if (withNullable.Object.Array_Rank > 0 && withNullable.Object.Array_Rank <= 4)
             {// Array
                 var elementWithNullable = withNullable.Array_ElementWithNullable;
                 if (elementWithNullable != null)
@@ -54,7 +61,7 @@ namespace Tinyhand.Coders
                 }
             }
             else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
-            {// Generics
+            {// Generics (List, Nullable)
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
                 var ret = baseObject.FullName switch
                 {
@@ -76,34 +83,11 @@ namespace Tinyhand.Coders
                 return this.IsCoderOrFormatterAvailable(arguments[0]);
             }
             else if (withNullable.Object.Kind == VisceralObjectKind.Enum)
-            {
+            {// Enum
                 return true;
             }
 
             return false;
-        }
-
-        public void AddTinyhandObjectCoder(TinyhandObject obj)
-        {
-            if (obj.ObjectAttribute == null || !obj.Kind.IsType())
-            {
-                return;
-            }
-
-            var withNullable = obj.TypeObjectWithNullable;
-            if (withNullable != null && !this.objectToCoder.ContainsKey(withNullable))
-            {// T
-                this.objectToCoder[withNullable] = new TinyhandObjectCoder(obj.FullName, false);
-            }
-
-            if (obj.Kind.IsReferenceType())
-            {// T?
-                withNullable = obj.CreateWithNullable(NullableAnnotation.Annotated);
-                if (withNullable != null && !this.objectToCoder.ContainsKey(withNullable))
-                {
-                    this.objectToCoder[withNullable] = new TinyhandObjectCoder(obj.FullName, true);
-                }
-            }
         }
 
         public ITinyhandCoder? TryGetCoder(WithNullable<TinyhandObject> withNullable)

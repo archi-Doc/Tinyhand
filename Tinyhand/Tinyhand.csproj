@@ -50,6 +50,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>TextTemplate1.tt</DependentUpon>
     </None>
+    <None Update="IO\TinyhandReader.Integer.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TinyhandReader.Integer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -66,6 +70,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveFormatter.tt</DependentUpon>
+    </Compile>
+    <Compile Update="IO\TinyhandReader.Integer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TinyhandReader.Integer.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

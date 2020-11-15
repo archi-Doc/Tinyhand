@@ -80,6 +80,11 @@
             The singleton instance that can be used.
             </summary>
         </member>
+        <member name="F:Tinyhand.Coders.FormatterResolver.Instance">
+            <summary>
+            The singleton instance that can be used.
+            </summary>
+        </member>
         <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeSerializer(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GeneratorInformation)">
             <summary>
             Outputs the code to serialize an object.

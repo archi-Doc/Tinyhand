@@ -21,6 +21,9 @@ namespace ConsoleApp1
         [Key(5)]
         public decimal?[] DecimalArray { get; set; } = { -144m, 456m, null, 78998m, };
 
+        [Key(6)]
+        public double?[] DoubleArray { get; set; } = { -100d, 0d, 123456d, 456789d, null, };
+
         public void Print()
         {
             Console.WriteLine(x);

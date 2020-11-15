@@ -45,14 +45,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -116,14 +116,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -283,14 +283,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -450,14 +450,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -617,14 +617,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -784,14 +784,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -951,14 +951,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -1118,14 +1118,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -1285,14 +1285,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -1452,14 +1452,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -1619,14 +1619,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -1786,14 +1786,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 
@@ -1953,14 +1953,14 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
             {
                 ssb.AppendLine("writer.WriteNil();");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}.Value);");
+                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
             }
         }
 

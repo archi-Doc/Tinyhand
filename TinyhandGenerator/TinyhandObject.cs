@@ -368,7 +368,10 @@ namespace Tinyhand.Generator
             if (this.Generics_Kind != VisceralGenericsKind.OpenGeneric)
             {
                 // Add default coder (options.Resolver.GetFormatter<T>()...)
-                CoderResolver.Instance.AddTinyhandObjectCoder(this);
+                if (this.TypeObjectWithNullable != null)
+                {
+                    FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+                }
 
                 if (cf.ConstructedObjects == null)
                 {
