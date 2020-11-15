@@ -16,8 +16,18 @@ namespace Tinyhand.Coders
 
         public FormatterResolver()
         {
+            // Several non-generic types which have formatters but not coders.
             this.AddFormatter("decimal");
             this.AddFormatter("decimal?");
+            this.AddFormatter("System.TimeSpan");
+            this.AddFormatter("System.DateTimeOffset");
+            this.AddFormatter("System.Guid");
+            this.AddFormatter("System.Uri");
+            this.AddFormatter("System.Version");
+            this.AddFormatter("System.Text.StringBuilder");
+            this.AddFormatter("System.Collections.BitArray");
+            this.AddFormatter("System.Numerics.BigInteger");
+            this.AddFormatter("System.Numerics.Complex");
         }
 
         public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
@@ -27,7 +37,32 @@ namespace Tinyhand.Coders
                 return true;
             }
 
-            // Several types which have formatters but not coders.
+            // Several generic types which have formatters but not coders.
+            else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
+            {// Generics
+                var arguments = withNullable.Generics_ArgumentsWithNullable;
+                var ret = baseObject.FullName switch
+                {
+                    "System.Lazy<T>" => true,
+                    "System.Collections.Generic.KeyValuePair<TKey, TValue>" => true,
+                    _ => false,
+                };
+
+                if (ret == false)
+                {
+                    return ret;
+                }
+
+                foreach (var x in arguments)
+                {// Check all the arguments.
+                    if (!CoderResolver.Instance.IsCoderOrFormatterAvailable(x))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
 
             return false;
         }

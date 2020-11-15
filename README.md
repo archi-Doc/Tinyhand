@@ -55,7 +55,9 @@ Tiny and simple data format/serializer by archi-Doc. Tinyhand is largely based o
    { typeof(Version), VersionFormatter.Instance },
    ```
 
-   
+   If the type is a generic class, add a code which creates the formatter instance to GenericsResolver.
+
+    
 
 3. 
 

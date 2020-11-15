@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Tinyhand;
 
 namespace ConsoleApp1
@@ -24,6 +25,18 @@ namespace ConsoleApp1
         [Key(6)]
         public double?[] DoubleArray { get; set; } = { -100d, 0d, 123456d, 456789d, null, };
 
+        [Key(7)]
+        public int[,,] z = { { { 0 }, { 1 } }, { { 3 }, { 2 } } , { { 10 }, { 11 } }, { { 13 }, { 12 } } };
+
+        [Key(8)]
+        public KeyValuePair<int, string> kvp = new KeyValuePair<int, string>(3, "test");
+
+        [Key(9)]
+        public Version version = new Version(1, 2);
+
+        [Key(10)]
+        public Lazy<string> ls = new Lazy<string>(() => "test2");
+ 
         public void Print()
         {
             Console.WriteLine(x);
