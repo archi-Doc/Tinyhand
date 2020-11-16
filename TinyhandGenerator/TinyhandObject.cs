@@ -1032,6 +1032,51 @@ namespace Tinyhand.Generator
             }
         }
 
+        internal void GenerateMemberNotNull_Attribute(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            var firstFlag = true;
+            foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do))
+            {// [MemberNotNull(nameof(A), nameof(B)]
+                if (firstFlag)
+                {
+                    ssb.Append("[MemberNotNull(nameof(");
+                    ssb.Append(x.SimpleName, false);
+                    firstFlag = false;
+                }
+                else
+                {
+                    ssb.Append("), nameof(", false);
+                    ssb.Append(x.SimpleName, false);
+                }
+            }
+
+            if (!firstFlag)
+            {
+                ssb.AppendLine("))]", false);
+            }
+        }
+
+        internal void GenerateMemberNotNull_MemberMethod(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.Method_Parameters.Length == 0 && x.SimpleName == "MemberNotNull"))
+            {// MemberNotNull() already exists.
+                return;
+            }
+
+            this.GenerateMemberNotNull_Attribute(ssb, info);
+            using (var m = ssb.ScopeBrace($"public void MemberNotNull()"))
+            {
+            }
+        }
+
+        internal void GenerateMemberNotNull_StaticMethod(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            this.GenerateMemberNotNull_Attribute(ssb, info);
+            using (var m = ssb.ScopeBrace($"public static void MemberNotNull()"))
+            {
+            }
+        }
+
         internal void Generate2(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             this.FormatterNumber = info.FormatterCount++;
@@ -1057,6 +1102,16 @@ namespace Tinyhand.Generator
             else if (this.FormatterCondition_Serialize == FormatterCondition.StaticMethod)
             {
                 this.GenerateReconstruct_StaticMethod(ssb, info);
+            }
+
+            // MemberNotNull
+            if (this.FormatterCondition_Reconstruct == FormatterCondition.MemberMethod)
+            {
+                this.GenerateMemberNotNull_MemberMethod(ssb, info);
+            }
+            else if (this.FormatterCondition_Serialize == FormatterCondition.StaticMethod)
+            {
+                this.GenerateMemberNotNull_StaticMethod(ssb, info);
             }
 
             return;

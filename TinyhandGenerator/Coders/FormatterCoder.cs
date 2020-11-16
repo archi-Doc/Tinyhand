@@ -19,7 +19,17 @@ namespace Tinyhand.Coders
             // Several non-generic types which have formatters but not coders.
             this.AddFormatter("decimal");
             this.AddFormatter("decimal?");
-            this.AddFormatter("System.TimeSpan");
+            this.AddFormatter(typeof(System.TimeSpan));
+            this.AddFormatter(typeof(System.DateTimeOffset));
+            this.AddFormatter(typeof(System.Guid));
+            this.AddFormatter(typeof(System.Uri));
+            this.AddFormatter(typeof(System.Version));
+            this.AddFormatter(typeof(System.Text.StringBuilder));
+            this.AddFormatter(typeof(System.Collections.BitArray));
+            this.AddFormatter(typeof(System.Numerics.BigInteger));
+            this.AddFormatter(typeof(System.Numerics.Complex));
+
+            /* this.AddFormatter("System.TimeSpan");
             this.AddFormatter("System.DateTimeOffset");
             this.AddFormatter("System.Guid");
             this.AddFormatterForReferenceType("System.Uri");
@@ -27,7 +37,7 @@ namespace Tinyhand.Coders
             this.AddFormatterForReferenceType("System.Text.StringBuilder");
             this.AddFormatterForReferenceType("System.Collections.BitArray");
             this.AddFormatter("System.Numerics.BigInteger");
-            this.AddFormatter("System.Numerics.Complex");
+            this.AddFormatter("System.Numerics.Complex");*/
         }
 
         public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
@@ -107,6 +117,20 @@ namespace Tinyhand.Coders
             var coder = this.AddFormatter(fullNameWithNullable, true);
             this.AddFormatter(fullNameWithNullable + "?");
             return coder;
+        }
+
+        public ITinyhandCoder? AddFormatter(Type type)
+        {
+            if (type.IsValueType)
+            {// Value type
+                return this.AddFormatter(type.FullName);
+            }
+            else
+            {// Reference type
+                var coder = this.AddFormatter(type.FullName, true);
+                this.AddFormatter(type.FullName + "?");
+                return coder;
+            }
         }
 
         public ITinyhandCoder? AddFormatter(WithNullable<TinyhandObject> withNullable)
