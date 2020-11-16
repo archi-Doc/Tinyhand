@@ -56,6 +56,16 @@ namespace Tinyhand.IO
             CancellationToken = this.CancellationToken,
         };
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct,
+        /// with the same settings as this one, but with its own buffer writer.
+        /// </summary>
+        /// <returns>The new writer.</returns>
+        public TinyhandWriter Clone() => new TinyhandWriter()
+        {
+            CancellationToken = this.CancellationToken,
+        };
+
         public byte[] FlushAndGetArray() => this.writer.FlushAndGetArray();
 
         public ReadOnlySequence<byte> FlushAndGetReadOnlySequence() => this.writer.FlushAndGetReadOnlySequence();

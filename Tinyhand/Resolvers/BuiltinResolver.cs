@@ -1,10 +1,12 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
+using MessagePack;
 using Tinyhand.Formatters;
 
 #pragma warning disable SA1509 // Opening braces should not be preceded by blank line
@@ -103,6 +105,22 @@ namespace Tinyhand.Resolvers
             { typeof(System.Numerics.BigInteger?), new StaticNullableFormatter<System.Numerics.BigInteger>(BigIntegerFormatter.Instance) },
             { typeof(System.Numerics.Complex), ComplexFormatter.Instance },
             { typeof(System.Numerics.Complex?), new StaticNullableFormatter<System.Numerics.Complex>(ComplexFormatter.Instance) },
+
+            // Nil
+            { typeof(Nil), NilFormatter.Instance },
+            { typeof(Nil?), NullableNilFormatter.Instance },
+
+            { typeof(object[]), new ArrayFormatter<object>() },
+            { typeof(List<object>), new ListFormatter<object>() },
+
+            { typeof(Memory<byte>), ByteMemoryFormatter.Instance },
+            { typeof(Memory<byte>?), new StaticNullableFormatter<Memory<byte>>(ByteMemoryFormatter.Instance) },
+            { typeof(ReadOnlyMemory<byte>), ByteReadOnlyMemoryFormatter.Instance },
+            { typeof(ReadOnlyMemory<byte>?), new StaticNullableFormatter<ReadOnlyMemory<byte>>(ByteReadOnlyMemoryFormatter.Instance) },
+            { typeof(ReadOnlySequence<byte>), ByteReadOnlySequenceFormatter.Instance },
+            { typeof(ReadOnlySequence<byte>?), new StaticNullableFormatter<ReadOnlySequence<byte>>(ByteReadOnlySequenceFormatter.Instance) },
+            { typeof(ArraySegment<byte>), ByteArraySegmentFormatter.Instance },
+            { typeof(ArraySegment<byte>?), new StaticNullableFormatter<ArraySegment<byte>>(ByteArraySegmentFormatter.Instance) },
         };
 
         private BuiltinResolver()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Tinyhand;
+using Tinyhand.IO;
 
 namespace ConsoleApp1
 {
@@ -38,6 +39,9 @@ namespace ConsoleApp1
 
         [Key(10)]
         public Lazy<string> ls = new Lazy<string>(() => "test2");
+
+        [Key(11)]
+        public Type type = typeof(int);
 
         public void Print()
         {
