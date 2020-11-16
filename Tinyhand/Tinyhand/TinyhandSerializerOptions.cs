@@ -18,7 +18,7 @@ namespace Tinyhand
     public static class TinyhandSerializerOptionsExtension
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ResolveAndDeserializeReconstruct<T>(this TinyhandSerializerOptions options, ref TinyhandReader reader)
+        public static T DeserializeAndReconstruct<T>(this TinyhandSerializerOptions options, ref TinyhandReader reader)
         {
             ITinyhandFormatter<T>? formatter;
 

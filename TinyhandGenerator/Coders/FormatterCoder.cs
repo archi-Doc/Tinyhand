@@ -16,8 +16,28 @@ namespace Tinyhand.Coders
 
         public FormatterResolver()
         {
+            // Several non-generic types which have formatters but not coders.
             this.AddFormatter("decimal");
             this.AddFormatter("decimal?");
+            this.AddFormatter(typeof(System.TimeSpan));
+            this.AddFormatter(typeof(System.DateTimeOffset));
+            this.AddFormatter(typeof(System.Guid));
+            this.AddFormatter(typeof(System.Uri));
+            this.AddFormatter(typeof(System.Version));
+            this.AddFormatter(typeof(System.Text.StringBuilder));
+            this.AddFormatter(typeof(System.Collections.BitArray));
+            this.AddFormatter(typeof(System.Numerics.BigInteger));
+            this.AddFormatter(typeof(System.Numerics.Complex));
+
+            /* this.AddFormatter("System.TimeSpan");
+            this.AddFormatter("System.DateTimeOffset");
+            this.AddFormatter("System.Guid");
+            this.AddFormatterForReferenceType("System.Uri");
+            this.AddFormatterForReferenceType("System.Version");
+            this.AddFormatterForReferenceType("System.Text.StringBuilder");
+            this.AddFormatterForReferenceType("System.Collections.BitArray");
+            this.AddFormatter("System.Numerics.BigInteger");
+            this.AddFormatter("System.Numerics.Complex");*/
         }
 
         public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
@@ -27,7 +47,40 @@ namespace Tinyhand.Coders
                 return true;
             }
 
-            // Several types which have formatters but not coders.
+            // Several generic types which have formatters but not coders.
+            if (withNullable.Object.Array_Rank >= 1 && withNullable.Object.Array_Rank <= 4)
+            {// Array 1-4
+                var elementWithNullable = withNullable.Array_ElementWithNullable;
+                if (elementWithNullable != null)
+                {
+                    return CoderResolver.Instance.IsCoderOrFormatterAvailable(elementWithNullable);
+                }
+            }
+            else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
+            {// Generics
+                var arguments = withNullable.Generics_ArgumentsWithNullable;
+                var ret = baseObject.FullName switch
+                {
+                    "System.Lazy<T>" => true,
+                    "System.Collections.Generic.KeyValuePair<TKey, TValue>" => true,
+                    _ => false,
+                };
+
+                if (ret == false)
+                {
+                    return ret;
+                }
+
+                foreach (var x in arguments)
+                {// Check all the arguments.
+                    if (!CoderResolver.Instance.IsCoderOrFormatterAvailable(x))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
 
             return false;
         }
@@ -57,6 +110,27 @@ namespace Tinyhand.Coders
             }
 
             return coder;
+        }
+
+        public ITinyhandCoder AddFormatterForReferenceType(string fullNameWithNullable)
+        {
+            var coder = this.AddFormatter(fullNameWithNullable, true);
+            this.AddFormatter(fullNameWithNullable + "?");
+            return coder;
+        }
+
+        public ITinyhandCoder? AddFormatter(Type type)
+        {
+            if (type.IsValueType)
+            {// Value type
+                return this.AddFormatter(type.FullName);
+            }
+            else
+            {// Reference type
+                var coder = this.AddFormatter(type.FullName, true);
+                this.AddFormatter(type.FullName + "?");
+                return coder;
+            }
         }
 
         public ITinyhandCoder? AddFormatter(WithNullable<TinyhandObject> withNullable)
@@ -114,8 +188,8 @@ namespace Tinyhand.Coders
                 ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, options);");
             }
             else
-            {
-                ssb.AppendLine($"{ssb.FullObject} = options.ResolveAndDeserializeReconstruct<{this.FullNameWithNullable}>(ref reader);");
+            {// Non-nullable reference type
+                ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader);");
             }
         }
 

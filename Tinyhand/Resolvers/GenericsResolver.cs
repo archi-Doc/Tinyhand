@@ -52,33 +52,33 @@ namespace Tinyhand.Internal
     {
         private static readonly Dictionary<Type, Type> FormatterMap = new Dictionary<Type, Type>()
         {
-              /* { typeof(List<>), typeof(ListFormatter<>) },
-              { typeof(LinkedList<>), typeof(LinkedListFormatter<>) },
-              { typeof(Queue<>), typeof(QueueFormatter<>) },
-              { typeof(Stack<>), typeof(StackFormatter<>) },
-              { typeof(HashSet<>), typeof(HashSetFormatter<>) },
-              { typeof(ReadOnlyCollection<>), typeof(ReadOnlyCollectionFormatter<>) },
-              { typeof(IList<>), typeof(InterfaceListFormatter2<>) },
-              { typeof(ICollection<>), typeof(InterfaceCollectionFormatter2<>) },
-              { typeof(IEnumerable<>), typeof(InterfaceEnumerableFormatter<>) },
-              { typeof(Dictionary<,>), typeof(DictionaryFormatter<,>) },
-              { typeof(IDictionary<,>), typeof(InterfaceDictionaryFormatter<,>) },
-              { typeof(SortedDictionary<,>), typeof(SortedDictionaryFormatter<,>) },
-              { typeof(SortedList<,>), typeof(SortedListFormatter<,>) },
-              { typeof(ILookup<,>), typeof(InterfaceLookupFormatter<,>) },
-              { typeof(IGrouping<,>), typeof(InterfaceGroupingFormatter<,>) },
-              { typeof(ObservableCollection<>), typeof(ObservableCollectionFormatter<>) },
-              { typeof(ReadOnlyObservableCollection<>), typeof(ReadOnlyObservableCollectionFormatter<>) },
-              { typeof(IReadOnlyList<>), typeof(InterfaceReadOnlyListFormatter<>) },
-              { typeof(IReadOnlyCollection<>), typeof(InterfaceReadOnlyCollectionFormatter<>) },
-              { typeof(ISet<>), typeof(InterfaceSetFormatter<>) },
-              { typeof(System.Collections.Concurrent.ConcurrentBag<>), typeof(ConcurrentBagFormatter<>) },
-              { typeof(System.Collections.Concurrent.ConcurrentQueue<>), typeof(ConcurrentQueueFormatter<>) },
-              { typeof(System.Collections.Concurrent.ConcurrentStack<>), typeof(ConcurrentStackFormatter<>) },
-              { typeof(ReadOnlyDictionary<,>), typeof(ReadOnlyDictionaryFormatter<,>) },
-              { typeof(IReadOnlyDictionary<,>), typeof(InterfaceReadOnlyDictionaryFormatter<,>) },
-              { typeof(System.Collections.Concurrent.ConcurrentDictionary<,>), typeof(ConcurrentDictionaryFormatter<,>) },
-              { typeof(Lazy<>), typeof(LazyFormatter<>) },*/
+            /* { typeof(List<>), typeof(ListFormatter<>) },
+            { typeof(LinkedList<>), typeof(LinkedListFormatter<>) },
+            { typeof(Queue<>), typeof(QueueFormatter<>) },
+            { typeof(Stack<>), typeof(StackFormatter<>) },
+            { typeof(HashSet<>), typeof(HashSetFormatter<>) },
+            { typeof(ReadOnlyCollection<>), typeof(ReadOnlyCollectionFormatter<>) },
+            { typeof(IList<>), typeof(InterfaceListFormatter2<>) },
+            { typeof(ICollection<>), typeof(InterfaceCollectionFormatter2<>) },
+            { typeof(IEnumerable<>), typeof(InterfaceEnumerableFormatter<>) },
+            { typeof(Dictionary<,>), typeof(DictionaryFormatter<,>) },
+            { typeof(IDictionary<,>), typeof(InterfaceDictionaryFormatter<,>) },
+            { typeof(SortedDictionary<,>), typeof(SortedDictionaryFormatter<,>) },
+            { typeof(SortedList<,>), typeof(SortedListFormatter<,>) },
+            { typeof(ILookup<,>), typeof(InterfaceLookupFormatter<,>) },
+            { typeof(IGrouping<,>), typeof(InterfaceGroupingFormatter<,>) },
+            { typeof(ObservableCollection<>), typeof(ObservableCollectionFormatter<>) },
+            { typeof(ReadOnlyObservableCollection<>), typeof(ReadOnlyObservableCollectionFormatter<>) },
+            { typeof(IReadOnlyList<>), typeof(InterfaceReadOnlyListFormatter<>) },
+            { typeof(IReadOnlyCollection<>), typeof(InterfaceReadOnlyCollectionFormatter<>) },
+            { typeof(ISet<>), typeof(InterfaceSetFormatter<>) },
+            { typeof(System.Collections.Concurrent.ConcurrentBag<>), typeof(ConcurrentBagFormatter<>) },
+            { typeof(System.Collections.Concurrent.ConcurrentQueue<>), typeof(ConcurrentQueueFormatter<>) },
+            { typeof(System.Collections.Concurrent.ConcurrentStack<>), typeof(ConcurrentStackFormatter<>) },
+            { typeof(ReadOnlyDictionary<,>), typeof(ReadOnlyDictionaryFormatter<,>) },
+            { typeof(IReadOnlyDictionary<,>), typeof(InterfaceReadOnlyDictionaryFormatter<,>) },
+            { typeof(System.Collections.Concurrent.ConcurrentDictionary<,>), typeof(ConcurrentDictionaryFormatter<,>) },*/
+            { typeof(Lazy<>), typeof(LazyFormatter<>) },
         };
 
         // Reduce IL2CPP code generate size(don't write long code in <T>)
@@ -114,6 +114,20 @@ namespace Tinyhand.Internal
                 else
                 {
                     return null; // not supported built-in
+                }
+            }
+            else if (ti.IsGenericType)
+            {
+                Type genericType = ti.GetGenericTypeDefinition();
+                TypeInfo genericTypeInfo = genericType.GetTypeInfo();
+
+                if (genericType == typeof(KeyValuePair<,>))
+                {// KeyValuePair
+                    return CreateInstance(typeof(KeyValuePairFormatter<,>), ti.GenericTypeArguments);
+                }
+                else if (FormatterMap.TryGetValue(genericType, out var formatterType))
+                {// Mapped formatter
+                    return CreateInstance(formatterType, ti.GenericTypeArguments);
                 }
             }
 

@@ -41,15 +41,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveFormatter.cs</LastGenOutput>
     </None>
-    <None Update="Formatters\TextTemplate1.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>TextTemplate1.txt</LastGenOutput>
-    </None>
-    <None Update="Formatters\TextTemplate1.txt">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TextTemplate1.tt</DependentUpon>
-    </None>
     <None Update="IO\TinyhandReader.Integer.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>TinyhandReader.Integer.cs</LastGenOutput>
