@@ -72,7 +72,7 @@ namespace ConsoleApp1
         public List<string> Friends { get; set; } // Non-null value will be set by TinyhandSerializer.
 
         [Key(4)]
-        public int[]? Ids { get; set; } // Default value is null.
+        public int[]? Ids { get; set; } // Nullable value will be set null.
 
         public MyClass()
         {

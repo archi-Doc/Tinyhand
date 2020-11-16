@@ -7,7 +7,7 @@
 using System;
 using System.Buffers;
 
-namespace MessagePack
+namespace Tinyhand
 {
     public struct Nil : IEquatable<Nil>
     {

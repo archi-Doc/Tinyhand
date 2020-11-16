@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
-using MessagePack;
 using Tinyhand.Formatters;
 
 #pragma warning disable SA1509 // Opening braces should not be preceded by blank line

@@ -41,6 +41,14 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>PrimitiveFormatter.cs</LastGenOutput>
     </None>
+    <None Update="Formatters\TupleFormatter.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TupleFormatter.cs</LastGenOutput>
+    </None>
+    <None Update="Formatters\ValueTupleFormatter.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ValueTupleFormatter.cs</LastGenOutput>
+    </None>
     <None Update="IO\TinyhandReader.Integer.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>TinyhandReader.Integer.cs</LastGenOutput>
@@ -61,6 +69,16 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>PrimitiveFormatter.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Formatters\TupleFormatter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TupleFormatter.tt</DependentUpon>
+    </Compile>
+    <Compile Update="Formatters\ValueTupleFormatter.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ValueTupleFormatter.tt</DependentUpon>
     </Compile>
     <Compile Update="IO\TinyhandReader.Integer.cs">
       <DesignTime>True</DesignTime>

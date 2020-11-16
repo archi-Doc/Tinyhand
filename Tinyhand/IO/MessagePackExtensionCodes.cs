@@ -1,6 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-namespace MessagePack
+namespace Tinyhand
 {
     /// <summary>
     /// The extension type codes that this library defines for just this library.

@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Arc.IO;
-using MessagePack;
 
 namespace Tinyhand.IO
 {
