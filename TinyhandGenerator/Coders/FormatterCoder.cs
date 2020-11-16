@@ -22,10 +22,10 @@ namespace Tinyhand.Coders
             this.AddFormatter("System.TimeSpan");
             this.AddFormatter("System.DateTimeOffset");
             this.AddFormatter("System.Guid");
-            this.AddFormatter("System.Uri");
-            this.AddFormatter("System.Version");
-            this.AddFormatter("System.Text.StringBuilder");
-            this.AddFormatter("System.Collections.BitArray");
+            this.AddFormatterForReferenceType("System.Uri");
+            this.AddFormatterForReferenceType("System.Version");
+            this.AddFormatterForReferenceType("System.Text.StringBuilder");
+            this.AddFormatterForReferenceType("System.Collections.BitArray");
             this.AddFormatter("System.Numerics.BigInteger");
             this.AddFormatter("System.Numerics.Complex");
         }
@@ -38,6 +38,14 @@ namespace Tinyhand.Coders
             }
 
             // Several generic types which have formatters but not coders.
+            if (withNullable.Object.Array_Rank >= 1 && withNullable.Object.Array_Rank <= 4)
+            {// Array 1-4
+                var elementWithNullable = withNullable.Array_ElementWithNullable;
+                if (elementWithNullable != null)
+                {
+                    return CoderResolver.Instance.IsCoderOrFormatterAvailable(elementWithNullable);
+                }
+            }
             else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
             {// Generics
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
@@ -91,6 +99,13 @@ namespace Tinyhand.Coders
                 this.stringToCoder[fullNameWithNullable] = coder;
             }
 
+            return coder;
+        }
+
+        public ITinyhandCoder AddFormatterForReferenceType(string fullNameWithNullable)
+        {
+            var coder = this.AddFormatter(fullNameWithNullable, true);
+            this.AddFormatter(fullNameWithNullable + "?");
             return coder;
         }
 
@@ -149,8 +164,8 @@ namespace Tinyhand.Coders
                 ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, options);");
             }
             else
-            {
-                ssb.AppendLine($"{ssb.FullObject} = options.ResolveAndDeserializeReconstruct<{this.FullNameWithNullable}>(ref reader);");
+            {// Non-nullable reference type
+                ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader);");
             }
         }
 

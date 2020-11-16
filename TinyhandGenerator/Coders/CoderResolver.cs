@@ -52,7 +52,7 @@ namespace Tinyhand.Coders
             }
 
             // Several types which have formatters AND coders.
-            if (withNullable.Object.Array_Rank > 0 && withNullable.Object.Array_Rank <= 4)
+            if (withNullable.Object.Array_Rank == 1)
             {// Array
                 var elementWithNullable = withNullable.Array_ElementWithNullable;
                 if (elementWithNullable != null)

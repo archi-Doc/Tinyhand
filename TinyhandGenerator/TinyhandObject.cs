@@ -1079,16 +1079,10 @@ namespace Tinyhand.Generator
                     if (coder != null)
                     {
                         coder.CodeDeserializer(ssb, info, true);
-                        /*if (typeObject.Kind.IsReferenceType() && !x.HasNullableAnnotation)
-                        {
-                            using (var r = ssb.ScopeBrace($"if ({m.FullObject} == null)"))
-                            {
-                                coder.CodeReconstruct(ssb, info);
-                            }
-                        }*/
                     }
                     else
                     {
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                         if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
                         {// T?
                             ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");

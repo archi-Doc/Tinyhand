@@ -111,7 +111,11 @@ namespace Tinyhand.Generator
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Warning_DefaultValueConstructor = new DiagnosticDescriptor(
-            id: "TG023", title: "Default Value Constructor", messageFormat: "You need a constructor with an argument which type is same as the default value",
+            id: "TG023", title: "Default Value Constructor", messageFormat: "Constructor with an argument which type is same as the default value is required",
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Warning_NoCoder = new DiagnosticDescriptor(
+            id: "TG024", title: "No Coder", messageFormat: "'{0}' has passed the check, but the proper coder is not found",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public TinyhandBody(GeneratorExecutionContext context)
