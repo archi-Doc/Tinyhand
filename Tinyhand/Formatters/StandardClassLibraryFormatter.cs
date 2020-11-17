@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using MessagePack;
 using Tinyhand.Internal;
 using Tinyhand.IO;
 
@@ -234,7 +233,7 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                writer.Write(value.ToString());
+                writer.Write(value.OriginalString);
             }
         }
 

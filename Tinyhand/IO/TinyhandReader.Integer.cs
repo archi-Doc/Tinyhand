@@ -6,7 +6,6 @@
 using System;
 using System.Buffers;
 using Arc.IO;
-using MessagePack;
 
 namespace Tinyhand.IO
 {

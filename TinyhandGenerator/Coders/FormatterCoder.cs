@@ -28,16 +28,22 @@ namespace Tinyhand.Coders
             this.AddFormatter(typeof(System.Collections.BitArray));
             this.AddFormatter(typeof(System.Numerics.BigInteger));
             this.AddFormatter(typeof(System.Numerics.Complex));
+            this.AddFormatter(typeof(Type));
 
-            /* this.AddFormatter("System.TimeSpan");
-            this.AddFormatter("System.DateTimeOffset");
-            this.AddFormatter("System.Guid");
-            this.AddFormatterForReferenceType("System.Uri");
-            this.AddFormatterForReferenceType("System.Version");
-            this.AddFormatterForReferenceType("System.Text.StringBuilder");
-            this.AddFormatterForReferenceType("System.Collections.BitArray");
-            this.AddFormatter("System.Numerics.BigInteger");
-            this.AddFormatter("System.Numerics.Complex");*/
+            this.AddFormatter("MessagePack.Nil");
+            this.AddFormatter("MessagePack.Nil?");
+
+            this.AddFormatter(typeof(object[]));
+            this.AddFormatter(typeof(List<object>));
+
+            this.AddFormatter(typeof(Memory<byte>));
+            this.AddFormatter(typeof(Memory<byte>?));
+            this.AddFormatter(typeof(ReadOnlyMemory<byte>));
+            this.AddFormatter(typeof(ReadOnlyMemory<byte>?));
+            this.AddFormatter(typeof(System.Buffers.ReadOnlySequence<byte>));
+            this.AddFormatter(typeof(System.Buffers.ReadOnlySequence<byte>?));
+            this.AddFormatter(typeof(ArraySegment<byte>));
+            this.AddFormatter(typeof(ArraySegment<byte>?));
         }
 
         public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)

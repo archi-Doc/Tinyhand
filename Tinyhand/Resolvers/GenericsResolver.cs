@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -125,10 +126,140 @@ namespace Tinyhand.Internal
                 {// KeyValuePair
                     return CreateInstance(typeof(KeyValuePairFormatter<,>), ti.GenericTypeArguments);
                 }
+                else if (ti.FullName.StartsWith("System.Tuple"))
+                {// Tuple
+                    Type? tupleFormatterType = null;
+                    switch (ti.GenericTypeArguments.Length)
+                    {
+                        case 1:
+                            tupleFormatterType = typeof(TupleFormatter<>);
+                            break;
+                        case 2:
+                            tupleFormatterType = typeof(TupleFormatter<,>);
+                            break;
+                        case 3:
+                            tupleFormatterType = typeof(TupleFormatter<,,>);
+                            break;
+                        case 4:
+                            tupleFormatterType = typeof(TupleFormatter<,,,>);
+                            break;
+                        case 5:
+                            tupleFormatterType = typeof(TupleFormatter<,,,,>);
+                            break;
+                        case 6:
+                            tupleFormatterType = typeof(TupleFormatter<,,,,,>);
+                            break;
+                        case 7:
+                            tupleFormatterType = typeof(TupleFormatter<,,,,,,>);
+                            break;
+                        case 8:
+                            tupleFormatterType = typeof(TupleFormatter<,,,,,,,>);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (tupleFormatterType != null)
+                    {
+                        return CreateInstance(tupleFormatterType, ti.GenericTypeArguments);
+                    }
+                }
+
+                // ValueTuple
+                else if (ti.FullName.StartsWith("System.ValueTuple"))
+                {
+                    Type? tupleFormatterType = null;
+                    switch (ti.GenericTypeArguments.Length)
+                    {
+                        case 1:
+                            tupleFormatterType = typeof(ValueTupleFormatter<>);
+                            break;
+                        case 2:
+                            tupleFormatterType = typeof(ValueTupleFormatter<,>);
+                            break;
+                        case 3:
+                            tupleFormatterType = typeof(ValueTupleFormatter<,,>);
+                            break;
+                        case 4:
+                            tupleFormatterType = typeof(ValueTupleFormatter<,,,>);
+                            break;
+                        case 5:
+                            tupleFormatterType = typeof(ValueTupleFormatter<,,,,>);
+                            break;
+                        case 6:
+                            tupleFormatterType = typeof(ValueTupleFormatter<,,,,,>);
+                            break;
+                        case 7:
+                            tupleFormatterType = typeof(ValueTupleFormatter<,,,,,,>);
+                            break;
+                        case 8:
+                            tupleFormatterType = typeof(ValueTupleFormatter<,,,,,,,>);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    if (tupleFormatterType != null)
+                    {
+                        return CreateInstance(tupleFormatterType, ti.GenericTypeArguments);
+                    }
+                }
+                else if (genericType == typeof(ArraySegment<>))
+                { // ArraySegment
+                    if (ti.GenericTypeArguments[0] == typeof(byte))
+                    {
+                        return ByteArraySegmentFormatter.Instance;
+                    }
+                    else
+                    {
+                        return CreateInstance(typeof(ArraySegmentFormatter<>), ti.GenericTypeArguments);
+                    }
+                }
+                else if (genericType == typeof(Memory<>))
+                {// Memory
+                    if (ti.GenericTypeArguments[0] == typeof(byte))
+                    {
+                        return ByteMemoryFormatter.Instance;
+                    }
+                    else
+                    {
+                        return CreateInstance(typeof(MemoryFormatter<>), ti.GenericTypeArguments);
+                    }
+                }
+                else if (genericType == typeof(ReadOnlyMemory<>))
+                {// ReadOnlyMemory
+                    if (ti.GenericTypeArguments[0] == typeof(byte))
+                    {
+                        return ByteReadOnlyMemoryFormatter.Instance;
+                    }
+                    else
+                    {
+                        return CreateInstance(typeof(ReadOnlyMemoryFormatter<>), ti.GenericTypeArguments);
+                    }
+                }
+                else if (genericType == typeof(ReadOnlySequence<>))
+                {// ReadOnlySequence
+                    if (ti.GenericTypeArguments[0] == typeof(byte))
+                    {
+                        return ByteReadOnlySequenceFormatter.Instance;
+                    }
+                    else
+                    {
+                        return CreateInstance(typeof(ReadOnlySequenceFormatter<>), ti.GenericTypeArguments);
+                    }
+                }
+                else if (genericType == typeof(Nullable<>))
+                {// Standard Nullable
+                    return CreateInstance(typeof(NullableFormatter<>), new[] { ti.GenericTypeArguments[0] });
+                }
                 else if (FormatterMap.TryGetValue(genericType, out var formatterType))
                 {// Mapped formatter
                     return CreateInstance(formatterType, ti.GenericTypeArguments);
                 }
+            }
+            else if (ti.IsEnum)
+            {
+                return CreateInstance(typeof(GenericEnumFormatter<>), new[] { t });
             }
 
             return null;

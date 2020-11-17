@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Tinyhand;
+using Tinyhand.IO;
 
 namespace ConsoleApp1
 {
@@ -39,6 +40,9 @@ namespace ConsoleApp1
         [Key(10)]
         public Lazy<string> ls = new Lazy<string>(() => "test2");
 
+        [Key(11)]
+        public Type type = typeof(int);
+
         public void Print()
         {
             Console.WriteLine(x);
@@ -68,7 +72,7 @@ namespace ConsoleApp1
         public List<string> Friends { get; set; } // Non-null value will be set by TinyhandSerializer.
 
         [Key(4)]
-        public int[]? Ids { get; set; } // Default value is null.
+        public int[]? Ids { get; set; } // Nullable value will be set null.
 
         public MyClass()
         {

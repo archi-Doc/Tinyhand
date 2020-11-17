@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Arc.IO;
-using MessagePack;
 
 namespace Tinyhand.IO
 {
@@ -52,6 +51,16 @@ namespace Tinyhand.IO
         /// <param name="initialBuffer">The buffer to use for the new instance.</param>
         /// <returns>The new writer.</returns>
         public TinyhandWriter Clone(byte[] initialBuffer) => new TinyhandWriter(initialBuffer)
+        {
+            CancellationToken = this.CancellationToken,
+        };
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct,
+        /// with the same settings as this one, but with its own buffer writer.
+        /// </summary>
+        /// <returns>The new writer.</returns>
+        public TinyhandWriter Clone() => new TinyhandWriter()
         {
             CancellationToken = this.CancellationToken,
         };

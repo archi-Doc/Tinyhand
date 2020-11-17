@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using Arc.IO;
-using MessagePack;
 
 #pragma warning disable SA1615 // Element return value should be documented
 

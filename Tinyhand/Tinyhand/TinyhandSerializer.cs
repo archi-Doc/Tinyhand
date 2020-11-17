@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Arc.IO;
-using MessagePack;
 using MessagePack.LZ4;
 using Tinyhand.IO;
 
@@ -447,7 +446,7 @@ namespace Tinyhand
                     if (arrayLength != 0 && peekReader.NextMessagePackType == MessagePackType.Extension)
                     {
                         ExtensionHeader header = peekReader.ReadExtensionFormatHeader();
-                        if (header.TypeCode == MessagePack.MessagePackExtensionCodes.Lz4BlockArray)
+                        if (header.TypeCode == Tinyhand.MessagePackExtensionCodes.Lz4BlockArray)
                         {
                             // switch peekReader as original reader.
                             reader = peekReader;
@@ -540,7 +539,7 @@ namespace Tinyhand
                 }
 
                 writer.WriteArrayHeader(sequenceCount + 1);
-                writer.WriteExtensionFormatHeader(new ExtensionHeader(MessagePack.MessagePackExtensionCodes.Lz4BlockArray, extHeaderSize));
+                writer.WriteExtensionFormatHeader(new ExtensionHeader(Tinyhand.MessagePackExtensionCodes.Lz4BlockArray, extHeaderSize));
                 foreach (var item in msgpackUncompressedData)
                 {
                     writer.Write(item.Length);

@@ -54,6 +54,11 @@ namespace Arc.Visceral
             }
         }
 
+        public void AddHeader(string header)
+        {
+            this.header.Add(header);
+        }
+
         public IScope ScopeNamespace(string @namespace) => this.ScopeBrace($"namespace {@namespace}");
 
         public IScope ScopeBrace(string? preface)
@@ -136,6 +141,12 @@ namespace Arc.Visceral
 
             var s = new StringBuilder();
 
+            foreach (var x in this.header)
+            {
+                s.Append(x);
+                s.Append("\r\n");
+            }
+
             foreach (var x in this.usingSystem)
             {
                 s.Append("using ");
@@ -150,7 +161,7 @@ namespace Arc.Visceral
                 s.Append(";\r\n");
             }
 
-            if (this.usingSystem.Count > 0 || this.usingOther.Count > 0)
+            if (this.header.Count > 0 || this.usingSystem.Count > 0 || this.usingOther.Count > 0)
             {
                 s.Append("\r\n");
             }
@@ -162,8 +173,9 @@ namespace Arc.Visceral
         }
 
         private StringBuilder sb = new StringBuilder();
-        private SortedSet<string> usingSystem = new SortedSet<string>();
-        private SortedSet<string> usingOther = new SortedSet<string>();
+        private List<string> header = new ();
+        private SortedSet<string> usingSystem = new ();
+        private SortedSet<string> usingOther = new ();
 
         public class Scope : IScope
         {

@@ -11,6 +11,22 @@ using Tinyhand;
 
 namespace XUnitTest
 {
+    public enum ByteEnum : byte { A, B, C, D, E }
+
+    public enum SByteEnum : sbyte { A, B, C, D, E }
+
+    public enum ShortEnum : short { A, B, C, D, E }
+
+    public enum UShortEnum : ushort { A, B, C, D, E }
+
+    public enum IntEnum : int { A, B, C, D, E }
+
+    public enum UIntEnum : uint { A, B, C, D, E }
+
+    public enum LongEnum : long { A, B, C, D, E }
+
+    public enum ULongEnum : ulong { A, B, C, D, E }
+
     [TinyhandObject]
     [MessagePack.MessagePackObject]
     public partial class PrimitiveIntKeyClass
