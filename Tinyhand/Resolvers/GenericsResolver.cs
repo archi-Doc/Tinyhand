@@ -53,7 +53,7 @@ namespace Tinyhand.Internal
     {
         private static readonly Dictionary<Type, Type> FormatterMap = new Dictionary<Type, Type>()
         {
-            /* { typeof(List<>), typeof(ListFormatter<>) },
+            { typeof(List<>), typeof(ListFormatter<>) },
             { typeof(LinkedList<>), typeof(LinkedListFormatter<>) },
             { typeof(Queue<>), typeof(QueueFormatter<>) },
             { typeof(Stack<>), typeof(StackFormatter<>) },
@@ -78,7 +78,7 @@ namespace Tinyhand.Internal
             { typeof(System.Collections.Concurrent.ConcurrentStack<>), typeof(ConcurrentStackFormatter<>) },
             { typeof(ReadOnlyDictionary<,>), typeof(ReadOnlyDictionaryFormatter<,>) },
             { typeof(IReadOnlyDictionary<,>), typeof(InterfaceReadOnlyDictionaryFormatter<,>) },
-            { typeof(System.Collections.Concurrent.ConcurrentDictionary<,>), typeof(ConcurrentDictionaryFormatter<,>) },*/
+            { typeof(System.Collections.Concurrent.ConcurrentDictionary<,>), typeof(ConcurrentDictionaryFormatter<,>) },
             { typeof(Lazy<>), typeof(LazyFormatter<>) },
         };
 
@@ -164,10 +164,8 @@ namespace Tinyhand.Internal
                         return CreateInstance(tupleFormatterType, ti.GenericTypeArguments);
                     }
                 }
-
-                // ValueTuple
                 else if (ti.FullName.StartsWith("System.ValueTuple"))
-                {
+                {// ValueTuple
                     Type? tupleFormatterType = null;
                     switch (ti.GenericTypeArguments.Length)
                     {
@@ -205,7 +203,7 @@ namespace Tinyhand.Internal
                     }
                 }
                 else if (genericType == typeof(ArraySegment<>))
-                { // ArraySegment
+                {// ArraySegment
                     if (ti.GenericTypeArguments[0] == typeof(byte))
                     {
                         return ByteArraySegmentFormatter.Instance;
@@ -260,6 +258,55 @@ namespace Tinyhand.Internal
             else if (ti.IsEnum)
             {
                 return CreateInstance(typeof(GenericEnumFormatter<>), new[] { t });
+            }
+            else
+            {
+                // NonGeneric Collection
+                if (t == typeof(IEnumerable))
+                {
+                    return NonGenericInterfaceEnumerableFormatter.Instance;
+                }
+                else if (t == typeof(ICollection))
+                {
+                    return NonGenericInterfaceCollectionFormatter.Instance;
+                }
+                else if (t == typeof(IList))
+                {
+                    return NonGenericInterfaceListFormatter.Instance;
+                }
+                else if (t == typeof(IDictionary))
+                {
+                    return NonGenericInterfaceDictionaryFormatter.Instance;
+                }
+
+                if (typeof(IList).GetTypeInfo().IsAssignableFrom(ti) && ti.DeclaredConstructors.Any(x => x.GetParameters().Length == 0))
+                {
+                    return Activator.CreateInstance(typeof(NonGenericListFormatter<>).MakeGenericType(t));
+                }
+                else if (typeof(IDictionary).GetTypeInfo().IsAssignableFrom(ti) && ti.DeclaredConstructors.Any(x => x.GetParameters().Length == 0))
+                {
+                    return Activator.CreateInstance(typeof(NonGenericDictionaryFormatter<>).MakeGenericType(t));
+                }
+            }
+
+            // check inherited types(e.g. Foo : ICollection<>, Bar<T> : ICollection<T>)
+            {
+                // generic dictionary, x => x.GetTypeInfo().IsConstructedGenericType()
+                var dictionaryDef = ti.ImplementedInterfaces.FirstOrDefault(x => x.IsConstructedGenericType && x.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+                if (dictionaryDef != null && ti.DeclaredConstructors.Any(x => x.GetParameters().Length == 0))
+                {
+                    Type keyType = dictionaryDef.GenericTypeArguments[0];
+                    Type valueType = dictionaryDef.GenericTypeArguments[1];
+                    return CreateInstance(typeof(GenericDictionaryFormatter<,,>), new[] { keyType, valueType, t });
+                }
+
+                // generic collection
+                var collectionDef = ti.ImplementedInterfaces.FirstOrDefault(x => x.IsConstructedGenericType && x.GetGenericTypeDefinition() == typeof(ICollection<>));
+                if (collectionDef != null && ti.DeclaredConstructors.Any(x => x.GetParameters().Length == 0))
+                {
+                    Type elemType = collectionDef.GenericTypeArguments[0];
+                    return CreateInstance(typeof(GenericCollectionFormatter<,>), new[] { elemType, t });
+                }
             }
 
             return null;
