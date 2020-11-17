@@ -233,7 +233,7 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                writer.Write(value.ToString());
+                writer.Write(value.OriginalString);
             }
         }
 
