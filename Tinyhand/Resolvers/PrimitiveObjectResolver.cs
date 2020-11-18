@@ -15,7 +15,18 @@ namespace Tinyhand.Resolvers
         /// <summary>
         /// The singleton instance that can be used.
         /// </summary>
-        public static readonly PrimitiveObjectResolver Instance = new ();
+        public static readonly PrimitiveObjectResolver Instance;
+
+        /// <summary>
+        /// A <see cref="TinyhandSerializerOptions"/> instance with this formatter pre-configured.
+        /// </summary>
+        public static readonly TinyhandSerializerOptions Options;
+
+        static PrimitiveObjectResolver()
+        {
+            Instance = new PrimitiveObjectResolver();
+            Options = new TinyhandSerializerOptions(Instance);
+        }
 
         private PrimitiveObjectResolver()
         {
