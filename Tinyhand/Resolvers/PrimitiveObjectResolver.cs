@@ -1,0 +1,41 @@
+﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
+
+using System.Collections.Generic;
+using Tinyhand.Formatters;
+
+#pragma warning disable SA1401 // Fields should be private
+
+namespace Tinyhand.Resolvers
+{
+    /// <summary>
+    /// Template code for resolver.
+    /// </summary>
+    public sealed class PrimitiveObjectResolver : IFormatterResolver
+    {
+        /// <summary>
+        /// The singleton instance that can be used.
+        /// </summary>
+        public static readonly PrimitiveObjectResolver Instance = new ();
+
+        private PrimitiveObjectResolver()
+        {
+        }
+
+        public ITinyhandFormatter<T>? TryGetFormatter<T>()
+        {
+            return FormatterCache<T>.Formatter;
+        }
+
+        private static class FormatterCache<T>
+        {
+            public static readonly ITinyhandFormatter<T>? Formatter;
+
+            static FormatterCache()
+            {
+                Formatter = (typeof(T) == typeof(object))
+                    ? (ITinyhandFormatter<T>)(object)PrimitiveObjectFormatter.Instance
+                    : null;
+            }
+        }
+    }
+}

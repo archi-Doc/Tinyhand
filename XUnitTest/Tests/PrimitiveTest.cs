@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Tinyhand;
 using Xunit;
 
-namespace XUnitTest
+namespace Tinyhand.Tests
 {
     // [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = true)]
     public class PrimitiveTest

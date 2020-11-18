@@ -14,7 +14,7 @@ using Tinyhand;
 using Tinyhand.IO;
 using Xunit;
 
-namespace XUnitTest
+namespace Tinyhand.Tests
 {
     public class FormatterTest
     {

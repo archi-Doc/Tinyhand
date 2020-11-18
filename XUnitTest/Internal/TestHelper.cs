@@ -10,7 +10,7 @@ using Xunit;
 
 #pragma warning disable SA1401 // Fields should be private
 
-namespace XUnitTest
+namespace Tinyhand.Tests
 {
     public static class TestHelper
     {
