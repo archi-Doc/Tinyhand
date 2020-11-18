@@ -6,7 +6,7 @@ using System.Reflection;
 using Arc.Visceral;
 using Xunit;
 
-namespace XUnitTest_TypeAndSymbol
+namespace Tinyhand.TypeAndSymbolTests
 {
     [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = true)]
     public sealed class TestAttribute : Attribute
@@ -192,34 +192,34 @@ namespace XUnitTest_TypeAndSymbol
             var body = new VisceralSampleBody(null);
             var o = body.Add(roslyn.GetTypeSymbol("TestClass"))!;
 
-            this.CheckName(t, o, ".ctor", "TestClass", "XUnitTest_TypeAndSymbol.TestClass.TestClass()", "void", "void");
-            this.CheckName(t, o, "TestMethod", "TestMethod", "XUnitTest_TypeAndSymbol.TestClass.TestMethod(bool)", "bool", "bool");
-            this.CheckName(t, o, "TestMethod2", "TestMethod2", "XUnitTest_TypeAndSymbol.TestClass.TestMethod2<T>(bool, T)", "T", "T");
-            this.CheckName(t, o, "TestMethod3", "TestMethod3", "XUnitTest_TypeAndSymbol.TestClass.TestMethod3()", "TestClass2", "XUnitTest_TypeAndSymbol.TestClass2");
+            this.CheckName(t, o, ".ctor", "TestClass", "Tinyhand.TypeAndSymbolTests.TestClass.TestClass()", "void", "void");
+            this.CheckName(t, o, "TestMethod", "TestMethod", "Tinyhand.TypeAndSymbolTests.TestClass.TestMethod(bool)", "bool", "bool");
+            this.CheckName(t, o, "TestMethod2", "TestMethod2", "Tinyhand.TypeAndSymbolTests.TestClass.TestMethod2<T>(bool, T)", "T", "T");
+            this.CheckName(t, o, "TestMethod3", "TestMethod3", "Tinyhand.TypeAndSymbolTests.TestClass.TestMethod3()", "TestClass2", "Tinyhand.TypeAndSymbolTests.TestClass2");
 
-            this.CheckName(t, o, "memberInt", "memberInt", "XUnitTest_TypeAndSymbol.TestClass.memberInt", "int", "int");
-            this.CheckName(t, o, "memberInt2", "memberInt2", "XUnitTest_TypeAndSymbol.TestClass.memberInt2", "int", "int?");
-            this.CheckName(t, o, "memberString", "memberString", "XUnitTest_TypeAndSymbol.TestClass.memberString", "string", "string[]");
-            this.CheckName(t, o, "memberFloat", "memberFloat", "XUnitTest_TypeAndSymbol.TestClass.memberFloat", "float", "float[][]");
-            this.CheckName(t, o, "memberFloat2", "memberFloat2", "XUnitTest_TypeAndSymbol.TestClass.memberFloat2", "float", "float[,,]");
-            this.CheckName(t, o, "memberTuple", "memberTuple", "XUnitTest_TypeAndSymbol.TestClass.memberTuple", "ValueTuple", "(int, XUnitTest_TypeAndSymbol.TestClass2)");
-            this.CheckName(t, o, "memberTupleArray", "memberTupleArray", "XUnitTest_TypeAndSymbol.TestClass.memberTupleArray", "ValueTuple", "(int, XUnitTest_TypeAndSymbol.TestClass2)[]");
-            this.CheckName(t, o, "memberStruct", "memberStruct", "XUnitTest_TypeAndSymbol.TestClass.memberStruct", "TestStruct", "XUnitTest_TypeAndSymbol.TestStruct");
-            this.CheckName(t, o, "memberClass", "memberClass", "XUnitTest_TypeAndSymbol.TestClass.memberClass", "TestClass2", "XUnitTest_TypeAndSymbol.TestClass2");
-            this.CheckName(t, o, "memberGeneric", "memberGeneric", "XUnitTest_TypeAndSymbol.TestClass.memberGeneric", "GenericClass", "XUnitTest_TypeAndSymbol.GenericClass<int>");
-            this.CheckName(t, o, "memberNested", "memberNested", "XUnitTest_TypeAndSymbol.TestClass.memberNested", "NestedClass", "XUnitTest_TypeAndSymbol.TestClass.NestedClass<decimal>");
-            this.CheckName(t, o, "memberNested2", "memberNested2", "XUnitTest_TypeAndSymbol.TestClass.memberNested2", "NestedClass2", "XUnitTest_TypeAndSymbol.TestClass.NestedClass<string>.NestedClass2");
+            this.CheckName(t, o, "memberInt", "memberInt", "Tinyhand.TypeAndSymbolTests.TestClass.memberInt", "int", "int");
+            this.CheckName(t, o, "memberInt2", "memberInt2", "Tinyhand.TypeAndSymbolTests.TestClass.memberInt2", "int", "int?");
+            this.CheckName(t, o, "memberString", "memberString", "Tinyhand.TypeAndSymbolTests.TestClass.memberString", "string", "string[]");
+            this.CheckName(t, o, "memberFloat", "memberFloat", "Tinyhand.TypeAndSymbolTests.TestClass.memberFloat", "float", "float[][]");
+            this.CheckName(t, o, "memberFloat2", "memberFloat2", "Tinyhand.TypeAndSymbolTests.TestClass.memberFloat2", "float", "float[,,]");
+            this.CheckName(t, o, "memberTuple", "memberTuple", "Tinyhand.TypeAndSymbolTests.TestClass.memberTuple", "ValueTuple", "(int, Tinyhand.TypeAndSymbolTests.TestClass2)");
+            this.CheckName(t, o, "memberTupleArray", "memberTupleArray", "Tinyhand.TypeAndSymbolTests.TestClass.memberTupleArray", "ValueTuple", "(int, Tinyhand.TypeAndSymbolTests.TestClass2)[]");
+            this.CheckName(t, o, "memberStruct", "memberStruct", "Tinyhand.TypeAndSymbolTests.TestClass.memberStruct", "TestStruct", "Tinyhand.TypeAndSymbolTests.TestStruct");
+            this.CheckName(t, o, "memberClass", "memberClass", "Tinyhand.TypeAndSymbolTests.TestClass.memberClass", "TestClass2", "Tinyhand.TypeAndSymbolTests.TestClass2");
+            this.CheckName(t, o, "memberGeneric", "memberGeneric", "Tinyhand.TypeAndSymbolTests.TestClass.memberGeneric", "GenericClass", "Tinyhand.TypeAndSymbolTests.GenericClass<int>");
+            this.CheckName(t, o, "memberNested", "memberNested", "Tinyhand.TypeAndSymbolTests.TestClass.memberNested", "NestedClass", "Tinyhand.TypeAndSymbolTests.TestClass.NestedClass<decimal>");
+            this.CheckName(t, o, "memberNested2", "memberNested2", "Tinyhand.TypeAndSymbolTests.TestClass.memberNested2", "NestedClass2", "Tinyhand.TypeAndSymbolTests.TestClass.NestedClass<string>.NestedClass2");
 
             t = typeof(TestClass.NestedClass<>);
-            Assert.Equal("XUnitTest_TypeAndSymbol.TestClass.NestedClass<T>", t.TypeToFullName());
+            Assert.Equal("Tinyhand.TypeAndSymbolTests.TestClass.NestedClass<T>", t.TypeToFullName());
             t = typeof(TestClass.NestedClass<int>);
-            Assert.Equal("XUnitTest_TypeAndSymbol.TestClass.NestedClass<int>", t.TypeToFullName());
+            Assert.Equal("Tinyhand.TypeAndSymbolTests.TestClass.NestedClass<int>", t.TypeToFullName());
             t = typeof(TestClass.NestedClass<>.NestedClass3<,>);
-            Assert.Equal("XUnitTest_TypeAndSymbol.TestClass.NestedClass<T>.NestedClass3<U, V>", t.TypeToFullName());
+            Assert.Equal("Tinyhand.TypeAndSymbolTests.TestClass.NestedClass<T>.NestedClass3<U, V>", t.TypeToFullName());
             t = typeof(TestClass.NestedClass<string>.NestedClass3<int, char>);
-            Assert.Equal("XUnitTest_TypeAndSymbol.TestClass.NestedClass<string>.NestedClass3<int, char>", t.TypeToFullName());
+            Assert.Equal("Tinyhand.TypeAndSymbolTests.TestClass.NestedClass<string>.NestedClass3<int, char>", t.TypeToFullName());
             t = typeof(GenericClass2a<,>);
-            Assert.Equal("XUnitTest_TypeAndSymbol.GenericClass2a<A, B>", t.TypeToFullName());
+            Assert.Equal("Tinyhand.TypeAndSymbolTests.GenericClass2a<A, B>", t.TypeToFullName());
         }
 
         void CheckName(Type type, VisceralSampleObject obj, string memberName, string expectedSimpleName, string expectedFullName, string expectedTypeSimpleName, string expectedTypeFullName)

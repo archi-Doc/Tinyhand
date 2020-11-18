@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
@@ -80,6 +81,19 @@ namespace Tinyhand.Internal
             { typeof(IReadOnlyDictionary<,>), typeof(InterfaceReadOnlyDictionaryFormatter<,>) },
             { typeof(System.Collections.Concurrent.ConcurrentDictionary<,>), typeof(ConcurrentDictionaryFormatter<,>) },
             { typeof(Lazy<>), typeof(LazyFormatter<>) },
+            { typeof(ImmutableArray<>), typeof(ImmutableArrayFormatter<>) },
+            { typeof(ImmutableList<>), typeof(ImmutableListFormatter<>) },
+            { typeof(ImmutableDictionary<,>), typeof(ImmutableDictionaryFormatter<,>) },
+            { typeof(ImmutableHashSet<>), typeof(ImmutableHashSetFormatter<>) },
+            { typeof(ImmutableSortedDictionary<,>), typeof(ImmutableSortedDictionaryFormatter<,>) },
+            { typeof(ImmutableSortedSet<>), typeof(ImmutableSortedSetFormatter<>) },
+            { typeof(ImmutableQueue<>), typeof(ImmutableQueueFormatter<>) },
+            { typeof(ImmutableStack<>), typeof(ImmutableStackFormatter<>) },
+            { typeof(IImmutableList<>), typeof(InterfaceImmutableListFormatter<>) },
+            { typeof(IImmutableDictionary<,>), typeof(InterfaceImmutableDictionaryFormatter<,>) },
+            { typeof(IImmutableQueue<>), typeof(InterfaceImmutableQueueFormatter<>) },
+            { typeof(IImmutableSet<>), typeof(InterfaceImmutableSetFormatter<>) },
+            { typeof(IImmutableStack<>), typeof(InterfaceImmutableStackFormatter<>) },
         };
 
         // Reduce IL2CPP code generate size(don't write long code in <T>)

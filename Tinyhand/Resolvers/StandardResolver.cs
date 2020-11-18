@@ -38,6 +38,8 @@ namespace Tinyhand.Resolvers
             {
                 if (typeof(T) == typeof(object))
                 {
+                    // final fallback
+                    Formatter = (ITinyhandFormatter<T>)Tinyhand.Formatters.DynamicObjectTypeFallbackFormatter.Instance;
                 }
                 else
                 {
