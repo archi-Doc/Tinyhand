@@ -1,6 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using Tinyhand;
+using Tinyhand.Formatters;
 
 namespace Tinyhand.Resolvers
 {
@@ -17,6 +17,7 @@ namespace Tinyhand.Resolvers
         private static readonly IFormatterResolver[] Resolvers = new IFormatterResolver[]
         {
             BuiltinResolver.Instance,
+            CompositeResolver.Create(ExpandoObjectFormatter.Instance),
             GenericsResolver.Instance,
             GeneratedResolver.Instance,
         };
