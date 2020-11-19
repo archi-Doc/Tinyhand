@@ -791,7 +791,11 @@ namespace Tinyhand.Generator
 
                         using (var d = ssb.ScopeBrace($"public {typeName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o)"))
                         {
-                            ssb.AppendLine("if (r.TryReadNil()) return default;");
+                            if (x.Kind.IsReferenceType())
+                            {// Reference type
+                                ssb.AppendLine("if (r.TryReadNil()) return default;");
+                            }
+
                             ssb.AppendLine($"var v = new {typeName}();");
                             ssb.AppendLine("v.Deserialize(ref r, o);");
                             ssb.AppendLine("return v;");
@@ -1283,6 +1287,11 @@ namespace Tinyhand.Generator
                 return;
             }
 
+            if (this.Kind.IsValueType())
+            {// Value type
+                ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
+            }
+
             ssb.AppendLine("var numberOfData = reader.ReadArrayHeader();");
 
             using (var security = ssb.ScopeSecurityDepth())
@@ -1305,6 +1314,11 @@ namespace Tinyhand.Generator
             if (this.Automata == null)
             {
                 return;
+            }
+
+            if (this.Kind.IsValueType())
+            {// Value type
+                ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
             }
 
             this.Automata.PrepareReconstruct();

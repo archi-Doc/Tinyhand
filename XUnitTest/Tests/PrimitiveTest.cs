@@ -10,7 +10,6 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    // [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = true)]
     public class PrimitiveTest
     {
         [Fact]

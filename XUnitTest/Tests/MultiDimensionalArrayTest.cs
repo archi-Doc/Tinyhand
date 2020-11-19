@@ -2,7 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +16,13 @@ namespace Tinyhand.Tests
     {
         private T Convert<T>(T value)
         {
-            return TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize(value));
+            var b = TinyhandSerializer.Serialize<T>(value);
+            var b2 = MessagePack.MessagePackSerializer.Serialize<T>(value);
+            /*var seq = new Nerdbank.Streams.Sequence<byte>();
+            TinyhandSerializer.Serialize<T>(seq, value);
+            b = seq.AsReadOnlySequence.ToArray();*/
+            b.IsStructuralEqual(b2);
+            return TinyhandSerializer.Deserialize<T>(b);
         }
 
         [Theory]

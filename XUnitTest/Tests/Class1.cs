@@ -38,10 +38,10 @@ namespace Tinyhand.Tests
         public ByteEnum Prop2 { get; set; }
 
         [Key(2)]
-        public string Prop3 { get; set; }
+        public string? Prop3 { get; set; }
 
         [Key(3)]
-        public SimpleStringKeyData Prop4 { get; set; }
+        public SimpleStringKeyData? Prop4 { get; set; }
 
         [Key(4)]
         public SimpleStructIntKeyData Prop5 { get; set; }
@@ -50,7 +50,7 @@ namespace Tinyhand.Tests
         public SimpleStructStringKeyData Prop6 { get; set; }
 
         [Key(6)]
-        public byte[] BytesSpecial { get; set; }
+        public byte[]? BytesSpecial { get; set; }
 
         ////[Key(7)]
         ////[MessagePackFormatter(typeof(OreOreFormatter2), 100, "hogehoge")]
