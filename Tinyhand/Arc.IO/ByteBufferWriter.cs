@@ -371,7 +371,7 @@ namespace Arc.IO
                 this.Next = null;
                 this.RunningIndex = 0;
                 this.Size = 0;
-                arrayPool.Return(this.Array);
+                // arrayPool.Return(this.Array); // Called by ByteSequence.
                 this.Array = null!;
             }
         }

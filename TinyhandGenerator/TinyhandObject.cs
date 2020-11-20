@@ -122,6 +122,12 @@ namespace Tinyhand.Generator
             }
         }
 
+        public bool HasTinyhandSerializationCallback { get; private set; }
+
+        public bool HasExplicitOnBeforeSerialize { get; private set; } // Has Interface.Method() {} instead of Method() {}
+
+        public bool HasExplicitOnAfterDeserialize { get; private set; }
+
         public bool HasNullableAnnotation
         {
             get
@@ -289,6 +295,14 @@ namespace Tinyhand.Generator
             else if (this.Generics_IsGeneric)
             {
                 this.FormatterCondition_Reconstruct = FormatterCondition.StaticMethod;
+            }
+
+            // ITinyhandSerializationCallback
+            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerializationCallback"))
+            {
+                this.HasTinyhandSerializationCallback = true;
+                this.HasExplicitOnBeforeSerialize = this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnBeforeSerialize");
+                this.HasExplicitOnAfterDeserialize = this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterDeserialize");
             }
 
             // Members: Property
@@ -791,7 +805,11 @@ namespace Tinyhand.Generator
 
                         using (var d = ssb.ScopeBrace($"public {typeName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o)"))
                         {
-                            ssb.AppendLine("if (r.TryReadNil()) return default;");
+                            if (x.Kind.IsReferenceType())
+                            {// Reference type
+                                ssb.AppendLine("if (r.TryReadNil()) return default;");
+                            }
+
                             ssb.AppendLine($"var v = new {typeName}();");
                             ssb.AppendLine("v.Deserialize(ref r, o);");
                             ssb.AppendLine("return v;");
@@ -879,11 +897,46 @@ namespace Tinyhand.Generator
             }
         }
 
+        internal void Generate_OnBeforeSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.HasTinyhandSerializationCallback)
+            {
+                if (this.HasExplicitOnBeforeSerialize)
+                {
+                    ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnBeforeSerialize();");
+                }
+                else
+                {
+                    ssb.AppendLine($"{ssb.FullObject}.OnBeforeSerialize();");
+                }
+            }
+        }
+
+        internal void Generate_OnAfterDeserialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.HasTinyhandSerializationCallback)
+            {
+                if (this.HasExplicitOnAfterDeserialize)
+                {
+                    ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterDeserialize();");
+                }
+                else
+                {
+                    ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterDeserialize();");
+
+                    ssb.AppendLine($"{ssb.FullObject}.OnAfterDeserialize();");
+                }
+            }
+        }
+
         internal void GenerateSerialize_MemberMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             using (var m = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("this"))
             {
+                // ITinyhandSerializationCallback.OnBeforeSerialize
+                this.Generate_OnBeforeSerialize(ssb, info);
+
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
                 {// String Key
                     this.GenerateSerializerStringKey(ssb, info);
@@ -900,11 +953,17 @@ namespace Tinyhand.Generator
             using (var m = ssb.ScopeBrace($"public static void Serialize(ref TinyhandWriter writer, {this.LocalName + this.QuestionMarkIfReferenceType} value, TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("value"))
             {
-                using (var e = ssb.ScopeBrace($"if ({v.FullObject} == null)"))
+                if (this.Kind.IsReferenceType())
                 {
-                    ssb.AppendLine("writer.WriteNil();");
-                    ssb.AppendLine("return;");
+                    using (var e = ssb.ScopeBrace($"if ({v.FullObject} == null)"))
+                    {
+                        ssb.AppendLine("writer.WriteNil();");
+                        ssb.AppendLine("return;");
+                    }
                 }
+
+                // ITinyhandSerializationCallback.OnBeforeSerialize
+                this.Generate_OnBeforeSerialize(ssb, info);
 
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
                 {// String Key
@@ -930,6 +989,9 @@ namespace Tinyhand.Generator
                 {// Int Key
                     this.GenerateDeserializerIntKey(ssb, info);
                 }
+
+                // ITinyhandSerializationCallback.OnAfterDeserialize
+                this.Generate_OnAfterDeserialize(ssb, info);
             }
         }
 
@@ -950,6 +1012,9 @@ namespace Tinyhand.Generator
                     {// Int Key
                         this.GenerateDeserializerIntKey(ssb, info);
                     }
+
+                    // ITinyhandSerializationCallback.OnAfterDeserialize
+                    this.Generate_OnAfterDeserialize(ssb, info);
 
                     ssb.AppendLine($"return {v.FullObject};");
                 }
@@ -1283,6 +1348,11 @@ namespace Tinyhand.Generator
                 return;
             }
 
+            if (this.Kind.IsValueType())
+            {// Value type
+                ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
+            }
+
             ssb.AppendLine("var numberOfData = reader.ReadArrayHeader();");
 
             using (var security = ssb.ScopeSecurityDepth())
@@ -1305,6 +1375,11 @@ namespace Tinyhand.Generator
             if (this.Automata == null)
             {
                 return;
+            }
+
+            if (this.Kind.IsValueType())
+            {// Value type
+                ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
             }
 
             this.Automata.PrepareReconstruct();

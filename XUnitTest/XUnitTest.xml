@@ -4,6 +4,11 @@
         <name>XUnitTest</name>
     </assembly>
     <members>
+        <member name="T:XUnitTest.RoslynUnit">
+            <summary>
+            Parse a text file and get SyntaxTree, Compilation, SemanticModel.
+            </summary>
+        </member>
         <member name="M:Xunit.AssertEx.Is``1(``0,``0)">
             <summary>Assert.Equal, if T is IEnumerable then compare value equality.</summary>
         </member>
@@ -76,9 +81,263 @@
         <member name="M:Xunit.AssertEx.IsNotStructuralEqual(System.Object,System.Object,System.String)">
             <summary>Assert by deep recursive value equality compare.</summary>
         </member>
-        <member name="T:XUnitTest.RoslynUnit">
+        <member name="T:Nerdbank.Streams.Sequence`1">
             <summary>
-            Parse a text file and get SyntaxTree, Compilation, SemanticModel.
+            Manages a sequence of elements, readily castable as a <see cref="T:System.Buffers.ReadOnlySequence`1"/>.
+            </summary>
+            <typeparam name="T">The type of element stored by the sequence.</typeparam>
+            <remarks>
+            Instance members are not thread-safe.
+            </remarks>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Nerdbank.Streams.Sequence`1"/> class
+            that uses a private <see cref="T:System.Buffers.ArrayPool`1"/> for recycling arrays.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.#ctor(System.Buffers.MemoryPool{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Nerdbank.Streams.Sequence`1"/> class.
+            </summary>
+            <param name="memoryPool">The pool to use for recycling backing arrays.</param>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.#ctor(System.Buffers.ArrayPool{`0})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Nerdbank.Streams.Sequence`1"/> class.
+            </summary>
+            <param name="arrayPool">The pool to use for recycling backing arrays.</param>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.MinimumSpanLength">
+            <summary>
+            Gets or sets the minimum length for any array allocated as a segment in the sequence.
+            Any non-positive value allows the pool to determine the length of the array.
+            </summary>
+            <value>The default value is 0.</value>
+            <remarks>
+            <para>
+            Each time <see cref="M:Nerdbank.Streams.Sequence`1.GetSpan(System.Int32)"/> or <see cref="M:Nerdbank.Streams.Sequence`1.GetMemory(System.Int32)"/> is called,
+            previously allocated memory is used if it is large enough to satisfy the length demand.
+            If new memory must be allocated, the argument to one of these methods typically dictate
+            the length of array to allocate. When the caller uses very small values (just enough for its immediate need)
+            but the high level scenario can predict that a large amount of memory will be ultimately required,
+            it can be advisable to set this property to a value such that just a few larger arrays are allocated
+            instead of many small ones.
+            </para>
+            <para>
+            The <see cref="T:System.Buffers.MemoryPool`1"/> in use may itself have a minimum array length as well,
+            in which case the higher of the two minimums dictate the minimum array size that will be allocated.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.AsReadOnlySequence">
+            <summary>
+            Gets this sequence expressed as a <see cref="T:System.Buffers.ReadOnlySequence`1"/>.
+            </summary>
+            <returns>A read only sequence representing the data in this object.</returns>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.Length">
+            <summary>
+            Gets the length of the sequence.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.DebuggerDisplay">
+            <summary>
+            Gets the value to display in a debugger datatip.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.op_Implicit(Nerdbank.Streams.Sequence{`0})~System.Buffers.ReadOnlySequence{`0}">
+            <summary>
+            Expresses this sequence as a <see cref="T:System.Buffers.ReadOnlySequence`1"/>.
+            </summary>
+            <param name="sequence">The sequence to convert.</param>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.AdvanceTo(System.SequencePosition)">
+            <summary>
+            Removes all elements from the sequence from its beginning to the specified position,
+            considering that data to have been fully processed.
+            </summary>
+            <param name="position">
+            The position of the first element that has not yet been processed.
+            This is typically <see cref="P:System.Buffers.ReadOnlySequence`1.End"/> after reading all elements from that instance.
+            </param>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.Advance(System.Int32)">
+            <summary>
+            Advances the sequence to include the specified number of elements initialized into memory
+            returned by a prior call to <see cref="M:Nerdbank.Streams.Sequence`1.GetMemory(System.Int32)"/>.
+            </summary>
+            <param name="count">The number of elements written into memory.</param>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.GetMemory(System.Int32)">
+            <summary>
+            Gets writable memory that can be initialized and added to the sequence via a subsequent call to <see cref="M:Nerdbank.Streams.Sequence`1.Advance(System.Int32)"/>.
+            </summary>
+            <param name="sizeHint">The size of the memory required, or 0 to just get a convenient (non-empty) buffer.</param>
+            <returns>The requested memory.</returns>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.GetSpan(System.Int32)">
+            <summary>
+            Gets writable memory that can be initialized and added to the sequence via a subsequent call to <see cref="M:Nerdbank.Streams.Sequence`1.Advance(System.Int32)"/>.
+            </summary>
+            <param name="sizeHint">The size of the memory required, or 0 to just get a convenient (non-empty) buffer.</param>
+            <returns>The requested memory.</returns>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.Dispose">
+            <summary>
+            Clears the entire sequence, recycles associated memory into pools,
+            and resets this instance for reuse.
+            This invalidates any <see cref="T:System.Buffers.ReadOnlySequence`1"/> previously produced by this instance.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.Reset">
+            <summary>
+            Clears the entire sequence and recycles associated memory into pools.
+            This invalidates any <see cref="T:System.Buffers.ReadOnlySequence`1"/> previously produced by this instance.
+            </summary>
+        </member>
+        <member name="F:Nerdbank.Streams.Sequence`1.SequenceSegment.MayContainReferences">
+            <summary>
+            A value indicating whether the element may contain references (and thus must be cleared).
+            </summary>
+        </member>
+        <member name="F:Nerdbank.Streams.Sequence`1.SequenceSegment.array">
+            <summary>
+            Gets the backing array, when using an <see cref="T:System.Buffers.ArrayPool`1"/> instead of a <see cref="T:System.Buffers.MemoryPool`1"/>.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.Start">
+            <summary>
+            Gets the position within <see cref="P:System.Buffers.ReadOnlySequenceSegment`1.Memory"/> where the data starts.
+            </summary>
+            <remarks>This may be nonzero as a result of calling <see cref="M:Nerdbank.Streams.Sequence`1.AdvanceTo(System.SequencePosition)"/>.</remarks>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.End">
+            <summary>
+            Gets the position within <see cref="P:System.Buffers.ReadOnlySequenceSegment`1.Memory"/> where the data ends.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.RemainingMemory">
+            <summary>
+            Gets the tail of memory that has not yet been committed.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.RemainingSpan">
+            <summary>
+            Gets the tail of memory that has not yet been committed.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.MemoryOwner">
+            <summary>
+            Gets the tracker for the underlying array for this segment, which can be used to recycle the array when we're disposed of.
+            Will be <c>null</c> if using an array pool, in which case the memory is held by <see cref="F:Nerdbank.Streams.Sequence`1.SequenceSegment.array"/>.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.AvailableMemory">
+            <summary>
+            Gets the full memory owned by the <see cref="P:Nerdbank.Streams.Sequence`1.SequenceSegment.MemoryOwner"/>.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.Length">
+            <summary>
+            Gets the number of elements that are committed in this segment.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.WritableBytes">
+            <summary>
+            Gets the amount of writable bytes in this segment.
+            It is the amount of bytes between <see cref="P:Nerdbank.Streams.Sequence`1.SequenceSegment.Length"/> and <see cref="P:Nerdbank.Streams.Sequence`1.SequenceSegment.End"/>.
+            </summary>
+        </member>
+        <member name="P:Nerdbank.Streams.Sequence`1.SequenceSegment.Next">
+            <summary>
+            Gets or sets the next segment in the singly linked list of segments.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.SequenceSegment.Assign(System.Buffers.IMemoryOwner{`0})">
+            <summary>
+            Assigns this (recyclable) segment a new area in memory.
+            </summary>
+            <param name="memoryOwner">The memory and a means to recycle it.</param>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.SequenceSegment.Assign(`0[])">
+            <summary>
+            Assigns this (recyclable) segment a new area in memory.
+            </summary>
+            <param name="array">An array drawn from an <see cref="T:System.Buffers.ArrayPool`1"/>.</param>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.SequenceSegment.ResetMemory(System.Buffers.ArrayPool{`0})">
+            <summary>
+            Clears all fields in preparation to recycle this instance.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.SequenceSegment.SetNext(Nerdbank.Streams.Sequence{`0}.SequenceSegment)">
+            <summary>
+            Adds a new segment after this one.
+            </summary>
+            <param name="segment">The next segment in the linked list.</param>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.SequenceSegment.Advance(System.Int32)">
+            <summary>
+            Commits more elements as written in this segment.
+            </summary>
+            <param name="count">The number of elements written.</param>
+        </member>
+        <member name="M:Nerdbank.Streams.Sequence`1.SequenceSegment.AdvanceTo(System.Int32)">
+            <summary>
+            Removes some elements from the start of this segment.
+            </summary>
+            <param name="offset">The number of elements to ignore from the start of the underlying array.</param>
+        </member>
+        <member name="M:Nerdbank.Streams.Requires.Range(System.Boolean,System.String,System.String)">
+            <summary>
+            Throws an <see cref="T:System.ArgumentOutOfRangeException"/> if a condition does not evaluate to true.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Requires.FailRange(System.String,System.String)">
+            <summary>
+            Throws an <see cref="T:System.ArgumentOutOfRangeException"/> if a condition does not evaluate to true.
+            </summary>
+            <returns>Nothing.  This method always throws.</returns>
+        </member>
+        <member name="M:Nerdbank.Streams.Requires.NotNull``1(``0,System.String)">
+            <summary>
+            Throws an exception if the specified parameter's value is null.
+            </summary>
+            <typeparam name="T">The type of the parameter.</typeparam>
+            <param name="value">The value of the argument.</param>
+            <param name="parameterName">The name of the parameter to include in any thrown exception.</param>
+            <returns>The value of the parameter.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown if <paramref name="value"/> is <c>null</c>.</exception>
+        </member>
+        <member name="M:Nerdbank.Streams.Requires.Argument(System.Boolean,System.String,System.String)">
+            <summary>
+            Throws an ArgumentException if a condition does not evaluate to true.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Requires.Argument(System.Boolean,System.String,System.String,System.Object)">
+            <summary>
+            Throws an ArgumentException if a condition does not evaluate to true.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Requires.Argument(System.Boolean,System.String,System.String,System.Object,System.Object)">
+            <summary>
+            Throws an ArgumentException if a condition does not evaluate to true.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Requires.Argument(System.Boolean,System.String,System.String,System.Object[])">
+            <summary>
+            Throws an ArgumentException if a condition does not evaluate to true.
+            </summary>
+        </member>
+        <member name="T:Nerdbank.Streams.Verify">
+            <summary>
+            Common runtime checks that throw exceptions upon failure.
+            </summary>
+        </member>
+        <member name="M:Nerdbank.Streams.Verify.Operation(System.Boolean,System.String)">
+            <summary>
+            Throws an <see cref="T:System.InvalidOperationException"/> if a condition is false.
             </summary>
         </member>
     </members>

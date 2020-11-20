@@ -28,6 +28,414 @@ namespace Tinyhand.Tests
     public enum ULongEnum : ulong { A, B, C, D, E }
 
     [TinyhandObject]
+    public partial class SimpleIntKeyData
+    {
+        [Key(0)]
+        ////[MessagePackFormatter(typeof(OreOreFormatter))]
+        public int Prop1 { get; set; }
+
+        [Key(1)]
+        public ByteEnum Prop2 { get; set; }
+
+        [Key(2)]
+        public string? Prop3 { get; set; }
+
+        [Key(3)]
+        public SimpleStringKeyData? Prop4 { get; set; }
+
+        [Key(4)]
+        public SimpleStructIntKeyData Prop5 { get; set; }
+
+        [Key(5)]
+        public SimpleStructStringKeyData Prop6 { get; set; }
+
+        [Key(6)]
+        public byte[]? BytesSpecial { get; set; }
+
+        ////[Key(7)]
+        ////[MessagePackFormatter(typeof(OreOreFormatter2), 100, "hogehoge")]
+        ////[MessagePackFormatter(typeof(OreOreFormatter))]
+        ////public int Prop7 { get; set; }
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class SimpleStringKeyData
+    {
+        public int Prop1 { get; set; }
+
+        public ByteEnum Prop2 { get; set; }
+
+        public int Prop3 { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial struct SimpleStructIntKeyData
+    {
+        [Key(0)]
+        public int X { get; set; }
+
+        [Key(1)]
+        public int Y { get; set; }
+
+        [Key(2)]
+        public byte[] BytesSpecial { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial struct SimpleStructStringKeyData
+    {
+        [Key("key-X")]
+        public int X { get; set; }
+
+        [Key("key-Y")]
+        public int[] Y { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial struct Vector2
+    {
+        [Key(0)]
+        public float X;
+        [Key(1)]
+        public float Y;
+
+        public Vector2(float x, float y)
+        {
+            this.X = x;
+            this.Y = y;
+        }
+    }
+
+    [TinyhandObject]
+    public partial class EmptyClass
+    {
+    }
+
+    [TinyhandObject]
+    public partial struct EmptyStruct
+    {
+    }
+
+    [TinyhandObject]
+    public partial class Version1
+    {
+        [Key(3)]
+        public int MyProperty1 { get; set; }
+
+        [Key(4)]
+        public int MyProperty2 { get; set; }
+
+        [Key(5)]
+        public int MyProperty3 { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class Version2
+    {
+        [Key(3)]
+        public int MyProperty1 { get; set; }
+
+        [Key(4)]
+        public int MyProperty2 { get; set; }
+
+        [Key(5)]
+        public int MyProperty3 { get; set; }
+
+        // [Key(6)]
+        // public int MyProperty4 { get; set; }
+        [Key(7)]
+        public int MyProperty5 { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class Version0
+    {
+        [Key(3)]
+        public int MyProperty1 { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class HolderV1
+    {
+        [Key(0)]
+        public Version1 MyProperty1 { get; set; }
+
+        [Key(1)]
+        public int After { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class HolderV2
+    {
+        [Key(0)]
+        public Version2 MyProperty1 { get; set; }
+
+        [Key(1)]
+        public int After { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class HolderV0
+    {
+        [Key(0)]
+        public Version0 MyProperty1 { get; set; }
+
+        [Key(1)]
+        public int After { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class Callback1 : ITinyhandSerializationCallback
+    {
+        [Key(0)]
+        public int X { get; set; }
+
+        [IgnoreMember]
+        public bool CalledBefore { get; private set; }
+
+        [IgnoreMember]
+        public bool CalledAfter { get; private set; }
+
+        public Callback1(int x)
+        {
+        }
+
+        public Callback1()
+        {
+        }
+
+        public void OnBeforeSerialize()
+        {
+            this.CalledBefore = true;
+        }
+
+        public void OnAfterDeserialize()
+        {
+            this.CalledAfter = true;
+        }
+    }
+
+    [TinyhandObject]
+    public partial class Callback1_2 : ITinyhandSerializationCallback
+    {
+        [Key(0)]
+        public int X { get; set; }
+
+        [IgnoreMember]
+        public bool CalledBefore { get; private set; }
+
+        [IgnoreMember]
+        public bool CalledAfter { get; private set; }
+
+        public Callback1_2(int x)
+        {
+            this.X = x;
+        }
+
+        public Callback1_2()
+        {
+        }
+
+        void ITinyhandSerializationCallback.OnBeforeSerialize()
+        {
+            this.CalledBefore = true;
+        }
+
+        void ITinyhandSerializationCallback.OnAfterDeserialize()
+        {
+            this.CalledAfter = true;
+        }
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial struct Callback2 : ITinyhandSerializationCallback
+    {
+        public static bool CalledAfter = false;
+
+        [Key(0)]
+        public int X { get; set; }
+
+        private Action onBefore;
+        private Action onAfter;
+
+        public Callback2(int x)
+            : this(x, () => { }, () => { })
+        {
+        }
+
+        public Callback2(int x, Action onBefore, Action onAfter)
+        {
+            this.X = x;
+            this.onBefore = onBefore;
+            this.onAfter = onAfter;
+        }
+
+        public void OnBeforeSerialize()
+        {
+            this.onBefore();
+        }
+
+        public void OnAfterDeserialize()
+        {
+            CalledAfter = true;
+        }
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial struct Callback2_2 : ITinyhandSerializationCallback
+    {
+        [Key(0)]
+        public int X { get; set; }
+
+        public static bool CalledAfter = false;
+
+        public Callback2_2(int x)
+            : this(x, () => { }, () => { })
+        {
+        }
+
+        private Action onBefore;
+        private Action onAfter;
+
+        public Callback2_2(int x, Action onBefore, Action onAfter)
+        {
+            this.X = x;
+            this.onBefore = onBefore;
+            this.onAfter = onAfter;
+        }
+
+        void ITinyhandSerializationCallback.OnBeforeSerialize()
+        {
+            this.onBefore();
+        }
+
+        void ITinyhandSerializationCallback.OnAfterDeserialize()
+        {
+            CalledAfter = true;
+        }
+    }
+
+    [TinyhandObject]
+    public partial class MyClass
+    {
+        [Key(0)]
+        public int MyProperty1 { get; set; }
+
+        [Key(1)]
+        public int MyProperty2 { get; set; }
+
+        [Key(2)]
+        public int MyProperty3 { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class Empty1
+    {
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class Empty2
+    {
+    }
+
+    [TinyhandObject]
+    public partial class NonEmpty1
+    {
+        [Key(0)]
+        public int MyProperty { get; set; }
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class NonEmpty2
+    {
+        [Key(0)]
+        public int MyProperty { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class GenericClass<T1, T2>
+    {
+        [Key(0)]
+        public T1 MyProperty0 { get; set; }
+
+        [Key(1)]
+        public T2 MyProperty1 { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial struct GenericStruct<T1, T2>
+    {
+        [Key(0)]
+        public T1 MyProperty0 { get; set; }
+
+        [Key(1)]
+        public T2 MyProperty1 { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class VersionBlockTest
+    {
+        [Key(0)]
+        public int MyProperty { get; set; }
+
+        [Key(1)]
+        public MyClass UnknownBlock { get; set; }
+
+        [Key(2)]
+        public int MyProperty2 { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial class UnVersionBlockTest
+    {
+        [Key(0)]
+        public int MyProperty { get; set; }
+
+        ////[Key(1)]
+        ////public MyClass UnknownBlock { get; set; }
+
+        [Key(2)]
+        public int MyProperty2 { get; set; }
+    }
+
+    public partial class NestParent
+    {
+        [TinyhandObject]
+        public partial class NestContract
+        {
+            [Key(0)]
+            public int MyProperty { get; set; }
+        }
+
+        public class NestContractless
+        {
+            public int MyProperty { get; set; }
+        }
+    }
+
+    [TinyhandObject]
+    public partial class WithIndexer
+    {
+        [Key(0)]
+        public int Data1 { get; set; }
+
+        [Key(1)]
+        public string Data2 { get; set; }
+
+        // [Key(2)]
+        // public int this[int i] => 0;
+    }
+
+    public partial class WithIndexerContractless
+    {
+        public int Data1 { get; set; }
+
+        public string Data2 { get; set; }
+
+        public int this[int i] => 0;
+    }
+
+    [TinyhandObject]
     [MessagePack.MessagePackObject]
     public partial class PrimitiveIntKeyClass
     {

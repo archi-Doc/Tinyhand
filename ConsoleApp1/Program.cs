@@ -8,6 +8,38 @@ using Tinyhand.IO;
 namespace ConsoleApp1
 {
     [TinyhandObject]
+    public partial class Callback1_2 : ITinyhandSerializationCallback
+    {
+        [Key(0)]
+        public int X { get; set; }
+
+        [IgnoreMember]
+        public bool CalledBefore { get; private set; }
+
+        [IgnoreMember]
+        public bool CalledAfter { get; private set; }
+
+        public Callback1_2(int x)
+        {
+            this.X = x;
+        }
+
+        public Callback1_2()
+        {
+        }
+
+        public void OnBeforeSerialize()
+        {
+            this.CalledBefore = true;
+        }
+
+        void ITinyhandSerializationCallback.OnAfterDeserialize()
+        {
+            this.CalledAfter = true;
+        }
+    }
+
+    [TinyhandObject]
     public partial class TestClass
     {
         [Key(0)]
@@ -86,7 +118,6 @@ namespace ConsoleApp1
     {
     }
 
-    // [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = true)]
     class Program
     {
         static void Main(string[] args)
