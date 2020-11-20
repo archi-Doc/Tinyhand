@@ -19,7 +19,9 @@ namespace Tinyhand.Generator
 
         public bool GenerateToFile { get; private set; } = false;
 
-        public bool UseModuleInitializer { get; private set; } = false;
+        public bool MemberNotNullIsAvailable { get; private set; } = false;
+
+        public bool ModuleInitializerIsAvailable { get; private set; } = false;
 
         public string? TargetFolder { get; private set; }
 
@@ -57,6 +59,16 @@ namespace Tinyhand.Generator
                 System.Diagnostics.Debugger.Launch();
             }
 
+            if (compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.MemberNotNullAttribute") is { } atr && atr.DeclaredAccessibility == Accessibility.Public)
+            {// [MemberNotNull] is supported.
+                this.MemberNotNullIsAvailable = true;
+            }
+
+            if (compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.ModuleInitializerAttribute") is { } atr2 && atr2.DeclaredAccessibility == Accessibility.Public)
+            {// [ModuleInitializer] is supported.
+                this.ModuleInitializerIsAvailable = true;
+            }
+
             this.body = new TinyhandBody(context);
             receiver.Generics.Prepare(compilation);
 
@@ -85,7 +97,7 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            this.body.Generate(this.GenerateToFile, this.UseModuleInitializer, this.TargetFolder);
+            this.body.Generate(this);
         }
 
         public void Initialize(GeneratorInitializationContext context)

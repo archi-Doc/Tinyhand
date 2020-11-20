@@ -16,6 +16,8 @@ namespace Tinyhand.Generator
 
         public int FormatterCount { get; set; } = 0;
 
+        public bool UseMemberNotNull { get; set; }
+
         public bool UseModuleInitializer { get; set; }
 
         public List<string> ModuleInitializerClass { get; } = new();

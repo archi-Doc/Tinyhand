@@ -770,7 +770,6 @@ namespace Tinyhand.Generator
             }
             else
             {
-                ssb.AppendLine("// [ModuleInitializer]");
                 if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
                 {
                     info.ModuleInitializerClass.Add(containingObject.FullName);
@@ -1181,14 +1180,16 @@ namespace Tinyhand.Generator
                 this.GenerateReconstruct_StaticMethod(ssb, info);
             }
 
-            // MemberNotNull
-            if (this.FormatterCondition_Reconstruct == FormatterCondition.MemberMethod)
-            {
-                this.GenerateMemberNotNull_MemberMethod(ssb, info);
-            }
-            else if (this.FormatterCondition_Serialize == FormatterCondition.StaticMethod)
-            {
-                this.GenerateMemberNotNull_StaticMethod(ssb, info);
+            if (info.UseMemberNotNull)
+            {// MemberNotNull
+                if (this.FormatterCondition_Reconstruct == FormatterCondition.MemberMethod)
+                {
+                    this.GenerateMemberNotNull_MemberMethod(ssb, info);
+                }
+                else if (this.FormatterCondition_Serialize == FormatterCondition.StaticMethod)
+                {
+                    this.GenerateMemberNotNull_StaticMethod(ssb, info);
+                }
             }
 
             return;

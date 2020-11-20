@@ -118,14 +118,14 @@ namespace ConsoleApp1
         public string FullName { get { return FirstName + LastName; } }
 
         [Key(3)]
-        public List<string> Friends { get; set; } // Non-null value will be set by TinyhandSerializer.
+        public List<string> Friends { get; set; } = default!; // Non-null value will be set by TinyhandSerializer.
 
         [Key(4)]
         public int[]? Ids { get; set; } // Nullable value will be set null.
 
         public MyClass()
         {
-            // this.MemberNotNull(); // optional: Informs the compiler that field or property members are set non-null values by TinyhandSerializer.
+            // this.MemberNotNull(); // optional (.NET 5): Informs the compiler that field or property members are set non-null values by TinyhandSerializer.
             // this.Reconstruct(TinyhandSerializerOptions.Standard); // optional: Call Reconstruct() to actually create instances of members.
         }
     }
