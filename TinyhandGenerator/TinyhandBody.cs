@@ -125,10 +125,10 @@ namespace Tinyhand.Generator
 
         internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
 
-        public void Generate(bool generateToFile, string? targetFolder)
+        public void Generate(bool generateToFile, bool useModuleInitializer, string? targetFolder)
         {
             ScopingStringBuilder ssb = new();
-            GeneratorInformation info = new();
+            GeneratorInformation info = new() { UseModuleInitializer = useModuleInitializer, };
             List<TinyhandObject> rootObjects = new();
 
             // Namespace
@@ -223,13 +223,19 @@ namespace Tinyhand.Generator
             var ssb = new ScopingStringBuilder();
             this.GenerateHeader(ssb);
 
-            ssb.ScopeNamespace("Tinyhand.Formatters");
-
-            using (var methods = ssb.ScopeBrace("static class Generated"))
+            using (var scopeFormatter = ssb.ScopeNamespace("Tinyhand.Formatters"))
             {
-                info.FinalizeBlock(ssb);
+                using (var methods = ssb.ScopeBrace("static class Generated"))
+                {
+                    info.FinalizeBlock(ssb);
 
-                TinyhandObject.GenerateLoader(ssb, info, rootObjects, true);
+                    TinyhandObject.GenerateLoader(ssb, info, rootObjects, true);
+                }
+            }
+
+            if (!info.UseModuleInitializer)
+            {
+                this.GenerateInitializer(ssb, info); // Substitute for [ModuleInitializer]
             }
 
             var result = ssb.Finalize();
@@ -241,6 +247,25 @@ namespace Tinyhand.Generator
             else
             {
                 this.Context?.AddSource($"gen.TinyhandLoader", SourceText.From(result, Encoding.UTF8));
+            }
+        }
+
+        private void GenerateInitializer(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            info.ModuleInitializerClass.Add("Tinyhand.Formatters.Generated");
+
+            ssb.AppendLine();
+            using (var scopeTinyhand = ssb.ScopeNamespace("Tinyhand"))
+            {
+                using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule"))
+                using (var scopeMethod = ssb.ScopeBrace("public static void Initialize()"))
+                {
+                    foreach (var x in info.ModuleInitializerClass)
+                    {
+                        ssb.Append(x, true);
+                        ssb.AppendLine(".__gen__load();", false);
+                    }
+                }
             }
         }
     }

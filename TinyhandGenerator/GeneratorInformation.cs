@@ -16,6 +16,10 @@ namespace Tinyhand.Generator
 
         public int FormatterCount { get; set; } = 0;
 
+        public bool UseModuleInitializer { get; set; }
+
+        public List<string> ModuleInitializerClass { get; } = new();
+
         public bool TryGetBlock(string blockKey, out GeneratorBlock block) => this.keyToBlock.TryGetValue(blockKey, out block);
 
         public bool CreateBlock(string blockKey, out GeneratorBlock block)

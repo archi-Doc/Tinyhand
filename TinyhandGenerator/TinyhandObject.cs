@@ -764,7 +764,19 @@ namespace Tinyhand.Generator
             var classFormat = "__gen__tf__{0:D4}";
             var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null);
 
-            ssb.AppendLine("[ModuleInitializer]");
+            if (info.UseModuleInitializer)
+            {
+                ssb.AppendLine("[ModuleInitializer]");
+            }
+            else
+            {
+                ssb.AppendLine("// [ModuleInitializer]");
+                if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
+                {
+                    info.ModuleInitializerClass.Add(containingObject.FullName);
+                }
+            }
+
             using (var m = ssb.ScopeBrace("internal static void __gen__load()"))
             {
                 foreach (var x in list2)

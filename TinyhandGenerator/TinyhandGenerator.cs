@@ -19,6 +19,8 @@ namespace Tinyhand.Generator
 
         public bool GenerateToFile { get; private set; } = false;
 
+        public bool UseModuleInitializer { get; private set; } = false;
+
         public string? TargetFolder { get; private set; }
 
         private TinyhandBody body = default!;
@@ -83,7 +85,7 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            this.body.Generate(this.GenerateToFile, this.TargetFolder);
+            this.body.Generate(this.GenerateToFile, this.UseModuleInitializer, this.TargetFolder);
         }
 
         public void Initialize(GeneratorInitializationContext context)

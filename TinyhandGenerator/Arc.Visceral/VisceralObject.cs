@@ -291,7 +291,7 @@ namespace Arc.Visceral
             return true;
         }
 
-        public override string ToString() => this.Object.FullName;
+        public override string ToString() => this.FullNameWithNullable;
 
         private ISymbol symbol;
 
@@ -308,7 +308,7 @@ namespace Arc.Visceral
                 {
                     this.fullNameWithNullable = this.Object.Body.SymbolToFullName(this.symbol, true);
 
-                    if (this.Nullable == NullableAnnotation.Annotated)
+                    /*if (this.Nullable == NullableAnnotation.Annotated)
                     {// T?
                         if (this.fullNameWithNullable.Last() != '?')
                         {
@@ -317,8 +317,11 @@ namespace Arc.Visceral
                     }
                     else
                     {// T
-                        this.fullNameWithNullable = this.fullNameWithNullable.TrimEnd('?');
-                    }
+                        if (this.fullNameWithNullable.Last() == '?')
+                        {
+                            this.fullNameWithNullable = this.fullNameWithNullable.Remove(this.fullNameWithNullable.Length - 1);
+                        }
+                    }*/
                 }
 
                 return this.fullNameWithNullable;

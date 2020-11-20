@@ -368,7 +368,7 @@ namespace Arc.Visceral
                 if (ts.TypeArguments.Length == 0)
                 {
                     var name = ts.Name;
-                    if (addNullableAnnotation && ts.NullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated)
+                    if (addNullableAnnotation && ts.NullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated && ts.TypeKind.IsReferenceType())
                     {
                         name += "?";
                     }
