@@ -904,10 +904,13 @@ namespace Tinyhand.Generator
             using (var m = ssb.ScopeBrace($"public static void Serialize(ref TinyhandWriter writer, {this.LocalName + this.QuestionMarkIfReferenceType} value, TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("value"))
             {
-                using (var e = ssb.ScopeBrace($"if ({v.FullObject} == null)"))
+                if (this.Kind.IsReferenceType())
                 {
-                    ssb.AppendLine("writer.WriteNil();");
-                    ssb.AppendLine("return;");
+                    using (var e = ssb.ScopeBrace($"if ({v.FullObject} == null)"))
+                    {
+                        ssb.AppendLine("writer.WriteNil();");
+                        ssb.AppendLine("return;");
+                    }
                 }
 
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))

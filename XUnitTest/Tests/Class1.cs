@@ -362,7 +362,7 @@ namespace Tinyhand.Tests
         public T2 MyProperty1 { get; set; }
     }
 
-    /*[TinyhandObject]
+    [TinyhandObject]
     public partial struct GenericStruct<T1, T2>
     {
         [Key(0)]
@@ -370,7 +370,7 @@ namespace Tinyhand.Tests
 
         [Key(1)]
         public T2 MyProperty1 { get; set; }
-    }*/
+    }
 
     [TinyhandObject]
     public partial class VersionBlockTest

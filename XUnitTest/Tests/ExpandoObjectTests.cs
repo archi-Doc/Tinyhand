@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Tinyhand.Tests
 {
-    public class ExpandoObjectTests
+    public partial class ExpandoObjectTests
     {
         private readonly ITestOutputHelper logger;
 
@@ -44,6 +44,7 @@ namespace Tinyhand.Tests
             Assert.Equal(expando.Age, expando2.Age);
         }
 
+        /* Anonymous type is not supported.
         [Fact]
         public void ExpandoObject_DeepGraphContainsAnonymousType()
         {
@@ -60,7 +61,7 @@ namespace Tinyhand.Tests
             Assert.Equal(expando.Age, expando2.Age);
             Assert.NotNull(expando2.Other);
             Assert.Equal(expando.Other.OtherProperty, expando2.Other.OtherProperty);
-        }
+        }*/
 
         [Fact]
         public void ExpandoObject_DeepGraphContainsCustomTypes()
@@ -108,7 +109,8 @@ namespace Tinyhand.Tests
 #endif
 
         [DataContract]
-        public class CustomObject
+        [TinyhandObject(KeyAsPropertyName = true)]
+        public partial class CustomObject
         {
             [DataMember]
             public string OtherProperty { get; set; }

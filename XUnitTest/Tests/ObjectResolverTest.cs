@@ -263,14 +263,14 @@ namespace Tinyhand.Tests
             v.MyProperty1.Is("aaa");
         }
 
-        /*[Fact]
+        [Fact]
         public void GenericStructTest()
         {
             var t = new GenericStruct<int, string> { MyProperty0 = 100, MyProperty1 = "aaa" };
             GenericStruct<int, string> v = this.Convert(t);
             v.MyProperty0.Is(100);
             v.MyProperty1.Is("aaa");
-        }*/
+        }
 
 #endif
 
