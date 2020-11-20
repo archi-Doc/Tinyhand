@@ -122,6 +122,12 @@ namespace Tinyhand.Generator
             }
         }
 
+        public bool HasTinyhandSerializationCallback { get; private set; }
+
+        public bool HasExplicitOnBeforeSerialize { get; private set; } // Has Interface.Method() {} instead of Method() {}
+
+        public bool HasExplicitOnAfterDeserialize { get; private set; }
+
         public bool HasNullableAnnotation
         {
             get
@@ -289,6 +295,14 @@ namespace Tinyhand.Generator
             else if (this.Generics_IsGeneric)
             {
                 this.FormatterCondition_Reconstruct = FormatterCondition.StaticMethod;
+            }
+
+            // ITinyhandSerializationCallback
+            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerializationCallback"))
+            {
+                this.HasTinyhandSerializationCallback = true;
+                this.HasExplicitOnBeforeSerialize = this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnBeforeSerialize");
+                this.HasExplicitOnAfterDeserialize = this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterDeserialize");
             }
 
             // Members: Property
@@ -883,11 +897,46 @@ namespace Tinyhand.Generator
             }
         }
 
+        internal void Generate_OnBeforeSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.HasTinyhandSerializationCallback)
+            {
+                if (this.HasExplicitOnBeforeSerialize)
+                {
+                    ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnBeforeSerialize();");
+                }
+                else
+                {
+                    ssb.AppendLine($"{ssb.FullObject}.OnBeforeSerialize();");
+                }
+            }
+        }
+
+        internal void Generate_OnAfterDeserialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.HasTinyhandSerializationCallback)
+            {
+                if (this.HasExplicitOnAfterDeserialize)
+                {
+                    ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterDeserialize();");
+                }
+                else
+                {
+                    ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterDeserialize();");
+
+                    ssb.AppendLine($"{ssb.FullObject}.OnAfterDeserialize();");
+                }
+            }
+        }
+
         internal void GenerateSerialize_MemberMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             using (var m = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("this"))
             {
+                // ITinyhandSerializationCallback.OnBeforeSerialize
+                this.Generate_OnBeforeSerialize(ssb, info);
+
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
                 {// String Key
                     this.GenerateSerializerStringKey(ssb, info);
@@ -913,6 +962,9 @@ namespace Tinyhand.Generator
                     }
                 }
 
+                // ITinyhandSerializationCallback.OnBeforeSerialize
+                this.Generate_OnBeforeSerialize(ssb, info);
+
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
                 {// String Key
                     this.GenerateSerializerStringKey(ssb, info);
@@ -937,6 +989,9 @@ namespace Tinyhand.Generator
                 {// Int Key
                     this.GenerateDeserializerIntKey(ssb, info);
                 }
+
+                // ITinyhandSerializationCallback.OnAfterDeserialize
+                this.Generate_OnAfterDeserialize(ssb, info);
             }
         }
 
@@ -957,6 +1012,9 @@ namespace Tinyhand.Generator
                     {// Int Key
                         this.GenerateDeserializerIntKey(ssb, info);
                     }
+
+                    // ITinyhandSerializationCallback.OnAfterDeserialize
+                    this.Generate_OnAfterDeserialize(ssb, info);
 
                     ssb.AppendLine($"return {v.FullObject};");
                 }
