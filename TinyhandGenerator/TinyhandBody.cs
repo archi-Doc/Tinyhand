@@ -125,10 +125,15 @@ namespace Tinyhand.Generator
 
         internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
 
-        public void Generate(bool generateToFile, string? targetFolder)
+        // public void Generate(bool generateToFile, bool useModuleInitializer, string? targetFolder)
+        public void Generate(TinyhandGenerator generator)
         {
             ScopingStringBuilder ssb = new();
-            GeneratorInformation info = new();
+            GeneratorInformation info = new()
+            {
+                UseMemberNotNull = generator.MemberNotNullIsAvailable,
+                UseModuleInitializer = generator.ModuleInitializerIsAvailable,
+            };
             List<TinyhandObject> rootObjects = new();
 
             // Namespace
@@ -154,9 +159,9 @@ namespace Tinyhand.Generator
 
                 var result = ssb.Finalize();
 
-                if (generateToFile && targetFolder != null && Directory.Exists(targetFolder))
+                if (generator.GenerateToFile && generator.TargetFolder != null && Directory.Exists(generator.TargetFolder))
                 {
-                    this.StringToFile(result, Path.Combine(targetFolder, $"gen.Tinyhand.{x.Key}.cs"));
+                    this.StringToFile(result, Path.Combine(generator.TargetFolder, $"gen.Tinyhand.{x.Key}.cs"));
                 }
                 else
                 {
@@ -164,7 +169,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            this.GenerateLoader(generateToFile, targetFolder, info, rootObjects);
+            this.GenerateLoader(generator.GenerateToFile, generator.TargetFolder, info, rootObjects);
             this.FlushDiagnostic();
         }
 
@@ -223,14 +228,17 @@ namespace Tinyhand.Generator
             var ssb = new ScopingStringBuilder();
             this.GenerateHeader(ssb);
 
-            ssb.ScopeNamespace("Tinyhand.Formatters");
-
-            using (var methods = ssb.ScopeBrace("static class Generated"))
+            using (var scopeFormatter = ssb.ScopeNamespace("Tinyhand.Formatters"))
             {
-                info.FinalizeBlock(ssb);
+                using (var methods = ssb.ScopeBrace("static class Generated"))
+                {
+                    info.FinalizeBlock(ssb);
 
-                TinyhandObject.GenerateLoader(ssb, info, rootObjects, true);
+                    TinyhandObject.GenerateLoader(ssb, info, rootObjects, true);
+                }
             }
+
+            this.GenerateInitializer(ssb, info); // Substitute for [ModuleInitializer]
 
             var result = ssb.Finalize();
 
@@ -241,6 +249,33 @@ namespace Tinyhand.Generator
             else
             {
                 this.Context?.AddSource($"gen.TinyhandLoader", SourceText.From(result, Encoding.UTF8));
+            }
+        }
+
+        private void GenerateInitializer(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            info.ModuleInitializerClass.Add("Tinyhand.Formatters.Generated");
+
+            ssb.AppendLine();
+            using (var scopeTinyhand = ssb.ScopeNamespace("Tinyhand"))
+            using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule"))
+            {
+                ssb.AppendLine("private static bool Initialized;");
+                using (var scopeMethod = ssb.ScopeBrace("public static void Initialize()"))
+                {
+                    ssb.AppendLine("if (TinyhandModule.Initialized) return;");
+                    ssb.AppendLine("TinyhandModule.Initialized = true;");
+                    if (!info.UseModuleInitializer)
+                    {
+                        ssb.AppendLine();
+
+                        foreach (var x in info.ModuleInitializerClass)
+                        {
+                            ssb.Append(x, true);
+                            ssb.AppendLine(".__gen__load();", false);
+                        }
+                    }
+                }
             }
         }
     }

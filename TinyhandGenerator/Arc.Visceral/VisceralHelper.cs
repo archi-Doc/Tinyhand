@@ -168,6 +168,15 @@ namespace Arc.Visceral
         public static bool IsValueType(this VisceralObjectKind type) =>
             type == VisceralObjectKind.Struct;
 
+        public static bool IsReferenceType(this TypeKind typeKind) =>
+            typeKind == TypeKind.Array ||
+            typeKind == TypeKind.Class ||
+            typeKind == TypeKind.Dynamic;
+
+        public static bool IsValueType(this TypeKind typeKind) =>
+            typeKind == TypeKind.Enum ||
+            typeKind == TypeKind.Struct;
+
         public static bool IsValue(this VisceralObjectKind type) =>
             type == VisceralObjectKind.Field ||
             type == VisceralObjectKind.Property;

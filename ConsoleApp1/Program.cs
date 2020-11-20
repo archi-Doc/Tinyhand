@@ -13,11 +13,21 @@ namespace ConsoleApp1
         [Key(0)]
         public int X { get; set; }
 
+        [Key(1)]
+        public GenericClass<int> GenericInt { get; set; } = default!;
+
         [IgnoreMember]
         public bool CalledBefore { get; private set; }
 
         [IgnoreMember]
         public bool CalledAfter { get; private set; }
+
+        [TinyhandObject]
+        internal partial class ChildClass
+        {
+            [Key(0)]
+            public string Name { get; set; } = default!;
+        }
 
         public Callback1_2(int x)
         {
@@ -37,6 +47,13 @@ namespace ConsoleApp1
         {
             this.CalledAfter = true;
         }
+    }
+
+    [TinyhandObject]
+    public partial class GenericClass<T>
+    {
+        [Key(0)]
+        public T? Member { get; set; }
     }
 
     [TinyhandObject]
@@ -82,7 +99,7 @@ namespace ConsoleApp1
     }
 
     [TinyhandObject] // Annote a [TinyhandObject] attribute.
-    public partial class MyClass // partial class is required for surce generation.
+    public partial class MyClass // partial class is required for source generation.
     {
         // Key attributes take a serialization index (or string name)
         // The values must be unique and versioning has to be considered as well.
@@ -101,14 +118,14 @@ namespace ConsoleApp1
         public string FullName { get { return FirstName + LastName; } }
 
         [Key(3)]
-        public List<string> Friends { get; set; } // Non-null value will be set by TinyhandSerializer.
+        public List<string> Friends { get; set; } = default!; // Non-null value will be set by TinyhandSerializer.
 
         [Key(4)]
         public int[]? Ids { get; set; } // Nullable value will be set null.
 
         public MyClass()
         {
-            this.MemberNotNull(); // optional: Informs the compiler that field or property members are set non-null values by TinyhandSerializer.
+            // this.MemberNotNull(); // optional (.NET 5): Informs the compiler that field or property members are set non-null values by TinyhandSerializer.
             // this.Reconstruct(TinyhandSerializerOptions.Standard); // optional: Call Reconstruct() to actually create instances of members.
         }
     }
@@ -122,8 +139,12 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            TinyhandModule.Initialize();
+            var b = TinyhandSerializer.Serialize(new Callback1_2());
+            var callBackClass = TinyhandSerializer.Deserialize<Callback1_2>(b);
+
             var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
-            var b = TinyhandSerializer.Serialize(myClass);
+            b = TinyhandSerializer.Serialize(myClass);
             var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b);
 
             b = TinyhandSerializer.Serialize(new EmptyClass()); // Empty data
