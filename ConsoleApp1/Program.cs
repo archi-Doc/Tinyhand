@@ -99,7 +99,7 @@ namespace ConsoleApp1
     }
 
     [TinyhandObject] // Annote a [TinyhandObject] attribute.
-    public partial class MyClass // partial class is required for surce generation.
+    public partial class MyClass // partial class is required for source generation.
     {
         // Key attributes take a serialization index (or string name)
         // The values must be unique and versioning has to be considered as well.
