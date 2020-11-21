@@ -45,7 +45,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TinyhandGenerator\TinyhandGenerator.csproj" ReferenceOutputAssembly="true" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\TinyhandGenerator\TinyhandGenerator.csproj" OutputItemType="Analyzer">
+      <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+    </ProjectReference>
     <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
   </ItemGroup>
 

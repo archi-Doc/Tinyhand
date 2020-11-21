@@ -1,36 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>0.1</VersionPrefix>
-    <PackageId>Tinyhand</PackageId>
+    <VersionPrefix>0.8</VersionPrefix>
+    <PackageId>TinyhandGenerator</PackageId>
     <Authors>archi-Doc</Authors>
-    <Product>Tinyhand</Product>
-    <Description>Tiny and simple data format/serializer</Description>
+    <Product>TinyhandGenerator</Product>
+    <Description>Source generator for Tinyhand</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/archi-Doc/Tinyhand</PackageProjectUrl>
     <RepositoryUrl>https://github.com/archi-Doc/Tinyhand</RepositoryUrl>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\Users\kay\repos\archi-Doc\Tinyhand\TinyhandGenerator\TinyhandGenerator.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Users\kay\repos\archi-Doc\Tinyhand\TinyhandGenerator\TinyhandGenerator.xml</DocumentationFile>
-  </PropertyGroup>
-
   <ItemGroup>
-    <None Remove="bin\Debug\netstandard2.0\\TinyhandGenerator.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)\netstandard2.0\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,10 +42,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>BuiltinPrimitiveCoder.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,9 +5,17 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AssemblyVersion>0.2.0.0</AssemblyVersion>
-    <FileVersion>0.2.0.0</FileVersion>
-    <Version>0.2</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <VersionPrefix>0.8</VersionPrefix>
+    <PackageId>Tinyhand</PackageId>
+    <Authors>archi-Doc</Authors>
+    <Product>Tinyhand</Product>
+    <Description>Tiny and simple data format/serializer</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/archi-Doc/Tinyhand</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/archi-Doc/Tinyhand</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,6 +27,12 @@
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\TinyhandGenerator\bin\$(Configuration)\netstandard2.1\TinyhandGenerator.dll" Pack="true" PackagePath="lib\netstandard2.1" Visible="true" />
+    <None Include="..\TinyhandGenerator\bin\$(Configuration)\netstandard2.1\TinyhandGenerator.xml" Pack="true" PackagePath="lib\netstandard2.1" Visible="true" />
+    <None Include="..\TinyhandGenerator\bin\$(Configuration)\netstandard2.0\TinyhandGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
   <ItemGroup>
     <AdditionalFiles Include="..\stylecop.json" Link="stylecop.json" />
