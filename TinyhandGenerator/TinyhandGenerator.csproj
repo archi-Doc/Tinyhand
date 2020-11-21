@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>0.8</VersionPrefix>
+    <VersionPrefix>0.0.1</VersionPrefix>
     <PackageId>TinyhandGenerator</PackageId>
     <Authors>archi-Doc</Authors>
     <Product>TinyhandGenerator</Product>
