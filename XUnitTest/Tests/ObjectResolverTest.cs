@@ -58,7 +58,7 @@ namespace Tinyhand.Tests
             var bytes = TinyhandSerializer.Serialize(n);
             var reader = new TinyhandReader(bytes);
             reader.IsNil.IsTrue();
-            bytes.Length.Is(1);
+            bytes.Length.Is(2);
 
             TinyhandSerializer.Deserialize<SimpleIntKeyData>(bytes).IsNull();
 
