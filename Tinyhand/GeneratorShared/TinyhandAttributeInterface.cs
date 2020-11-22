@@ -73,6 +73,8 @@ namespace Tinyhand
 
         public bool GenerateToFile { get; set; } = false;
 
+        public string? CustomNamespace { get; set; }
+
         public TinyhandGeneratorOptionAttribute()
         {
         }

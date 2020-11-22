@@ -192,6 +192,8 @@ namespace Tinyhand.Generator
 
         public bool GenerateToFile { get; set; } = false;
 
+        public string? CustomNamespace { get; set; }
+
         public static TinyhandGeneratorOptionAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
             var attribute = new TinyhandGeneratorOptionAttributeFake();
@@ -207,6 +209,12 @@ namespace Tinyhand.Generator
             if (val != null)
             {
                 attribute.GenerateToFile = (bool)val;
+            }
+
+            val = AttributeHelper.GetValue(-1, nameof(CustomNamespace), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.CustomNamespace = (string)val;
             }
 
             return attribute;

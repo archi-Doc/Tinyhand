@@ -5,7 +5,7 @@ using Tinyhand;
 
 namespace ConsoleApp1
 {
-    // [TinyhandGeneratorOption(AttachDebugger = true, GenerateToFile = false)]
+    [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = false, CustomNamespace = "CustomNS")]
     internal class GeneratorOption
     {
     }

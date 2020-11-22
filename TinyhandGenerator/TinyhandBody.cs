@@ -169,7 +169,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            this.GenerateLoader(generator.GenerateToFile, generator.TargetFolder, info, rootObjects);
+            this.GenerateLoader(generator, info, rootObjects);
             this.FlushDiagnostic();
         }
 
@@ -223,7 +223,7 @@ namespace Tinyhand.Generator
             ssb.AppendLine();
         }
 
-        private void GenerateLoader(bool generateToFile, string? targetFolder, GeneratorInformation info, List<TinyhandObject> rootObjects)
+        private void GenerateLoader(TinyhandGenerator generator, GeneratorInformation info, List<TinyhandObject> rootObjects)
         {
             var ssb = new ScopingStringBuilder();
             this.GenerateHeader(ssb);
@@ -238,13 +238,13 @@ namespace Tinyhand.Generator
                 }
             }
 
-            this.GenerateInitializer(ssb, info); // Substitute for [ModuleInitializer]
+            this.GenerateInitializer(generator, ssb, info); // Substitute for [ModuleInitializer]
 
             var result = ssb.Finalize();
 
-            if (generateToFile && targetFolder != null && Directory.Exists(targetFolder))
+            if (generator.GenerateToFile && generator.TargetFolder != null && Directory.Exists(generator.TargetFolder))
             {
-                this.StringToFile(result, Path.Combine(targetFolder, "gen.TinyhandGenerated.cs"));
+                this.StringToFile(result, Path.Combine(generator.TargetFolder, "gen.TinyhandGenerated.cs"));
             }
             else
             {
@@ -252,12 +252,25 @@ namespace Tinyhand.Generator
             }
         }
 
-        private void GenerateInitializer(ScopingStringBuilder ssb, GeneratorInformation info)
+        private void GenerateInitializer(TinyhandGenerator generator, ScopingStringBuilder ssb, GeneratorInformation info)
         {
+            // Namespace
+            var ns = "Tinyhand";
+            if (!string.IsNullOrEmpty(generator.CustomNamespace))
+            {// Custom namespace.
+                ns = generator.CustomNamespace;
+            }
+            else if (!string.IsNullOrEmpty(generator.AssemblyName) &&
+                generator.OutputKind != OutputKind.ConsoleApplication &&
+                generator.OutputKind != OutputKind.WindowsApplication)
+            {// To avoid namespace conflicts, use assembly name for namespace.
+                ns = generator.AssemblyName;
+            }
+
             info.ModuleInitializerClass.Add("Tinyhand.Formatters.Generated");
 
             ssb.AppendLine();
-            using (var scopeTinyhand = ssb.ScopeNamespace("Tinyhand"))
+            using (var scopeTinyhand = ssb.ScopeNamespace(ns!))
             using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule"))
             {
                 ssb.AppendLine("private static bool Initialized;");
