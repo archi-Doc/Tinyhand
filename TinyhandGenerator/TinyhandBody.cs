@@ -8,7 +8,7 @@ using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-#pragma warning disable RS2000
+#pragma warning disable RS2008
 #pragma warning disable SA1306 // Field names should begin with lower-case letter
 #pragma warning disable SA1310 // Field names should not contain underscore
 #pragma warning disable SA1401 // Fields should be private
@@ -20,7 +20,7 @@ namespace Tinyhand.Generator
     {
         public static readonly string StringKeyFieldFormat = "__gen_utf8_key_{0:D4}";
         public static readonly int MaxIntegerKey = 5_000;
-        public static readonly int MaxStringKeySizeInBytes = 256;
+        public static readonly int MaxStringKeySizeInBytes = 512;
 
         public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
             id: "TG001", title: "Not a partial class/struct", messageFormat: "TinyhandObject '{0}' is not a partial class/struct",
