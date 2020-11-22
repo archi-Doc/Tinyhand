@@ -185,7 +185,7 @@ namespace Arc.Visceral
 
     public class WithNullable<T>
         where T : VisceralObjectBase<T>, new()
-    {
+    {// Not a smart way, but I think this is the best way to handle nullable type.
         public T Object { get; }
 
         public NullableAnnotation Nullable { get; }

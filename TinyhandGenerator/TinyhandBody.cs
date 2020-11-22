@@ -20,7 +20,7 @@ namespace Tinyhand.Generator
     {
         public static readonly string StringKeyFieldFormat = "__gen_utf8_key_{0:D4}";
         public static readonly int MaxIntegerKey = 5_000;
-        public static readonly int MaxStringKeySizeInBytes = 256;
+        public static readonly int MaxStringKeySizeInBytes = 512;
 
         public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
             id: "TG001", title: "Not a partial class/struct", messageFormat: "TinyhandObject '{0}' is not a partial class/struct",
