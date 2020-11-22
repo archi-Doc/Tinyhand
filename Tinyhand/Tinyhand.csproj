@@ -26,8 +26,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\TinyhandGenerator\bin\$(Configuration)\netstandard2.1\TinyhandGenerator.dll" Pack="true" PackagePath="lib\netstandard2.1" Visible="true" />
-    <None Include="..\TinyhandGenerator\bin\$(Configuration)\netstandard2.1\TinyhandGenerator.xml" Pack="true" PackagePath="lib\netstandard2.1" Visible="true" />
     <None Include="..\TinyhandGenerator\bin\$(Configuration)\netstandard2.0\TinyhandGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
