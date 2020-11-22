@@ -46,7 +46,8 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
+            Tinyhand.TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
+            // ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
 
             var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
             var b = TinyhandSerializer.Serialize(myClass);

@@ -933,8 +933,6 @@ namespace Tinyhand.Generator
                 }
                 else
                 {
-                    ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterDeserialize();");
-
                     ssb.AppendLine($"{ssb.FullObject}.OnAfterDeserialize();");
                 }
             }

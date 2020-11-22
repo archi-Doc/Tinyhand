@@ -78,3 +78,16 @@ namespace ConsoleApp1
 ```
 
 
+
+## External assembly
+
+If you add a reference to a class library which uses Tinyhand, additional initialization code is required.
+
+The namespace of TinyhandModule is set to the name of assembly, in order to avoid namespace conflicts.
+
+```csharp
+ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
+```
+
+This code will no longer be needed if .NET Standard supports ModuleInitializerAttribute in the future.
+
