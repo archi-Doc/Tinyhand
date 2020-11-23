@@ -168,6 +168,9 @@ namespace Arc.Visceral
 
             s.Append(this.sb);
             this.sb.Clear();
+            this.header.Clear();
+            this.usingSystem.Clear();
+            this.usingOther.Clear();
 
             return s.ToString();
         }

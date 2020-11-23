@@ -31,6 +31,8 @@ namespace Tinyhand.Generator
 
         public string? TargetFolder { get; private set; }
 
+        public GeneratorExecutionContext Context { get; private set; }
+
         private TinyhandBody body = default!;
         private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
         private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
@@ -41,6 +43,8 @@ namespace Tinyhand.Generator
 
         public void Execute(GeneratorExecutionContext context)
         {
+            this.Context = context;
+
             if (!(context.SyntaxReceiver is TinyhandSyntaxReceiver receiver))
             {
                 return;

@@ -289,6 +289,9 @@ namespace Tinyhand.Generator
                         }
                     }
                 }
+
+                // Methods for debugging
+                ssb.AppendLine($"public static string[] GetPreprocessor() => new string[] {{\"{string.Join("\", \"", generator.Context.ParseOptions.PreprocessorSymbolNames.ToArray())}\"}};");
             }
         }
     }
