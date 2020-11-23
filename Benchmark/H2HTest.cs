@@ -4,8 +4,12 @@
  *  PM> Install-Package BenchmarkDotNet
  */
 
+using System;
+using System.Buffers;
+using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using ProtoBuf;
 using Tinyhand;
 using Tinyhand.IO;
 
@@ -13,6 +17,7 @@ using Tinyhand.IO;
 
 namespace Benchmark.H2HTest
 {
+    [ProtoContract]
     [MessagePack.MessagePackObject]
     [TinyhandObject]
     public partial class ObjectH2H
@@ -24,22 +29,27 @@ namespace Benchmark.H2HTest
             this.B = Enumerable.Range(0, ArrayN).ToArray();
         }
 
+        [ProtoMember(1)]
         [MessagePack.Key(0)]
         [Key(0)]
-        public int X { get; set; }
+        public int X { get; set; } = 0;
 
+        [ProtoMember(2)]
         [MessagePack.Key(1)]
         [Key(1)]
-        public int Y { get; set; }
+        public int Y { get; set; } = 100;
 
+        [ProtoMember(3)]
         [MessagePack.Key(2)]
         [Key(2)]
-        public int Z { get; set; }
+        public int Z { get; set; } = 10000;
 
+        [ProtoMember(4)]
         [MessagePack.Key(3)]
         [Key(3)]
         public string A { get; set; } = "H2Htest";
 
+        [ProtoMember(9)]
         [MessagePack.Key(8)]
         [Key(8)]
         public int[] B { get; set; } = new int[0];
@@ -72,6 +82,7 @@ namespace Benchmark.H2HTest
     {
         ObjectH2H h2h = default!;
         byte[] data = default!;
+        byte[] data3 = default!;
 
         ObjectH2H2 h2h2 = default!;
         byte[] data2 = default!;
@@ -88,11 +99,23 @@ namespace Benchmark.H2HTest
 
             this.h2h2 = new ObjectH2H2();
             this.data2 = MessagePack.MessagePackSerializer.Serialize(this.h2h2);
+
+            this.data3 = this.SerializeProtoBuf();
         }
 
         [GlobalCleanup]
         public void Cleanup()
         {
+        }
+
+        [Benchmark]
+        public byte[] SerializeProtoBuf()
+        {
+            using (var ms = new MemoryStream())
+            {
+                ProtoBuf.Serializer.Serialize(ms, this.h2h);
+                return ms.ToArray();
+            }
         }
 
         [Benchmark]
@@ -105,6 +128,12 @@ namespace Benchmark.H2HTest
         public byte[] SerializeTinyhand()
         {
             return Tinyhand.TinyhandSerializer.Serialize(this.h2h);
+        }
+
+        [Benchmark]
+        public ObjectH2H DeserializeProtoBuf()
+        {
+            return ProtoBuf.Serializer.Deserialize<ObjectH2H>(this.data3.AsSpan());
         }
 
         [Benchmark]
