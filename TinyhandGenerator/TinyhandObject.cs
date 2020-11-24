@@ -26,11 +26,12 @@ namespace Tinyhand.Generator
         Dont, // Don't reconstruct.
     }
 
-    public enum FormatterCondition
+    public enum MethodCondition
     {
-        MemberMethod, // member method
-        StaticMethod, // static method
-        Declared, // declared
+        MemberMethod, // member method (generated)
+        StaticMethod, // static method (generated, for generic class)
+        Declared, // declared (user-declared)
+        ExplicitlyDeclared, // declared (explicit interface)
     }
 
     [Flags]
@@ -54,15 +55,15 @@ namespace Tinyhand.Generator
 
         public TinyhandObjectFlag ObjectFlag { get; private set; }
 
-        public TinyhandObjectAttributeFake? ObjectAttribute { get; private set; }
+        public TinyhandObjectAttributeMock? ObjectAttribute { get; private set; }
 
-        public KeyAttributeFake? KeyAttribute { get; private set; }
+        public KeyAttributeMock? KeyAttribute { get; private set; }
 
         public VisceralAttribute? KeyVisceralAttribute { get; private set; }
 
-        public IgnoreMemberAttributeFake? IgnoreMemberAttribute { get; private set; }
+        public IgnoreMemberAttributeMock? IgnoreMemberAttribute { get; private set; }
 
-        public ReconstructAttributeFake? ReconstructAttribute { get; private set; }
+        public ReconstructAttributeMock? ReconstructAttribute { get; private set; }
 
         public ReconstructState ReconstructState { get; private set; }
 
@@ -98,9 +99,13 @@ namespace Tinyhand.Generator
 
         public int IntKey_Number { get; private set; } = 0;
 
-        public FormatterCondition FormatterCondition_Serialize { get; private set; }
+        public bool HasITinyhandCustom { get; private set; } = false;
 
-        public FormatterCondition FormatterCondition_Reconstruct { get; private set; }
+        public MethodCondition MethodCondition_Serialize { get; private set; }
+
+        public MethodCondition MethodCondition_Deserialize { get; private set; }
+
+        public MethodCondition MethodCondition_Reconstruct { get; private set; }
 
         private ReconstructCondition reconstructCondition;
 
@@ -201,11 +206,11 @@ namespace Tinyhand.Generator
             }
 
             // ObjectAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == TinyhandObjectAttributeFake.FullName) is { } objectAttribute)
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == TinyhandObjectAttributeMock.FullName) is { } objectAttribute)
             {
                 try
                 {
-                    this.ObjectAttribute = TinyhandObjectAttributeFake.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
+                    this.ObjectAttribute = TinyhandObjectAttributeMock.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
                 }
                 catch (InvalidCastException)
                 {
@@ -214,12 +219,12 @@ namespace Tinyhand.Generator
             }
 
             // KeyAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAttributeFake.FullName) is { } keyAttribute)
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAttributeMock.FullName) is { } keyAttribute)
             {
                 this.KeyVisceralAttribute = keyAttribute;
                 try
                 {
-                    this.KeyAttribute = KeyAttributeFake.FromArray(keyAttribute.ConstructorArguments, keyAttribute.NamedArguments);
+                    this.KeyAttribute = KeyAttributeMock.FromArray(keyAttribute.ConstructorArguments, keyAttribute.NamedArguments);
                 }
                 catch (ArgumentNullException)
                 {
@@ -228,11 +233,11 @@ namespace Tinyhand.Generator
             }
 
             // IgnoreMemberAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == IgnoreMemberAttributeFake.FullName) is { } ignoreMemberAttribute)
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == IgnoreMemberAttributeMock.FullName) is { } ignoreMemberAttribute)
             {
                 try
                 {
-                    this.IgnoreMemberAttribute = IgnoreMemberAttributeFake.FromArray(ignoreMemberAttribute.ConstructorArguments, ignoreMemberAttribute.NamedArguments);
+                    this.IgnoreMemberAttribute = IgnoreMemberAttributeMock.FromArray(ignoreMemberAttribute.ConstructorArguments, ignoreMemberAttribute.NamedArguments);
                 }
                 catch (InvalidCastException)
                 {
@@ -241,11 +246,11 @@ namespace Tinyhand.Generator
             }
 
             // ReconstructAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == ReconstructAttributeFake.FullName) is { } reconstructAttribute)
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == ReconstructAttributeMock.FullName) is { } reconstructAttribute)
             {
                 try
                 {
-                    this.ReconstructAttribute = ReconstructAttributeFake.FromArray(reconstructAttribute.ConstructorArguments, reconstructAttribute.NamedArguments);
+                    this.ReconstructAttribute = ReconstructAttributeMock.FromArray(reconstructAttribute.ConstructorArguments, reconstructAttribute.NamedArguments);
                 }
                 catch (InvalidCastException)
                 {
@@ -275,26 +280,46 @@ namespace Tinyhand.Generator
                 }
             }
 
-            // Formatter condition (Serialize/Deserialize)
-            this.FormatterCondition_Serialize = FormatterCondition.MemberMethod;
-            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerialize"))
-            {
-                this.FormatterCondition_Serialize = FormatterCondition.Declared;
-            }
-            else if (this.Generics_IsGeneric)
-            {
-                this.FormatterCondition_Serialize = FormatterCondition.StaticMethod;
-            }
+            // Method condition (Serialize/Deserialize/Reconstruct)
+            this.MethodCondition_Serialize = MethodCondition.MemberMethod;
+            this.MethodCondition_Deserialize = MethodCondition.MemberMethod;
+            this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
+            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandCustom"))
+            {// ITinyhandCustom implemented
+                this.HasITinyhandCustom = true;
 
-            // Formatter condition(Reconstruct)
-            this.FormatterCondition_Reconstruct = FormatterCondition.MemberMethod;
-            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandReconstruct"))
-            {
-                this.FormatterCondition_Reconstruct = FormatterCondition.Declared;
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandCustom.Serialize"))
+                {
+                    this.MethodCondition_Serialize = MethodCondition.ExplicitlyDeclared;
+                }
+                else
+                {
+                    this.MethodCondition_Serialize = MethodCondition.Declared;
+                }
+
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandCustom.Deserialize"))
+                {
+                    this.MethodCondition_Deserialize = MethodCondition.ExplicitlyDeclared;
+                }
+                else
+                {
+                    this.MethodCondition_Deserialize = MethodCondition.Declared;
+                }
+
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandCustom.Reconstruct"))
+                {
+                    this.MethodCondition_Reconstruct = MethodCondition.ExplicitlyDeclared;
+                }
+                else
+                {
+                    this.MethodCondition_Reconstruct = MethodCondition.Declared;
+                }
             }
             else if (this.Generics_IsGeneric)
             {
-                this.FormatterCondition_Reconstruct = FormatterCondition.StaticMethod;
+                this.MethodCondition_Serialize = MethodCondition.StaticMethod;
+                this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
+                this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
             }
 
             // ITinyhandSerializationCallback
@@ -448,7 +473,7 @@ namespace Tinyhand.Generator
                             continue;
                         }
 
-                        x.KeyAttribute = new KeyAttributeFake(x.SimpleName);
+                        x.KeyAttribute = new KeyAttributeMock(x.SimpleName);
                     }
                     else if (x.KeyAttribute.IntKey != null)
                     {
@@ -629,6 +654,9 @@ namespace Tinyhand.Generator
                 else if (this.IgnoreMemberAttribute != null)
                 {// Has IgnoreMemberAttribute
                 }
+                else if (parent.HasITinyhandCustom)
+                {// Has custom formatter method
+                }
                 else
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_KeyAttributeRequired, this.Location);
@@ -794,7 +822,7 @@ namespace Tinyhand.Generator
                 var typeName = appendNamespace ? x.FullName : x.LocalName;
                 using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{typeName}>"))
                 {
-                    if (x.FormatterCondition_Serialize == FormatterCondition.StaticMethod)
+                    if (x.MethodCondition_Serialize == MethodCondition.StaticMethod)
                     {// Static method
                         ssb.AppendLine($"public void Serialize(ref TinyhandWriter w, {typeName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions o) => {typeName}.Serialize(ref w, v, o);");
                         ssb.AppendLine($"public {typeName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o) => {typeName}.Deserialize{x.GenericsNumberString}(ref r, o);");
@@ -827,7 +855,7 @@ namespace Tinyhand.Generator
                         }
                     }
 
-                    if (x.FormatterCondition_Reconstruct == FormatterCondition.StaticMethod)
+                    if (x.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
                     {// Static method
                         ssb.AppendLine($"public {typeName} Reconstruct(TinyhandSerializerOptions o) => {typeName}.Reconstruct{x.GenericsNumberString}(o);");
                     }
@@ -854,12 +882,12 @@ namespace Tinyhand.Generator
             var interfaceString = string.Empty;
             if (this.ObjectAttribute != null)
             {
-                if (this.FormatterCondition_Serialize == FormatterCondition.MemberMethod)
+                if (this.MethodCondition_Serialize == MethodCondition.MemberMethod)
                 {
                     interfaceString = " : ITinyhandSerialize";
                 }
 
-                if (this.FormatterCondition_Reconstruct == FormatterCondition.MemberMethod)
+                if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
                 {
                     if (interfaceString == string.Empty)
                     {
@@ -1157,34 +1185,34 @@ namespace Tinyhand.Generator
             this.GenericsNumberString = this.GenericsNumber > 1 ? this.GenericsNumber.ToString() : string.Empty;
 
             // Serialize/Deserialize
-            if (this.FormatterCondition_Serialize == FormatterCondition.MemberMethod)
+            if (this.MethodCondition_Serialize == MethodCondition.MemberMethod)
             {
                 this.GenerateSerialize_MemberMethod(ssb, info);
                 this.GenerateDeserialize_MemberMethod(ssb, info);
             }
-            else if (this.FormatterCondition_Serialize == FormatterCondition.StaticMethod)
+            else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
             {
                 this.GenerateSerialize_StaticMethod(ssb, info);
                 this.GenerateDeserialize_StaticMethod(ssb, info);
             }
 
             // Reconstruct
-            if (this.FormatterCondition_Reconstruct == FormatterCondition.MemberMethod)
+            if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
             {
                 this.GenerateReconstruct_MemberMethod(ssb, info);
             }
-            else if (this.FormatterCondition_Serialize == FormatterCondition.StaticMethod)
+            else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
             {
                 this.GenerateReconstruct_StaticMethod(ssb, info);
             }
 
             if (info.UseMemberNotNull)
             {// MemberNotNull
-                if (this.FormatterCondition_Reconstruct == FormatterCondition.MemberMethod)
+                if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
                 {
                     this.GenerateMemberNotNull_MemberMethod(ssb, info);
                 }
-                else if (this.FormatterCondition_Serialize == FormatterCondition.StaticMethod)
+                else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
                 {
                     this.GenerateMemberNotNull_StaticMethod(ssb, info);
                 }

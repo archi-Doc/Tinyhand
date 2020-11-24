@@ -94,7 +94,7 @@ namespace Tinyhand.Generator
             ReadOnlySpan<byte> bytes = utf8;
             while (bytes.Length > 0)
             {
-                var key = AutomataKeyFake.GetKey(ref bytes);
+                var key = AutomataKeyMock.GetKey(ref bytes);
 
                 if (key == 0)
                 {

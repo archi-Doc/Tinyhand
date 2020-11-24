@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using Tinyhand.IO;
 
 namespace Tinyhand
 {
@@ -85,5 +86,18 @@ namespace Tinyhand
         public void OnBeforeSerialize();
 
         public void OnAfterDeserialize();
+    }
+
+    /// <summary>
+    /// Interface for custom serialize/deserialize/reconstruct methods.
+    /// Tinyhand call those methods instead of the generated code.
+    /// </summary>
+    public interface ITinyhandCustom
+    {
+        void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options);
+
+        void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
+
+        void Reconstruct(TinyhandSerializerOptions options);
     }
 }
