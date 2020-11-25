@@ -99,7 +99,9 @@ namespace Tinyhand.Generator
 
         public int IntKey_Number { get; private set; } = 0;
 
-        public bool HasITinyhandCustom { get; private set; } = false;
+        public bool HasITinyhandSerialize { get; private set; } = false;
+
+        public bool HasITinyhandReconstruct { get; private set; } = false;
 
         public MethodCondition MethodCondition_Serialize { get; private set; }
 
@@ -280,15 +282,22 @@ namespace Tinyhand.Generator
                 }
             }
 
-            // Method condition (Serialize/Deserialize/Reconstruct)
+            if (this.ObjectAttribute != null)
+            {// TinyhandObject
+                this.ConfigureObject();
+            }
+        }
+
+        public void ConfigureObject()
+        {
+            // Method condition (Serialize/Deserialize)
             this.MethodCondition_Serialize = MethodCondition.MemberMethod;
             this.MethodCondition_Deserialize = MethodCondition.MemberMethod;
-            this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
-            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandCustom"))
-            {// ITinyhandCustom implemented
-                this.HasITinyhandCustom = true;
+            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerialize"))
+            {// ITinyhandSerialize implemented
+                this.HasITinyhandSerialize = true;
 
-                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandCustom.Serialize"))
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerialize.Serialize"))
                 {
                     this.MethodCondition_Serialize = MethodCondition.ExplicitlyDeclared;
                 }
@@ -297,7 +306,7 @@ namespace Tinyhand.Generator
                     this.MethodCondition_Serialize = MethodCondition.Declared;
                 }
 
-                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandCustom.Deserialize"))
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerialize.Deserialize"))
                 {
                     this.MethodCondition_Deserialize = MethodCondition.ExplicitlyDeclared;
                 }
@@ -305,8 +314,20 @@ namespace Tinyhand.Generator
                 {
                     this.MethodCondition_Deserialize = MethodCondition.Declared;
                 }
+            }
+            else if (this.Generics_IsGeneric)
+            {
+                this.MethodCondition_Serialize = MethodCondition.StaticMethod;
+                this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
+            }
 
-                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandCustom.Reconstruct"))
+            // Method condition (Reconstruct)
+            this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
+            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandReconstruct"))
+            {// ITinyhandReconstruct implemented
+                this.HasITinyhandReconstruct = true;
+
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.HasITinyhandReconstruct.Reconstruct"))
                 {
                     this.MethodCondition_Reconstruct = MethodCondition.ExplicitlyDeclared;
                 }
@@ -317,8 +338,6 @@ namespace Tinyhand.Generator
             }
             else if (this.Generics_IsGeneric)
             {
-                this.MethodCondition_Serialize = MethodCondition.StaticMethod;
-                this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
                 this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
             }
 
@@ -654,7 +673,7 @@ namespace Tinyhand.Generator
                 else if (this.IgnoreMemberAttribute != null)
                 {// Has IgnoreMemberAttribute
                 }
-                else if (parent.HasITinyhandCustom)
+                else if (parent.HasITinyhandSerialize)
                 {// Has custom formatter method
                 }
                 else

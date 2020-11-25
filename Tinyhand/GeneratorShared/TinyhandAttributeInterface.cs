@@ -89,15 +89,22 @@ namespace Tinyhand
     }
 
     /// <summary>
-    /// Interface for custom serialize/deserialize/reconstruct methods.
-    /// Tinyhand call those methods instead of the generated code.
+    /// Interface for custom serialize/deserialize methods.
+    /// If this interface is implemented, Tinyhand use it instead of the generated code.
     /// </summary>
-    public interface ITinyhandCustom
+    public interface ITinyhandSerialize
     {
         void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options);
 
         void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
+    }
 
+    /// <summary>
+    /// Interface for custom reconstruct methods.
+    /// If this interface is implemented, Tinyhand use it instead of the generated code.
+    /// </summary>
+    public interface ITinyhandReconstruct
+    {
         void Reconstruct(TinyhandSerializerOptions options);
     }
 }

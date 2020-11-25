@@ -12,7 +12,7 @@ using Xunit;
 namespace Tinyhand.Tests
 {
     [TinyhandObject]
-    public partial class CustomFormatterClass : ITinyhandCustom
+    public partial class CustomFormatterClass : ITinyhandSerialize
     {
         public int ID { get; set; }
 
@@ -35,19 +35,19 @@ namespace Tinyhand.Tests
             }
         }
         
-        void ITinyhandCustom.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
+        void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
         {
             writer.Write(this.ID + 1);
             writer.Write(this.Name + "Mock");
         }
 
-        public void Reconstruct(TinyhandSerializerOptions options)
+        /*public void Reconstruct(TinyhandSerializerOptions options)
         {
             if (this.Name == null)
             {
                 this.Name = string.Empty;
             }
-        }
+        }*/
     }
 
     public class CustomFormatterTest
