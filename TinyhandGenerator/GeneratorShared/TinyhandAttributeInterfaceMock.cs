@@ -47,6 +47,11 @@ namespace Tinyhand.Generator
         public bool ReconstructMember { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not to reuse an instance of class/struct when deserializing [Default value is false].
+        /// </summary>
+        public bool Overwrite { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [Default value is false].
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
@@ -66,25 +71,31 @@ namespace Tinyhand.Generator
             var attribute = new TinyhandObjectAttributeMock();
 
             object? val;
-            val = AttributeHelper.GetValue(0, nameof(IncludePrivateMembers), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(IncludePrivateMembers), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.IncludePrivateMembers = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(1, nameof(KeyAsPropertyName), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(KeyAsPropertyName), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.KeyAsPropertyName = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(2, nameof(ReconstructMember), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(ReconstructMember), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.ReconstructMember = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(3, nameof(SkipSerializingDefaultValue), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(Overwrite), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.Overwrite = (bool)val;
+            }
+
+            val = AttributeHelper.GetValue(-1, nameof(SkipSerializingDefaultValue), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.SkipSerializingDefaultValue = (bool)val;
@@ -176,6 +187,34 @@ namespace Tinyhand.Generator
             if (val != null)
             {
                 attribute.Reconstruct = (bool)val;
+            }
+
+            return attribute;
+        }
+    }
+
+    public class OverwriteAttributeMock
+    {
+        public static readonly string SimpleName = "Overwrite";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
+        public bool Overwrite { get; set; }
+
+        public OverwriteAttributeMock(bool overwrite)
+        {
+            this.Overwrite = overwrite;
+        }
+
+        public static OverwriteAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        {
+            var attribute = new OverwriteAttributeMock(false);
+
+            object? val;
+            val = AttributeHelper.GetValue(0, nameof(Overwrite), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.Overwrite = (bool)val;
             }
 
             return attribute;

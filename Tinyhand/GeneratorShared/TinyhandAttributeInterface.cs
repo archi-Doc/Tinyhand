@@ -24,6 +24,11 @@ namespace Tinyhand
         public bool ReconstructMember { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not to reuse an instance of class/struct when deserializing [Default value is false].
+        /// </summary>
+        public bool Overwrite { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [Default value is false].
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
@@ -61,9 +66,20 @@ namespace Tinyhand
     {
         public bool Reconstruct { get; set; }
 
-        public ReconstructAttribute(bool reconstruct)
+        public ReconstructAttribute(bool reconstruct = true)
         {
             this.Reconstruct = reconstruct;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public sealed class OverwriteAttribute : Attribute
+    {
+        public bool Overwrite { get; set; }
+
+        public OverwriteAttribute(bool overwrite)
+        {
+            this.Overwrite = overwrite;
         }
     }
 

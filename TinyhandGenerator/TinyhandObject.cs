@@ -43,6 +43,17 @@ namespace Tinyhand.Generator
 
         StringKeyObject = 1 << 3,
         IntKeyConflicted = 1 << 4,
+
+        Target = 1 << 5,
+        SerializeTarget = 1 << 6,
+        ReconstructTarget = 1 << 7,
+        OverwriteTarget = 1 << 8,
+
+        HasITinyhandSerializationCallback = 1 << 9, // Has ITinyhandSerializationCallback interface
+        HasExplicitOnBeforeSerialize = 1 << 10, // ITinyhandSerializationCallback.OnBeforeSerialize()
+        HasExplicitOnAfterDeserialize = 1 << 11, // ITinyhandSerializationCallback.OnAfterDeserialize()
+        HasITinyhandSerialize = 1 << 12, // Has ITinyhandSerialize interface
+        HasITinyhandReconstruct = 1 << 13, // Has ITinyhandReconstruct interface
     }
 
     public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -67,9 +78,11 @@ namespace Tinyhand.Generator
 
         public ReconstructState ReconstructState { get; private set; }
 
-        public List<TinyhandObject> Members { get; private set; } = new();
+        public OverwriteAttributeMock? OverwriteAttribute { get; private set; }
 
-        // public bool DefaultValueFlag { get; private set; } // True if a default value is set.
+        public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members have valid TypeObject && not static && property or field
+
+        public IEnumerable<TinyhandObject> MembersWithFlag(TinyhandObjectFlag flag) => this.Members.Where(x => x.ObjectFlag.HasFlag(flag));
 
         public object? DefaultValue { get; private set; }
 
@@ -99,10 +112,6 @@ namespace Tinyhand.Generator
 
         public int IntKey_Number { get; private set; } = 0;
 
-        public bool HasITinyhandSerialize { get; private set; } = false;
-
-        public bool HasITinyhandReconstruct { get; private set; } = false;
-
         public MethodCondition MethodCondition_Serialize { get; private set; }
 
         public MethodCondition MethodCondition_Deserialize { get; private set; }
@@ -128,12 +137,6 @@ namespace Tinyhand.Generator
                 this.reconstructCondition = value;
             }
         }
-
-        public bool HasTinyhandSerializationCallback { get; private set; }
-
-        public bool HasExplicitOnBeforeSerialize { get; private set; } // Has Interface.Method() {} instead of Method() {}
-
-        public bool HasExplicitOnAfterDeserialize { get; private set; }
 
         public bool HasNullableAnnotation
         {
@@ -272,6 +275,19 @@ namespace Tinyhand.Generator
                 }
             }
 
+            // OverwriteAttribute
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == OverwriteAttributeMock.FullName) is { } overwriteAttribute)
+            {
+                try
+                {
+                    this.OverwriteAttribute = OverwriteAttributeMock.FromArray(overwriteAttribute.ConstructorArguments, overwriteAttribute.NamedArguments);
+                }
+                catch (InvalidCastException)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, overwriteAttribute.Location);
+                }
+            }
+
             // DefaultValueAttribute
             if (this.AllAttributes.FirstOrDefault(x => x.FullName == typeof(DefaultValueAttribute).FullName) is { } defaultValueAttribute)
             {
@@ -295,7 +311,7 @@ namespace Tinyhand.Generator
             this.MethodCondition_Deserialize = MethodCondition.MemberMethod;
             if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerialize"))
             {// ITinyhandSerialize implemented
-                this.HasITinyhandSerialize = true;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
 
                 if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerialize.Serialize"))
                 {
@@ -325,9 +341,9 @@ namespace Tinyhand.Generator
             this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
             if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandReconstruct"))
             {// ITinyhandReconstruct implemented
-                this.HasITinyhandReconstruct = true;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandReconstruct;
 
-                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.HasITinyhandReconstruct.Reconstruct"))
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandReconstruct.Reconstruct"))
                 {
                     this.MethodCondition_Reconstruct = MethodCondition.ExplicitlyDeclared;
                 }
@@ -344,30 +360,40 @@ namespace Tinyhand.Generator
             // ITinyhandSerializationCallback
             if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerializationCallback"))
             {
-                this.HasTinyhandSerializationCallback = true;
-                this.HasExplicitOnBeforeSerialize = this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnBeforeSerialize");
-                this.HasExplicitOnAfterDeserialize = this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterDeserialize");
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializationCallback;
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnBeforeSerialize"))
+                {
+                    this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnBeforeSerialize;
+                }
+
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterDeserialize"))
+                {
+                    this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnAfterDeserialize;
+                }
             }
 
             // Members: Property
+            var list = new List<TinyhandObject>();
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Property))
             {
-                if (x.TypeObject != null && !x.IsStatic && x.Kind.IsValue())
-                {
+                if (x.TypeObject != null && !x.IsStatic)
+                { // Valid TypeObject && not static
                     x.Configure();
-                    this.Members.Add(x);
+                    list.Add(x);
                 }
             }
 
             // Members: Field
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Field))
             {
-                if (x.TypeObject != null && !x.IsStatic && x.Kind.IsValue())
-                {
+                if (x.TypeObject != null && !x.IsStatic)
+                { // Valid TypeObject && not static
                     x.Configure();
-                    this.Members.Add(x);
+                    list.Add(x);
                 }
             }
+
+            this.Members = list.ToArray();
         }
 
         public void ConfigureRelation()
@@ -472,44 +498,44 @@ namespace Tinyhand.Generator
                 parent = parent.ContainingObject;
             }
 
-            // KeyAsPropertyName
-            if (this.ObjectAttribute!.KeyAsPropertyName == true)
+            // Target
+            foreach (var x in this.Members)
             {
-                foreach (var x in this.GetMembers(VisceralTarget.FieldProperty))
-                {
-                    if (x.KeyAttribute == null)
-                    {
-                        if (!x.IsSerializable || x.IsReadOnly)
-                        {// Not serializable
-                            continue;
-                        }
-                        else if (!x.IsPublic && this.ObjectAttribute?.IncludePrivateMembers != true)
-                        {// protected or private, if IncludePrivateMembers is false.
-                            continue;
-                        }
-                        else if (x.IgnoreMemberAttribute != null)
-                        {// KeyAttribute and IgnoreMemberAttribute are exclusive.
-                            continue;
-                        }
+                if (!x.IsSerializable || x.IsReadOnly)
+                {// Not serializable
+                    continue;
+                }
+                else if (!x.IsPublic && this.ObjectAttribute?.IncludePrivateMembers != true)
+                {// Skip protected or private members if IncludePrivateMembers is false.
+                    continue;
+                }
 
-                        x.KeyAttribute = new KeyAttributeMock(x.SimpleName);
-                    }
-                    else if (x.KeyAttribute.IntKey != null)
+                x.ObjectFlag |= TinyhandObjectFlag.Target;
+            }
+
+            // Key, SerializeTarget
+            this.CheckObject_Key();
+
+            // ReconstructTarget
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
+            {// ITinyhandSerialize is implemented.
+                foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.Target))
+                {
+                    if (x.TypeObject?.Kind.IsReferenceType() == true)
                     {
+                        x.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
                     }
                 }
             }
-
-            // String key
-            if (this.Members.Any(x => x.KeyAttribute?.StringKey != null))
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.StringKeyObject;
-
-                this.CheckObject_StringKey();
-            }
             else
-            {// Int key
-                this.CheckObject_IntKey();
+            {
+                foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
+                {
+                    if (x.TypeObject?.Kind.IsReferenceType() == true)
+                    {
+                        x.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
+                    }
+                }
             }
 
             // Check members.
@@ -519,11 +545,71 @@ namespace Tinyhand.Generator
             }
         }
 
+        private void CheckObject_Key()
+        {
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
+            {// ITinyhandSerialize is implemented. KeyAttribute is ignored.
+                foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.Target))
+                {
+                    if (x.KeyAttribute != null)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_KeyIgnored, x.KeyVisceralAttribute?.Location);
+                        x.KeyAttribute = null;
+                    }
+                }
+            }
+            else
+            {
+                // SerializeTarget
+                foreach (var x in this.Members)
+                {
+                    if (x.IgnoreMemberAttribute != null)
+                    {// [IgnoreMember]
+                        if (x.KeyAttribute != null)
+                        {// KeyAttribute and IgnoreMemberAttribute are exclusive.
+                            this.Body.ReportDiagnostic(TinyhandBody.Warning_KeyAndIgnoreAttribute, x.KeyVisceralAttribute?.Location);
+                            x.KeyAttribute = null;
+                        }
+                    }
+                    else
+                    {// No [IgnoreMember]
+                        if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) || x.KeyAttribute != null)
+                        {// Target or has [Key]
+                            x.ObjectFlag |= TinyhandObjectFlag.SerializeTarget;
+                        }
+                    }
+                }
+
+                // KeyAsPropertyName
+                if (this.ObjectAttribute!.KeyAsPropertyName == true)
+                {
+                    foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
+                    {
+                        if (x.KeyAttribute == null)
+                        {
+                            x.KeyAttribute = new KeyAttributeMock(x.SimpleName);
+                        }
+                    }
+                }
+
+                // String key
+                if (this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Any(x => x.KeyAttribute?.StringKey != null))
+                {
+                    this.ObjectFlag |= TinyhandObjectFlag.StringKeyObject;
+                    this.CheckObject_StringKey();
+                }
+                else
+                {// Int key
+                    this.CheckObject_IntKey();
+                }
+            }
+        }
+
         private void CheckObject_StringKey()
         {
             this.Automata = new Automata(this);
 
-            foreach (var x in this.Members)
+            foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
             {
                 if (x.KeyAttribute?.IntKey is int i)
                 {
@@ -539,7 +625,7 @@ namespace Tinyhand.Generator
         private void CheckObject_IntKey()
         {
             // Integer key
-            foreach (var x in this.Members)
+            foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
             {
                 if (x.KeyAttribute?.IntKey is int i)
                 {
@@ -558,7 +644,7 @@ namespace Tinyhand.Generator
 
             this.IntKey_Array = new TinyhandObject[this.IntKey_Max + 1];
 
-            foreach (var x in this.Members)
+            foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
             {
                 if (x.KeyAttribute?.IntKey is int i && i >= 0 && i <= TinyhandBody.MaxIntegerKey)
                 {
@@ -574,7 +660,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            foreach (var x in this.Members.Where(x => x.ObjectFlag.HasFlag(TinyhandObjectFlag.IntKeyConflicted)))
+            foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.IntKeyConflicted))
             {
                 this.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyConflicted, x.KeyVisceralAttribute?.Location);
             }
@@ -587,54 +673,6 @@ namespace Tinyhand.Generator
             return;
         }
 
-        /*
-        /// <summary>
-        /// Check circular dependency.
-        /// </summary>
-        /// <param name="parent">The object to check.</param>
-        /// <returns>Returns true if circular dependency detected.</returns>
-        public bool CheckCircular(TinyhandObject parent)
-        {
-            var ret = false;
-            var circularCheck = new Stack<TinyhandObject>();
-            circularCheck.Push(parent);
-
-            CheckCircularCore(this);
-
-            return ret;
-
-            void CheckCircularCore(TinyhandObject obj)
-            {
-                var typeObject = obj.TypeObject;
-                if (typeObject == null)
-                {
-                    return;
-                }
-
-                circularCheck.Push(typeObject);
-
-                foreach (var x in typeObject.Members)
-                {
-                    if (x.TypeObject == null)
-                    {
-                        continue;
-                    }
-
-                    if (circularCheck.Contains(x.TypeObject))
-                    {// Circular dependency
-                        ret = true;
-                        // diagnosticList.Add(Diagnostic.Create(TinyhandBody.Warning_Circular, x.Location, x.TypeObject?.FullName));
-                    }
-                    else
-                    {
-                        CheckCircularCore(x);
-                    }
-                }
-
-                circularCheck.Pop();
-            }
-        }*/
-
         public void CheckMember(TinyhandObject parent)
         {
             // Avoid this.TypeObject!
@@ -643,22 +681,17 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            if (this.KeyAttribute != null)
-            {// Has KeyAttribute
-                if (!this.IsSerializable || this.IsReadOnly)
-                {// Not serializable
+            if (!this.IsSerializable || this.IsReadOnly)
+            {// Not serializable
+                if (this.KeyAttribute != null || this.ReconstructAttribute != null)
+                {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
                 }
+            }
 
-                /* else if (!this.IsPublic && parent.ObjectAttribute?.IncludePrivateMembers != true)
-                {// protected or private, if IncludePrivateMembers is false.
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NotPublicMember, this.Location, this.SimpleName);
-                }*/
-
-                if (this.IgnoreMemberAttribute != null)
-                {// KeyAttribute and IgnoreMemberAttribute are exclusive.
-                    this.Body.ReportDiagnostic(TinyhandBody.Warning_KeyAndIgnoreAttribute, this.Location);
-                }
+            if (this.KeyAttribute != null)
+            {// Has KeyAttribute
+                Debug.Assert(this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget));
 
                 if (this.TypeObjectWithNullable != null && this.TypeObjectWithNullable.Object.ObjectAttribute == null && CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                 {// No Coder or Formatter
@@ -667,81 +700,56 @@ namespace Tinyhand.Generator
             }
             else
             {// No KeyAttribute
-                if (!this.IsPublic && parent.ObjectAttribute?.IncludePrivateMembers != true)
-                {// protected or private AND IncludePrivateMembers is false.
-                }
-                else if (this.IgnoreMemberAttribute != null)
-                {// Has IgnoreMemberAttribute
-                }
-                else if (parent.HasITinyhandSerialize)
-                {// Has custom formatter method
-                }
-                else
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget))
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_KeyAttributeRequired, this.Location);
                 }
             }
 
-            if (this.ReconstructState == ReconstructState.IfPreferable)
-            {
-                // Parent's ReconstructMember is false
-                if (parent.ObjectAttribute?.ReconstructMember == false)
-                {
-                    this.ReconstructState = ReconstructState.Dont;
-                }
-
-                // Avoid reconstruct T?
-                if (this.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.Annotated)
-                {
-                    this.ReconstructState = ReconstructState.Dont;
-                }
-
-                // Avoid no KeyAttribute member
-                if (this.KeyAttribute == null)
-                {
-                    this.ReconstructState = ReconstructState.Dont;
+            // ReconstructTarget
+            if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
+            {// ITinyhandSerialize is implemented.
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) && this.TypeObject.Kind.IsReferenceType() == true)
+                { // Target && Reference type
+                    this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
                 }
             }
-            else if (this.ReconstructState == ReconstructState.Do)
+            else
             {
-                if (this.IsReadOnly)
-                {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_ReadonlyMember, this.Location, this.SimpleName);
-                    this.ReconstructState = ReconstructState.Dont;
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget) && this.TypeObject.Kind.IsReferenceType() == true)
+                { // SerializeTarget && Reference type
+                    this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
                 }
             }
 
-            if (this.ReconstructState != ReconstructState.Dont)
-            {// ReconstructState.IfPreferable or ReconstructState.Do
-                var condition = this.ReconstructCondition;
+            if (this.ReconstructAttribute?.Reconstruct == true)
+            {// Reconstruct(true)
+                this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
+                this.ReconstructState = ReconstructState.Do;
+            }
+            else if (this.ReconstructAttribute?.Reconstruct == false)
+            {// Reconstruct(false)
+                this.ObjectFlag &= ~TinyhandObjectFlag.ReconstructTarget;
+                this.ReconstructState = ReconstructState.Dont;
+            }
 
-                if (condition == ReconstructCondition.Can)
-                {// Can reconstruct.
-                    this.ReconstructState = ReconstructState.Do;
-                }
-                else
-                {// Cannot reconstruct.
-                    if (this.ReconstructState == ReconstructState.IfPreferable)
-                    {
-                        this.ReconstructState = ReconstructState.Dont;
-                    }
-                    else
-                    {// Warning
-                        this.ReconstructState = ReconstructState.Dont;
-                        if (condition == ReconstructCondition.CircularDependency)
-                        {
-                            this.Body.ReportDiagnostic(TinyhandBody.Warning_Circular, this.Location, this.TypeObject.FullName);
-                        }
-                        else if (condition == ReconstructCondition.NoDefaultConstructor)
-                        {
-                            this.Body.ReportDiagnostic(TinyhandBody.Warning_NoDefaultConstructor, this.Location, this.TypeObject.FullName);
-                        }
-                        else if (condition == ReconstructCondition.NotReferenceType)
-                        {
-                            this.Body.ReportDiagnostic(TinyhandBody.Warning_NotReferenceType, this.Location, this.TypeObject.FullName);
-                        }
-                    }
-                }
+            if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.ReconstructTarget))
+            {// Not ReconstructTarget
+                this.ReconstructState = ReconstructState.Dont;
+            }
+            else
+            {// ReconstructTarget
+                this.CheckMember_Reconstruct(parent);
+            }
+
+            // Check ReconstructTarget
+            if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.ReconstructTarget))
+            {// Not ReconstructTarget
+                Debug.Assert(this.ReconstructState == ReconstructState.Dont);
+            }
+            else
+            {// ReconstructTarget
+                Debug.Assert(this.ReconstructState == ReconstructState.Do);
             }
 
             if (this.DefaultValue != null)
@@ -790,6 +798,86 @@ namespace Tinyhand.Generator
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueConstructor, this.DefaultValueLocation ?? this.Location);
                     }
                 }
+            }
+
+            // OverwriteTarget
+            var overwriteFlag = this.TypeObject!.ObjectAttribute?.Overwrite == true;
+            if (this.OverwriteAttribute?.Overwrite == true)
+            {
+                overwriteFlag = true;
+            }
+            else if (this.OverwriteAttribute?.Overwrite == false)
+            {
+                overwriteFlag = false;
+            }
+
+            if (overwriteFlag)
+            {
+                this.ObjectFlag |= TinyhandObjectFlag.OverwriteTarget;
+            }
+        }
+
+        private void CheckMember_Reconstruct(TinyhandObject parent)
+        {
+            if (this.ReconstructState == ReconstructState.IfPreferable)
+            {
+                // Parent's ReconstructMember is false
+                if (parent.ObjectAttribute?.ReconstructMember == false)
+                {
+                    this.ReconstructState = ReconstructState.Dont;
+                }
+
+                // Avoid reconstruct T?
+                if (this.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.Annotated)
+                {
+                    this.ReconstructState = ReconstructState.Dont;
+                }
+            }
+            else if (this.ReconstructState == ReconstructState.Do)
+            {
+                if (this.IsReadOnly)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_ReadonlyMember, this.Location, this.SimpleName);
+                    this.ReconstructState = ReconstructState.Dont;
+                }
+            }
+
+            if (this.ReconstructState != ReconstructState.Dont)
+            {// ReconstructState.IfPreferable or ReconstructState.Do
+                var condition = this.ReconstructCondition;
+
+                if (condition == ReconstructCondition.Can)
+                {// Can reconstruct.
+                    this.ReconstructState = ReconstructState.Do;
+                }
+                else
+                {// Cannot reconstruct.
+                    if (this.ReconstructState == ReconstructState.IfPreferable)
+                    {
+                        this.ReconstructState = ReconstructState.Dont;
+                    }
+                    else
+                    {// Warning
+                        this.ReconstructState = ReconstructState.Dont;
+                        if (condition == ReconstructCondition.CircularDependency)
+                        {
+                            this.Body.ReportDiagnostic(TinyhandBody.Warning_Circular, this.Location, this.TypeObject!.FullName);
+                        }
+                        else if (condition == ReconstructCondition.NoDefaultConstructor)
+                        {
+                            this.Body.ReportDiagnostic(TinyhandBody.Warning_NoDefaultConstructor, this.Location, this.TypeObject!.FullName);
+                        }
+                        else if (condition == ReconstructCondition.NotReferenceType)
+                        {
+                            this.Body.ReportDiagnostic(TinyhandBody.Warning_NotReferenceType, this.Location, this.TypeObject!.FullName);
+                        }
+                    }
+                }
+            }
+
+            if (this.ReconstructState != ReconstructState.Do)
+            {
+                this.ObjectFlag &= ~TinyhandObjectFlag.ReconstructTarget;
             }
         }
 
@@ -841,10 +929,25 @@ namespace Tinyhand.Generator
                 var typeName = appendNamespace ? x.FullName : x.LocalName;
                 using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{typeName}>"))
                 {
+                    // Serialize
                     if (x.MethodCondition_Serialize == MethodCondition.StaticMethod)
                     {// Static method
                         ssb.AppendLine($"public void Serialize(ref TinyhandWriter w, {typeName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions o) => {typeName}.Serialize(ref w, v, o);");
-                        ssb.AppendLine($"public {typeName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o) => {typeName}.Deserialize{x.GenericsNumberString}(ref r, o);");
+                    }
+                    else if (x.MethodCondition_Serialize == MethodCondition.ExplicitlyDeclared)
+                    {// Explicitly declared (Interface.Method())
+                        using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter w, {typeName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions o)"))
+                        {
+                            if (x.Kind.IsReferenceType())
+                            {// Reference type
+                                ssb.AppendLine("if (v == null) w.WriteNil();");
+                                ssb.AppendLine("else ((ITinyhandSerialize)v).Serialize(ref w, o);");
+                            }
+                            else
+                            {// Value type
+                                ssb.AppendLine("((ITinyhandSerialize)v).Serialize(ref w, o);");
+                            }
+                        }
                     }
                     else
                     {// Member method
@@ -860,7 +963,26 @@ namespace Tinyhand.Generator
                                 ssb.AppendLine("v.Serialize(ref w, o);");
                             }
                         }
+                    }
 
+                    // Deserialize
+                    if (x.MethodCondition_Deserialize == MethodCondition.StaticMethod)
+                    {// Static method
+                        ssb.AppendLine($"public {typeName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o) => {typeName}.Deserialize{x.GenericsNumberString}(ref r, o);");
+                    }
+                    else if (x.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared)
+                    {// Explicitly declared (Interface.Method())
+                        if (x.Kind.IsReferenceType())
+                        {// Reference type
+                            ssb.AppendLine("if (r.TryReadNil()) return default;");
+                        }
+
+                        ssb.AppendLine($"var v = new {typeName}();");
+                        ssb.AppendLine("((ITinyhandSerialize)v).Deserialize(ref r, o);");
+                        ssb.AppendLine("return v;");
+                    }
+                    else
+                    {// Member method
                         using (var d = ssb.ScopeBrace($"public {typeName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o)"))
                         {
                             if (x.Kind.IsReferenceType())
@@ -874,9 +996,19 @@ namespace Tinyhand.Generator
                         }
                     }
 
+                    // Reconstruct
                     if (x.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
                     {// Static method
                         ssb.AppendLine($"public {typeName} Reconstruct(TinyhandSerializerOptions o) => {typeName}.Reconstruct{x.GenericsNumberString}(o);");
+                    }
+                    else if (x.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
+                    {// Explicitly declared (Interface.Method())
+                        using (var r = ssb.ScopeBrace($"public {typeName} Reconstruct(TinyhandSerializerOptions o)"))
+                        {
+                            ssb.AppendLine($"var v = new {typeName}();");
+                            ssb.AppendLine("((ITinyhandReconstruct)v).Reconstruct(o);");
+                            ssb.AppendLine("return v;");
+                        }
                     }
                     else
                     {// Member method
@@ -957,9 +1089,9 @@ namespace Tinyhand.Generator
 
         internal void Generate_OnBeforeSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            if (this.HasTinyhandSerializationCallback)
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
             {
-                if (this.HasExplicitOnBeforeSerialize)
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnBeforeSerialize))
                 {
                     ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnBeforeSerialize();");
                 }
@@ -972,9 +1104,9 @@ namespace Tinyhand.Generator
 
         internal void Generate_OnAfterDeserialize(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            if (this.HasTinyhandSerializationCallback)
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
             {
-                if (this.HasExplicitOnAfterDeserialize)
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnAfterDeserialize))
                 {
                     ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterDeserialize();");
                 }
@@ -1317,6 +1449,7 @@ namespace Tinyhand.Generator
                     }
                     else
                     {
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                         if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
                         {// T?
                             ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
