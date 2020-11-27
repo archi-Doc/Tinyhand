@@ -691,7 +691,7 @@ namespace Tinyhand.Generator
 
             if (this.KeyAttribute != null)
             {// Has KeyAttribute
-                Debug.Assert(this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget));
+                this.Body.DebugAssert(this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget), $"{this.FullName}: KeyAttribute and SerializeTarget are inconsistent.");
 
                 if (this.TypeObjectWithNullable != null && this.TypeObjectWithNullable.Object.ObjectAttribute == null && CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                 {// No Coder or Formatter
@@ -745,11 +745,11 @@ namespace Tinyhand.Generator
             // Check ReconstructTarget
             if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.ReconstructTarget))
             {// Not ReconstructTarget
-                Debug.Assert(this.ReconstructState == ReconstructState.Dont);
+                this.Body.DebugAssert(this.ReconstructState == ReconstructState.Dont, "this.ReconstructState == ReconstructState.Dont");
             }
             else
             {// ReconstructTarget
-                Debug.Assert(this.ReconstructState == ReconstructState.Do);
+                this.Body.DebugAssert(this.ReconstructState == ReconstructState.Do, "this.ReconstructState == ReconstructState.Do");
             }
 
             if (this.DefaultValue != null)
@@ -890,7 +890,7 @@ namespace Tinyhand.Generator
 
             this.ObjectFlag |= TinyhandObjectFlag.Checked;
 
-            Debug.Assert(this.ObjectAttribute != null);
+            this.Body.DebugAssert(this.ObjectAttribute != null, "this.ObjectAttribute != null");
             this.CheckObject();
         }
 
