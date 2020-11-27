@@ -30,6 +30,9 @@ namespace ConsoleApp1
         [Key(4)]
         public int[]? Ids { get; set; } // Nullable value will be set null.
 
+        [Key(5)]
+        private double D { get; set; }
+
         public MyClass()
         {
             this.MemberNotNull(); // optional (.NET 5): Informs the compiler that field or property members are set non-null values by TinyhandSerializer.

@@ -51,13 +51,13 @@ namespace Tinyhand.Generator
             }
 
             var compilation = context.Compilation;
-            this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeFake.FullName);
+            this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
             if (this.tinyhandObjectAttributeSymbol == null)
             {
                 return;
             }
 
-            this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeFake.FullName);
+            this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeMock.FullName);
             if (this.tinyhandGeneratorOptionAttributeSymbol == null)
             {
                 return;
@@ -158,8 +158,8 @@ namespace Tinyhand.Generator
                 var attr = s.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandGeneratorOptionAttributeSymbol));
                 if (attr != null)
                 {
-                    var va = new VisceralAttribute(TinyhandGeneratorOptionAttributeFake.FullName, attr);
-                    var ta = TinyhandGeneratorOptionAttributeFake.FromArray(va.ConstructorArguments, va.NamedArguments);
+                    var va = new VisceralAttribute(TinyhandGeneratorOptionAttributeMock.FullName, attr);
+                    var ta = TinyhandGeneratorOptionAttributeMock.FromArray(va.ConstructorArguments, va.NamedArguments);
 
                     this.AttachDebugger = ta.AttachDebugger;
                     this.GenerateToFile = ta.GenerateToFile;
@@ -206,13 +206,13 @@ namespace Tinyhand.Generator
                         var name = attribute.Name.ToString();
                         if (this.GeneratorOptionSyntax == null)
                         {
-                            if (name.EndsWith(TinyhandGeneratorOptionAttributeFake.Name) || name.EndsWith(TinyhandGeneratorOptionAttributeFake.SimpleName))
+                            if (name.EndsWith(TinyhandGeneratorOptionAttributeMock.Name) || name.EndsWith(TinyhandGeneratorOptionAttributeMock.SimpleName))
                             {
                                 this.GeneratorOptionSyntax = typeSyntax;
                             }
                         }
 
-                        if (name.EndsWith(TinyhandObjectAttributeFake.Name) || name.EndsWith(TinyhandObjectAttributeFake.SimpleName))
+                        if (name.EndsWith(TinyhandObjectAttributeMock.Name) || name.EndsWith(TinyhandObjectAttributeMock.SimpleName))
                         {
                             return true;
                         }

@@ -118,6 +118,10 @@ namespace Tinyhand.Generator
             id: "TG024", title: "No Coder", messageFormat: "'{0}' has passed the check, but the proper coder is not found",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Warning_KeyIgnored = new DiagnosticDescriptor(
+            id: "TG025", title: "Key ignored", messageFormat: "KeyAttribute is ignored since ITinyhandSerialize is implemented",
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {

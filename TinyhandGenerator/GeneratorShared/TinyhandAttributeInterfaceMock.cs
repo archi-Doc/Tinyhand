@@ -25,7 +25,7 @@ namespace Tinyhand.Generator
         }
     }
 
-    public sealed class TinyhandObjectAttributeFake
+    public sealed class TinyhandObjectAttributeMock
     {
         public static readonly string SimpleName = "TinyhandObject";
         public static readonly string Name = SimpleName + "Attribute";
@@ -47,11 +47,16 @@ namespace Tinyhand.Generator
         public bool ReconstructMember { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not to reuse an instance of class/struct when deserializing [Default value is false].
+        /// </summary>
+        public bool Overwrite { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [Default value is false].
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
 
-        public TinyhandObjectAttributeFake()
+        public TinyhandObjectAttributeMock()
         {
         }
 
@@ -61,30 +66,36 @@ namespace Tinyhand.Generator
         /// <param name="constructorArguments">Constructor arguments.</param>
         /// <param name="namedArguments">Named arguments.</param>
         /// <returns>A new attribute instance.</returns>
-        public static TinyhandObjectAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static TinyhandObjectAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new TinyhandObjectAttributeFake();
+            var attribute = new TinyhandObjectAttributeMock();
 
             object? val;
-            val = AttributeHelper.GetValue(0, nameof(IncludePrivateMembers), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(IncludePrivateMembers), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.IncludePrivateMembers = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(1, nameof(KeyAsPropertyName), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(KeyAsPropertyName), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.KeyAsPropertyName = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(2, nameof(ReconstructMember), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(ReconstructMember), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.ReconstructMember = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(3, nameof(SkipSerializingDefaultValue), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(Overwrite), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.Overwrite = (bool)val;
+            }
+
+            val = AttributeHelper.GetValue(-1, nameof(SkipSerializingDefaultValue), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.SkipSerializingDefaultValue = (bool)val;
@@ -94,7 +105,7 @@ namespace Tinyhand.Generator
         }
     }
 
-    public class KeyAttributeFake
+    public class KeyAttributeMock
     {
         public static readonly string SimpleName = "Key";
         public static readonly string Name = SimpleName + "Attribute";
@@ -104,19 +115,19 @@ namespace Tinyhand.Generator
 
         public string? StringKey { get; private set; }
 
-        public KeyAttributeFake(int x)
+        public KeyAttributeMock(int x)
         {
             this.IntKey = x;
         }
 
-        public KeyAttributeFake(string x)
+        public KeyAttributeMock(string x)
         {
             this.StringKey = x;
         }
 
-        public static KeyAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static KeyAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new KeyAttributeFake(null!);
+            var attribute = new KeyAttributeMock(null!);
 
             if (constructorArguments.Length > 0)
             {
@@ -140,21 +151,21 @@ namespace Tinyhand.Generator
         }
     }
 
-    public class IgnoreMemberAttributeFake
+    public class IgnoreMemberAttributeMock
     {
         public static readonly string SimpleName = "IgnoreMember";
         public static readonly string Name = SimpleName + "Attribute";
         public static readonly string FullName = "Tinyhand." + Name;
 
-        public static IgnoreMemberAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static IgnoreMemberAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new IgnoreMemberAttributeFake();
+            var attribute = new IgnoreMemberAttributeMock();
 
             return attribute;
         }
     }
 
-    public class ReconstructAttributeFake
+    public class ReconstructAttributeMock
     {
         public static readonly string SimpleName = "Reconstruct";
         public static readonly string Name = SimpleName + "Attribute";
@@ -162,14 +173,14 @@ namespace Tinyhand.Generator
 
         public bool Reconstruct { get; set; }
 
-        public ReconstructAttributeFake(bool reconstruct)
+        public ReconstructAttributeMock(bool reconstruct)
         {
             this.Reconstruct = reconstruct;
         }
 
-        public static ReconstructAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static ReconstructAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new ReconstructAttributeFake(true);
+            var attribute = new ReconstructAttributeMock(true);
 
             object? val;
             val = AttributeHelper.GetValue(0, nameof(Reconstruct), constructorArguments, namedArguments);
@@ -182,7 +193,35 @@ namespace Tinyhand.Generator
         }
     }
 
-    public sealed class TinyhandGeneratorOptionAttributeFake : Attribute
+    public class OverwriteAttributeMock
+    {
+        public static readonly string SimpleName = "Overwrite";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
+        public bool Overwrite { get; set; }
+
+        public OverwriteAttributeMock(bool overwrite)
+        {
+            this.Overwrite = overwrite;
+        }
+
+        public static OverwriteAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        {
+            var attribute = new OverwriteAttributeMock(false);
+
+            object? val;
+            val = AttributeHelper.GetValue(0, nameof(Overwrite), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.Overwrite = (bool)val;
+            }
+
+            return attribute;
+        }
+    }
+
+    public sealed class TinyhandGeneratorOptionAttributeMock
     {
         public static readonly string SimpleName = "TinyhandGeneratorOption";
         public static readonly string Name = SimpleName + "Attribute";
@@ -194,9 +233,9 @@ namespace Tinyhand.Generator
 
         public string? CustomNamespace { get; set; }
 
-        public static TinyhandGeneratorOptionAttributeFake FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static TinyhandGeneratorOptionAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new TinyhandGeneratorOptionAttributeFake();
+            var attribute = new TinyhandGeneratorOptionAttributeMock();
 
             object? val;
             val = AttributeHelper.GetValue(-1, nameof(AttachDebugger), constructorArguments, namedArguments);
