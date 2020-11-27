@@ -1,11 +1,13 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 using Tinyhand.Resolvers;
 
 #pragma warning disable SA1602 // Enumeration items should be documented
+#pragma warning disable SA1009
 
 namespace Tinyhand
 {
@@ -28,14 +30,32 @@ namespace Tinyhand
                 Throw(typeof(T), options.Resolver);
             }
 
-            var value = default(T);
+            T value = default;
             formatter!.Deserialize(ref reader, ref value, options);
             if (value == null)
             {
-                formatter!.Reconstruct(ref value, options);
+                value = formatter!.Reconstruct(options);
             }
 
             return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void DeserializeAndReconstruct<T>(this TinyhandSerializerOptions options, ref TinyhandReader reader, [NotNull] ref T? value)
+        {
+            ITinyhandFormatter<T>? formatter;
+
+            formatter = options.Resolver.TryGetFormatter<T>();
+            if (formatter == null)
+            {
+                Throw(typeof(T), options.Resolver);
+            }
+
+            formatter!.Deserialize(ref reader, ref value, options);
+            if (value == null)
+            {
+                value = formatter!.Reconstruct(options)!;
+            }
         }
 
         private static void Throw(Type t, IFormatterResolver resolver)

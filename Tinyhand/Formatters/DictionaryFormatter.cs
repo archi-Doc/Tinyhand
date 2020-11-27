@@ -16,7 +16,7 @@ namespace Tinyhand.Formatters
         where TDictionary : IEnumerable<KeyValuePair<TKey, TValue>>
         where TEnumerator : IEnumerator<KeyValuePair<TKey, TValue>>
     {
-        public void Serialize(ref TinyhandWriter writer, TDictionary? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref TDictionary? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -24,9 +24,9 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                IFormatterResolver resolver = options.Resolver;
-                ITinyhandFormatter<TKey> keyFormatter = resolver.GetFormatter<TKey>();
-                ITinyhandFormatter<TValue> valueFormatter = resolver.GetFormatter<TValue>();
+                var resolver = options.Resolver;
+                var keyFormatter = resolver.GetFormatter<TKey>();
+                var valueFormatter = resolver.GetFormatter<TValue>();
 
                 int count;
                 {
@@ -51,15 +51,17 @@ namespace Tinyhand.Formatters
 
                 writer.WriteMapHeader(count);
 
-                TEnumerator e = this.GetSourceEnumerator(value);
+                var e = this.GetSourceEnumerator(value);
                 try
                 {
                     while (e.MoveNext())
                     {
                         writer.CancellationToken.ThrowIfCancellationRequested();
-                        KeyValuePair<TKey, TValue> item = e.Current;
-                        keyFormatter.Serialize(ref writer, item.Key, options);
-                        valueFormatter.Serialize(ref writer, item.Value, options);
+                        var item = e.Current;
+                        var rk = item.Key;
+                        var rv = item.Value;
+                        keyFormatter.Serialize(ref writer, ref rk, options);
+                        valueFormatter.Serialize(ref writer, ref rv, options);
                     }
                 }
                 finally
@@ -69,17 +71,17 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public TDictionary? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref TDictionary? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default(TDictionary);
+                value = default(TDictionary);
             }
             else
             {
-                IFormatterResolver resolver = options.Resolver;
-                ITinyhandFormatter<TKey> keyFormatter = resolver.GetFormatter<TKey>();
-                ITinyhandFormatter<TValue> valueFormatter = resolver.GetFormatter<TValue>();
+                var resolver = options.Resolver;
+                var keyFormatter = resolver.GetFormatter<TKey>();
+                var valueFormatter = resolver.GetFormatter<TValue>();
 
                 var len = reader.ReadMapHeader();
 
@@ -90,11 +92,13 @@ namespace Tinyhand.Formatters
                     for (int i = 0; i < len; i++)
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
-                        TKey key = keyFormatter.Deserialize(ref reader, options);
+                        TKey rk = default;
+                        keyFormatter.Deserialize(ref reader, ref rk, options);
 
-                        TValue value = valueFormatter.Deserialize(ref reader, options);
+                        TValue rv = default;
+                        valueFormatter.Deserialize(ref reader, ref rv, options);
 
-                        this.Add(dict, i, key!, value!, options);
+                        this.Add(dict, i, rk!, rv, options);
                     }
                 }
                 finally
@@ -102,7 +106,7 @@ namespace Tinyhand.Formatters
                     reader.Depth--;
                 }
 
-                return this.Complete(dict);
+                value = this.Complete(dict);
             }
         }
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 
 #pragma warning disable SA1121 // Use built-in type alias
@@ -23,18 +24,18 @@ namespace Tinyhand.Formatters
         /* Guid's underlying _a,...,_k field is sequential and same layout as .NET Framework and Mono(Unity).
          * But target machines must be same endian so restrict only for little endian. */
 
-        public unsafe void Serialize(ref TinyhandWriter writer, Guid value, TinyhandSerializerOptions options)
+        public unsafe void Serialize(ref TinyhandWriter writer, ref Guid value, TinyhandSerializerOptions options)
         {
             if (!BitConverter.IsLittleEndian)
             {
                 throw new InvalidOperationException("NativeGuidFormatter only allows on little endian env.");
             }
 
-            var valueSpan = new ReadOnlySpan<byte>(&value, sizeof(Guid));
+            var valueSpan = new ReadOnlySpan<byte>(Unsafe.AsPointer(ref value), sizeof(Guid));
             writer.Write(valueSpan);
         }
 
-        public unsafe Guid Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public unsafe void Deserialize(ref TinyhandReader reader, ref Guid value, TinyhandSerializerOptions options)
         {
             if (!BitConverter.IsLittleEndian)
             {
@@ -51,7 +52,7 @@ namespace Tinyhand.Formatters
             Guid result;
             var resultSpan = new Span<byte>(&result, sizeof(Guid));
             valueSequence.CopyTo(resultSpan);
-            return result;
+            value = result;
         }
 
         public Guid Reconstruct(TinyhandSerializerOptions options)
@@ -74,18 +75,18 @@ namespace Tinyhand.Formatters
         /* decimal underlying "flags, hi, lo, mid" fields are sequential and same layuout with .NET Framework and Mono(Unity)
          * But target machines must be same endian so restrict only for little endian. */
 
-        public unsafe void Serialize(ref TinyhandWriter writer, Decimal value, TinyhandSerializerOptions options)
+        public unsafe void Serialize(ref TinyhandWriter writer, ref Decimal value, TinyhandSerializerOptions options)
         {
             if (!BitConverter.IsLittleEndian)
             {
                 throw new InvalidOperationException("NativeDecimalFormatter only allows on little endian env.");
             }
 
-            var valueSpan = new ReadOnlySpan<byte>(&value, sizeof(Decimal));
+            var valueSpan = new ReadOnlySpan<byte>(Unsafe.AsPointer(ref value), sizeof(Decimal));
             writer.Write(valueSpan);
         }
 
-        public unsafe Decimal Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public unsafe void Deserialize(ref TinyhandReader reader, ref Decimal value, TinyhandSerializerOptions options)
         {
             if (!BitConverter.IsLittleEndian)
             {
@@ -102,7 +103,7 @@ namespace Tinyhand.Formatters
             decimal result;
             var resultSpan = new Span<byte>(&result, sizeof(decimal));
             valueSequence.CopyTo(resultSpan);
-            return result;
+            value = result;
         }
 
         public Decimal Reconstruct(TinyhandSerializerOptions options)

@@ -26,17 +26,17 @@ namespace Tinyhand.Formatters
     public sealed class ValueTupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>><#= (t.Contains("TRest") ? @"
         where TRest : struct" : "") #>
     {
-        public void Serialize(ref TinyhandWriter writer, <#= t #> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref <#= t #> value, TinyhandSerializerOptions options)
         {
             writer.WriteArrayHeader(<#= i #>);
 
             var resolver = options.Resolver;
 <# for(var j = 1; j <= i; j++) { #>
-            resolver.GetFormatter<<#= toT(j) #>>().Serialize(ref writer, value.<#= toItem(j) #>, options);
+            resolver.GetFormatter<<#= toT(j) #>>().Serialize(ref writer, ref value.<#= toItem(j) #>!, options);
 <# } #>
         }
 
-        public <#= t #> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref <#= t #> value, TinyhandSerializerOptions options)
         {
             if (reader.IsNil)
             {
@@ -55,10 +55,11 @@ namespace Tinyhand.Formatters
                 try
                 {
 <# for(var j = 1; j <= i; j++) { #>
-                    <#= toT(j) #> item<#= j #> = resolver.GetFormatter<<#= toT(j) #>>().Deserialize(ref reader, options);
+                    <#= toT(j) #> item<#= j #> = default;
+                    resolver.GetFormatter<<#= toT(j) #>>().Deserialize(ref reader, ref item<#= j #>, options);
 <# } #>
 
-                    return new ValueTuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "item" + x + "!")) #>);
+                    value = new ValueTuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "item" + x + "!")) #>);
                 }
                 finally
                 {

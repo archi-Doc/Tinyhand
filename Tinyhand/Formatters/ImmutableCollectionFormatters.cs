@@ -14,7 +14,7 @@ namespace Tinyhand.Formatters
     // Immutablearray<T>.Enumerator is 'not' IEnumerator<T>, can't use abstraction layer.
     public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
     {
-        public void Serialize(ref TinyhandWriter writer, ImmutableArray<T> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ImmutableArray<T> value, TinyhandSerializerOptions options)
         {
             if (value.IsDefault)
             {
@@ -31,23 +31,24 @@ namespace Tinyhand.Formatters
                 writer.WriteArrayHeader(value.Length);
                 foreach (T item in value)
                 {
-                    formatter.Serialize(ref writer, item, options);
+                    var rv = item;
+                    formatter.Serialize(ref writer, ref rv, options);
                 }
             }
         }
 
-        public ImmutableArray<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ImmutableArray<T> value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
                 var len = reader.ReadArrayHeader();
                 if (len == 0)
                 {
-                    return ImmutableArray<T>.Empty;
+                    value = ImmutableArray<T>.Empty;
                 }
 
                 ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
@@ -57,7 +58,9 @@ namespace Tinyhand.Formatters
                 {
                     for (int i = 0; i < len; i++)
                     {
-                        builder.Add(formatter.Deserialize(ref reader, options)!);
+                        T rv = default;
+                        formatter.Deserialize(ref reader, ref rv, options);
+                        builder.Add(rv!);
                     }
                 }
                 finally
@@ -65,7 +68,7 @@ namespace Tinyhand.Formatters
                     reader.Depth--;
                 }
 
-                return builder.MoveToImmutable();
+                value = builder.MoveToImmutable();
             }
         }
 

@@ -70,7 +70,7 @@ namespace Tinyhand.Formatters
             return false;
         }
 
-        public void Serialize(ref TinyhandWriter writer, object? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref object? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -180,8 +180,10 @@ namespace Tinyhand.Formatters
                     writer.WriteMapHeader(d.Count);
                     foreach (System.Collections.DictionaryEntry item in d)
                     {
-                        this.Serialize(ref writer, item.Key, options);
-                        this.Serialize(ref writer, item.Value, options);
+                        var rv = item.Key;
+                        var rv2 = item.Value;
+                        this.Serialize(ref writer, ref rv, options);
+                        this.Serialize(ref writer, ref rv2, options);
                     }
 
                     return;
@@ -191,7 +193,8 @@ namespace Tinyhand.Formatters
                     writer.WriteArrayHeader(c.Count);
                     foreach (var item in c)
                     {
-                        this.Serialize(ref writer, item, options);
+                        var rv = item;
+                        this.Serialize(ref writer, ref rv, options);
                     }
 
                     return;
@@ -201,7 +204,7 @@ namespace Tinyhand.Formatters
             throw new TinyhandException("Not supported primitive object resolver. type:" + t.Name);
         }
 
-        public object? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref object? value, TinyhandSerializerOptions options)
         {
             MessagePackType type = reader.NextMessagePackType;
             IFormatterResolver resolver = options.Resolver;
@@ -211,68 +214,84 @@ namespace Tinyhand.Formatters
                     var code = reader.NextCode;
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
                     {
-                        return reader.ReadInt8();
+                        value = reader.ReadInt8();
+                        return;
                     }
                     else if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
                     {
-                        return reader.ReadUInt8();
+                        value = reader.ReadUInt8();
+                        return;
                     }
                     else if (code == MessagePackCode.Int8)
                     {
-                        return reader.ReadInt8();
+                        value = reader.ReadInt8();
+                        return;
                     }
                     else if (code == MessagePackCode.Int16)
                     {
-                        return reader.ReadInt16();
+                        value = reader.ReadInt16();
+                        return;
                     }
                     else if (code == MessagePackCode.Int32)
                     {
-                        return reader.ReadInt32();
+                        value = reader.ReadInt32();
+                        return;
                     }
                     else if (code == MessagePackCode.Int64)
                     {
-                        return reader.ReadInt64();
+                        value = reader.ReadInt64();
+                        return;
                     }
                     else if (code == MessagePackCode.UInt8)
                     {
-                        return reader.ReadUInt8();
+                        value = reader.ReadUInt8();
+                        return;
                     }
                     else if (code == MessagePackCode.UInt16)
                     {
-                        return reader.ReadUInt16();
+                        value = reader.ReadUInt16();
+                        return;
                     }
                     else if (code == MessagePackCode.UInt32)
                     {
-                        return reader.ReadUInt32();
+                        value = reader.ReadUInt32();
+                        return;
                     }
                     else if (code == MessagePackCode.UInt64)
                     {
-                        return reader.ReadUInt64();
+                        value = reader.ReadUInt64();
+                        return;
                     }
 
                     throw new TinyhandException("Invalid primitive bytes.");
                 case MessagePackType.Boolean:
-                    return reader.ReadBoolean();
+                    value = reader.ReadBoolean();
+                    return;
                 case MessagePackType.Float:
                     if (reader.NextCode == MessagePackCode.Float32)
                     {
-                        return reader.ReadSingle();
+                        value = reader.ReadSingle();
+                        return;
                     }
                     else
                     {
-                        return reader.ReadDouble();
+                        value = reader.ReadDouble();
+                        return;
                     }
 
                 case MessagePackType.String:
-                    return reader.ReadString();
+                    value = reader.ReadString();
+                    return;
                 case MessagePackType.Binary:
                     // We must copy the sequence returned by ReadBytes since the reader's sequence is only valid during deserialization.
-                    return reader.ReadBytes()?.ToArray();
+                    value = reader.ReadBytes()?.ToArray();
+                    return;
                 case MessagePackType.Extension:
                     ExtensionHeader ext = reader.ReadExtensionFormatHeader();
                     if (ext.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
                     {
-                        return reader.ReadDateTime(ext);
+                        value = reader.ReadDateTime(ext);
+                        return;
                     }
 
                     throw new TinyhandException("Invalid primitive bytes.");
@@ -281,7 +300,8 @@ namespace Tinyhand.Formatters
                         var length = reader.ReadArrayHeader();
                         if (length == 0)
                         {
-                            return Array.Empty<object>();
+                            value = Array.Empty<object>();
+                            return;
                         }
 
                         ITinyhandFormatter<object> objectFormatter = resolver.GetFormatter<object>();
@@ -291,7 +311,7 @@ namespace Tinyhand.Formatters
                         {
                             for (int i = 0; i < length; i++)
                             {
-                                array[i] = objectFormatter.Deserialize(ref reader, options)!;
+                                objectFormatter.Deserialize(ref reader, ref array[i]!, options);
                             }
                         }
                         finally
@@ -299,7 +319,8 @@ namespace Tinyhand.Formatters
                             reader.Depth--;
                         }
 
-                        return array;
+                        value = array;
+                        return;
                     }
 
                 case MessagePackType.Map:
@@ -309,7 +330,8 @@ namespace Tinyhand.Formatters
                         options.Security.DepthStep(ref reader);
                         try
                         {
-                            return this.DeserializeMap(ref reader, length, options);
+                            value = this.DeserializeMap(ref reader, length, options);
+                            return;
                         }
                         finally
                         {
@@ -319,7 +341,8 @@ namespace Tinyhand.Formatters
 
                 case MessagePackType.Nil:
                     reader.ReadNil();
-                    return null;
+                    value = null;
+                    return;
                 default:
                     throw new TinyhandException("Invalid primitive bytes.");
             }
@@ -336,8 +359,10 @@ namespace Tinyhand.Formatters
             var dictionary = new Dictionary<object, object>(length, options.Security.GetEqualityComparer<object>());
             for (int i = 0; i < length; i++)
             {
-                var key = objectFormatter.Deserialize(ref reader, options);
-                var value = objectFormatter.Deserialize(ref reader, options);
+                object? key = default;
+                objectFormatter.Deserialize(ref reader, ref key, options);
+                object? value = default;
+                objectFormatter.Deserialize(ref reader, ref value, options);
                 dictionary.Add(key!, value!);
             }
 

@@ -9,15 +9,15 @@ namespace Tinyhand.Formatters
 {
     public sealed class IgnoreFormatter<T> : ITinyhandFormatter<T>
     {
-        public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref T? value, TinyhandSerializerOptions options)
         {
             writer.WriteNil();
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
         {
             reader.Skip();
-            return default(T);
+            value = default;
         }
 
         public T Reconstruct(TinyhandSerializerOptions options)

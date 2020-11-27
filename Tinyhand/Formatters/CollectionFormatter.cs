@@ -31,16 +31,16 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < value.Length; i++)
                 {
                     writer.CancellationToken.ThrowIfCancellationRequested();
-                    formatter.Serialize(ref writer, ref value[i], options);
+                    formatter.Serialize(ref writer, ref value[i]!, options);
                 }
             }
         }
 
-        public T[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref T[]? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
@@ -54,7 +54,11 @@ namespace Tinyhand.Formatters
                     for (int i = 0; i < array.Length; i++)
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
-                        array[i] = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);
+                        formatter.Deserialize(ref reader, ref array[i]!, options);
+                        if (array[i] == null)
+                        {
+                            array[i] = formatter.Reconstruct(options);
+                        }
                     }
                 }
                 finally
@@ -62,7 +66,7 @@ namespace Tinyhand.Formatters
                     reader.Depth--;
                 }
 
-                return array;
+                value = array;
             }
         }
 
@@ -80,14 +84,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, Memory<byte> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref Memory<byte> value, TinyhandSerializerOptions options)
         {
             writer.Write(value.Span);
         }
 
-        public Memory<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref Memory<byte> value, TinyhandSerializerOptions options)
         {
-            return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new Memory<byte>(bytes.ToArray()) : default;
+            value = reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new Memory<byte>(bytes.ToArray()) : default;
         }
 
         public Memory<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -104,14 +108,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ReadOnlyMemory<byte> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ReadOnlyMemory<byte> value, TinyhandSerializerOptions options)
         {
             writer.Write(value.Span);
         }
 
-        public ReadOnlyMemory<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ReadOnlyMemory<byte> value, TinyhandSerializerOptions options)
         {
-            return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ReadOnlyMemory<byte>(bytes.ToArray()) : default;
+            value = reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ReadOnlyMemory<byte>(bytes.ToArray()) : default;
         }
 
         public ReadOnlyMemory<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -128,7 +132,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ReadOnlySequence<byte> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ReadOnlySequence<byte> value, TinyhandSerializerOptions options)
         {
             writer.WriteBinHeader(checked((int)value.Length));
             foreach (ReadOnlyMemory<byte> segment in value)
@@ -137,9 +141,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ReadOnlySequence<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ReadOnlySequence<byte> value, TinyhandSerializerOptions options)
         {
-            return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ReadOnlySequence<byte>(bytes.ToArray()) : default;
+            value = reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ReadOnlySequence<byte>(bytes.ToArray()) : default;
         }
 
         public ReadOnlySequence<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -156,7 +160,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ArraySegment<byte> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ArraySegment<byte> value, TinyhandSerializerOptions options)
         {
             if (value.Array == null)
             {
@@ -168,9 +172,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ArraySegment<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ArraySegment<byte> value, TinyhandSerializerOptions options)
         {
-            return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ArraySegment<byte>(bytes.ToArray()) : default;
+            value = reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ArraySegment<byte>(bytes.ToArray()) : default;
         }
 
         public ArraySegment<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -181,15 +185,18 @@ namespace Tinyhand.Formatters
 
     public sealed class MemoryFormatter<T> : ITinyhandFormatter<Memory<T>>
     {
-        public void Serialize(ref TinyhandWriter writer, Memory<T> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref Memory<T> value, TinyhandSerializerOptions options)
         {
             var formatter = options.Resolver.GetFormatter<ReadOnlyMemory<T>>();
-            formatter.Serialize(ref writer, value, options);
+            var value2 = (ReadOnlyMemory<T>)value;
+            formatter.Serialize(ref writer, ref value2, options);
         }
 
-        public Memory<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref Memory<T> value, TinyhandSerializerOptions options)
         {
-            return options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
+            T[]? value2 = default;
+            options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, ref value2, options);
+            value = value2;
         }
 
         public Memory<T> Reconstruct(TinyhandSerializerOptions options)
@@ -200,7 +207,7 @@ namespace Tinyhand.Formatters
 
     public sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemory<T>>
     {
-        public void Serialize(ref TinyhandWriter writer, ReadOnlyMemory<T> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ReadOnlyMemory<T> value, TinyhandSerializerOptions options)
         {
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
@@ -210,13 +217,13 @@ namespace Tinyhand.Formatters
             for (int i = 0; i < span.Length; i++)
             {
                 writer.CancellationToken.ThrowIfCancellationRequested();
-                formatter.Serialize(ref writer, span[i], options);
+                formatter.Serialize(ref writer, ref span[i], options);
             }
         }
 
-        public ReadOnlyMemory<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ReadOnlyMemory<T> value, TinyhandSerializerOptions options)
         {
-            return options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
+            options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, ref value, options);
         }
 
         public ReadOnlyMemory<T> Reconstruct(TinyhandSerializerOptions options)

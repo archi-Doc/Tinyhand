@@ -13,14 +13,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, Nil value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref Nil value, TinyhandSerializerOptions options)
         {
             writer.WriteNil();
         }
 
-        public Nil Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref Nil value, TinyhandSerializerOptions options)
         {
-            return reader.ReadNil();
+            value = reader.ReadNil();
         }
 
         public Nil Reconstruct(TinyhandSerializerOptions options)
@@ -38,14 +38,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, Nil? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref Nil? value, TinyhandSerializerOptions options)
         {
             writer.WriteNil();
         }
 
-        public Nil? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref Nil? value, TinyhandSerializerOptions options)
         {
-            return reader.ReadNil();
+            value = reader.ReadNil();
         }
 
         public Nil? Reconstruct(TinyhandSerializerOptions options)

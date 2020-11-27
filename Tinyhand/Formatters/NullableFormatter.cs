@@ -10,7 +10,7 @@ namespace Tinyhand.Formatters
     public sealed class NullableFormatter<T> : ITinyhandFormatter<T?>
         where T : struct
     {
-        public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref T? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -18,20 +18,23 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                options.Resolver.GetFormatter<T>().Serialize(ref writer, value.Value, options);
+                var rv = value.Value;
+                options.Resolver.GetFormatter<T>().Serialize(ref writer, ref rv, options);
             }
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
         {
             if (reader.IsNil)
             {
                 reader.ReadNil();
-                return null;
+                value = null;
             }
             else
             {
-                return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+                T rv = default;
+                options.Resolver.GetFormatter<T>().Deserialize(ref reader, ref rv, options);
+                value = rv;
             }
         }
 
