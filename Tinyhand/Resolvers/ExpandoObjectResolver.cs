@@ -40,13 +40,15 @@ namespace Tinyhand.Resolvers
         {
             protected override object DeserializeMap(ref TinyhandReader reader, int length, TinyhandSerializerOptions options)
             {
-                var keyFormatter = options.Resolver.GetFormatter<string>();
-                var objectFormatter = options.Resolver.GetFormatter<object>();
+                var keyFormatter = options.Resolver.GetFormatter<string?>();
+                var objectFormatter = options.Resolver.GetFormatter<object?>();
                 IDictionary<string, object> dictionary = new ExpandoObject();
                 for (int i = 0; i < length; i++)
                 {
-                    var key = keyFormatter.Deserialize(ref reader, options);
-                    var value = objectFormatter.Deserialize(ref reader, options);
+                    string? key = null;
+                    keyFormatter.Deserialize(ref reader, ref key, options);
+                    object? value = null;
+                    objectFormatter.Deserialize(ref reader, ref value, options);
                     dictionary.Add(key!, value!);
                 }
 

@@ -14,16 +14,16 @@ namespace Tinyhand.Formatters
     {
         public static readonly NativeDateTimeFormatter Instance = new NativeDateTimeFormatter();
 
-        public void Serialize(ref TinyhandWriter writer, DateTime value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref DateTime value, TinyhandSerializerOptions options)
         {
             var dateData = value.ToBinary();
             writer.Write(dateData);
         }
 
-        public DateTime Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref DateTime value, TinyhandSerializerOptions options)
         {
             var dateData = reader.ReadInt64();
-            return DateTime.FromBinary(dateData);
+            value = DateTime.FromBinary(dateData);
         }
 
         public DateTime Reconstruct(TinyhandSerializerOptions options)
@@ -36,7 +36,7 @@ namespace Tinyhand.Formatters
     {
         public static readonly NativeDateTimeArrayFormatter Instance = new NativeDateTimeArrayFormatter();
 
-        public void Serialize(ref TinyhandWriter writer, DateTime[]? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref DateTime[]? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -52,17 +52,19 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public DateTime[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref DateTime[]? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return null;
+                value = null;
+                return;
             }
 
             var len = reader.ReadArrayHeader();
             if (len == 0)
             {
-                return Array.Empty<DateTime>();
+                value = Array.Empty<DateTime>();
+                return;
             }
 
             var array = new DateTime[len];
@@ -72,12 +74,12 @@ namespace Tinyhand.Formatters
                 array[i] = DateTime.FromBinary(dateData);
             }
 
-            return array;
+            value = array;
         }
 
         public DateTime[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new DateTime[0];
+            return Array.Empty<DateTime>();
         }
     }
 }

@@ -22,14 +22,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, string? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref string? value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public string? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref string? value, TinyhandSerializerOptions options)
         {
-            return reader.ReadString(); // ?? string.Empty;
+            value = reader.ReadString(); // ?? string.Empty;
         }
 
         public string Reconstruct(TinyhandSerializerOptions options)
@@ -46,9 +46,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, string[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeStringArray(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref string[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeStringArray(ref writer, value);
 
-        public string[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref string[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader);
+        }
 
         public string[] Reconstruct(TinyhandSerializerOptions options)
         {
@@ -64,9 +67,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<string>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeStringList(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<string>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeStringList(ref writer, value);
 
-        public List<string>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeStringList(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<string>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeStringList(ref reader);
+        }
 
         public List<string> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -82,14 +88,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, byte[]? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref byte[]? value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public byte[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref byte[]? value, TinyhandSerializerOptions options)
         {
-            return reader.ReadBytes()?.ToArray(); // ?? new byte[0];
+            value = reader.ReadBytes()?.ToArray(); // ?? new byte[0];
         }
 
         public byte[] Reconstruct(TinyhandSerializerOptions options)
@@ -106,7 +112,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<byte>? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref List<byte>? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -118,9 +124,10 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public List<byte>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref List<byte>? value, TinyhandSerializerOptions options)
         {
-            return new List<byte>(reader.ReadBytes()?.ToArray()); // ?? new byte[0];
+            var array = reader.ReadBytes()?.ToArray(); // ?? new byte[0];
+            value = array == null ? null : new List<byte>(array);
         }
 
         public List<byte> Reconstruct(TinyhandSerializerOptions options)

@@ -16,7 +16,7 @@ namespace Tinyhand.Formatters
 {
     public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
     {
-        public void Serialize(ref TinyhandWriter writer, T[]? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref T[]? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -31,7 +31,7 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < value.Length; i++)
                 {
                     writer.CancellationToken.ThrowIfCancellationRequested();
-                    formatter.Serialize(ref writer, value[i], options);
+                    formatter.Serialize(ref writer, ref value[i], options);
                 }
             }
         }

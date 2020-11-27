@@ -28,7 +28,14 @@ namespace Tinyhand
                 Throw(typeof(T), options.Resolver);
             }
 
-            return formatter!.Deserialize(ref reader, options) ?? formatter!.Reconstruct(options);
+            var value = default(T);
+            formatter!.Deserialize(ref reader, ref value, options);
+            if (value == null)
+            {
+                formatter!.Reconstruct(ref value, options);
+            }
+
+            return value;
         }
 
         private static void Throw(Type t, IFormatterResolver resolver)

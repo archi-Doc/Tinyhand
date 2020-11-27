@@ -44,14 +44,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, <#= t.Simple #> value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref <#= t.Simple #> value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public <#= t.Simple #> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref <#= t.Simple #> value, TinyhandSerializerOptions options)
         {
-            return reader.Read<#= t.Name #>();
+            value = reader.Read<#= t.Name #>();
         }
 
         public <#= t.Simple #> Reconstruct(TinyhandSerializerOptions options)
@@ -68,7 +68,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, <#= t.Simple #>? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref <#= t.Simple #>? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -80,15 +80,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public <#= t.Simple #>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref <#= t.Simple #>? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.Read<#= t.Name #>();
+                value = reader.Read<#= t.Name #>();
             }
         }
 
@@ -107,13 +107,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, <#= t.Simple #>[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref <#= t.Simple #>[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, value);
 
-        public <#= t.Simple #>[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref <#= t.Simple #>[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader);
+        }
 
         public <#= t.Simple #>[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new <#= t.Simple #>[0];
+            return Array.Empty<<#= t.Simple #>>();
         }
     }
 
@@ -125,9 +128,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, value);
 
-        public List<<#= t.Simple #>>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<<#= t.Simple #>>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader);
+        }
 
         public List<<#= t.Simple #>> Reconstruct(TinyhandSerializerOptions options)
         {

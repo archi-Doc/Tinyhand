@@ -19,14 +19,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, byte value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref byte value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public byte Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref byte value, TinyhandSerializerOptions options)
         {
-            return reader.ReadUInt8();
+            value = reader.ReadUInt8();
         }
 
         public byte Reconstruct(TinyhandSerializerOptions options)
@@ -43,7 +43,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, byte? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref byte? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -55,15 +55,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public byte? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref byte? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadUInt8();
+                value = reader.ReadUInt8();
             }
         }
 
@@ -81,14 +81,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, sbyte value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref sbyte value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public sbyte Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref sbyte value, TinyhandSerializerOptions options)
         {
-            return reader.ReadInt8();
+            value = reader.ReadInt8();
         }
 
         public sbyte Reconstruct(TinyhandSerializerOptions options)
@@ -105,7 +105,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, sbyte? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref sbyte? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -117,15 +117,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public sbyte? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref sbyte? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadInt8();
+                value = reader.ReadInt8();
             }
         }
 
@@ -143,13 +143,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, sbyte[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt8Array(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref sbyte[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt8Array(ref writer, value);
 
-        public sbyte[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt8Array(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref sbyte[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeInt8Array(ref reader);
+        }
 
         public sbyte[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new sbyte[0];
+            return Array.Empty<sbyte>();
         }
     }
 
@@ -161,9 +164,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<sbyte>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt8List(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<sbyte>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt8List(ref writer, value);
 
-        public List<sbyte>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt8List(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<sbyte>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeInt8List(ref reader);
+        }
 
         public List<sbyte> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -179,14 +185,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ushort value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ushort value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public ushort Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ushort value, TinyhandSerializerOptions options)
         {
-            return reader.ReadUInt16();
+            value = reader.ReadUInt16();
         }
 
         public ushort Reconstruct(TinyhandSerializerOptions options)
@@ -203,7 +209,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ushort? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ushort? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -215,15 +221,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ushort? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ushort? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadUInt16();
+                value = reader.ReadUInt16();
             }
         }
 
@@ -241,13 +247,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ushort[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt16Array(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref ushort[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt16Array(ref writer, value);
 
-        public ushort[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt16Array(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref ushort[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeUInt16Array(ref reader);
+        }
 
         public ushort[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new ushort[0];
+            return Array.Empty<ushort>();
         }
     }
 
@@ -259,9 +268,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<ushort>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt16List(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<ushort>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt16List(ref writer, value);
 
-        public List<ushort>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt16List(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<ushort>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeUInt16List(ref reader);
+        }
 
         public List<ushort> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -277,14 +289,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, short value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref short value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public short Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref short value, TinyhandSerializerOptions options)
         {
-            return reader.ReadInt16();
+            value = reader.ReadInt16();
         }
 
         public short Reconstruct(TinyhandSerializerOptions options)
@@ -301,7 +313,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, short? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref short? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -313,15 +325,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public short? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref short? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadInt16();
+                value = reader.ReadInt16();
             }
         }
 
@@ -339,13 +351,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, short[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt16Array(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref short[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt16Array(ref writer, value);
 
-        public short[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt16Array(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref short[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeInt16Array(ref reader);
+        }
 
         public short[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new short[0];
+            return Array.Empty<short>();
         }
     }
 
@@ -357,9 +372,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<short>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt16List(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<short>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt16List(ref writer, value);
 
-        public List<short>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt16List(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<short>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeInt16List(ref reader);
+        }
 
         public List<short> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -375,14 +393,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, uint value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref uint value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public uint Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref uint value, TinyhandSerializerOptions options)
         {
-            return reader.ReadUInt32();
+            value = reader.ReadUInt32();
         }
 
         public uint Reconstruct(TinyhandSerializerOptions options)
@@ -399,7 +417,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, uint? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref uint? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -411,15 +429,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public uint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref uint? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadUInt32();
+                value = reader.ReadUInt32();
             }
         }
 
@@ -437,13 +455,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, uint[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt32Array(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref uint[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt32Array(ref writer, value);
 
-        public uint[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt32Array(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref uint[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeUInt32Array(ref reader);
+        }
 
         public uint[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new uint[0];
+            return Array.Empty<uint>();
         }
     }
 
@@ -455,9 +476,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<uint>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt32List(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<uint>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt32List(ref writer, value);
 
-        public List<uint>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt32List(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<uint>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeUInt32List(ref reader);
+        }
 
         public List<uint> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -473,14 +497,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, int value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref int value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public int Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref int value, TinyhandSerializerOptions options)
         {
-            return reader.ReadInt32();
+            value = reader.ReadInt32();
         }
 
         public int Reconstruct(TinyhandSerializerOptions options)
@@ -497,7 +521,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, int? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref int? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -509,15 +533,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public int? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref int? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadInt32();
+                value = reader.ReadInt32();
             }
         }
 
@@ -535,13 +559,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, int[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt32Array(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref int[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt32Array(ref writer, value);
 
-        public int[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref int[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader);
+        }
 
         public int[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new int[0];
+            return Array.Empty<int>();
         }
     }
 
@@ -553,9 +580,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<int>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt32List(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<int>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt32List(ref writer, value);
 
-        public List<int>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt32List(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<int>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeInt32List(ref reader);
+        }
 
         public List<int> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -571,14 +601,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ulong value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ulong value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public ulong Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ulong value, TinyhandSerializerOptions options)
         {
-            return reader.ReadUInt64();
+            value = reader.ReadUInt64();
         }
 
         public ulong Reconstruct(TinyhandSerializerOptions options)
@@ -595,7 +625,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ulong? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref ulong? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -607,15 +637,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ulong? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref ulong? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadUInt64();
+                value = reader.ReadUInt64();
             }
         }
 
@@ -633,13 +663,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, ulong[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt64Array(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref ulong[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt64Array(ref writer, value);
 
-        public ulong[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt64Array(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref ulong[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeUInt64Array(ref reader);
+        }
 
         public ulong[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new ulong[0];
+            return Array.Empty<ulong>();
         }
     }
 
@@ -651,9 +684,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<ulong>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt64List(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<ulong>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt64List(ref writer, value);
 
-        public List<ulong>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt64List(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<ulong>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeUInt64List(ref reader);
+        }
 
         public List<ulong> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -669,14 +705,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, long value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref long value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public long Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref long value, TinyhandSerializerOptions options)
         {
-            return reader.ReadInt64();
+            value = reader.ReadInt64();
         }
 
         public long Reconstruct(TinyhandSerializerOptions options)
@@ -693,7 +729,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, long? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref long? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -705,15 +741,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public long? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref long? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadInt64();
+                value = reader.ReadInt64();
             }
         }
 
@@ -731,13 +767,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, long[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt64Array(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref long[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt64Array(ref writer, value);
 
-        public long[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt64Array(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref long[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeInt64Array(ref reader);
+        }
 
         public long[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new long[0];
+            return Array.Empty<long>();
         }
     }
 
@@ -749,9 +788,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<long>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt64List(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<long>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt64List(ref writer, value);
 
-        public List<long>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt64List(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<long>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeInt64List(ref reader);
+        }
 
         public List<long> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -767,14 +809,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, float value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref float value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public float Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref float value, TinyhandSerializerOptions options)
         {
-            return reader.ReadSingle();
+            value = reader.ReadSingle();
         }
 
         public float Reconstruct(TinyhandSerializerOptions options)
@@ -791,7 +833,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, float? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref float? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -803,15 +845,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public float? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref float? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadSingle();
+                value = reader.ReadSingle();
             }
         }
 
@@ -829,13 +871,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, float[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeSingleArray(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref float[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeSingleArray(ref writer, value);
 
-        public float[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeSingleArray(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref float[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeSingleArray(ref reader);
+        }
 
         public float[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new float[0];
+            return Array.Empty<float>();
         }
     }
 
@@ -847,9 +892,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<float>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeSingleList(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<float>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeSingleList(ref writer, value);
 
-        public List<float>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeSingleList(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<float>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeSingleList(ref reader);
+        }
 
         public List<float> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -865,14 +913,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, double value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref double value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public double Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref double value, TinyhandSerializerOptions options)
         {
-            return reader.ReadDouble();
+            value = reader.ReadDouble();
         }
 
         public double Reconstruct(TinyhandSerializerOptions options)
@@ -889,7 +937,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, double? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref double? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -901,15 +949,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public double? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref double? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadDouble();
+                value = reader.ReadDouble();
             }
         }
 
@@ -927,13 +975,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, double[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDoubleArray(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref double[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDoubleArray(ref writer, value);
 
-        public double[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeDoubleArray(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref double[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeDoubleArray(ref reader);
+        }
 
         public double[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new double[0];
+            return Array.Empty<double>();
         }
     }
 
@@ -945,9 +996,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<double>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDoubleList(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<double>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDoubleList(ref writer, value);
 
-        public List<double>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeDoubleList(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<double>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeDoubleList(ref reader);
+        }
 
         public List<double> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -963,14 +1017,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, bool value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref bool value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public bool Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref bool value, TinyhandSerializerOptions options)
         {
-            return reader.ReadBoolean();
+            value = reader.ReadBoolean();
         }
 
         public bool Reconstruct(TinyhandSerializerOptions options)
@@ -987,7 +1041,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, bool? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref bool? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -999,15 +1053,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public bool? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref bool? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadBoolean();
+                value = reader.ReadBoolean();
             }
         }
 
@@ -1025,13 +1079,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, bool[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeBooleanArray(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref bool[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeBooleanArray(ref writer, value);
 
-        public bool[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeBooleanArray(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref bool[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeBooleanArray(ref reader);
+        }
 
         public bool[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new bool[0];
+            return Array.Empty<bool>();
         }
     }
 
@@ -1043,9 +1100,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<bool>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeBooleanList(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<bool>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeBooleanList(ref writer, value);
 
-        public List<bool>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeBooleanList(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<bool>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeBooleanList(ref reader);
+        }
 
         public List<bool> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -1061,14 +1121,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, char value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref char value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public char Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref char value, TinyhandSerializerOptions options)
         {
-            return reader.ReadChar();
+            value = reader.ReadChar();
         }
 
         public char Reconstruct(TinyhandSerializerOptions options)
@@ -1085,7 +1145,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, char? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref char? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -1097,15 +1157,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public char? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref char? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadChar();
+                value = reader.ReadChar();
             }
         }
 
@@ -1123,13 +1183,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, char[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeCharArray(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref char[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeCharArray(ref writer, value);
 
-        public char[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeCharArray(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref char[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeCharArray(ref reader);
+        }
 
         public char[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new char[0];
+            return Array.Empty<char>();
         }
     }
 
@@ -1141,9 +1204,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<char>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeCharList(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<char>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeCharList(ref writer, value);
 
-        public List<char>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeCharList(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<char>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeCharList(ref reader);
+        }
 
         public List<char> Reconstruct(TinyhandSerializerOptions options)
         {
@@ -1159,14 +1225,14 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, DateTime value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref DateTime value, TinyhandSerializerOptions options)
         {
             writer.Write(value);
         }
 
-        public DateTime Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref DateTime value, TinyhandSerializerOptions options)
         {
-            return reader.ReadDateTime();
+            value = reader.ReadDateTime();
         }
 
         public DateTime Reconstruct(TinyhandSerializerOptions options)
@@ -1183,7 +1249,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, DateTime? value, TinyhandSerializerOptions options)
+        public void Serialize(ref TinyhandWriter writer, ref DateTime? value, TinyhandSerializerOptions options)
         {
             if (value == null)
             {
@@ -1195,15 +1261,15 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public DateTime? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, ref DateTime? value, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
-                return default;
+                value = default;
             }
             else
             {
-                return reader.ReadDateTime();
+                value = reader.ReadDateTime();
             }
         }
 
@@ -1221,13 +1287,16 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, DateTime[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDateTimeArray(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref DateTime[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDateTimeArray(ref writer, value);
 
-        public DateTime[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeDateTimeArray(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref DateTime[]? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeDateTimeArray(ref reader);
+        }
 
         public DateTime[] Reconstruct(TinyhandSerializerOptions options)
         {
-            return new DateTime[0];
+            return Array.Empty<DateTime>();
         }
     }
 
@@ -1239,9 +1308,12 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public void Serialize(ref TinyhandWriter writer, List<DateTime>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDateTimeList(ref writer, value);
+        public void Serialize(ref TinyhandWriter writer, ref List<DateTime>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDateTimeList(ref writer, value);
 
-        public List<DateTime>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeDateTimeList(ref reader);
+        public void Deserialize(ref TinyhandReader reader, ref List<DateTime>? value, TinyhandSerializerOptions options)
+        {
+            value = Tinyhand.Formatters.Builtin.DeserializeDateTimeList(ref reader);
+        }
 
         public List<DateTime> Reconstruct(TinyhandSerializerOptions options)
         {
