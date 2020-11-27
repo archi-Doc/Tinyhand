@@ -8,6 +8,9 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 
 #pragma warning disable RS1024 // Compare symbols correctly
+#pragma warning disable RS2008
+#pragma warning disable SA1117 // Parameters should be on same line or separate lines
+#pragma warning disable SA1310 // Field names should not contain underscore
 
 namespace Arc.Visceral
 {
@@ -17,6 +20,19 @@ namespace Arc.Visceral
         public VisceralBody(GeneratorExecutionContext? context)
         {
             this.Context = context;
+        }
+
+        public static readonly DiagnosticDescriptor Error_DebugAssert = new DiagnosticDescriptor(
+            id: "TG000", title: "Debug.Assert()", messageFormat: "{0}",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        public void DebugAssert(bool condition, string errorMessage)
+        {// Use this method instead of Debug.Assert(). Debug.Assert() will bring up a lot of error dialogs.
+            if (!condition)
+            {
+                this.ReportDiagnostic(Error_DebugAssert, Location.None, errorMessage);
+            }
         }
 
         public void ReportDiagnostic(Diagnostic diagnostic)
