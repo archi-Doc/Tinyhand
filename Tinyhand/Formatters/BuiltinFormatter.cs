@@ -120,7 +120,8 @@ namespace Tinyhand.Formatters
 
         public List<byte>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
         {
-            return new List<byte>(reader.ReadBytes()?.ToArray()); // ?? new byte[0];
+            var array = reader.ReadBytes()?.ToArray(); // ?? new byte[0];
+            return array == null ? null : new List<byte>(array);
         }
 
         public List<byte> Reconstruct(TinyhandSerializerOptions options)
