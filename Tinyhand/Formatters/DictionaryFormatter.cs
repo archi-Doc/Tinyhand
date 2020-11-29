@@ -69,7 +69,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public TDictionary? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public TDictionary? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -90,9 +90,9 @@ namespace Tinyhand.Formatters
                     for (int i = 0; i < len; i++)
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
-                        TKey key = keyFormatter.Deserialize(ref reader, options);
+                        TKey key = keyFormatter.Deserialize(ref reader, null, options);
 
-                        TValue value = valueFormatter.Deserialize(ref reader, options);
+                        TValue value = valueFormatter.Deserialize(ref reader, null, options);
 
                         this.Add(dict, i, key!, value!, options);
                     }

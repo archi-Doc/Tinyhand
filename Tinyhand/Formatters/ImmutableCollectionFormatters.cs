@@ -36,7 +36,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ImmutableArray<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ImmutableArray<T> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -57,7 +57,7 @@ namespace Tinyhand.Formatters
                 {
                     for (int i = 0; i < len; i++)
                     {
-                        builder.Add(formatter.Deserialize(ref reader, options)!);
+                        builder.Add(formatter.Deserialize(ref reader, null, options)!);
                     }
                 }
                 finally

@@ -28,7 +28,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Tuple<T1>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Tuple<T1>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -46,7 +46,7 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
+                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, null, options);
 
                     return new Tuple<T1>(item1!);
                 }
@@ -81,7 +81,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Tuple<T1, T2>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Tuple<T1, T2>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -99,8 +99,8 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
+                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, null, options);
+                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, null, options);
 
                     return new Tuple<T1, T2>(item1!, item2!);
                 }
@@ -136,7 +136,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Tuple<T1, T2, T3>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Tuple<T1, T2, T3>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -154,9 +154,9 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, options);
+                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, null, options);
+                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, null, options);
+                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, null, options);
 
                     return new Tuple<T1, T2, T3>(item1!, item2!, item3!);
                 }
@@ -193,7 +193,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Tuple<T1, T2, T3, T4>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Tuple<T1, T2, T3, T4>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -211,10 +211,10 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, options);
+                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, null, options);
+                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, null, options);
+                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, null, options);
+                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, null, options);
 
                     return new Tuple<T1, T2, T3, T4>(item1!, item2!, item3!, item4!);
                 }
@@ -252,7 +252,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Tuple<T1, T2, T3, T4, T5>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Tuple<T1, T2, T3, T4, T5>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -270,11 +270,11 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, options);
-                    T5 item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, options);
+                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, null, options);
+                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, null, options);
+                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, null, options);
+                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, null, options);
+                    T5 item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, null, options);
 
                     return new Tuple<T1, T2, T3, T4, T5>(item1!, item2!, item3!, item4!, item5!);
                 }
@@ -313,7 +313,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Tuple<T1, T2, T3, T4, T5, T6>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Tuple<T1, T2, T3, T4, T5, T6>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -331,12 +331,12 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, options);
-                    T5 item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, options);
-                    T6 item6 = resolver.GetFormatter<T6>().Deserialize(ref reader, options);
+                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, null, options);
+                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, null, options);
+                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, null, options);
+                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, null, options);
+                    T5 item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, null, options);
+                    T6 item6 = resolver.GetFormatter<T6>().Deserialize(ref reader, null, options);
 
                     return new Tuple<T1, T2, T3, T4, T5, T6>(item1!, item2!, item3!, item4!, item5!, item6!);
                 }
@@ -376,7 +376,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Tuple<T1, T2, T3, T4, T5, T6, T7>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Tuple<T1, T2, T3, T4, T5, T6, T7>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -394,13 +394,13 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, options);
-                    T5 item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, options);
-                    T6 item6 = resolver.GetFormatter<T6>().Deserialize(ref reader, options);
-                    T7 item7 = resolver.GetFormatter<T7>().Deserialize(ref reader, options);
+                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, null, options);
+                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, null, options);
+                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, null, options);
+                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, null, options);
+                    T5 item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, null, options);
+                    T6 item6 = resolver.GetFormatter<T6>().Deserialize(ref reader, null, options);
+                    T7 item7 = resolver.GetFormatter<T7>().Deserialize(ref reader, null, options);
 
                     return new Tuple<T1, T2, T3, T4, T5, T6, T7>(item1!, item2!, item3!, item4!, item5!, item6!, item7!);
                 }
@@ -441,7 +441,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -459,14 +459,14 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
-                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
-                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, options);
-                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, options);
-                    T5 item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, options);
-                    T6 item6 = resolver.GetFormatter<T6>().Deserialize(ref reader, options);
-                    T7 item7 = resolver.GetFormatter<T7>().Deserialize(ref reader, options);
-                    TRest item8 = resolver.GetFormatter<TRest>().Deserialize(ref reader, options);
+                    T1 item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, null, options);
+                    T2 item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, null, options);
+                    T3 item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, null, options);
+                    T4 item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, null, options);
+                    T5 item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, null, options);
+                    T6 item6 = resolver.GetFormatter<T6>().Deserialize(ref reader, null, options);
+                    T7 item7 = resolver.GetFormatter<T7>().Deserialize(ref reader, null, options);
+                    TRest item8 = resolver.GetFormatter<TRest>().Deserialize(ref reader, null, options);
 
                     return new Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>(item1!, item2!, item3!, item4!, item5!, item6!, item7!, item8!);
                 }

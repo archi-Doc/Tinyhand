@@ -1166,7 +1166,7 @@ namespace Tinyhand.Generator
 
         internal void GenerateDeserialize_MemberMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"public void Deserialize(ref TinyhandReader reader, bool overwriteFlag, TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("this"))
             {
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))

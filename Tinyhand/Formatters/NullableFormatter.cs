@@ -22,7 +22,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.IsNil)
             {
@@ -31,7 +31,7 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+                return options.Resolver.GetFormatter<T>().Deserialize(ref reader, null, options);
             }
         }
 
@@ -63,7 +63,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -71,7 +71,7 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                return this.underlyingFormatter.Deserialize(ref reader, options);
+                return this.underlyingFormatter.Deserialize(ref reader, null, options);
             }
         }
 

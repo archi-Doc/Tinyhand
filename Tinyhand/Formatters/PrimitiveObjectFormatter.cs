@@ -201,7 +201,7 @@ namespace Tinyhand.Formatters
             throw new TinyhandException("Not supported primitive object resolver. type:" + t.Name);
         }
 
-        public object? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public object? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             MessagePackType type = reader.NextMessagePackType;
             IFormatterResolver resolver = options.Resolver;
@@ -291,7 +291,7 @@ namespace Tinyhand.Formatters
                         {
                             for (int i = 0; i < length; i++)
                             {
-                                array[i] = objectFormatter.Deserialize(ref reader, options)!;
+                                array[i] = objectFormatter.Deserialize(ref reader, null, options)!;
                             }
                         }
                         finally
@@ -336,8 +336,8 @@ namespace Tinyhand.Formatters
             var dictionary = new Dictionary<object, object>(length, options.Security.GetEqualityComparer<object>());
             for (int i = 0; i < length; i++)
             {
-                var key = objectFormatter.Deserialize(ref reader, options);
-                var value = objectFormatter.Deserialize(ref reader, options);
+                var key = objectFormatter.Deserialize(ref reader, null, options);
+                var value = objectFormatter.Deserialize(ref reader, null, options);
                 dictionary.Add(key!, value!);
             }
 

@@ -43,7 +43,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T[,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T[,]? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -83,7 +83,7 @@ namespace Tinyhand.Formatters
                             i++;
                         }
 
-                        array[i, j] = formatter.Deserialize(ref reader, options) !; // ?? formatter.Reconstruct(options);
+                        array[i, j] = formatter.Deserialize(ref reader, null, options) !; // ?? formatter.Reconstruct(options);
                     }
                 }
                 finally
@@ -130,7 +130,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T[,,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T[,,]? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -178,7 +178,7 @@ namespace Tinyhand.Formatters
                             i++;
                         }
 
-                        array[i, j, k] = formatter.Deserialize(ref reader, options) !; // ?? formatter.Reconstruct(options);
+                        array[i, j, k] = formatter.Deserialize(ref reader, null, options) !; // ?? formatter.Reconstruct(options);
                     }
                 }
                 finally
@@ -227,7 +227,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T[,,,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T[,,,]? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -283,7 +283,7 @@ namespace Tinyhand.Formatters
                             i++;
                         }
 
-                        array[i, j, k, l] = formatter.Deserialize(ref reader, options) !; // ?? formatter.Reconstruct(options);
+                        array[i, j, k, l] = formatter.Deserialize(ref reader, null, options) !; // ?? formatter.Reconstruct(options);
                     }
                 }
                 finally

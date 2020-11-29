@@ -36,7 +36,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T[]? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -54,7 +54,7 @@ namespace Tinyhand.Formatters
                     for (int i = 0; i < array.Length; i++)
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
-                        array[i] = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);
+                        array[i] = formatter.Deserialize(ref reader, null, options) ?? formatter.Reconstruct(options);
                     }
                 }
                 finally
@@ -85,7 +85,7 @@ namespace Tinyhand.Formatters
             writer.Write(value.Span);
         }
 
-        public Memory<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Memory<byte> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new Memory<byte>(bytes.ToArray()) : default;
         }
@@ -109,7 +109,7 @@ namespace Tinyhand.Formatters
             writer.Write(value.Span);
         }
 
-        public ReadOnlyMemory<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ReadOnlyMemory<byte> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ReadOnlyMemory<byte>(bytes.ToArray()) : default;
         }
@@ -137,7 +137,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ReadOnlySequence<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ReadOnlySequence<byte> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ReadOnlySequence<byte>(bytes.ToArray()) : default;
         }
@@ -168,7 +168,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ArraySegment<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ArraySegment<byte> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ArraySegment<byte>(bytes.ToArray()) : default;
         }
@@ -187,9 +187,9 @@ namespace Tinyhand.Formatters
             formatter.Serialize(ref writer, value, options);
         }
 
-        public Memory<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Memory<T> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
-            return options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
+            return options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, null, options);
         }
 
         public Memory<T> Reconstruct(TinyhandSerializerOptions options)
@@ -214,9 +214,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ReadOnlyMemory<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ReadOnlyMemory<T> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
-            return options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
+            return options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, null, options);
         }
 
         public ReadOnlyMemory<T> Reconstruct(TinyhandSerializerOptions options)
@@ -243,9 +243,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ReadOnlySequence<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ReadOnlySequence<T> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
-            return new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options));
+            return new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, null, options));
         }
 
         public ReadOnlySequence<T> Reconstruct(TinyhandSerializerOptions options)
@@ -269,7 +269,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ArraySegment<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ArraySegment<T> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -277,7 +277,7 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                var array = options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
+                var array = options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, null, options);
                 return array == null ? ArraySegment<T>.Empty : new ArraySegment<T>(array);
             }
         }
@@ -312,7 +312,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public List<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public List<T>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -330,7 +330,7 @@ namespace Tinyhand.Formatters
                     for (int i = 0; i < len; i++)
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
-                        list.Add(formatter.Deserialize(ref reader, options)!);
+                        list.Add(formatter.Deserialize(ref reader, null, options)!);
                     }
                 }
                 finally
@@ -419,7 +419,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public TCollection? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public TCollection? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -438,7 +438,7 @@ namespace Tinyhand.Formatters
                     for (int i = 0; i < len; i++)
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
-                        this.Add(list, i, formatter.Deserialize(ref reader, options)!, options);
+                        this.Add(list, i, formatter.Deserialize(ref reader, null, options)!, options);
                     }
                 }
                 finally
@@ -754,7 +754,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public IGrouping<TKey, TElement>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public IGrouping<TKey, TElement>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -772,8 +772,8 @@ namespace Tinyhand.Formatters
                 options.Security.DepthStep(ref reader);
                 try
                 {
-                    var key = options.Resolver.GetFormatter<TKey>().Deserialize(ref reader, options);
-                    var value = options.Resolver.GetFormatter<IEnumerable<TElement>>().Deserialize(ref reader, options);
+                    var key = options.Resolver.GetFormatter<TKey>().Deserialize(ref reader, null, options);
+                    var value = options.Resolver.GetFormatter<IEnumerable<TElement>>().Deserialize(ref reader, null, options);
                     return new Grouping<TKey, TElement>(key!, value!);
                 }
                 finally
@@ -901,7 +901,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -919,7 +919,7 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < count; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list.Add(formatter.Deserialize(ref reader, options));
+                    list.Add(formatter.Deserialize(ref reader, null, options));
                 }
             }
             finally
@@ -962,7 +962,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ICollection? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ICollection? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -984,7 +984,7 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < count; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list[i] = formatter.Deserialize(ref reader, options)!;
+                    list[i] = formatter.Deserialize(ref reader, null, options)!;
                 }
             }
             finally
@@ -1050,7 +1050,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public IEnumerable? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public IEnumerable? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -1072,7 +1072,7 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < count; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list[i] = formatter.Deserialize(ref reader, options)!;
+                    list[i] = formatter.Deserialize(ref reader, null, options)!;
                 }
             }
             finally
@@ -1115,7 +1115,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public IList? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public IList? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -1137,7 +1137,7 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < count; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list[i] = formatter.Deserialize(ref reader, options)!;
+                    list[i] = formatter.Deserialize(ref reader, null, options)!;
                 }
             }
             finally
@@ -1176,7 +1176,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -1194,8 +1194,8 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < count; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    var key = formatter.Deserialize(ref reader, options);
-                    var value = formatter.Deserialize(ref reader, options);
+                    var key = formatter.Deserialize(ref reader, null, options);
+                    var value = formatter.Deserialize(ref reader, null, options);
                     dict.Add(key, value);
                 }
             }
@@ -1240,7 +1240,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public IDictionary? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public IDictionary? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -1258,8 +1258,8 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < count; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    var key = formatter.Deserialize(ref reader, options)!;
-                    var value = formatter.Deserialize(ref reader, options)!;
+                    var key = formatter.Deserialize(ref reader, null, options)!;
+                    var value = formatter.Deserialize(ref reader, null, options)!;
                     dict.Add(key, value);
                 }
             }

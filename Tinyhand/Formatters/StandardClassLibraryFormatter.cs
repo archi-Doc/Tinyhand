@@ -38,7 +38,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public decimal Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public decimal Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (!(reader.ReadStringSequence() is ReadOnlySequence<byte> sequence))
             {
@@ -122,7 +122,7 @@ namespace Tinyhand.Formatters
             return;
         }
 
-        public TimeSpan Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public TimeSpan Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return new TimeSpan(reader.ReadInt64());
         }
@@ -149,7 +149,7 @@ namespace Tinyhand.Formatters
             return;
         }
 
-        public DateTimeOffset Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public DateTimeOffset Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             var count = reader.ReadArrayHeader();
 
@@ -187,7 +187,7 @@ namespace Tinyhand.Formatters
             writer.WriteString(bytes);
         }
 
-        public Guid Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Guid Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             var seq = reader.ReadStringSequence();
             ReadOnlySequence<byte> segment = seq.HasValue ? seq.Value : default;
@@ -237,7 +237,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Uri? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Uri? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -275,7 +275,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Version? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Version? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -304,7 +304,7 @@ namespace Tinyhand.Formatters
             return;
         }
 
-        public KeyValuePair<TKey, TValue> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public KeyValuePair<TKey, TValue> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             var count = reader.ReadArrayHeader();
 
@@ -317,8 +317,8 @@ namespace Tinyhand.Formatters
             options.Security.DepthStep(ref reader);
             try
             {
-                var key = resolver.GetFormatter<TKey>().Deserialize(ref reader, options);
-                var value = resolver.GetFormatter<TValue>().Deserialize(ref reader, options);
+                var key = resolver.GetFormatter<TKey>().Deserialize(ref reader, null, options);
+                var value = resolver.GetFormatter<TValue>().Deserialize(ref reader, null, options);
                 return new KeyValuePair<TKey, TValue>(key!, value!);
             }
             finally
@@ -353,7 +353,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public StringBuilder? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public StringBuilder? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -398,7 +398,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public BitArray? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public BitArray? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -438,7 +438,7 @@ namespace Tinyhand.Formatters
             return;
         }
 
-        public System.Numerics.BigInteger Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public System.Numerics.BigInteger Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             var seq = reader.ReadBytes();
             ReadOnlySequence<byte> bytes = seq.HasValue ? seq.Value : default;
@@ -467,7 +467,7 @@ namespace Tinyhand.Formatters
             return;
         }
 
-        public System.Numerics.Complex Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public System.Numerics.Complex Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             var count = reader.ReadArrayHeader();
 
@@ -504,7 +504,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public Lazy<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Lazy<T>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -517,7 +517,7 @@ namespace Tinyhand.Formatters
                 {
                     // deserialize immediately(no delay, because capture byte[] causes memory leak)
                     IFormatterResolver resolver = options.Resolver;
-                    T v = resolver.GetFormatter<T>().Deserialize(ref reader, options);
+                    T v = resolver.GetFormatter<T>().Deserialize(ref reader, null, options);
                     if (v != null)
                     {
                         return new Lazy<T>(() => v);
@@ -565,7 +565,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {

@@ -30,9 +30,10 @@ namespace Tinyhand
         /// Deserializes a value.
         /// </summary>
         /// <param name="reader">The reader to deserialize from.</param>
+        /// <param name="overwrite">The object to be overwritten during deserialization. The default value is null, and a new instance will be created.</param>
         /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
         /// <returns>The deserialized value.</returns>
-        T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
+        T? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options);
 
         /// <summary>
         /// Create a new object.

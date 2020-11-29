@@ -45,8 +45,8 @@ namespace Tinyhand.Resolvers
                 IDictionary<string, object> dictionary = new ExpandoObject();
                 for (int i = 0; i < length; i++)
                 {
-                    var key = keyFormatter.Deserialize(ref reader, options);
-                    var value = objectFormatter.Deserialize(ref reader, options);
+                    var key = keyFormatter.Deserialize(ref reader, null, options);
+                    var value = objectFormatter.Deserialize(ref reader, null, options);
                     dictionary.Add(key!, value!);
                 }
 

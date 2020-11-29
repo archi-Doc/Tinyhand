@@ -16,7 +16,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public ExpandoObject? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ExpandoObject? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -37,8 +37,8 @@ namespace Tinyhand.Formatters
                 {
                     for (int i = 0; i < count; i++)
                     {
-                        string key = keyFormatter.Deserialize(ref reader, options) ?? string.Empty;
-                        object value = valueFormatter.Deserialize(ref reader, options)!;
+                        string key = keyFormatter.Deserialize(ref reader, null, options) ?? string.Empty;
+                        object value = valueFormatter.Deserialize(ref reader, null, options)!;
                         dictionary.Add(key, value);
                     }
                 }

@@ -68,7 +68,7 @@ namespace Tinyhand.Formatters
             this.serializer(ref writer, ref value!);
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return this.deserializer(ref reader);
         }

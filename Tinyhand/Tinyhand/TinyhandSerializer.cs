@@ -317,11 +317,11 @@ namespace Tinyhand
                         if (TryDecompress(ref reader, byteSequence))
                         {
                             var r = reader.Clone(byteSequence.GetReadOnlySequence());
-                            return options.Resolver.GetFormatter<T>().Deserialize(ref r, options);
+                            return options.Resolver.GetFormatter<T>().Deserialize(ref r, null, options);
                         }
                         else
                         {
-                            return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+                            return options.Resolver.GetFormatter<T>().Deserialize(ref reader, null, options);
                         }
                     }
                     finally
@@ -331,7 +331,7 @@ namespace Tinyhand
                 }
                 else
                 {
-                    return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+                    return options.Resolver.GetFormatter<T>().Deserialize(ref reader, null, options);
                 }
             }
             catch (Exception ex)

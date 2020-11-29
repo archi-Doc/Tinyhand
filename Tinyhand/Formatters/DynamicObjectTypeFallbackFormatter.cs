@@ -83,9 +83,9 @@ namespace Tinyhand.Formatters
             serializerDelegate(formatter, ref writer, value, options);
         }
 
-        public object? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public object? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
-            return PrimitiveObjectFormatter.Instance.Deserialize(ref reader, options);
+            return PrimitiveObjectFormatter.Instance.Deserialize(ref reader, null, options);
         }
 
         public object Reconstruct(TinyhandSerializerOptions options)
