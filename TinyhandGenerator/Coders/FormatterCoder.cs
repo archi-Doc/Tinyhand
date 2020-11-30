@@ -191,11 +191,11 @@ namespace Tinyhand.Coders
         {
             if (!this.NonNullableReference)
             {// Value type or Nullable reference type
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, options);");
+                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, overwriteFlag, options);");
             }
             else
             {// Non-nullable reference type
-                ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader);");
+                ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader, overwriteFlag);");
             }
         }
 
