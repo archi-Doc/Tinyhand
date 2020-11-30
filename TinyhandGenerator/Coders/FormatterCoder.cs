@@ -1,7 +1,11 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Linq;
 using Arc.Visceral;
 using Tinyhand.Generator;
 
@@ -44,6 +48,53 @@ namespace Tinyhand.Coders
             this.AddFormatter(typeof(System.Buffers.ReadOnlySequence<byte>?));
             this.AddFormatter(typeof(ArraySegment<byte>));
             this.AddFormatter(typeof(ArraySegment<byte>?));
+
+            this.AddGenericsType(typeof(Nullable<>));
+            this.AddGenericsType(typeof(KeyValuePair<,>));
+            this.AddGenericsType(typeof(ArraySegment<>));
+            this.AddGenericsType(typeof(Memory<>));
+            this.AddGenericsType(typeof(ReadOnlyMemory<>));
+            this.AddGenericsType(typeof(ReadOnlySequence<>));
+            this.AddGenericsType(typeof(List<>));
+            this.AddGenericsType(typeof(LinkedList<>));
+            this.AddGenericsType(typeof(Queue<>));
+            this.AddGenericsType(typeof(Stack<>));
+            this.AddGenericsType(typeof(HashSet<>));
+            this.AddGenericsType(typeof(ReadOnlyCollection<>));
+            this.AddGenericsType(typeof(IList<>));
+            this.AddGenericsType(typeof(ICollection<>));
+            this.AddGenericsType(typeof(IEnumerable<>));
+            this.AddGenericsType(typeof(Dictionary<,>));
+            this.AddGenericsType(typeof(IDictionary<,>));
+            this.AddGenericsType(typeof(SortedDictionary<,>));
+            this.AddGenericsType(typeof(SortedList<,>));
+            this.AddGenericsType(typeof(ILookup<,>));
+            this.AddGenericsType(typeof(IGrouping<,>));
+            this.AddGenericsType(typeof(ObservableCollection<>));
+            this.AddGenericsType(typeof(ReadOnlyObservableCollection<>));
+            this.AddGenericsType(typeof(IReadOnlyList<>));
+            this.AddGenericsType(typeof(IReadOnlyCollection<>));
+            this.AddGenericsType(typeof(ISet<>));
+            this.AddGenericsType(typeof(System.Collections.Concurrent.ConcurrentBag<>));
+            this.AddGenericsType(typeof(System.Collections.Concurrent.ConcurrentQueue<>));
+            this.AddGenericsType(typeof(System.Collections.Concurrent.ConcurrentStack<>));
+            this.AddGenericsType(typeof(ReadOnlyDictionary<,>));
+            this.AddGenericsType(typeof(IReadOnlyDictionary<,>));
+            this.AddGenericsType(typeof(System.Collections.Concurrent.ConcurrentDictionary<,>));
+            this.AddGenericsType(typeof(Lazy<>));
+            this.AddGenericsType(typeof(ImmutableArray<>));
+            this.AddGenericsType(typeof(ImmutableList<>));
+            this.AddGenericsType(typeof(ImmutableDictionary<,>));
+            this.AddGenericsType(typeof(ImmutableHashSet<>));
+            this.AddGenericsType(typeof(ImmutableSortedDictionary<,>));
+            this.AddGenericsType(typeof(ImmutableSortedSet<>));
+            this.AddGenericsType(typeof(ImmutableQueue<>));
+            this.AddGenericsType(typeof(ImmutableStack<>));
+            this.AddGenericsType(typeof(IImmutableList<>));
+            this.AddGenericsType(typeof(IImmutableDictionary<,>));
+            this.AddGenericsType(typeof(IImmutableQueue<>));
+            this.AddGenericsType(typeof(IImmutableSet<>));
+            this.AddGenericsType(typeof(IImmutableStack<>));
         }
 
         public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
@@ -65,16 +116,9 @@ namespace Tinyhand.Coders
             else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
             {// Generics
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
-                var ret = baseObject.FullName switch
+                if (!this.genericsType.Contains(baseObject.FullName))
                 {
-                    "System.Lazy<T>" => true,
-                    "System.Collections.Generic.KeyValuePair<TKey, TValue>" => true,
-                    _ => false,
-                };
-
-                if (ret == false)
-                {
-                    return ret;
+                    return false;
                 }
 
                 foreach (var x in arguments)
@@ -85,6 +129,14 @@ namespace Tinyhand.Coders
                     }
                 }
 
+                return true;
+            }
+            else if (withNullable.FullNameWithNullable.StartsWith("System.Tuple"))
+            {// Tuple
+                return true;
+            }
+            else if (withNullable.FullNameWithNullable.StartsWith("System.ValueTuple"))
+            {// ValueTuple
                 return true;
             }
 
@@ -123,6 +175,11 @@ namespace Tinyhand.Coders
             var coder = this.AddFormatter(fullNameWithNullable, true);
             this.AddFormatter(fullNameWithNullable + "?");
             return coder;
+        }
+
+        public void AddGenericsType(Type genericsType)
+        {
+            this.genericsType.Add(VisceralHelper.TypeToFullName(genericsType));
         }
 
         public ITinyhandCoder? AddFormatter(Type type)
@@ -168,6 +225,8 @@ namespace Tinyhand.Coders
         }
 
         private Dictionary<string, ITinyhandCoder> stringToCoder = new();
+
+        private HashSet<string> genericsType = new();
     }
 
     internal class FormatterCoder : ITinyhandCoder
