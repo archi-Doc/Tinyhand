@@ -49,7 +49,7 @@ namespace Tinyhand.Formatters
             writer.Write(value);
         }
 
-        public <#= t.Simple #> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public <#= t.Simple #> Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return reader.Read<#= t.Name #>();
         }
@@ -80,7 +80,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public <#= t.Simple #>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public <#= t.Simple #>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
@@ -109,7 +109,7 @@ namespace Tinyhand.Formatters
 
         public void Serialize(ref TinyhandWriter writer, <#= t.Simple #>[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, value);
 
-        public <#= t.Simple #>[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader);
+        public <#= t.Simple #>[]? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader);
 
         public <#= t.Simple #>[] Reconstruct(TinyhandSerializerOptions options)
         {
@@ -127,7 +127,7 @@ namespace Tinyhand.Formatters
 
         public void Serialize(ref TinyhandWriter writer, List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, value);
 
-        public List<<#= t.Simple #>>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader);
+        public List<<#= t.Simple #>>? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader);
 
         public List<<#= t.Simple #>> Reconstruct(TinyhandSerializerOptions options)
         {

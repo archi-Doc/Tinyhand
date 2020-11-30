@@ -14,7 +14,7 @@ namespace Tinyhand.Formatters
             writer.WriteNil();
         }
 
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public T? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             reader.Skip();
             return default(T);

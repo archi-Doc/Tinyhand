@@ -112,7 +112,7 @@ namespace Tinyhand
     {
         void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options);
 
-        void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
+        void Deserialize(ref TinyhandReader reader, bool overwriteFlag, TinyhandSerializerOptions options);
     }
 
     /// <summary>

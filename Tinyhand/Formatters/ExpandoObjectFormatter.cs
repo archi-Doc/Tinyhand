@@ -16,7 +16,7 @@ namespace Tinyhand.Formatters
         {
         }
 
-        public ExpandoObject? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public ExpandoObject? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {

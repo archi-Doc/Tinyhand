@@ -20,7 +20,7 @@ namespace Tinyhand.Formatters
             writer.Write(dateData);
         }
 
-        public DateTime Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public DateTime Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             var dateData = reader.ReadInt64();
             return DateTime.FromBinary(dateData);
@@ -52,20 +52,22 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public DateTime[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public DateTime[]? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
+            var ow = overwrite as DateTime[];
+
             if (reader.TryReadNil())
             {
-                return null;
+                return ow;
             }
 
             var len = reader.ReadArrayHeader();
             if (len == 0)
             {
-                return Array.Empty<DateTime>();
+                return ow ?? Array.Empty<DateTime>();
             }
 
-            var array = new DateTime[len];
+            var array = ow ?? new DateTime[len];
             for (int i = 0; i < array.Length; i++)
             {
                 var dateData = reader.ReadInt64();

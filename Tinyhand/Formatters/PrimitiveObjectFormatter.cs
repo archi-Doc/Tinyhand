@@ -201,7 +201,7 @@ namespace Tinyhand.Formatters
             throw new TinyhandException("Not supported primitive object resolver. type:" + t.Name);
         }
 
-        public object? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public object? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             MessagePackType type = reader.NextMessagePackType;
             IFormatterResolver resolver = options.Resolver;

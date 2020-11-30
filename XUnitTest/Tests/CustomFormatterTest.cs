@@ -18,7 +18,7 @@ namespace Tinyhand.Tests
 
         public string Name { get; set; } = default!;
 
-        public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public void Deserialize(ref TinyhandReader reader, bool overwriteFlag, TinyhandSerializerOptions options)
         {
             if (!reader.TryReadNil())
             {
@@ -29,7 +29,7 @@ namespace Tinyhand.Tests
             {
                 this.Name = reader.ReadString() ?? string.Empty;
             }
-            else
+            else if (!overwriteFlag)
             {
                 this.Name = string.Empty;
             }

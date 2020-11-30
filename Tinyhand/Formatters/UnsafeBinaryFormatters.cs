@@ -34,7 +34,7 @@ namespace Tinyhand.Formatters
             writer.Write(valueSpan);
         }
 
-        public unsafe Guid Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public unsafe Guid Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (!BitConverter.IsLittleEndian)
             {
@@ -85,7 +85,7 @@ namespace Tinyhand.Formatters
             writer.Write(valueSpan);
         }
 
-        public unsafe Decimal Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public unsafe Decimal Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (!BitConverter.IsLittleEndian)
             {

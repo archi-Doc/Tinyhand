@@ -18,7 +18,7 @@ namespace Tinyhand.Formatters
             writer.WriteNil();
         }
 
-        public Nil Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Nil Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return reader.ReadNil();
         }
@@ -43,7 +43,7 @@ namespace Tinyhand.Formatters
             writer.WriteNil();
         }
 
-        public Nil? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public Nil? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             return reader.ReadNil();
         }

@@ -69,7 +69,7 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public TDictionary? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        public TDictionary? Deserialize(ref TinyhandReader reader, object? overwrite, TinyhandSerializerOptions options)
         {
             if (reader.TryReadNil())
             {
