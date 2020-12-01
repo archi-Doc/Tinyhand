@@ -38,6 +38,7 @@ namespace Tinyhand.Tests
     [MessagePack.MessagePackObject(true)]
     public partial class FormatterResolverClass
     {
+        public System.Collections.Concurrent.ConcurrentBag<int> ConcurrentBag { get; set; } = new() { 1, 2, -100, };
     }
 
     [TinyhandObject(KeyAsPropertyName = true)]
@@ -369,7 +370,6 @@ namespace Tinyhand.Tests
     {
         public static bool CalledAfter = false;
 
-        [Key(0)]
         public int X { get; set; }
 
         private Action onBefore;
@@ -401,7 +401,6 @@ namespace Tinyhand.Tests
     [TinyhandObject(KeyAsPropertyName = true)]
     public partial struct Callback2_2 : ITinyhandSerializationCallback
     {
-        [Key(0)]
         public int X { get; set; }
 
         public static bool CalledAfter = false;
@@ -465,7 +464,6 @@ namespace Tinyhand.Tests
     [TinyhandObject(KeyAsPropertyName = true)]
     public partial class NonEmpty2
     {
-        [Key(0)]
         public int MyProperty { get; set; }
     }
 

@@ -583,6 +583,7 @@ namespace Tinyhand.Generator
                 // KeyAsPropertyName
                 if (this.ObjectAttribute!.KeyAsPropertyName == true)
                 {
+                    this.ObjectFlag |= TinyhandObjectFlag.StringKeyObject;
                     foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
                     {
                         if (x.KeyAttribute == null)
@@ -592,9 +593,9 @@ namespace Tinyhand.Generator
                     }
                 }
 
-                // String key
-                if (this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Any(x => x.KeyAttribute?.StringKey != null))
-                {
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject) ||
+                    this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Any(x => x.KeyAttribute?.StringKey != null))
+                {// String key
                     this.ObjectFlag |= TinyhandObjectFlag.StringKeyObject;
                     this.CheckObject_StringKey();
                 }
