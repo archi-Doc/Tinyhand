@@ -188,14 +188,16 @@ Check_GenericsArguments:
 
         public ITinyhandCoder? AddFormatter(Type type)
         {
+            var fullName = VisceralHelper.TypeToFullName(type);
+
             if (type.IsValueType)
             {// Value type
-                return this.AddFormatter(type.FullName);
+                return this.AddFormatter(fullName);
             }
             else
             {// Reference type
-                var coder = this.AddFormatter(type.FullName, true);
-                this.AddFormatter(type.FullName + "?");
+                var coder = this.AddFormatter(fullName, true);
+                this.AddFormatter(fullName + "?");
                 return coder;
             }
         }
