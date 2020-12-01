@@ -30,15 +30,6 @@ namespace ConsoleApp1
         [Key(4)]
         public int[]? Ids { get; set; } // Nullable value will be set null.
 
-        [Key(5)]
-        public System.Collections.Immutable.ImmutableList<int> ImList { get; set; }
-
-        [Key(6)]
-        public (int, string) TupleTest { get; set; }
-
-        [Key(7)]
-        public ValueTuple<string, long> ValueTupleTest { get; set; }
-
         public MyClass()
         {
             this.MemberNotNull(); // optional (.NET 5): Informs the compiler that field or property members are set non-null values by TinyhandSerializer.
@@ -55,16 +46,12 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            Tinyhand.TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
-                                                  // ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
+            TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
+            // ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
 
             var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
-            myClass.ImList = System.Collections.Immutable.ImmutableList.Create<int>(new int[] { 0, 1, 2, });
             var b = TinyhandSerializer.Serialize(myClass);
             var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b);
-
-            b = TinyhandSerializer.Serialize((1, 2, 3, 4));
-            b = TinyhandSerializer.Serialize((1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
 
             b = TinyhandSerializer.Serialize(new EmptyClass()); // Empty data
             var myClass3 = TinyhandSerializer.Deserialize<MyClass>(b); // Create an instance and set non-null values of the members.
