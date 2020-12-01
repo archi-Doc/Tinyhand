@@ -116,11 +116,23 @@ namespace Tinyhand.Coders
             else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
             {// Generics
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
-                if (!this.genericsType.Contains(baseObject.FullName))
+                if (this.genericsType.Contains(baseObject.FullName))
                 {
-                    return false;
+                    goto Check_GenericsArguments;
+                }
+                else if (withNullable.Object.SimpleName == "Tuple")
+                {// Tuple
+                    goto Check_GenericsArguments;
+                }
+                else if (withNullable.Object.SimpleName == "ValueTuple")
+                {// ValueTuple
+                    goto Check_GenericsArguments;
                 }
 
+                // Not supported generics type.
+                return false;
+
+Check_GenericsArguments:
                 foreach (var x in arguments)
                 {// Check all the arguments.
                     if (!CoderResolver.Instance.IsCoderOrFormatterAvailable(x))
@@ -129,14 +141,6 @@ namespace Tinyhand.Coders
                     }
                 }
 
-                return true;
-            }
-            else if (withNullable.FullNameWithNullable.StartsWith("System.Tuple"))
-            {// Tuple
-                return true;
-            }
-            else if (withNullable.FullNameWithNullable.StartsWith("System.ValueTuple"))
-            {// ValueTuple
                 return true;
             }
 

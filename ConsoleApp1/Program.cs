@@ -36,6 +36,9 @@ namespace ConsoleApp1
         [Key(6)]
         public (int, string) TupleTest { get; set; }
 
+        [Key(7)]
+        public ValueTuple<string, long> ValueTupleTest { get; set; }
+
         public MyClass()
         {
             this.MemberNotNull(); // optional (.NET 5): Informs the compiler that field or property members are set non-null values by TinyhandSerializer.
