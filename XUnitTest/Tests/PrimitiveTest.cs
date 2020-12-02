@@ -46,5 +46,21 @@ namespace Tinyhand.Tests
             var t = new PrimitiveNullableArrayClass2();
             var t2 = TestHelper.TestWithMessagePack(t);
         }
+
+        [Fact]
+        public void PrimitiveEmptyTest()
+        {
+            var t = new EmptyClass();
+            TestHelper.TestWithMessagePack(t);
+
+            var t2 = new EmptyClass2();
+            TestHelper.TestWithMessagePack(t2);
+
+            var t3 = new EmptyStruct();
+            TestHelper.TestWithMessagePack(t3);
+
+            var t4 = new EmptyStruct2();
+            TestHelper.TestWithMessagePack(t4);
+        }
     }
 }

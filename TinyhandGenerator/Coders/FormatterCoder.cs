@@ -1,7 +1,11 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Linq;
 using Arc.Visceral;
 using Tinyhand.Generator;
 
@@ -44,6 +48,53 @@ namespace Tinyhand.Coders
             this.AddFormatter(typeof(System.Buffers.ReadOnlySequence<byte>?));
             this.AddFormatter(typeof(ArraySegment<byte>));
             this.AddFormatter(typeof(ArraySegment<byte>?));
+
+            this.AddGenericsType(typeof(Nullable<>));
+            this.AddGenericsType(typeof(KeyValuePair<,>));
+            this.AddGenericsType(typeof(ArraySegment<>));
+            this.AddGenericsType(typeof(Memory<>));
+            this.AddGenericsType(typeof(ReadOnlyMemory<>));
+            this.AddGenericsType(typeof(ReadOnlySequence<>));
+            this.AddGenericsType(typeof(List<>));
+            this.AddGenericsType(typeof(LinkedList<>));
+            this.AddGenericsType(typeof(Queue<>));
+            this.AddGenericsType(typeof(Stack<>));
+            this.AddGenericsType(typeof(HashSet<>));
+            this.AddGenericsType(typeof(ReadOnlyCollection<>));
+            this.AddGenericsType(typeof(IList<>));
+            this.AddGenericsType(typeof(ICollection<>));
+            this.AddGenericsType(typeof(IEnumerable<>));
+            this.AddGenericsType(typeof(Dictionary<,>));
+            this.AddGenericsType(typeof(IDictionary<,>));
+            this.AddGenericsType(typeof(SortedDictionary<,>));
+            this.AddGenericsType(typeof(SortedList<,>));
+            this.AddGenericsType(typeof(ILookup<,>));
+            this.AddGenericsType(typeof(IGrouping<,>));
+            this.AddGenericsType(typeof(ObservableCollection<>));
+            this.AddGenericsType(typeof(ReadOnlyObservableCollection<>));
+            this.AddGenericsType(typeof(IReadOnlyList<>));
+            this.AddGenericsType(typeof(IReadOnlyCollection<>));
+            this.AddGenericsType(typeof(ISet<>));
+            this.AddGenericsType(typeof(System.Collections.Concurrent.ConcurrentBag<>));
+            this.AddGenericsType(typeof(System.Collections.Concurrent.ConcurrentQueue<>));
+            this.AddGenericsType(typeof(System.Collections.Concurrent.ConcurrentStack<>));
+            this.AddGenericsType(typeof(ReadOnlyDictionary<,>));
+            this.AddGenericsType(typeof(IReadOnlyDictionary<,>));
+            this.AddGenericsType(typeof(System.Collections.Concurrent.ConcurrentDictionary<,>));
+            this.AddGenericsType(typeof(Lazy<>));
+            this.AddGenericsType(typeof(ImmutableArray<>));
+            this.AddGenericsType(typeof(ImmutableList<>));
+            this.AddGenericsType(typeof(ImmutableDictionary<,>));
+            this.AddGenericsType(typeof(ImmutableHashSet<>));
+            this.AddGenericsType(typeof(ImmutableSortedDictionary<,>));
+            this.AddGenericsType(typeof(ImmutableSortedSet<>));
+            this.AddGenericsType(typeof(ImmutableQueue<>));
+            this.AddGenericsType(typeof(ImmutableStack<>));
+            this.AddGenericsType(typeof(IImmutableList<>));
+            this.AddGenericsType(typeof(IImmutableDictionary<,>));
+            this.AddGenericsType(typeof(IImmutableQueue<>));
+            this.AddGenericsType(typeof(IImmutableSet<>));
+            this.AddGenericsType(typeof(IImmutableStack<>));
         }
 
         public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
@@ -65,18 +116,23 @@ namespace Tinyhand.Coders
             else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
             {// Generics
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
-                var ret = baseObject.FullName switch
+                if (this.genericsType.Contains(baseObject.FullName))
                 {
-                    "System.Lazy<T>" => true,
-                    "System.Collections.Generic.KeyValuePair<TKey, TValue>" => true,
-                    _ => false,
-                };
-
-                if (ret == false)
-                {
-                    return ret;
+                    goto Check_GenericsArguments;
+                }
+                else if (withNullable.Object.SimpleName == "Tuple")
+                {// Tuple
+                    goto Check_GenericsArguments;
+                }
+                else if (withNullable.Object.SimpleName == "ValueTuple")
+                {// ValueTuple
+                    goto Check_GenericsArguments;
                 }
 
+                // Not supported generics type.
+                return false;
+
+Check_GenericsArguments:
                 foreach (var x in arguments)
                 {// Check all the arguments.
                     if (!CoderResolver.Instance.IsCoderOrFormatterAvailable(x))
@@ -125,16 +181,23 @@ namespace Tinyhand.Coders
             return coder;
         }
 
+        public void AddGenericsType(Type genericsType)
+        {
+            this.genericsType.Add(VisceralHelper.TypeToFullName(genericsType));
+        }
+
         public ITinyhandCoder? AddFormatter(Type type)
         {
+            var fullName = VisceralHelper.TypeToFullName(type);
+
             if (type.IsValueType)
             {// Value type
-                return this.AddFormatter(type.FullName);
+                return this.AddFormatter(fullName);
             }
             else
             {// Reference type
-                var coder = this.AddFormatter(type.FullName, true);
-                this.AddFormatter(type.FullName + "?");
+                var coder = this.AddFormatter(fullName, true);
+                this.AddFormatter(fullName + "?");
                 return coder;
             }
         }
@@ -168,6 +231,8 @@ namespace Tinyhand.Coders
         }
 
         private Dictionary<string, ITinyhandCoder> stringToCoder = new();
+
+        private HashSet<string> genericsType = new();
     }
 
     internal class FormatterCoder : ITinyhandCoder

@@ -1,13 +1,20 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tinyhand;
 
 #pragma warning disable SA1401 // Fields should be private
+#pragma warning disable SA1009
+#pragma warning disable SA1010
+#pragma warning disable SA1026
+#pragma warning disable SA1125
 
 namespace Tinyhand.Tests
 {
@@ -26,6 +33,102 @@ namespace Tinyhand.Tests
     public enum LongEnum : long { A, B, C, D, E }
 
     public enum ULongEnum : ulong { A, B, C, D, E }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    [MessagePack.MessagePackObject(true)]
+    public partial class FormatterResolverClass
+    {
+        public FormatterResolverClass()
+        {
+            this.SortedDictionaryIntByte.Add(4, 2);
+            this.SortedDictionaryIntByte.Add(3, 44);
+            this.SortedListIntString.Add(1, "t");
+            this.SortedListIntString.Add(10, "tes");
+
+            this.ImmutableDictionaryIntInt = this.ImmutableDictionaryIntInt.Add(1, 10);
+            this.ImmutableDictionaryIntInt = this.ImmutableDictionaryIntInt.Add(2, 22);
+            this.ImmutableSortedDictionaryIntString = this.ImmutableSortedDictionaryIntString.Add(3, "3");
+            this.ImmutableSortedDictionaryIntString = this.ImmutableSortedDictionaryIntString.Add(34, "34");
+
+            this.ReadOnlyObservableCollectionInt = new ReadOnlyObservableCollection<int>(this.ObservableCollectionInt);
+            this.ReadOnlyDictionaryIntString = new ReadOnlyDictionary<int, string>(this.DictionaryIntString);
+            this.IReadOnlyDictionaryIntString = this.ReadOnlyDictionaryIntString;
+            this.IImmutableListString = this.ImmutableListString;
+            this.IImmutableDictionaryIntInt = this.ImmutableDictionaryIntInt;
+            this.IImmutableQueueInt = this.ImmutableQueueInt;
+            this.IImmutableSetInt = this.ImmutableHashSetInt;
+            this.IImmutableStackShort = this.ImmutableStackShort;
+        }
+
+        public decimal Decimal = 123M;
+        public TimeSpan TimeSpan = new(4, 5, 6);
+        public DateTimeOffset DateTimeOffset = DateTimeOffset.Now;
+        public Guid Guid = new();
+        // public Uri Uri = new("https://google.com");
+        public Version Version = new(10, 23);
+        public StringBuilder StringBuilder = new("test sb");
+        public System.Collections.BitArray BitArray = new(new bool[] { true, false, true });
+        public System.Numerics.BigInteger BigInteger = new(456d);
+        public System.Numerics.Complex Complex = new(11d, 44d);
+        public Type Type = typeof(string);
+
+        public object[] ObjectArray { get; set; } = { 1, 2, "Test", 1.4d };
+        public List<object> ObjectList { get; set; } = new() { 1, 2, "Test", 1.4d };
+        public Memory<byte> MemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
+        public ReadOnlyMemory<byte> ReadOnlyMemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
+        public ReadOnlySequence<byte> ReadOnlySequenceByte { get; set; } = new(new byte[] { 1, 10, 20, });
+        public ArraySegment<byte> ArraySegmentByte { get; set; } = new(new byte[] { 11, 12, 201, });
+
+        public Nullable<int> NullableInt { get; set; } = null!;
+        public Nullable<int> NullableInt2 { get; set; } = 123;
+        public KeyValuePair<int, string> KeyValuePair { get; set; } = new(23, "tes");
+        public KeyValuePair<int, string>? KeyValuePair2 { get; set; } = new(231, "test");
+        public ArraySegment<long> ArraySegmentLong { get; set; } = new(new long[] { 2, 4, 2000, });
+        public Memory<string> MemoryString { get; set; } = new(new string[] { "a", "test", "", });
+        public ReadOnlyMemory<int> ReadOnlyMemoryInt { get; set; } = new(new int[] { -3, 0, 123 });
+        public ReadOnlySequence<string> ReadOnlySequenceString { get; set; } = new(new string[] { "b", "fu", "br", });
+        public List<int> IntList { get; set; } = new() { 1, 2, -100, };
+        public LinkedList<short> LinkedListShort { get; set; } = new(new short[] { -30, 11, 30 });
+        public Queue<byte> QueueByte { get; set; } = new(new byte[] { 3, 5, 44 });
+        public Stack<ushort> StackUShort { get; set; } = new(new ushort[] { 33, 444, 555, });
+        public HashSet<int> HashSetInt { get; set; } = new();
+        public ReadOnlyCollection<int> ReadOnlyCollectionInt { get; set; } = new(new int[] { -44, 0, 334 });
+        public IList<double> IListDouble { get; set; } = new List<double>(new double[] { 0d, 33d, -3330d, });
+        public ICollection<sbyte> ICollectionSByte { get; set; } = new Collection<sbyte>(new sbyte[] { 4, 6, 7 });
+        public IEnumerable<int> IEnumerableInt { get; set; } = new int[] { 1, 2, -100, };
+        public Dictionary<int, string> DictionaryIntString { get; set; } = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
+        public IDictionary<string, double> IDictionaryStringDouble { get; set; } = new Dictionary<string, double>(new KeyValuePair<string, double>[] { new KeyValuePair<string, double>("test", 33d) });
+        public SortedDictionary<int, byte> SortedDictionaryIntByte { get; set; } = new();
+        public SortedList<int, string> SortedListIntString { get; set; } = new();
+        public ILookup<bool, int> ILookupBoolInt { get; set; } = (ILookup<bool, int>)Enumerable.Range(1, 100).ToLookup(x => x % 2 == 0);
+        // public IGrouping<int, string>
+        public ObservableCollection<int> ObservableCollectionInt { get; set; } = new(new int[] { -444, 0, 334 });
+        public ReadOnlyObservableCollection<int> ReadOnlyObservableCollectionInt { get; set; } = default!;
+        public IReadOnlyList<int> IReadOnlyListInt { get; set; } = new[] { 4, 2, 4, };
+        public IReadOnlyCollection<string> IReadOnlyCollectionString { get; set; } = new[] { "4", "tes", "to" };
+        public ISet<int> ISetInt { get; set; } = new HashSet<int>(new int[] { -444,  });
+        public System.Collections.Concurrent.ConcurrentBag<int> ConcurrentBag { get; set; } = new();
+        public System.Collections.Concurrent.ConcurrentQueue<double> ConcurrentQueueDouble { get; set; } = new(new[] { 3d, 55d, -331d });
+        public System.Collections.Concurrent.ConcurrentStack<string> ConcurrentStackString { get; set; } = new(new[] { "tes", "44", "fin" });
+        public ReadOnlyDictionary<int, string> ReadOnlyDictionaryIntString { get; set; } = default!;
+        public IReadOnlyDictionary<int, string> IReadOnlyDictionaryIntString { get; set; }
+        public System.Collections.Concurrent.ConcurrentDictionary<int, long> ConcurrentDictionaryIntLong { get; set; } = new();
+        public Lazy<int> LazyInt { get; set; } = new(() => 4);
+        public ImmutableArray<int> ImmutableArrayLong { get; set; } = ImmutableArray.Create<int>(new[] { 1, 2, -100, });
+        public ImmutableList<string> ImmutableListString { get; set; } = ImmutableList.Create<string>(new[] { "a", "k", "test", });
+        public ImmutableDictionary<int, int> ImmutableDictionaryIntInt { get; set; } = ImmutableDictionary.Create<int, int>();
+        public ImmutableHashSet<int> ImmutableHashSetInt { get; set; } = ImmutableHashSet.Create<int>();
+        public ImmutableSortedDictionary<int, string> ImmutableSortedDictionaryIntString { get; set; } = ImmutableSortedDictionary.Create<int, string>();
+        public ImmutableSortedSet<int> ImmutableSortedSetInt { get; set; } = ImmutableSortedSet.Create<int>(new[] { 1, 2, -100, });
+        public ImmutableQueue<int> ImmutableQueueInt { get; set; } = ImmutableQueue.Create<int>(new[] { 1, 2, -100, });
+        public ImmutableQueue<int>? ImmutableQueueInt2 { get; set; } = ImmutableQueue.Create<int>(new[] { 11, 12, -1100, });
+        public ImmutableStack<short> ImmutableStackShort { get; set; } = ImmutableStack.Create<short>(new short[] { 1, 2, -100, });
+        public IImmutableList<string> IImmutableListString { get; set; }
+        public IImmutableDictionary<int, int> IImmutableDictionaryIntInt { get; set; }
+        public IImmutableQueue<int> IImmutableQueueInt { get; set; }
+        public IImmutableSet<int> IImmutableSetInt { get; set; }
+        public IImmutableStack<short> IImmutableStackShort { get; set; }
+    }
 
     [TinyhandObject]
     public partial class SimpleIntKeyData
@@ -107,12 +210,26 @@ namespace Tinyhand.Tests
     }
 
     [TinyhandObject]
+    [MessagePack.MessagePackObject]
     public partial class EmptyClass
     {
     }
 
+    [TinyhandObject(KeyAsPropertyName = true)]
+    [MessagePack.MessagePackObject(true)]
+    public partial class EmptyClass2
+    {
+    }
+
     [TinyhandObject]
+    [MessagePack.MessagePackObject]
     public partial struct EmptyStruct
+    {
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    [MessagePack.MessagePackObject(true)]
+    public partial struct EmptyStruct2
     {
     }
 
@@ -252,7 +369,6 @@ namespace Tinyhand.Tests
     {
         public static bool CalledAfter = false;
 
-        [Key(0)]
         public int X { get; set; }
 
         private Action onBefore;
@@ -284,7 +400,6 @@ namespace Tinyhand.Tests
     [TinyhandObject(KeyAsPropertyName = true)]
     public partial struct Callback2_2 : ITinyhandSerializationCallback
     {
-        [Key(0)]
         public int X { get; set; }
 
         public static bool CalledAfter = false;
@@ -348,7 +463,6 @@ namespace Tinyhand.Tests
     [TinyhandObject(KeyAsPropertyName = true)]
     public partial class NonEmpty2
     {
-        [Key(0)]
         public int MyProperty { get; set; }
     }
 

@@ -193,10 +193,12 @@ namespace Arc.Visceral
                         return VisceralHelper.Primitives_ShortenSimpleName(name) ?? name; // + "?";
                     }
                 }
+
+                name = symbol.Name;
+                return VisceralHelper.Primitives_ShortenSimpleName(name) ?? name;
             }
 
-            name = symbol.Name;
-            return VisceralHelper.Primitives_ShortenSimpleName(name) ?? name;
+            return symbol.Name;
         }
 
         public string GetNamespaceAndClass(ISymbol symbol)

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tinyhand;
 
-namespace ConsoleApp1
+/*namespace ConsoleApp1
 {
     [TinyhandObject]
     public partial class Callback1_2 : ITinyhandSerializationCallback
@@ -98,3 +98,4 @@ namespace ConsoleApp1
         }
     }
 }
+*/
