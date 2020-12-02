@@ -107,6 +107,31 @@ Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-ne
 
 
 
+### Serialization Callback
+
+Objects implementing the `ITinyhandSerializationCallback` interface will received `OnBeforeSerialize` and `OnAfterDeserialize` calls during serialization/deserialization.
+
+```csharp
+[TinyhandObject]
+public partial class SampleCallback : ITinyhandSerializationCallback
+{
+    [Key(0)]
+    public int Key { get; set; }
+
+    public void OnBeforeSerialize()
+    {
+        Console.WriteLine("OnBefore");
+    }
+
+    public void OnAfterDeserialize()
+    {
+        Console.WriteLine("OnAfter");
+    }
+}
+```
+
+
+
 ## External assembly
 
 If you add a reference to a class library which uses Tinyhand, additional initialization code is required.

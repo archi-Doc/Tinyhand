@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Tinyhand;
 
-namespace Sandbox
+namespace ConsoleApp1
 {
     [TinyhandObject]
     public partial class SampleCallback : ITinyhandSerializationCallback
@@ -20,17 +21,6 @@ namespace Sandbox
         public void OnAfterDeserialize()
         {
             Console.WriteLine("OnAfter");
-        }
-    }
-
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var myClass = new SampleCallback();
-            var b = TinyhandSerializer.Serialize(myClass);
-            var myClass2 = TinyhandSerializer.Deserialize<SampleCallback>(b);
         }
     }
 }
