@@ -22,7 +22,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnitTest", "XUnitTest\XUnitTest.csproj", "{7940218D-079C-438F-99E4-333A5F790A2A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benchmark.csproj", "{92D0FD52-1AF9-43DA-94F9-E2BC6307E591}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark", "Benchmark\Benchmark.csproj", "{92D0FD52-1AF9-43DA-94F9-E2BC6307E591}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,6 +64,10 @@ Global
 		{92D0FD52-1AF9-43DA-94F9-E2BC6307E591}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92D0FD52-1AF9-43DA-94F9-E2BC6307E591}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92D0FD52-1AF9-43DA-94F9-E2BC6307E591}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

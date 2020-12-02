@@ -3,7 +3,7 @@
 using System;
 using Tinyhand;
 
-namespace ConsoleApp1
+namespace Sandbox
 {
     [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = false)]
     internal class GeneratorOption

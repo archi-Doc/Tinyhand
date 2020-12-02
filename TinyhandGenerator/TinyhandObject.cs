@@ -580,21 +580,30 @@ namespace Tinyhand.Generator
                     }
                 }
 
-                // KeyAsPropertyName
-                if (this.ObjectAttribute!.KeyAsPropertyName == true)
+                // Search keys
+                var intKeyExists = false;
+                var stringKeyExists = false;
+                foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
                 {
-                    this.ObjectFlag |= TinyhandObjectFlag.StringKeyObject;
-                    foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
-                    {
-                        if (x.KeyAttribute == null)
-                        {
+                    if (x.KeyAttribute == null)
+                    {// No KeyAttribute
+                        if (this.ObjectAttribute!.KeyAsPropertyName)
+                        {// KeyAsPropertyName
                             x.KeyAttribute = new KeyAttributeMock(x.SimpleName);
+                            stringKeyExists = true;
                         }
+                    }
+                    else if (x.KeyAttribute.StringKey != null)
+                    {// String key
+                        stringKeyExists = true;
+                    }
+                    else if (x.KeyAttribute.IntKey != null)
+                    {// Integer key
+                        intKeyExists = true;
                     }
                 }
 
-                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject) ||
-                    this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Any(x => x.KeyAttribute?.StringKey != null))
+                if (stringKeyExists || (!intKeyExists && this.ObjectAttribute!.KeyAsPropertyName == true))
                 {// String key
                     this.ObjectFlag |= TinyhandObjectFlag.StringKeyObject;
                     this.CheckObject_StringKey();
@@ -1374,7 +1383,7 @@ namespace Tinyhand.Generator
         }
 
         internal void GenerateDeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
-        {
+        {// Integer key
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
             {// no object
@@ -1431,7 +1440,7 @@ namespace Tinyhand.Generator
         }
 
         internal void GenerateDeserializeCore2(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
-        {
+        {// String key
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
             {// no object

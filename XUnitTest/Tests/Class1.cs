@@ -38,32 +38,17 @@ namespace Tinyhand.Tests
     [MessagePack.MessagePackObject(true)]
     public partial class FormatterResolverClass
     {
-        public System.Collections.Concurrent.ConcurrentBag<int> ConcurrentBag { get; set; } = new() { 1, 2, -100, };
-    }
-
-    [TinyhandObject(KeyAsPropertyName = true)]
-    [MessagePack.MessagePackObject(true)]
-    public partial class FormatterResolverClass2
-    {
-        public FormatterResolverClass2()
+        public FormatterResolverClass()
         {
             this.SortedDictionaryIntByte.Add(4, 2);
             this.SortedDictionaryIntByte.Add(3, 44);
             this.SortedListIntString.Add(1, "t");
             this.SortedListIntString.Add(10, "tes");
 
-            this.ImmutableDictionaryIntInt.Add(1, 10);
-            this.ImmutableDictionaryIntInt.Add(2, 22);
-            this.ImmutableHashSetInt.Add(11);
-            this.ImmutableHashSetInt.Add(110);
-            this.ImmutableSortedDictionaryIntString.Add(3, "3");
-            this.ImmutableSortedDictionaryIntString.Add(34, "34");
-            this.ImmutableSortedSetInt.Add(44);
-            this.ImmutableSortedSetInt.Add(144);
-            this.ImmutableQueueInt.Enqueue(44);
-            this.ImmutableQueueInt.Enqueue(414);
-            this.ImmutableStackShort.Push(-44);
-            this.ImmutableStackShort.Push(555);
+            this.ImmutableDictionaryIntInt = this.ImmutableDictionaryIntInt.Add(1, 10);
+            this.ImmutableDictionaryIntInt = this.ImmutableDictionaryIntInt.Add(2, 22);
+            this.ImmutableSortedDictionaryIntString = this.ImmutableSortedDictionaryIntString.Add(3, "3");
+            this.ImmutableSortedDictionaryIntString = this.ImmutableSortedDictionaryIntString.Add(34, "34");
 
             this.ReadOnlyObservableCollectionInt = new ReadOnlyObservableCollection<int>(this.ObservableCollectionInt);
             this.ReadOnlyDictionaryIntString = new ReadOnlyDictionary<int, string>(this.DictionaryIntString);
@@ -97,6 +82,7 @@ namespace Tinyhand.Tests
         public Nullable<int> NullableInt { get; set; } = null!;
         public Nullable<int> NullableInt2 { get; set; } = 123;
         public KeyValuePair<int, string> KeyValuePair { get; set; } = new(23, "tes");
+        public KeyValuePair<int, string>? KeyValuePair2 { get; set; } = new(231, "test");
         public ArraySegment<long> ArraySegmentLong { get; set; } = new(new long[] { 2, 4, 2000, });
         public Memory<string> MemoryString { get; set; } = new(new string[] { "a", "test", "", });
         public ReadOnlyMemory<int> ReadOnlyMemoryInt { get; set; } = new(new int[] { -3, 0, 123 });
@@ -105,7 +91,7 @@ namespace Tinyhand.Tests
         public LinkedList<short> LinkedListShort { get; set; } = new(new short[] { -30, 11, 30 });
         public Queue<byte> QueueByte { get; set; } = new(new byte[] { 3, 5, 44 });
         public Stack<ushort> StackUShort { get; set; } = new(new ushort[] { 33, 444, 555, });
-        public HashSet<int> HashSetInt { get; set; } = new(new int[] { 10, -444, 63666, });
+        public HashSet<int> HashSetInt { get; set; } = new();
         public ReadOnlyCollection<int> ReadOnlyCollectionInt { get; set; } = new(new int[] { -44, 0, 334 });
         public IList<double> IListDouble { get; set; } = new List<double>(new double[] { 0d, 33d, -3330d, });
         public ICollection<sbyte> ICollectionSByte { get; set; } = new Collection<sbyte>(new sbyte[] { 4, 6, 7 });
@@ -120,10 +106,8 @@ namespace Tinyhand.Tests
         public ReadOnlyObservableCollection<int> ReadOnlyObservableCollectionInt { get; set; } = default!;
         public IReadOnlyList<int> IReadOnlyListInt { get; set; } = new[] { 4, 2, 4, };
         public IReadOnlyCollection<string> IReadOnlyCollectionString { get; set; } = new[] { "4", "tes", "to" };
-        public ISet<int> ISetInt { get; set; } = new HashSet<int>(new int[] { -444, 0, 334 });
-        [IgnoreMember]
-        [MessagePack.IgnoreMember]
-        public System.Collections.Concurrent.ConcurrentBag<int> ConcurrentBag { get; set; } = new() { 1, 2, -100, };
+        public ISet<int> ISetInt { get; set; } = new HashSet<int>(new int[] { -444,  });
+        public System.Collections.Concurrent.ConcurrentBag<int> ConcurrentBag { get; set; } = new();
         public System.Collections.Concurrent.ConcurrentQueue<double> ConcurrentQueueDouble { get; set; } = new(new[] { 3d, 55d, -331d });
         public System.Collections.Concurrent.ConcurrentStack<string> ConcurrentStackString { get; set; } = new(new[] { "tes", "44", "fin" });
         public ReadOnlyDictionary<int, string> ReadOnlyDictionaryIntString { get; set; } = default!;
@@ -135,9 +119,10 @@ namespace Tinyhand.Tests
         public ImmutableDictionary<int, int> ImmutableDictionaryIntInt { get; set; } = ImmutableDictionary.Create<int, int>();
         public ImmutableHashSet<int> ImmutableHashSetInt { get; set; } = ImmutableHashSet.Create<int>();
         public ImmutableSortedDictionary<int, string> ImmutableSortedDictionaryIntString { get; set; } = ImmutableSortedDictionary.Create<int, string>();
-        public ImmutableSortedSet<int> ImmutableSortedSetInt { get; set; } = ImmutableSortedSet.Create<int>();
-        public ImmutableQueue<int> ImmutableQueueInt { get; set; } = ImmutableQueue.Create<int>();
-        public ImmutableStack<short> ImmutableStackShort { get; set; } = ImmutableStack.Create<short>();
+        public ImmutableSortedSet<int> ImmutableSortedSetInt { get; set; } = ImmutableSortedSet.Create<int>(new[] { 1, 2, -100, });
+        public ImmutableQueue<int> ImmutableQueueInt { get; set; } = ImmutableQueue.Create<int>(new[] { 1, 2, -100, });
+        public ImmutableQueue<int>? ImmutableQueueInt2 { get; set; } = ImmutableQueue.Create<int>(new[] { 11, 12, -1100, });
+        public ImmutableStack<short> ImmutableStackShort { get; set; } = ImmutableStack.Create<short>(new short[] { 1, 2, -100, });
         public IImmutableList<string> IImmutableListString { get; set; }
         public IImmutableDictionary<int, int> IImmutableDictionaryIntInt { get; set; }
         public IImmutableQueue<int> IImmutableQueueInt { get; set; }
@@ -225,12 +210,26 @@ namespace Tinyhand.Tests
     }
 
     [TinyhandObject]
+    [MessagePack.MessagePackObject]
     public partial class EmptyClass
     {
     }
 
+    [TinyhandObject(KeyAsPropertyName = true)]
+    [MessagePack.MessagePackObject(true)]
+    public partial class EmptyClass2
+    {
+    }
+
     [TinyhandObject]
+    [MessagePack.MessagePackObject]
     public partial struct EmptyStruct
+    {
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    [MessagePack.MessagePackObject(true)]
+    public partial struct EmptyStruct2
     {
     }
 

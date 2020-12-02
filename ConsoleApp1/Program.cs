@@ -37,7 +37,7 @@ namespace ConsoleApp1
         }
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject]
     public partial class EmptyClass
     {
     }

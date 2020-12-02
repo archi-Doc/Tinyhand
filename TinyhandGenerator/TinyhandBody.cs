@@ -222,6 +222,7 @@ namespace Tinyhand.Generator
             ssb.AddUsing("Tinyhand.IO");
             ssb.AddUsing("Tinyhand.Resolvers");
             ssb.AppendLine("#nullable enable", false);
+            ssb.AppendLine("#pragma warning disable CS0162", false); // Unreachable code detected
             ssb.AppendLine("#pragma warning disable CS1591", false);
             ssb.AppendLine("#pragma warning disable CS8774", false); // MemberNotNull
             ssb.AppendLine();
