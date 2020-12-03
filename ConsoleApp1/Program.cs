@@ -55,6 +55,8 @@ namespace ConsoleApp1
 
             b = TinyhandSerializer.Serialize(new EmptyClass()); // Empty data
             var myClass3 = TinyhandSerializer.Deserialize<MyClass>(b); // Create an instance and set non-null values of the members.
+
+            new DefaultTest().Test();
         }
     }
 }

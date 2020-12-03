@@ -770,6 +770,7 @@ namespace Tinyhand.Generator
                     this.IsDefaultable = true;
                     if (this.TypeObject.SimpleName != this.DefaultValueTypeName)
                     {// Type does not match.
+                        this.IsDefaultable = false;
                         this.DefaultValue = null;
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
                     }
@@ -785,16 +786,19 @@ namespace Tinyhand.Generator
                         }*/
                         if (this.TypeObject.Enum_GetEnumObjectFromObject(this.DefaultValue) is { } enumObject)
                         {
-                            this.DefaultValue = new EnumString(enumObject.FullName);
                             this.IsDefaultable = true;
+                            this.DefaultValue = new EnumString(enumObject.FullName);
                         }
                         else if (this.DefaultValueTypeName != this.TypeObject.Enum_UnderlyingTypeObject?.FullName)
                         {
+                            this.IsDefaultable = false;
+                            this.DefaultValue = null;
                             this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
                         }
                     }
                     else
                     {// Type does not match.
+                        this.IsDefaultable = false;
                         this.DefaultValue = null;
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
                     }

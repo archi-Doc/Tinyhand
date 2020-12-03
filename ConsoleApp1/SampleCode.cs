@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,6 +66,30 @@ namespace ConsoleApp1
         {
             var t = new NullableTestClass();
             var t2 = TinyhandSerializer.Deserialize<NullableTestClass>(TinyhandSerializer.Serialize(t));
+        }
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class DefaultTestClass
+    {
+        [DefaultValue(true)]
+        public bool Bool { get; set; }
+
+        [DefaultValue(77)]
+        public int Int { get; set; }
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class StringEmptyClass
+    {
+    }
+
+    public class DefaultTest
+    {
+        public void Test()
+        {
+            var t = new StringEmptyClass();
+            var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
         }
     }
 }
