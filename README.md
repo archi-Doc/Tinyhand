@@ -157,9 +157,17 @@ public class NullableTest
 
 
 
+### Default value
+
+You can specify the default value for a member using `DefaultValueAttribute `(System.ComponentModel).
+
+Primitive types (bool, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, decimal, string, char) are supported.
+
+
+
 ### Serialization Callback
 
-Objects implementing the `ITinyhandSerializationCallback` interface will received `OnBeforeSerialize` and `OnAfterDeserialize` calls during serialization/deserialization.
+Objects implementing the `ITinyhandSerializationCallback` interface will receive `OnBeforeSerialize` and `OnAfterDeserialize` calls during serialization/deserialization.
 
 ```csharp
 [TinyhandObject]
