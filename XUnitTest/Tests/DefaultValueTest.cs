@@ -62,17 +62,36 @@ namespace Tinyhand.Tests
         public DefaultTestEnum Enum;
     }
 
-    [TinyhandObject(KeyAsPropertyName = true, SkipSerializingDefaultValue = true)]
+    [TinyhandObject(SkipSerializingDefaultValue = true)]
     public partial class DefaultTestClassSkip
     {
+        [Key(0)]
         [DefaultValue("2134.44")]
         public decimal Decimal { get; set; }
 
-        [DefaultValue('c')]
-        public char Char { get; set; }
+        [Key(1)]
+        [DefaultValue(1234)]
+        public int Int { get; set; }
 
+        [Key(2)]
         [DefaultValue("test")]
         public string String { get; set; } = default!;
+    }
+
+    [TinyhandObject(SkipSerializingDefaultValue = true)]
+    public partial class DefaultTestClassSkip2
+    {
+        [Key(0)]
+        [DefaultValue(1234)]
+        public short Short { get; set; }
+
+        [Key(1)]
+        [DefaultValue("test")]
+        public string String { get; set; } = default!;
+
+        [Key(2)]
+        [DefaultValue(456.789d)]
+        public double Double { get; set; }
     }
 
     public enum DefaultTestEnum
@@ -110,10 +129,11 @@ namespace Tinyhand.Tests
         [Fact]
         public void TestSkip()
         {
-            var t = new Empty2();
+            var e = new Empty2();
+            var t = TinyhandSerializer.Deserialize<DefaultTestClassSkip>(TinyhandSerializer.Serialize(e));
             var b = TinyhandSerializer.Serialize(t);
 
-            var t2 = new DefaultTestClassSkip();
+            var t2 = TinyhandSerializer.Deserialize<DefaultTestClassSkip2>(TinyhandSerializer.Serialize(e));
             var b2 = TinyhandSerializer.Serialize(t2);
 
             b.IsStructuralEqual(b2);

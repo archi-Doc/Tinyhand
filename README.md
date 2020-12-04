@@ -194,7 +194,7 @@ public class DefaultTest
 }
 ```
 
-You can skip serializing values if the value is identical to the default value, by setting `[TinyhandObject(SkipSerializingDefaultValue = true)]`attribute.
+You can skip serializing values if the value is identical to the default value, by using `[TinyhandObject(SkipSerializingDefaultValue = true)]`.
 
 
 
