@@ -764,19 +764,22 @@ namespace Tinyhand.Generator
 
             if (this.DefaultValue != null)
             {
-                this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
                 if (VisceralDefaultValue.IsDefaultableType(this.TypeObject.SimpleName))
                 {// Memeber is defaultable
-                    this.IsDefaultable = true;
-                    if (this.TypeObject.SimpleName != this.DefaultValueTypeName)
+                    this.DefaultValue = VisceralDefaultValue.ConvertDefaultValue(this.DefaultValue, this.TypeObject.SimpleName);
+                    if (this.DefaultValue != null)
+                    {// Set default value
+                        this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
+                        this.IsDefaultable = true;
+                    }
+                    else
                     {// Type does not match.
-                        this.IsDefaultable = false;
-                        this.DefaultValue = null;
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
                     }
                 }
                 else if (this.TypeObject.Kind == VisceralObjectKind.Enum)
                 {// Enum
+                    this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
                     if (this.DefaultValueTypeName != null && VisceralDefaultValue.IsEnumUnderlyingType(this.DefaultValueTypeName))
                     {
                         /* var idx = (int)this.DefaultValue;
@@ -789,8 +792,8 @@ namespace Tinyhand.Generator
                             this.IsDefaultable = true;
                             this.DefaultValue = new EnumString(enumObject.FullName);
                         }
-                        else if (this.DefaultValueTypeName != this.TypeObject.Enum_UnderlyingTypeObject?.FullName)
-                        {
+                        else
+                        { // (this.DefaultValueTypeName != this.TypeObject.Enum_UnderlyingTypeObject?.FullName)
                             this.IsDefaultable = false;
                             this.DefaultValue = null;
                             this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);

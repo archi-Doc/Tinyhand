@@ -77,6 +77,9 @@ namespace ConsoleApp1
 
         [DefaultValue(77)]
         public int Int { get; set; }
+
+        [DefaultValue("test")]
+        public string String { get; set; } = default!;
     }
 
     [TinyhandObject(KeyAsPropertyName = true)]

@@ -6,6 +6,72 @@ namespace Arc.Visceral
 {
     public static class VisceralDefaultValue
     {
+        public static object? ConvertDefaultValue(object defaultValue, string typeName)
+        {
+            try
+            {
+                var defaultValueTypeName = VisceralHelper.Primitives_ShortenName(defaultValue.GetType().FullName);
+                if (defaultValueTypeName == typeName)
+                {// Type matched
+                    return defaultValue;
+                }
+
+                if (typeName == "sbyte")
+                {
+                    return Convert.ToSByte(defaultValue);
+                }
+                else if (typeName == "byte")
+                {
+                    return Convert.ToByte(defaultValue);
+                }
+                else if (typeName == "short")
+                {
+                    return Convert.ToInt16(defaultValue);
+                }
+                else if (typeName == "ushort")
+                {
+                    return Convert.ToUInt16(defaultValue);
+                }
+                else if (typeName == "int")
+                {
+                    return Convert.ToInt32(defaultValue);
+                }
+                else if (typeName == "uint")
+                {
+                    return Convert.ToUInt32(defaultValue);
+                }
+                else if (typeName == "long")
+                {
+                    return Convert.ToInt64(defaultValue);
+                }
+                else if (typeName == "ulong")
+                {
+                    return Convert.ToUInt64(defaultValue);
+                }
+                else if (typeName == "float")
+                {
+                    return Convert.ToSingle(defaultValue);
+                }
+                else if (typeName == "double")
+                {
+                    return Convert.ToDouble(defaultValue);
+                }
+                else if (typeName == "decimal")
+                {
+                    // return decimal.Parse(ds);
+                    return Convert.ToDecimal(defaultValue);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static bool IsDefaultableType(Type type)
         {
             if (type.IsGenericType)
@@ -102,11 +168,22 @@ namespace Arc.Visceral
                 }
             }
 
-            if (type == typeof(bool) || type == typeof(sbyte) || type == typeof(byte) ||
+            if (type == typeof(sbyte) || type == typeof(byte) ||
                 type == typeof(short) || type == typeof(ushort) || type == typeof(int) ||
                 type == typeof(EnumString))
             {
                 return obj.ToString();
+            }
+            else if (type == typeof(bool))
+            {
+                if ((bool)obj == true)
+                {
+                    return "true";
+                }
+                else
+                {
+                    return "false";
+                }
             }
             else if (type == typeof(uint))
             {

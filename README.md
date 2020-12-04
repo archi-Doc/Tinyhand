@@ -161,7 +161,40 @@ public class NullableTest
 
 You can specify the default value for a member using `DefaultValueAttribute `(System.ComponentModel).
 
-Primitive types (bool, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, decimal, string, char) are supported.
+If the serialized data does not have a matching data for a member, Tinyhand will set the default value for that member.
+
+Primitive types (bool, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, decimal, string, char, enum) are supported.
+
+```csharp
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class DefaultTestClass
+{
+    [DefaultValue(true)]
+    public bool Bool { get; set; }
+
+    [DefaultValue(77)]
+    public int Int { get; set; }
+
+    [DefaultValue("test")]
+    public string String { get; set; }
+}
+
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class StringEmptyClass
+{
+}
+
+public class DefaultTest
+{
+    public void Test()
+    {
+        var t = new StringEmptyClass();
+        var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
+    }
+}
+```
+
+You can skip serializing values if the value is identical to the default value, by setting `[TinyhandObject(SkipSerializingDefaultValue = true)]`attribute.
 
 
 
