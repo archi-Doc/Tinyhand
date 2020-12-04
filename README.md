@@ -86,6 +86,8 @@ namespace ConsoleApp1
 
 Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-net) and [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp).
 
+Tinyhand is quite fast and since it is based on Source Generator, it does not take time for dynamic code generation.
+
 | Method                       |     Mean |   Error |  StdDev |   Median |  Gen 0 | Gen 1 | Gen 2 | Allocated |
 | ---------------------------- | -------: | ------: | ------: | -------: | -----: | ----: | ----: | --------: |
 | SerializeProtoBuf            | 449.3 ns | 4.31 ns | 6.04 ns | 452.5 ns | 0.0973 |     - |     - |     408 B |
@@ -101,9 +103,123 @@ Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-ne
 
 
 
-## Feature
+## Features
 
 ### Handling nullable reference types
+
+Tinyhand tries to handle nullable/non-nullable reference types properly.
+
+```csharp
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class NullableTestClass
+{
+    public int Int { get; set; } = default!; // 0
+
+    public int? NullableInt { get; set; } = default!; // null
+
+    public string String { get; set; } = default!;
+    // If this value is null, Tinyhand will automatically change the value to string.Empty.
+
+    public string? NullableString { get; set; } = default!;
+    // This is nullable type, so the value remains null.
+
+    public NullableSimpleClass SimpleClass { get; set; } = default!; // new SimpleClass()
+
+    public NullableSimpleClass? NullableSimpleClass { get; set; } = default!; // null
+
+    public NullableSimpleClass[] Array { get; set; } = default!; // new NullableSimpleClass[0]
+
+    public NullableSimpleClass[]? NullableArray { get; set; } = default!; // null
+
+    public NullableSimpleClass[] Array2 { get; set; } = new NullableSimpleClass[] { new NullableSimpleClass(), null! };
+    // null! will be change to a new instance.
+
+    public Queue<NullableSimpleClass> Queue { get; set; } = new(new NullableSimpleClass[] { null!, null!, });
+    // null! remains null because it loses information whether it is nullable or non-nullable in C# generic methods.
+}
+
+[TinyhandObject]
+public partial class NullableSimpleClass
+{
+    [Key(0)]
+    public double Double { get; set; }
+}
+
+public class NullableTest
+{
+    public void Test()
+    {
+        var t = new NullableTestClass();
+        var t2 = TinyhandSerializer.Deserialize<NullableTestClass>(TinyhandSerializer.Serialize(t));
+    }
+}
+```
+
+
+
+### Default value
+
+You can specify the default value for a member using `DefaultValueAttribute `(System.ComponentModel).
+
+If the serialized data does not have a matching data for a member, Tinyhand will set the default value for that member.
+
+Primitive types (bool, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, decimal, string, char, enum) are supported.
+
+```csharp
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class DefaultTestClass
+{
+    [DefaultValue(true)]
+    public bool Bool { get; set; }
+
+    [DefaultValue(77)]
+    public int Int { get; set; }
+
+    [DefaultValue("test")]
+    public string String { get; set; }
+}
+
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class StringEmptyClass
+{
+}
+
+public class DefaultTest
+{
+    public void Test()
+    {
+        var t = new StringEmptyClass();
+        var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
+    }
+}
+```
+
+You can skip serializing values if the value is identical to the default value, by using `[TinyhandObject(SkipSerializingDefaultValue = true)]`.
+
+
+
+### Serialization Callback
+
+Objects implementing the `ITinyhandSerializationCallback` interface will receive `OnBeforeSerialize` and `OnAfterDeserialize` calls during serialization/deserialization.
+
+```csharp
+[TinyhandObject]
+public partial class SampleCallback : ITinyhandSerializationCallback
+{
+    [Key(0)]
+    public int Key { get; set; }
+
+    public void OnBeforeSerialize()
+    {
+        Console.WriteLine("OnBefore");
+    }
+
+    public void OnAfterDeserialize()
+    {
+        Console.WriteLine("OnAfter");
+    }
+}
+```
 
 
 
@@ -111,11 +227,11 @@ Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-ne
 
 If you add a reference to a class library which uses Tinyhand, additional initialization code is required.
 
-The namespace of TinyhandModule is set to the name of assembly, in order to avoid namespace conflicts.
+The namespace of `TinyhandModule` is set to the name of assembly, in order to avoid namespace conflicts.
 
 ```csharp
 ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
 ```
 
-This code will no longer be needed if .NET Standard supports ModuleInitializerAttribute in the future.
+This code will no longer be needed if .NET Standard supports `ModuleInitializerAttribute` in the future.
 
