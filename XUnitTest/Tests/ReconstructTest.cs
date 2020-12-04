@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    [TinyhandObject(KeyAsPropertyName = true, ReconstructMember = false)]
+    [TinyhandObject(KeyAsPropertyName = true)]
     public partial class ReconstructTestClass
     {
         [DefaultValue(12)]
@@ -29,13 +29,14 @@ namespace Tinyhand.Tests
         [Reconstruct(true)]
         public EmptyClass? EmptyClassOn { get; set; } // new()
 
-        /*[IgnoreMember]
+        /* Error. A class to be reconstructed must have a default constructor.
+        [IgnoreMember]
         [Reconstruct(true)]
-        public ClassWithoutDefaultConstructor WithoutClass { get; set; }
+        public ClassWithoutDefaultConstructor WithoutClass { get; set; }*/
 
         [IgnoreMember]
         [Reconstruct(true)]
-        public ClassWithDefaultConstructor WithClass { get; set; }*/
+        public ClassWithDefaultConstructor WithClass { get; set; }
     }
 
     public class ClassWithoutDefaultConstructor

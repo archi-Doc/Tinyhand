@@ -55,6 +55,8 @@ namespace Tinyhand.Generator
                 {
                     return ReconstructCondition.NoDefaultConstructor;
                 }
+
+                return ReconstructCondition.Can;
             }
 
             return ReconstructCondition.NotReferenceType;

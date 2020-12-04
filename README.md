@@ -203,30 +203,56 @@ You can skip serializing values if the value is identical to the default value, 
 Tinyhand creates an instance of a member variable even if there is no matching data. By adding `[Reconstruct(false)]` or `[Reconstruct(true)]` to member attributes, you can change the behavior of whether an instance is created or not. 
 
 ```csharp
-[TinyhandObject(KeyAsPropertyName = true, ReconstructMember = false)]
-    public partial class ReconstructTestClass
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class ReconstructTestClass
+{
+    [DefaultValue(12)]
+    public int Int { get; set; } // 12
+
+    public EmptyClass EmptyClass { get; set; } = default!; // new()
+
+    [Reconstruct(false)]
+    public EmptyClass EmptyClassOff { get; set; } = default!; // null
+
+    public EmptyClass? EmptyClass2 { get; set; } // null
+
+    [Reconstruct(true)]
+    public EmptyClass? EmptyClassOn { get; set; } // new()
+
+    /* Error. A class to be reconstructed must have a default constructor.
+    [IgnoreMember]
+    [Reconstruct(true)]
+    public ClassWithoutDefaultConstructor WithoutClass { get; set; }*/
+
+    [IgnoreMember]
+    [Reconstruct(true)]
+    public ClassWithDefaultConstructor WithClass { get; set; } = default!;
+}
+
+public class ClassWithoutDefaultConstructor
+{
+    public string Name = string.Empty;
+
+    public ClassWithoutDefaultConstructor(string name)
     {
-        [DefaultValue(12)]
-        public int Int { get; set; } // 12
-
-        public EmptyClass EmptyClass { get; set; } // new()
-
-        [Reconstruct(false)]
-        public EmptyClass EmptyClassOff { get; set; } // null
-
-        public EmptyClass? EmptyClass2 { get; set; } // null
-
-        [Reconstruct(true)]
-        public EmptyClass? EmptyClassOn { get; set; } // new()
-
-        /*[IgnoreMember]
-        [Reconstruct(true)]
-        public ClassWithoutDefaultConstructor WithoutClass { get; set; }
-
-        [IgnoreMember]
-        [Reconstruct(true)]
-        public ClassWithDefaultConstructor WithClass { get; set; }*/
+        this.Name = name;
     }
+}
+
+public class ClassWithDefaultConstructor
+{
+    public string Name = string.Empty;
+
+    public ClassWithDefaultConstructor(string name)
+    {
+        this.Name = name;
+    }
+
+    public ClassWithDefaultConstructor()
+        : this(string.Empty)
+    {
+    }
+}
 ```
 
 If you don't want to create an instance with default behavior, set `ReconstructMember` of `TinyhandObject` to false ` [TinyhandObject(ReconstructMember = false)]`.

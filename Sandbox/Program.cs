@@ -6,6 +6,62 @@ using Tinyhand;
 
 namespace Sandbox
 {
+    [TinyhandObject]
+    public partial class EmptyClass
+    {
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class ReconstructTestClass
+    {
+        [DefaultValue(12)]
+        public int Int { get; set; } // 12
+
+        public EmptyClass EmptyClass { get; set; } = default!; // new()
+
+        [Reconstruct(false)]
+        public EmptyClass EmptyClassOff { get; set; } = default!; // null
+
+        public EmptyClass? EmptyClass2 { get; set; } // null
+
+        [Reconstruct(true)]
+        public EmptyClass? EmptyClassOn { get; set; } // new()
+
+        /* Error. A class to be reconstructed must have a default constructor.
+        [IgnoreMember]
+        [Reconstruct(true)]
+        public ClassWithoutDefaultConstructor WithoutClass { get; set; }*/
+
+        [IgnoreMember]
+        [Reconstruct(true)]
+        public ClassWithDefaultConstructor WithClass { get; set; } = default!;
+    }
+
+    public class ClassWithoutDefaultConstructor
+    {
+        public string Name = string.Empty;
+
+        public ClassWithoutDefaultConstructor(string name)
+        {
+            this.Name = name;
+        }
+    }
+
+    public class ClassWithDefaultConstructor
+    {
+        public string Name = string.Empty;
+
+        public ClassWithDefaultConstructor(string name)
+        {
+            this.Name = name;
+        }
+
+        public ClassWithDefaultConstructor()
+            : this(string.Empty)
+        {
+        }
+    }
+
     [TinyhandObject(KeyAsPropertyName = true, SkipSerializingDefaultValue = true)]
     public partial class DefaultTestClass
     {

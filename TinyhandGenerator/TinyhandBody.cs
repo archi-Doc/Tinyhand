@@ -99,7 +99,7 @@ namespace Tinyhand.Generator
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Warning_NoDefaultConstructor = new DiagnosticDescriptor(
-            id: "TG020", title: "No Default Constructor", messageFormat: "Reconstruct target object '{0}' should have default constructor",
+            id: "TG020", title: "No Default Constructor", messageFormat: "Reconstruct target '{0}' must have a default constructor",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Warning_NotReferenceType = new DiagnosticDescriptor(
