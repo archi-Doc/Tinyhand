@@ -1227,10 +1227,21 @@ namespace Tinyhand.Generator
         }
 
         internal void GenerateReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
-        {
+        {// Called by GenerateReconstruct()
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
             {// no object
+                return;
+            }
+
+            if (x.IsDefaultable)
+            {// Default
+                ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                return;
+            }
+
+            if (x.ReconstructState != ReconstructState.Do)
+            {
                 return;
             }
 
@@ -1273,7 +1284,7 @@ namespace Tinyhand.Generator
             using (var m = ssb.ScopeBrace($"public void Reconstruct(TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("this"))
             {
-                foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do))
+                foreach (var x in this.Members)
                 {
                     using (var c = ssb.ScopeObject(x.SimpleName))
                     {
@@ -1290,7 +1301,7 @@ namespace Tinyhand.Generator
             {
                 ssb.AppendLine($"var {v.FullObject} = new {this.FullName}();");
 
-                foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do))
+                foreach (var x in this.Members)
                 {
                     using (var c = ssb.ScopeObject(x.SimpleName))
                     {
@@ -1504,7 +1515,7 @@ namespace Tinyhand.Generator
         }
 
         internal void GenerateReconstructCore2(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, int reconstructIndex)
-        {
+        {// Called by Automata
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
             {// no object

@@ -124,16 +124,18 @@ namespace Tinyhand.Tests
             Assert.Equal<char>('c', t2.Char);
             Assert.Equal("test", t2.String);
             Assert.Equal<DefaultTestEnum>(DefaultTestEnum.B, t2.Enum);
+
+            var t3 = TinyhandSerializer.Reconstruct<DefaultTestClass>();
+            t3.IsStructuralEqual(t2);
         }
 
         [Fact]
         public void TestSkip()
         {
-            var e = new Empty2();
-            var t = TinyhandSerializer.Deserialize<DefaultTestClassSkip>(TinyhandSerializer.Serialize(e));
+            var t = TinyhandSerializer.Reconstruct<DefaultTestClassSkip>();
             var b = TinyhandSerializer.Serialize(t);
 
-            var t2 = TinyhandSerializer.Deserialize<DefaultTestClassSkip2>(TinyhandSerializer.Serialize(e));
+            var t2 = TinyhandSerializer.Reconstruct<DefaultTestClassSkip2>();
             var b2 = TinyhandSerializer.Serialize(t2);
 
             b.IsStructuralEqual(b2);
