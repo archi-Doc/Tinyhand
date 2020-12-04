@@ -198,6 +198,41 @@ You can skip serializing values if the value is identical to the default value, 
 
 
 
+### Reconstruct
+
+Tinyhand creates an instance of a member variable even if there is no matching data. By adding `[Reconstruct(false)]` or `[Reconstruct(true)]` to member attributes, you can change the behavior of whether an instance is created or not. 
+
+```csharp
+[TinyhandObject(KeyAsPropertyName = true, ReconstructMember = false)]
+    public partial class ReconstructTestClass
+    {
+        [DefaultValue(12)]
+        public int Int { get; set; } // 12
+
+        public EmptyClass EmptyClass { get; set; } // new()
+
+        [Reconstruct(false)]
+        public EmptyClass EmptyClassOff { get; set; } // null
+
+        public EmptyClass? EmptyClass2 { get; set; } // null
+
+        [Reconstruct(true)]
+        public EmptyClass? EmptyClassOn { get; set; } // new()
+
+        /*[IgnoreMember]
+        [Reconstruct(true)]
+        public ClassWithoutDefaultConstructor WithoutClass { get; set; }
+
+        [IgnoreMember]
+        [Reconstruct(true)]
+        public ClassWithDefaultConstructor WithClass { get; set; }*/
+    }
+```
+
+If you don't want to create an instance with default behavior, set `ReconstructMember` of `TinyhandObject` to false ` [TinyhandObject(ReconstructMember = false)]`.
+
+
+
 ### Serialization Callback
 
 Objects implementing the `ITinyhandSerializationCallback` interface will receive `OnBeforeSerialize` and `OnAfterDeserialize` calls during serialization/deserialization.
