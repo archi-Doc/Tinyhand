@@ -809,11 +809,22 @@ namespace Tinyhand.Generator
                 else
                 {// Other (Constructor is required)
                     this.IsDefaultable = false;
-                    if (!this.TypeObject.AllMembers.Any(x => x.Method_IsConstructor && x.Method_Parameters.Length == 1 && x.Method_Parameters[0] == this.DefaultValueTypeName))
+                    this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
+                    if (!this.TypeObject.AllMembers.Any(x => x.Kind == VisceralObjectKind.Method
+                    && x.IsPublic
+                    && x.SimpleName == TinyhandBody.SetDefaultMethod
+                    && x.Method_Parameters.Length == 1
+                    && x.Method_Parameters[0] == this.DefaultValueTypeName))
+                    {// SetDefault(type value) is required.
+                        this.DefaultValue = null;
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_SetDefaultMethod, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
+                    }
+
+                    /*if (!this.TypeObject.AllMembers.Any(x => x.Method_IsConstructor && x.Method_Parameters.Length == 1 && x.Method_Parameters[0] == this.DefaultValueTypeName))
                     {// Type-mathed constructor is required.
                         this.DefaultValue = null;
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueConstructor, this.DefaultValueLocation ?? this.Location);
-                    }
+                    }*/
                 }
             }
 

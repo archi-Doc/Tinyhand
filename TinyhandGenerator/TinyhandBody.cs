@@ -21,6 +21,7 @@ namespace Tinyhand.Generator
         public static readonly string StringKeyFieldFormat = "__gen_utf8_key_{0:D4}";
         public static readonly int MaxIntegerKey = 5_000;
         public static readonly int MaxStringKeySizeInBytes = 512;
+        public static readonly string SetDefaultMethod = "SetDefault";
 
         public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
             id: "TG001", title: "Not a partial class/struct", messageFormat: "TinyhandObject '{0}' is not a partial class/struct",
@@ -120,6 +121,10 @@ namespace Tinyhand.Generator
 
         public static readonly DiagnosticDescriptor Warning_KeyIgnored = new DiagnosticDescriptor(
             id: "TG025", title: "Key ignored", messageFormat: "KeyAttribute is ignored since ITinyhandSerialize is implemented",
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Warning_SetDefaultMethod = new DiagnosticDescriptor(
+            id: "TG026", title: "SetDefault Method", messageFormat: "To receive the default value, an implementation of 'public SetDefault({0})' method is required",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public TinyhandBody(GeneratorExecutionContext context)
