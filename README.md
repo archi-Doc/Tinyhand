@@ -1,7 +1,21 @@
-﻿## Tinyhand
-![Build and Test](https://github.com/archi-Doc/Tinyhand/workflows/Build%20and%20Test/badge.svg)
+## Tinyhand
+![Nuget](https://img.shields.io/nuget/v/Tinyhand) ![Build and Test](https://github.com/archi-Doc/Tinyhand/workflows/Build%20and%20Test/badge.svg)
 
 Tinyhand is a tiny and simple data format/serializer largely based on [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) by neuecc, AArnott.
+
+
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Performance](#performance)
+- [Features](#features)
+  - [Handling nullable reference types](#Handling-nullable-reference-types)
+  - [Default value](#Default-value)
+  - [Reconstruct](#Reconstruct)
+  - [Serialization Callback](#Serialization-Callback)
+- [External assembly](#External-assembly)
+
 
 
 

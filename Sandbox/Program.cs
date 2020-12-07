@@ -6,6 +6,40 @@ using Tinyhand;
 
 namespace Sandbox
 {
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class GenericsTestClass<T>
+    {
+        [DefaultValue(12)]
+        public int Int { get; set; } // 12
+
+        public T TValue { get; set; } = default!;
+
+        /*public partial class GenericsNestedClass<U>
+        {
+            [DefaultValue("TH")]
+            public string String { get; set; } // 12
+
+            public U UValue { get; set; }
+        }
+
+        public GenericsTestClass2<int> ClassInt { get; set; } = new();*/
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class GenericsTestClass2<V>
+    {
+        public V VValue { get; set; } = default!;
+    }
+
+    public class GenericsTest
+    {
+        public void Test1()
+        {
+            var t = TinyhandSerializer.Reconstruct<GenericsTestClass<string>>();
+            var t2 = TinyhandSerializer.Reconstruct<GenericsTestClass<long>>();
+        }
+    }
+
     [TinyhandObject]
     public partial class EmptyClass
     {

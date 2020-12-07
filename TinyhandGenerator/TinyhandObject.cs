@@ -630,6 +630,14 @@ namespace Tinyhand.Generator
                     this.Automata.AddNode(s, x);
                 }
             }
+
+            if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric)
+            {
+                if (this.ConstructedFrom is { } cf && cf.Automata == null)
+                {
+                    cf.Automata = this.Automata; // Open generic class<T> requires string key information.
+                }
+            }
         }
 
         private void CheckObject_IntKey()
@@ -1098,6 +1106,18 @@ namespace Tinyhand.Generator
                     x.Generate2(ssb, info);
                 }
 
+                if (this.ObjectAttribute != null && info.UseMemberNotNull)
+                {// MemberNotNull
+                    if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
+                    {
+                        this.GenerateMemberNotNull_MemberMethod(ssb, info);
+                    }
+                    else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
+                    {
+                        this.GenerateMemberNotNull_StaticMethod(ssb, info);
+                    }
+                }
+
                 // StringKey fields
                 this.GenerateStringKeyFields(ssb, info);
 
@@ -1394,18 +1414,6 @@ namespace Tinyhand.Generator
             else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
             {
                 this.GenerateReconstruct_StaticMethod(ssb, info);
-            }
-
-            if (info.UseMemberNotNull)
-            {// MemberNotNull
-                if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
-                {
-                    this.GenerateMemberNotNull_MemberMethod(ssb, info);
-                }
-                else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
-                {
-                    this.GenerateMemberNotNull_StaticMethod(ssb, info);
-                }
             }
 
             return;
@@ -1720,11 +1728,17 @@ namespace Tinyhand.Generator
                 return;
             }
 
+            var cf = this.ConstructedFrom; // For generics. get Class<T>
+            if (cf == null)
+            {
+                cf = this;
+            }
+
             ssb.AppendLine($"writer.WriteMapHeader({this.Automata.NodeList.Count});");
             var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
             foreach (var x in this.Automata.NodeList)
             {
-                ssb.AppendLine($"writer.WriteString({this.SimpleName}.{string.Format(TinyhandBody.StringKeyFieldFormat, x.Index)});");
+                ssb.AppendLine($"writer.WriteString({cf.LocalName}.{string.Format(TinyhandBody.StringKeyFieldFormat, x.Index)});");
                 this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
             }
         }
