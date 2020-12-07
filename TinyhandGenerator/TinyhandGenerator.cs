@@ -93,6 +93,8 @@ namespace Tinyhand.Generator
                 }
             }
 
+            this.SalvageCloseGeneric();
+
             this.body.Prepare();
             if (this.body.Abort)
             {
@@ -104,9 +106,49 @@ namespace Tinyhand.Generator
 
         public void Initialize(GeneratorInitializationContext context)
         {
-            // System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
 
             context.RegisterForSyntaxNotifications(() => new TinyhandSyntaxReceiver());
+        }
+
+        private void SalvageCloseGeneric()
+        {
+            var array = this.body.FullNameToObject.Values.ToArray();
+            foreach (var x in array)
+            {
+                SalvageCloseGenericCore(x);
+            }
+
+            void SalvageCloseGenericCore(TinyhandObject obj)
+            {
+                if (!obj.Kind.IsType() || obj.Generics_Kind == VisceralGenericsKind.OpenGeneric)
+                {// Not type or open generic
+                    return;
+                }
+
+                if (obj.ObjectAttribute != null)
+                {// Has TinyhandObject attribute
+                    this.body.Add(obj);
+                }
+
+                foreach (var y in obj.AllMembers)
+                {
+                    TinyhandObject? o = null;
+                    if (y.Kind.IsValue())
+                    {
+                        o = y.TypeObject;
+                    }
+                    else if (y.Kind.IsType())
+                    {
+                        o = y;
+                    }
+
+                    if (o != null && !o.IsPrimitive)
+                    {
+                        SalvageCloseGenericCore(o);
+                    }
+                }
+            }
         }
 
         private void ProcessSymbol(INamedTypeSymbol s)

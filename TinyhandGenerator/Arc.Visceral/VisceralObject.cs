@@ -2094,6 +2094,13 @@ namespace Arc.Visceral
         protected Type? type;
         protected MemberInfo? memberInfo;
 
+        public void GetRawInformation(out ISymbol? symbol, out Type? type, out MemberInfo? memberInfo)
+        {
+            symbol = this.symbol;
+            type = this.type;
+            memberInfo = this.memberInfo;
+        }
+
         private ImmutableArray<VisceralAttribute> SymbolToAttribute(ISymbol symbol)
         {
             var builder = ImmutableArray.CreateBuilder<VisceralAttribute>();

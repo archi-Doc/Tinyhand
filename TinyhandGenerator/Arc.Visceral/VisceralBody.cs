@@ -66,6 +66,29 @@ namespace Arc.Visceral
             this.DiagnosticItems.Clear();
         }
 
+        public T? Add(T t)
+        {
+            if (t.Kind.IsType())
+            {
+                return t;
+            }
+
+            t.GetRawInformation(out var symbol, out var type, out var memberInfo);
+            this.FullNameToObject[t.FullName] = t;
+
+            if (symbol != null)
+            {
+                this.SymbolToObject[symbol] = t;
+            }
+
+            if (type != null)
+            {
+                this.TypeToObject[type] = t;
+            }
+
+            return t;
+        }
+
         public T? Add(ISymbol symbol)
         {
             if (this.TryGet(symbol, out var result))

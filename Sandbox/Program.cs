@@ -14,15 +14,29 @@ namespace Sandbox
 
         public T TValue { get; set; } = default!;
 
-        /*public partial class GenericsNestedClass<U>
+        [TinyhandObject]
+        public partial class GenericsNestedClass<U>
         {
+            [Key(0)]
             [DefaultValue("TH")]
-            public string String { get; set; } // 12
+            public string String { get; set; } = default!; // 12
 
-            public U UValue { get; set; }
+            [Key(1)]
+            public U UValue { get; set; } = default!;
         }
 
-        public GenericsTestClass2<int> ClassInt { get; set; } = new();*/
+        [TinyhandObject]
+        public partial class GenericsNestedClass2
+        {
+            [Key(0)]
+            public string String { get; set; } = default!; // 12
+        }
+
+        public GenericsNestedClass<double> NestedClass { get; set; } = new();
+
+        public GenericsNestedClass2 NestedClass2 { get; set; } = new();
+
+        public GenericsTestClass2<int> ClassInt { get; set; } = new();
     }
 
     [TinyhandObject(KeyAsPropertyName = true)]
