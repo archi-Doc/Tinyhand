@@ -93,7 +93,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            this.SalvageCloseGeneric();
+            // this.SalvageCloseGeneric();
 
             this.body.Prepare();
             if (this.body.Abort)
@@ -121,19 +121,27 @@ namespace Tinyhand.Generator
 
             void SalvageCloseGenericCore(TinyhandObject obj)
             {
-                if (!obj.Kind.IsType() || obj.Generics_Kind == VisceralGenericsKind.OpenGeneric)
-                {// Not type or open generic
+                if (!obj.Kind.IsType() || obj.Generics_Kind != VisceralGenericsKind.CloseGeneric)
+                {// Not type or Not close generic
                     return;
                 }
 
-                if (obj.ObjectAttribute != null)
+                /*if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol))
                 {// Has TinyhandObject attribute
                     this.body.Add(obj);
-                }
+                }*/
 
                 foreach (var y in obj.AllMembers)
                 {
-                    TinyhandObject? o = null;
+                    if (y.Kind.IsValue() && y.TypeObject is { } o)
+                    {
+                        if (!o.IsPrimitive)
+                        {
+                            SalvageCloseGenericCore(o);
+                        }
+                    }
+
+                    /*TinyhandObject? o = null;
                     if (y.Kind.IsValue())
                     {
                         o = y.TypeObject;
@@ -146,7 +154,7 @@ namespace Tinyhand.Generator
                     if (o != null && !o.IsPrimitive)
                     {
                         SalvageCloseGenericCore(o);
-                    }
+                    }*/
                 }
             }
         }
