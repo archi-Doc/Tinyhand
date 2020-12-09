@@ -68,7 +68,7 @@ namespace Arc.Visceral
 
         public T? Add(T t)
         {
-            if (t.Kind.IsType())
+            if (!t.Kind.IsType())
             {
                 return t;
             }
