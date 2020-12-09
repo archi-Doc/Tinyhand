@@ -36,6 +36,7 @@ namespace Tinyhand.Generator
         private TinyhandBody body = default!;
         private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
         private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
+        private HashSet<INamedTypeSymbol?> processedSymbol = new();
 
         static TinyhandGenerator()
         {
@@ -93,7 +94,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            // this.SalvageCloseGeneric();
+            this.SalvageCloseGeneric(receiver.Generics);
 
             this.body.Prepare();
             if (this.body.Abort)
@@ -106,12 +107,66 @@ namespace Tinyhand.Generator
 
         public void Initialize(GeneratorInitializationContext context)
         {
-            System.Diagnostics.Debugger.Launch();
+            // System.Diagnostics.Debugger.Launch();
 
             context.RegisterForSyntaxNotifications(() => new TinyhandSyntaxReceiver());
         }
 
-        private void SalvageCloseGeneric()
+        private void SalvageCloseGeneric(VisceralGenerics generics)
+        {
+            var stack = new Stack<INamedTypeSymbol>();
+            foreach (var x in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.CloseGeneric))
+            {
+                SalvageCloseGenericCore(stack, x.TypeSymbol);
+            }
+
+            void SalvageCloseGenericCore(Stack<INamedTypeSymbol> stack, INamedTypeSymbol? ts)
+            {
+                if (ts == null || stack.Contains(ts))
+                {// null or already exists.
+                    return;
+                }
+                else if (ts.TypeKind != TypeKind.Class && ts.TypeKind != TypeKind.Struct)
+                {// Not type
+                    return;
+                }
+                else if (VisceralHelper.TypeToGenericsKind(ts) != VisceralGenericsKind.CloseGeneric)
+                {// Not close generic
+                    return;
+                }
+
+                this.ProcessSymbol(ts);
+
+                stack.Push(ts);
+                try
+                {
+                    foreach (var y in ts.GetBaseTypesAndThis().SelectMany(x => x.GetMembers()))
+                    {
+                        INamedTypeSymbol? nts = null;
+                        if (y is IFieldSymbol fs)
+                        {
+                            nts = (INamedTypeSymbol)fs.Type;
+                        }
+                        else if (y is IPropertySymbol ps)
+                        {
+                            nts = (INamedTypeSymbol)ps.Type;
+                        }
+
+                        // not primitive
+                        if (nts != null && nts.SpecialType == SpecialType.None)
+                        {
+                            SalvageCloseGenericCore(stack, nts);
+                        }
+                    }
+                }
+                finally
+                {
+                    stack.Pop();
+                }
+            }
+        }
+
+        /* private void SalvageCloseGeneric()
         {
             var array = this.body.FullNameToObject.Values.ToArray();
             foreach (var x in array)
@@ -126,10 +181,10 @@ namespace Tinyhand.Generator
                     return;
                 }
 
-                /*if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol))
+                if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol))
                 {// Has TinyhandObject attribute
                     this.body.Add(obj);
-                }*/
+                }
 
                 foreach (var y in obj.AllMembers)
                 {
@@ -140,27 +195,18 @@ namespace Tinyhand.Generator
                             SalvageCloseGenericCore(o);
                         }
                     }
-
-                    /*TinyhandObject? o = null;
-                    if (y.Kind.IsValue())
-                    {
-                        o = y.TypeObject;
-                    }
-                    else if (y.Kind.IsType())
-                    {
-                        o = y;
-                    }
-
-                    if (o != null && !o.IsPrimitive)
-                    {
-                        SalvageCloseGenericCore(o);
-                    }*/
                 }
             }
-        }
+        }*/
 
         private void ProcessSymbol(INamedTypeSymbol s)
         {
+            if (this.processedSymbol.Contains(s))
+            {
+                return;
+            }
+
+            this.processedSymbol.Add(s);
             foreach (var x in s.GetAttributes())
             {
                 if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol))

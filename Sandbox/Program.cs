@@ -193,6 +193,9 @@ namespace Sandbox
     {
         static void Main(string[] args)
         {
+            var tt = new GenericsTestClass<string>();
+            var tt2 = TinyhandSerializer.Deserialize<GenericsTestClass<string>>(TinyhandSerializer.Serialize(tt));
+
             var t = new StringEmptyClass();
             var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
             var b2 = TinyhandSerializer.Serialize(t2);
