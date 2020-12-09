@@ -410,7 +410,7 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            var cf = this.ConstructedFrom;
+            var cf = this.OriginalDefinition;
             if (cf == null)
             {
                 return;
@@ -633,7 +633,7 @@ namespace Tinyhand.Generator
 
             if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric)
             {
-                if (this.ConstructedFrom is { } cf && cf.Automata == null)
+                if (this.OriginalDefinition is { } cf && cf.Automata == null)
                 {
                     cf.Automata = this.Automata; // Open generic class<T> requires string key information.
                 }
@@ -1728,7 +1728,7 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            var cf = this.ConstructedFrom; // For generics. get Class<T>
+            var cf = this.OriginalDefinition; // For generics. get Class<T>
             if (cf == null)
             {
                 cf = this;

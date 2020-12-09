@@ -1069,5 +1069,212 @@ SkipLabel:
         private static ReadOnlySpan<byte> __gen_utf8_key_0002 => new byte[] { 78, 101, 115, 116, 101, 100, 67, 108, 97, 115, 115, };
         private static ReadOnlySpan<byte> __gen_utf8_key_0003 => new byte[] { 78, 101, 115, 116, 101, 100, 67, 108, 97, 115, 115, 50, };
         private static ReadOnlySpan<byte> __gen_utf8_key_0004 => new byte[] { 67, 108, 97, 115, 115, 73, 110, 116, };
+
+        public partial class GenericsNestedClass<U>
+        {
+            public static void Serialize(ref TinyhandWriter writer, GenericsNestedClass<double>? value, TinyhandSerializerOptions options)
+            {
+                if (value == null)
+                {
+                    writer.WriteNil();
+                    return;
+                }
+                writer.WriteArrayHeader(2);
+                writer.Write(value.String);
+                writer.Write(value.UValue);
+            }
+            public static GenericsNestedClass<double>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+            {
+                if (reader.TryReadNil()) return default;
+                var v = new Sandbox.GenericsTestClass<string>.GenericsNestedClass<double>();
+                var numberOfData = reader.ReadArrayHeader();
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    if (numberOfData-- > 0 && !reader.TryReadNil())
+                    {
+                        v.String = reader.ReadString() ?? string.Empty;
+                    }
+                    else
+                    {
+                        v.String = "TH";
+                    }
+                    if (numberOfData-- > 0 && !reader.TryReadNil())
+                    {
+                        v.UValue = reader.ReadDouble();
+                    }
+                    while (numberOfData-- > 0) reader.Skip();
+                }
+                finally { reader.Depth--; }
+                return v;
+            }
+            public static GenericsNestedClass<double> Reconstruct(TinyhandSerializerOptions options)
+            {
+                var v = new Sandbox.GenericsTestClass<string>.GenericsNestedClass<double>();
+                v.String = "TH";
+                return v;
+            }
+
+            public static void Serialize(ref TinyhandWriter writer, GenericsNestedClass<double>? value, TinyhandSerializerOptions options)
+            {
+                if (value == null)
+                {
+                    writer.WriteNil();
+                    return;
+                }
+                writer.WriteArrayHeader(2);
+                writer.Write(value.String);
+                writer.Write(value.UValue);
+            }
+            public static GenericsNestedClass<double>? Deserialize2(ref TinyhandReader reader, TinyhandSerializerOptions options)
+            {
+                if (reader.TryReadNil()) return default;
+                var v = new Sandbox.GenericsTestClass<long>.GenericsNestedClass<double>();
+                var numberOfData = reader.ReadArrayHeader();
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    if (numberOfData-- > 0 && !reader.TryReadNil())
+                    {
+                        v.String = reader.ReadString() ?? string.Empty;
+                    }
+                    else
+                    {
+                        v.String = "TH";
+                    }
+                    if (numberOfData-- > 0 && !reader.TryReadNil())
+                    {
+                        v.UValue = reader.ReadDouble();
+                    }
+                    while (numberOfData-- > 0) reader.Skip();
+                }
+                finally { reader.Depth--; }
+                return v;
+            }
+            public static GenericsNestedClass<double> Reconstruct2(TinyhandSerializerOptions options)
+            {
+                var v = new Sandbox.GenericsTestClass<long>.GenericsNestedClass<double>();
+                v.String = "TH";
+                return v;
+            }
+        }
+        public partial class GenericsNestedClass2
+        {
+            public static void Serialize(ref TinyhandWriter writer, GenericsNestedClass2? value, TinyhandSerializerOptions options)
+            {
+                if (value == null)
+                {
+                    writer.WriteNil();
+                    return;
+                }
+                writer.WriteArrayHeader(1);
+                writer.Write(value.String);
+            }
+            public static GenericsNestedClass2? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+            {
+                if (reader.TryReadNil()) return default;
+                var v = new Sandbox.GenericsTestClass<string>.GenericsNestedClass2();
+                var numberOfData = reader.ReadArrayHeader();
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    if (numberOfData-- > 0 && !reader.TryReadNil())
+                    {
+                        v.String = reader.ReadString() ?? string.Empty;
+                    }
+                    else
+                    {
+                        v.String = string.Empty;
+                    }
+                    while (numberOfData-- > 0) reader.Skip();
+                }
+                finally { reader.Depth--; }
+                return v;
+            }
+            public static GenericsNestedClass2 Reconstruct(TinyhandSerializerOptions options)
+            {
+                var v = new Sandbox.GenericsTestClass<string>.GenericsNestedClass2();
+                if (v.String == null) 
+                {
+                    v.String = string.Empty;
+                }
+                return v;
+            }
+
+            public static void Serialize(ref TinyhandWriter writer, GenericsNestedClass2? value, TinyhandSerializerOptions options)
+            {
+                if (value == null)
+                {
+                    writer.WriteNil();
+                    return;
+                }
+                writer.WriteArrayHeader(1);
+                writer.Write(value.String);
+            }
+            public static GenericsNestedClass2? Deserialize2(ref TinyhandReader reader, TinyhandSerializerOptions options)
+            {
+                if (reader.TryReadNil()) return default;
+                var v = new Sandbox.GenericsTestClass<long>.GenericsNestedClass2();
+                var numberOfData = reader.ReadArrayHeader();
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    if (numberOfData-- > 0 && !reader.TryReadNil())
+                    {
+                        v.String = reader.ReadString() ?? string.Empty;
+                    }
+                    else
+                    {
+                        v.String = string.Empty;
+                    }
+                    while (numberOfData-- > 0) reader.Skip();
+                }
+                finally { reader.Depth--; }
+                return v;
+            }
+            public static GenericsNestedClass2 Reconstruct2(TinyhandSerializerOptions options)
+            {
+                var v = new Sandbox.GenericsTestClass<long>.GenericsNestedClass2();
+                if (v.String == null) 
+                {
+                    v.String = string.Empty;
+                }
+                return v;
+            }
+        }
+
+        [ModuleInitializer]
+        internal static void __gen__load()
+        {
+            GeneratedResolver.Instance.SetFormatter<GenericsNestedClass<double>>(new __gen__tf__0008());
+            GeneratedResolver.Instance.SetFormatter<GenericsNestedClass<double>>(new __gen__tf__0009());
+            GeneratedResolver.Instance.SetFormatter<GenericsNestedClass2>(new __gen__tf__0010());
+            GeneratedResolver.Instance.SetFormatter<GenericsNestedClass2>(new __gen__tf__0011());
+        }
+
+        class __gen__tf__0008: ITinyhandFormatter<GenericsNestedClass<double>>
+        {
+            public void Serialize(ref TinyhandWriter w, GenericsNestedClass<double>? v, TinyhandSerializerOptions o) => GenericsNestedClass<double>.Serialize(ref w, v, o);
+            public GenericsNestedClass<double>? Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o) => GenericsNestedClass<double>.Deserialize(ref r, o);
+            public GenericsNestedClass<double> Reconstruct(TinyhandSerializerOptions o) => GenericsNestedClass<double>.Reconstruct(o);
+        }
+        class __gen__tf__0009: ITinyhandFormatter<GenericsNestedClass<double>>
+        {
+            public void Serialize(ref TinyhandWriter w, GenericsNestedClass<double>? v, TinyhandSerializerOptions o) => GenericsNestedClass<double>.Serialize(ref w, v, o);
+            public GenericsNestedClass<double>? Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o) => GenericsNestedClass<double>.Deserialize2(ref r, o);
+            public GenericsNestedClass<double> Reconstruct(TinyhandSerializerOptions o) => GenericsNestedClass<double>.Reconstruct2(o);
+        }
+        class __gen__tf__0010: ITinyhandFormatter<GenericsNestedClass2>
+        {
+            public void Serialize(ref TinyhandWriter w, GenericsNestedClass2? v, TinyhandSerializerOptions o) => GenericsNestedClass2.Serialize(ref w, v, o);
+            public GenericsNestedClass2? Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o) => GenericsNestedClass2.Deserialize(ref r, o);
+            public GenericsNestedClass2 Reconstruct(TinyhandSerializerOptions o) => GenericsNestedClass2.Reconstruct(o);
+        }
+        class __gen__tf__0011: ITinyhandFormatter<GenericsNestedClass2>
+        {
+            public void Serialize(ref TinyhandWriter w, GenericsNestedClass2? v, TinyhandSerializerOptions o) => GenericsNestedClass2.Serialize(ref w, v, o);
+            public GenericsNestedClass2? Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o) => GenericsNestedClass2.Deserialize2(ref r, o);
+            public GenericsNestedClass2 Reconstruct(TinyhandSerializerOptions o) => GenericsNestedClass2.Reconstruct2(o);
+        }
     }
 }

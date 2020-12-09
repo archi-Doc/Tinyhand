@@ -145,11 +145,11 @@ namespace Tinyhand.Generator
                         INamedTypeSymbol? nts = null;
                         if (y is IFieldSymbol fs)
                         {
-                            nts = (INamedTypeSymbol)fs.Type;
+                            nts = fs.Type as INamedTypeSymbol;
                         }
                         else if (y is IPropertySymbol ps)
                         {
-                            nts = (INamedTypeSymbol)ps.Type;
+                            nts = ps.Type as INamedTypeSymbol;
                         }
 
                         // not primitive

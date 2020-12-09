@@ -113,7 +113,7 @@ namespace Tinyhand.Coders
                     return CoderResolver.Instance.IsCoderOrFormatterAvailable(elementWithNullable);
                 }
             }
-            else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
+            else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
             {// Generics
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
                 if (this.genericsType.Contains(baseObject.FullName))

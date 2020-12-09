@@ -1229,7 +1229,47 @@ namespace Arc.Visceral
             }
         }
 
-        private bool constructedFromFlag;
+        private bool originalDefinitionFlag;
+        private T? originalDefinition;
+
+        public T? OriginalDefinition
+        {
+            get
+            {
+                if (!this.originalDefinitionFlag)
+                {// Try to aquire an object.
+                    this.originalDefinitionFlag = true;
+
+                    if (this.IsPrimitive)
+                    {
+                        return null;
+                    }
+
+                    if (this.symbol != null)
+                    {// Symbol
+                        if (this.symbol is INamedTypeSymbol ts && ts.OriginalDefinition is { } cs)
+                        {// Type
+                            if (cs.SpecialType == SpecialType.System_Object)
+                            {
+                                return null;
+                            }
+
+                            this.originalDefinition = this.Body.Add(cs);
+                        }
+                    }
+                }
+
+                return this.originalDefinition;
+            }
+
+            protected set
+            {
+                this.originalDefinitionFlag = true;
+                this.originalDefinition = value;
+            }
+        }
+
+        /*private bool constructedFromFlag;
         private T? constructedFrom;
 
         public T? ConstructedFrom
@@ -1249,10 +1289,6 @@ namespace Arc.Visceral
                     {// Symbol
                         if (this.symbol is INamedTypeSymbol ts && ts.ConstructedFrom is { } cs)
                         {// Type
-                            /*if (SymbolEqualityComparer.Default.Equals(ts, cs))
-                            {
-                                return null;
-                            }*/
                             if (cs.SpecialType == SpecialType.System_Object)
                             {
                                 return null;
@@ -1271,7 +1307,7 @@ namespace Arc.Visceral
                 this.constructedFromFlag = true;
                 this.constructedFrom = value;
             }
-        }
+        }*/
 
         private bool? isSystem;
 

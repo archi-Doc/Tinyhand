@@ -246,6 +246,19 @@ namespace Arc.Visceral
             }
         }
 
+        public string GetContainingClassName(ISymbol symbol)
+        {
+            var containingType = symbol.ContainingType;
+            var s = string.Empty;
+            while (containingType != null)
+            {
+                s = "." + this.SymbolToLocalName(containingType) + s;
+                containingType = containingType.ContainingType;
+            }
+
+            return s;
+        }
+
         public string SymbolToFullName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, true, nullableAnnotation);
 
         public string SymbolToLocalName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, false, nullableAnnotation);
