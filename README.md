@@ -80,7 +80,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
+            // TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
             // ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
 
             var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
@@ -89,6 +89,8 @@ namespace ConsoleApp1
 
             b = TinyhandSerializer.Serialize(new EmptyClass()); // Empty data
             var myClass3 = TinyhandSerializer.Deserialize<MyClass>(b); // Create an instance and set non-null values of the members.
+            
+            var myClassRecon = TinyhandSerializer.Reconstruct<MyClass>(); // Create a new instance whose members have default values.
         }
     }
 }
