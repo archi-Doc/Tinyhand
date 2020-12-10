@@ -19,7 +19,7 @@ namespace Tinyhand.Coders
                 return null;
             }
 
-            if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.ConstructedFrom is { } baseObject)
+            if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
             {// Generics
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
                 if (baseObject.FullName == "System.Collections.Generic.List<T>")

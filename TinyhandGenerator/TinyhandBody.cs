@@ -21,6 +21,7 @@ namespace Tinyhand.Generator
         public static readonly string StringKeyFieldFormat = "__gen_utf8_key_{0:D4}";
         public static readonly int MaxIntegerKey = 5_000;
         public static readonly int MaxStringKeySizeInBytes = 512;
+        public static readonly string SetDefaultMethod = "SetDefault";
 
         public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
             id: "TG001", title: "Not a partial class/struct", messageFormat: "TinyhandObject '{0}' is not a partial class/struct",
@@ -99,7 +100,7 @@ namespace Tinyhand.Generator
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Warning_NoDefaultConstructor = new DiagnosticDescriptor(
-            id: "TG020", title: "No Default Constructor", messageFormat: "Reconstruct target object '{0}' should have default constructor",
+            id: "TG020", title: "No Default Constructor", messageFormat: "Reconstruct target '{0}' must have a default constructor",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Warning_NotReferenceType = new DiagnosticDescriptor(
@@ -120,6 +121,10 @@ namespace Tinyhand.Generator
 
         public static readonly DiagnosticDescriptor Warning_KeyIgnored = new DiagnosticDescriptor(
             id: "TG025", title: "Key ignored", messageFormat: "KeyAttribute is ignored since ITinyhandSerialize is implemented",
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Warning_SetDefaultMethod = new DiagnosticDescriptor(
+            id: "TG026", title: "SetDefault Method", messageFormat: "To receive the default value, an implementation of 'public SetDefault({0})' method is required",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public TinyhandBody(GeneratorExecutionContext context)
@@ -243,7 +248,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            this.GenerateInitializer(generator, ssb, info); // Substitute for [ModuleInitializer]
+            this.GenerateInitializer(generator, ssb, info);
 
             var result = ssb.Finalize();
 
@@ -279,19 +284,22 @@ namespace Tinyhand.Generator
             using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule"))
             {
                 ssb.AppendLine("private static bool Initialized;");
+                ssb.AppendLine();
+                if (info.UseModuleInitializer)
+                {
+                    ssb.AppendLine("[ModuleInitializer]");
+                }
+
                 using (var scopeMethod = ssb.ScopeBrace("public static void Initialize()"))
                 {
                     ssb.AppendLine("if (TinyhandModule.Initialized) return;");
                     ssb.AppendLine("TinyhandModule.Initialized = true;");
-                    if (!info.UseModuleInitializer)
-                    {
-                        ssb.AppendLine();
+                    ssb.AppendLine();
 
-                        foreach (var x in info.ModuleInitializerClass)
-                        {
-                            ssb.Append(x, true);
-                            ssb.AppendLine(".__gen__load();", false);
-                        }
+                    foreach (var x in info.ModuleInitializerClass)
+                    {
+                        ssb.Append(x, true);
+                        ssb.AppendLine(".__gen__load();", false);
                     }
                 }
 

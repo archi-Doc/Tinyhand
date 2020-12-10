@@ -1,7 +1,21 @@
-﻿## Tinyhand
-![Build and Test](https://github.com/archi-Doc/Tinyhand/workflows/Build%20and%20Test/badge.svg)
+## Tinyhand
+![Nuget](https://img.shields.io/nuget/v/Tinyhand) ![Build and Test](https://github.com/archi-Doc/Tinyhand/workflows/Build%20and%20Test/badge.svg)
 
 Tinyhand is a tiny and simple data format/serializer largely based on [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) by neuecc, AArnott.
+
+
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Performance](#performance)
+- [Features](#features)
+  - [Handling nullable reference types](#Handling-nullable-reference-types)
+  - [Default value](#Default-value)
+  - [Reconstruct](#Reconstruct)
+  - [Serialization Callback](#Serialization-Callback)
+- [External assembly](#External-assembly)
+
 
 
 
@@ -66,7 +80,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
+            // TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
             // ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
 
             var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
@@ -75,6 +89,8 @@ namespace ConsoleApp1
 
             b = TinyhandSerializer.Serialize(new EmptyClass()); // Empty data
             var myClass3 = TinyhandSerializer.Deserialize<MyClass>(b); // Create an instance and set non-null values of the members.
+            
+            var myClassRecon = TinyhandSerializer.Reconstruct<MyClass>(); // Create a new instance whose members have default values.
         }
     }
 }
@@ -195,6 +211,67 @@ public class DefaultTest
 ```
 
 You can skip serializing values if the value is identical to the default value, by using `[TinyhandObject(SkipSerializingDefaultValue = true)]`.
+
+
+
+### Reconstruct
+
+Tinyhand creates an instance of a member variable even if there is no matching data. By adding `[Reconstruct(false)]` or `[Reconstruct(true)]` to member attributes, you can change the behavior of whether an instance is created or not. 
+
+```csharp
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class ReconstructTestClass
+{
+    [DefaultValue(12)]
+    public int Int { get; set; } // 12
+
+    public EmptyClass EmptyClass { get; set; } = default!; // new()
+
+    [Reconstruct(false)]
+    public EmptyClass EmptyClassOff { get; set; } = default!; // null
+
+    public EmptyClass? EmptyClass2 { get; set; } // null
+
+    [Reconstruct(true)]
+    public EmptyClass? EmptyClassOn { get; set; } // new()
+
+    /* Error. A class to be reconstructed must have a default constructor.
+    [IgnoreMember]
+    [Reconstruct(true)]
+    public ClassWithoutDefaultConstructor WithoutClass { get; set; }*/
+
+    [IgnoreMember]
+    [Reconstruct(true)]
+    public ClassWithDefaultConstructor WithClass { get; set; } = default!;
+}
+
+public class ClassWithoutDefaultConstructor
+{
+    public string Name = string.Empty;
+
+    public ClassWithoutDefaultConstructor(string name)
+    {
+        this.Name = name;
+    }
+}
+
+public class ClassWithDefaultConstructor
+{
+    public string Name = string.Empty;
+
+    public ClassWithDefaultConstructor(string name)
+    {
+        this.Name = name;
+    }
+
+    public ClassWithDefaultConstructor()
+        : this(string.Empty)
+    {
+    }
+}
+```
+
+If you don't want to create an instance with default behavior, set `ReconstructMember` of `TinyhandObject` to false ` [TinyhandObject(ReconstructMember = false)]`.
 
 
 

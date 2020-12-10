@@ -60,6 +60,9 @@ namespace Tinyhand.Tests
 
         [DefaultValue(DefaultTestEnum.B)]
         public DefaultTestEnum Enum;
+
+        [DefaultValue("Test")]
+        public DefaultTestClassName NameClass { get; set; }
     }
 
     [TinyhandObject(SkipSerializingDefaultValue = true)]
@@ -94,6 +97,21 @@ namespace Tinyhand.Tests
         public double Double { get; set; }
     }
 
+    [TinyhandObject]
+    public partial class DefaultTestClassName
+    {
+        public DefaultTestClassName()
+        {
+        }
+
+        public void SetDefault(string name)
+        {
+            this.Name = name;
+        }
+
+        public string Name { get; private set; }
+    }
+
     public enum DefaultTestEnum
     {
         A,
@@ -124,6 +142,7 @@ namespace Tinyhand.Tests
             Assert.Equal<char>('c', t2.Char);
             Assert.Equal("test", t2.String);
             Assert.Equal<DefaultTestEnum>(DefaultTestEnum.B, t2.Enum);
+            // Assert.Equal("Test", t2.NameClass.Name);
 
             var t3 = TinyhandSerializer.Reconstruct<DefaultTestClass>();
             t3.IsStructuralEqual(t2);

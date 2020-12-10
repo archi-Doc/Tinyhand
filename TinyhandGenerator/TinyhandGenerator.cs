@@ -36,6 +36,9 @@ namespace Tinyhand.Generator
         private TinyhandBody body = default!;
         private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
         private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
+#pragma warning disable RS1024
+        private HashSet<INamedTypeSymbol?> processedSymbol = new();
+#pragma warning restore RS1024
 
         static TinyhandGenerator()
         {
@@ -93,6 +96,8 @@ namespace Tinyhand.Generator
                 }
             }
 
+            this.SalvageCloseGeneric(receiver.Generics);
+
             this.body.Prepare();
             if (this.body.Abort)
             {
@@ -109,8 +114,101 @@ namespace Tinyhand.Generator
             context.RegisterForSyntaxNotifications(() => new TinyhandSyntaxReceiver());
         }
 
+        private void SalvageCloseGeneric(VisceralGenerics generics)
+        {
+            var stack = new Stack<INamedTypeSymbol>();
+            foreach (var x in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.CloseGeneric))
+            {
+                SalvageCloseGenericCore(stack, x.TypeSymbol);
+            }
+
+            void SalvageCloseGenericCore(Stack<INamedTypeSymbol> stack, INamedTypeSymbol? ts)
+            {
+                if (ts == null || stack.Contains(ts))
+                {// null or already exists.
+                    return;
+                }
+                else if (ts.TypeKind != TypeKind.Class && ts.TypeKind != TypeKind.Struct)
+                {// Not type
+                    return;
+                }
+                else if (VisceralHelper.TypeToGenericsKind(ts) != VisceralGenericsKind.CloseGeneric)
+                {// Not close generic
+                    return;
+                }
+
+                this.ProcessSymbol(ts);
+
+                stack.Push(ts);
+                try
+                {
+                    foreach (var y in ts.GetBaseTypesAndThis().SelectMany(x => x.GetMembers()))
+                    {
+                        INamedTypeSymbol? nts = null;
+                        if (y is IFieldSymbol fs)
+                        {
+                            nts = fs.Type as INamedTypeSymbol;
+                        }
+                        else if (y is IPropertySymbol ps)
+                        {
+                            nts = ps.Type as INamedTypeSymbol;
+                        }
+
+                        // not primitive
+                        if (nts != null && nts.SpecialType == SpecialType.None)
+                        {
+                            SalvageCloseGenericCore(stack, nts);
+                        }
+                    }
+                }
+                finally
+                {
+                    stack.Pop();
+                }
+            }
+        }
+
+        /* private void SalvageCloseGeneric()
+        {
+            var array = this.body.FullNameToObject.Values.ToArray();
+            foreach (var x in array)
+            {
+                SalvageCloseGenericCore(x);
+            }
+
+            void SalvageCloseGenericCore(TinyhandObject obj)
+            {
+                if (!obj.Kind.IsType() || obj.Generics_Kind != VisceralGenericsKind.CloseGeneric)
+                {// Not type or Not close generic
+                    return;
+                }
+
+                if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol))
+                {// Has TinyhandObject attribute
+                    this.body.Add(obj);
+                }
+
+                foreach (var y in obj.AllMembers)
+                {
+                    if (y.Kind.IsValue() && y.TypeObject is { } o)
+                    {
+                        if (!o.IsPrimitive)
+                        {
+                            SalvageCloseGenericCore(o);
+                        }
+                    }
+                }
+            }
+        }*/
+
         private void ProcessSymbol(INamedTypeSymbol s)
         {
+            if (this.processedSymbol.Contains(s))
+            {
+                return;
+            }
+
+            this.processedSymbol.Add(s);
             foreach (var x in s.GetAttributes())
             {
                 if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol))

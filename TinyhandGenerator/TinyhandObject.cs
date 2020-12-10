@@ -410,7 +410,7 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            var cf = this.ConstructedFrom;
+            var cf = this.OriginalDefinition;
             if (cf == null)
             {
                 return;
@@ -630,6 +630,14 @@ namespace Tinyhand.Generator
                     this.Automata.AddNode(s, x);
                 }
             }
+
+            if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric)
+            {
+                if (this.OriginalDefinition is { } cf && cf.Automata == null)
+                {
+                    cf.Automata = this.Automata; // Open generic class<T> requires string key information.
+                }
+            }
         }
 
         private void CheckObject_IntKey()
@@ -809,11 +817,22 @@ namespace Tinyhand.Generator
                 else
                 {// Other (Constructor is required)
                     this.IsDefaultable = false;
-                    if (!this.TypeObject.AllMembers.Any(x => x.Method_IsConstructor && x.Method_Parameters.Length == 1 && x.Method_Parameters[0] == this.DefaultValueTypeName))
+                    this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
+                    if (!this.TypeObject.AllMembers.Any(x => x.Kind == VisceralObjectKind.Method
+                    && x.IsPublic
+                    && x.SimpleName == TinyhandBody.SetDefaultMethod
+                    && x.Method_Parameters.Length == 1
+                    && x.Method_Parameters[0] == this.DefaultValueTypeName))
+                    {// SetDefault(type value) is required.
+                        this.DefaultValue = null;
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_SetDefaultMethod, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
+                    }
+
+                    /*if (!this.TypeObject.AllMembers.Any(x => x.Method_IsConstructor && x.Method_Parameters.Length == 1 && x.Method_Parameters[0] == this.DefaultValueTypeName))
                     {// Type-mathed constructor is required.
                         this.DefaultValue = null;
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueConstructor, this.DefaultValueLocation ?? this.Location);
-                    }
+                    }*/
                 }
             }
 
@@ -916,15 +935,13 @@ namespace Tinyhand.Generator
             var classFormat = "__gen__tf__{0:D4}";
             var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null);
 
-            if (info.UseModuleInitializer)
+            if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
             {
-                ssb.AppendLine("[ModuleInitializer]");
-            }
-            else
-            {
-                if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
+                // info.ModuleInitializerClass.Add(containingObject.FullName);
+                var constructedList = containingObject.ConstructedObjects;
+                if (constructedList != null && constructedList.Count > 0)
                 {
-                    info.ModuleInitializerClass.Add(containingObject.FullName);
+                    info.ModuleInitializerClass.Add(constructedList[0].FullName);
                 }
             }
 
@@ -933,7 +950,7 @@ namespace Tinyhand.Generator
                 foreach (var x in list2)
                 {
                     var name = string.Format(classFormat, x.FormatterNumber);
-                    var typeName = appendNamespace ? x.FullName : x.LocalName;
+                    var typeName = appendNamespace ? x.FullName : x.RegionalName;
                     ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{typeName}>(new {name}());");
                 }
             }
@@ -943,7 +960,7 @@ namespace Tinyhand.Generator
             foreach (var x in list2)
             {
                 var name = string.Format(classFormat, x.FormatterNumber);
-                var typeName = appendNamespace ? x.FullName : x.LocalName;
+                var typeName = appendNamespace ? x.FullName : x.RegionalName;
                 using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{typeName}>"))
                 {
                     // Serialize
@@ -1087,6 +1104,18 @@ namespace Tinyhand.Generator
                     x.Generate2(ssb, info);
                 }
 
+                if (this.ObjectAttribute != null && info.UseMemberNotNull)
+                {// MemberNotNull
+                    if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
+                    {
+                        this.GenerateMemberNotNull_MemberMethod(ssb, info);
+                    }
+                    else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
+                    {
+                        this.GenerateMemberNotNull_StaticMethod(ssb, info);
+                    }
+                }
+
                 // StringKey fields
                 this.GenerateStringKeyFields(ssb, info);
 
@@ -1155,7 +1184,7 @@ namespace Tinyhand.Generator
 
         internal void GenerateSerialize_StaticMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"public static void Serialize(ref TinyhandWriter writer, {this.LocalName + this.QuestionMarkIfReferenceType} value, TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"public static void Serialize(ref TinyhandWriter writer, {this.RegionalName + this.QuestionMarkIfReferenceType} value, TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("value"))
             {
                 if (this.Kind.IsReferenceType())
@@ -1202,7 +1231,7 @@ namespace Tinyhand.Generator
 
         internal void GenerateDeserialize_StaticMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"public static {this.LocalName + this.QuestionMarkIfReferenceType} Deserialize{this.GenericsNumberString}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"public static {this.RegionalName + this.QuestionMarkIfReferenceType} Deserialize{this.GenericsNumberString}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
             {
                 ssb.AppendLine("if (reader.TryReadNil()) return default;"); // Nil checked
                 ssb.AppendLine($"var v = new {this.FullName}();");
@@ -1296,7 +1325,7 @@ namespace Tinyhand.Generator
 
         internal void GenerateReconstruct_StaticMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"public static {this.LocalName} Reconstruct{this.GenericsNumberString}(TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"public static {this.RegionalName} Reconstruct{this.GenericsNumberString}(TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("v"))
             {
                 ssb.AppendLine($"var {v.FullObject} = new {this.FullName}();");
@@ -1383,18 +1412,6 @@ namespace Tinyhand.Generator
             else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
             {
                 this.GenerateReconstruct_StaticMethod(ssb, info);
-            }
-
-            if (info.UseMemberNotNull)
-            {// MemberNotNull
-                if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
-                {
-                    this.GenerateMemberNotNull_MemberMethod(ssb, info);
-                }
-                else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
-                {
-                    this.GenerateMemberNotNull_StaticMethod(ssb, info);
-                }
             }
 
             return;
@@ -1709,11 +1726,17 @@ namespace Tinyhand.Generator
                 return;
             }
 
+            var cf = this.OriginalDefinition; // For generics. get Class<T>
+            if (cf == null)
+            {
+                cf = this;
+            }
+
             ssb.AppendLine($"writer.WriteMapHeader({this.Automata.NodeList.Count});");
             var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
             foreach (var x in this.Automata.NodeList)
             {
-                ssb.AppendLine($"writer.WriteString({this.SimpleName}.{string.Format(TinyhandBody.StringKeyFieldFormat, x.Index)});");
+                ssb.AppendLine($"writer.WriteString({cf.LocalName}.{string.Format(TinyhandBody.StringKeyFieldFormat, x.Index)});");
                 this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
             }
         }
