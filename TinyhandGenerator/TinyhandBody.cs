@@ -248,7 +248,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            this.GenerateInitializer(generator, ssb, info); // Substitute for [ModuleInitializer]
+            this.GenerateInitializer(generator, ssb, info);
 
             var result = ssb.Finalize();
 
@@ -284,19 +284,22 @@ namespace Tinyhand.Generator
             using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule"))
             {
                 ssb.AppendLine("private static bool Initialized;");
+                ssb.AppendLine();
+                if (info.UseModuleInitializer)
+                {
+                    ssb.AppendLine("[ModuleInitializer]");
+                }
+
                 using (var scopeMethod = ssb.ScopeBrace("public static void Initialize()"))
                 {
                     ssb.AppendLine("if (TinyhandModule.Initialized) return;");
                     ssb.AppendLine("TinyhandModule.Initialized = true;");
-                    if (!info.UseModuleInitializer)
-                    {
-                        ssb.AppendLine();
+                    ssb.AppendLine();
 
-                        foreach (var x in info.ModuleInitializerClass)
-                        {
-                            ssb.Append(x, true);
-                            ssb.AppendLine(".__gen__load();", false);
-                        }
+                    foreach (var x in info.ModuleInitializerClass)
+                    {
+                        ssb.Append(x, true);
+                        ssb.AppendLine(".__gen__load();", false);
                     }
                 }
 

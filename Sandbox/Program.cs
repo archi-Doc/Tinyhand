@@ -6,7 +6,7 @@ using Tinyhand;
 
 namespace Sandbox
 {
-    /*[TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(KeyAsPropertyName = true)]
     public partial class GenericsTestClass<T>
     {
         [DefaultValue(12)]
@@ -52,7 +52,7 @@ namespace Sandbox
             var t = TinyhandSerializer.Reconstruct<GenericsTestClass<string>>();
             var t2 = TinyhandSerializer.Reconstruct<GenericsTestClass<long>>();
         }
-    }*/
+    }
 
     [TinyhandObject]
     public partial class EmptyClass
@@ -193,8 +193,8 @@ namespace Sandbox
     {
         static void Main(string[] args)
         {
-            //var tt = new GenericsTestClass<string>();
-            //var tt2 = TinyhandSerializer.Deserialize<GenericsTestClass<string>>(TinyhandSerializer.Serialize(tt));
+            var tt = new GenericsTestClass<string>();
+            var tt2 = TinyhandSerializer.Deserialize<GenericsTestClass<string>>(TinyhandSerializer.Serialize(tt));
 
             var t = new StringEmptyClass();
             var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));

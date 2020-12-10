@@ -212,7 +212,7 @@ namespace Arc.Visceral
                 {
                     if (nts.Name == "Nullable" && nts.ContainingNamespace.Name == "System" && nts.TypeArguments.Length == 1)
                     {// Nullable<T>
-                        name = this.SymbolToName(nts.TypeArguments[0], false, false);
+                        name = this.SymbolToName(nts.TypeArguments[0], NameFormat.None, false);
                         return VisceralHelper.Primitives_ShortenSimpleName(name) ?? name; // + "?";
                     }
                 }
@@ -224,7 +224,7 @@ namespace Arc.Visceral
             return symbol.Name;
         }
 
-        public string GetNamespaceAndClass(ISymbol symbol)
+        /*public string GetNamespaceAndClass(ISymbol symbol)
         {
             if (symbol.ContainingType == null)
             {
@@ -257,11 +257,13 @@ namespace Arc.Visceral
             }
 
             return s;
-        }
+        }*/
 
-        public string SymbolToFullName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, true, nullableAnnotation);
+        public string SymbolToFullName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, NameFormat.AddNamespaceAndClass, nullableAnnotation);
 
-        public string SymbolToLocalName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, false, nullableAnnotation);
+        public string SymbolToRegionalName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, NameFormat.AddClass, nullableAnnotation);
+
+        public string SymbolToLocalName(ISymbol symbol, bool nullableAnnotation = false) => this.SymbolToName(symbol, NameFormat.None, nullableAnnotation);
 
         /*public SymbolDisplayFormat FormatDisplayName { get; } = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -329,18 +331,48 @@ namespace Arc.Visceral
             }
         }
 
-        private string SymbolToName(ISymbol symbol, bool addNamespaceClass, bool addNullableAnnotation)
+        private enum NameFormat
+        {
+            None, // Local
+            AddClass, // Regional
+            AddNamespaceAndClass, // Full
+        }
+
+        private string GetNamespaceClassPeriod(ISymbol symbol, NameFormat nameFormat)
+        {
+            if (nameFormat == NameFormat.None)
+            {
+                return string.Empty;
+            }
+
+            // Add Class
+            var containingType = symbol.ContainingType;
+            var result = string.Empty;
+            while (containingType != null)
+            {
+                result = this.SymbolToLocalName(containingType) + "." + result;
+                containingType = containingType.ContainingType;
+            }
+
+            if (nameFormat == NameFormat.AddNamespaceAndClass)
+            {// Add Namespace
+                var ns = symbol.ContainingNamespace.ToDisplayString();
+                if (ns.Length > 0)
+                {
+                    result = ns + "." + result;
+                }
+            }
+
+            return result;
+        }
+
+        private string SymbolToName(ISymbol symbol, NameFormat nameFormat, bool addNullableAnnotation)
         {
             StringBuilder sb;
 
             if (symbol is IMethodSymbol mb)
             {// Method
-                sb = new StringBuilder();
-                if (addNamespaceClass)
-                {
-                    sb.Append(this.GetNamespaceAndClass(symbol));
-                    sb.Append('.');
-                }
+                sb = new StringBuilder(this.GetNamespaceClassPeriod(symbol, nameFormat));
 
                 if (mb.MethodKind == MethodKind.Constructor)
                 {
@@ -361,7 +393,7 @@ namespace Arc.Visceral
                             sb.Append(", ");
                         }
 
-                        sb.Append(this.SymbolToName(mb.TypeArguments[i], true, addNullableAnnotation));
+                        sb.Append(this.SymbolToName(mb.TypeArguments[i], NameFormat.AddNamespaceAndClass, addNullableAnnotation));
                     }
 
                     sb.Append('>');
@@ -375,7 +407,7 @@ namespace Arc.Visceral
                         sb.Append(", ");
                     }
 
-                    sb.Append(this.SymbolToName(mb.Parameters[i].Type, true, addNullableAnnotation));
+                    sb.Append(this.SymbolToName(mb.Parameters[i].Type, NameFormat.AddNamespaceAndClass, addNullableAnnotation));
                 }
 
                 sb.Append(')');
@@ -384,7 +416,7 @@ namespace Arc.Visceral
             }
             else if (symbol is IArrayTypeSymbol ats)
             {// Array []
-                sb = new StringBuilder(this.SymbolToName(ats.ElementType, addNamespaceClass, addNullableAnnotation));
+                sb = new StringBuilder(this.SymbolToName(ats.ElementType, nameFormat, addNullableAnnotation));
                 /*if (addNullableAnnotation && ats.ElementNullableAnnotation == Microsoft.CodeAnalysis.NullableAnnotation.Annotated)
                 {
                     sb.Append('?');
@@ -433,14 +465,7 @@ namespace Arc.Visceral
                         return shortName;
                     }
 
-                    if (addNamespaceClass)
-                    {
-                        return this.GetNamespaceAndClass(symbol) + "." + name;
-                    }
-                    else
-                    {
-                        return name;
-                    }
+                    return this.GetNamespaceClassPeriod(symbol, nameFormat) + name;
                 }
 
                 if (ts.IsTupleType)
@@ -455,44 +480,20 @@ namespace Arc.Visceral
                             sb.Append(", ");
                         }
 
-                        sb.Append(this.SymbolToName(ts.TypeArguments[i], true, addNullableAnnotation));
+                        sb.Append(this.SymbolToName(ts.TypeArguments[i], NameFormat.AddNamespaceAndClass, addNullableAnnotation));
                     }
 
                     sb.Append(')');
                 }
                 else if (ts.Name == "Nullable" && ts.ContainingNamespace.Name == "System" && ts.TypeArguments.Length == 1)
                 {// Nullable<T>
-                    var name = this.SymbolToName(ts.TypeArguments[0], addNamespaceClass, addNullableAnnotation);
-                    if (addNamespaceClass)
-                    {
-                        var shortName = VisceralHelper.Primitives_ShortenFullName(name);
-                        if (shortName != null)
-                        {
-                            return shortName + "?";
-                        }
-                        else
-                        {
-                            return name + "?";
-                        }
-                    }
-                    else
-                    {
-                        return (VisceralHelper.Primitives_ShortenSimpleName(name) ?? name) + "?";
-                    }
+                    var name = this.SymbolToName(ts.TypeArguments[0], nameFormat, addNullableAnnotation);
+                    return (VisceralHelper.Primitives_ShortenName(name) ?? name) + "?";
                 }
                 else
                 {// Generic Class
-                    if (addNamespaceClass)
-                    {
-                        sb = new StringBuilder(this.GetNamespaceAndClass(symbol));
-                        sb.Append('.');
-                        sb.Append(ts.Name);
-                    }
-                    else
-                    {
-                        sb = new StringBuilder(ts.Name);
-                    }
-
+                    sb = new StringBuilder(this.GetNamespaceClassPeriod(symbol, nameFormat));
+                    sb.Append(ts.Name);
                     sb.Append('<');
                     for (var i = 0; i < ts.TypeArguments.Length; i++)
                     {
@@ -501,7 +502,7 @@ namespace Arc.Visceral
                             sb.Append(", ");
                         }
 
-                        sb.Append(this.SymbolToName(ts.TypeArguments[i], true, addNullableAnnotation));
+                        sb.Append(this.SymbolToName(ts.TypeArguments[i], NameFormat.AddNamespaceAndClass, addNullableAnnotation));
                     }
 
                     sb.Append('>');
@@ -516,7 +517,7 @@ namespace Arc.Visceral
             }
             else
             {
-                return addNamespaceClass ? this.GetNamespaceAndClass(symbol) + '.' + symbol.Name : symbol.Name;
+                return this.GetNamespaceClassPeriod(symbol, nameFormat) + symbol.Name;
             }
         }
     }

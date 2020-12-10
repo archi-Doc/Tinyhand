@@ -740,6 +740,43 @@ namespace Arc.Visceral
             }
         }
 
+        private string? regionalName;
+
+        public string RegionalName
+        {// regional name of the type. Class+LocalName
+            // class.name, Int32, class.Method(String)
+            get
+            {
+                if (this.regionalName == null)
+                {
+                    if (this.symbol != null)
+                    {
+                        this.regionalName = this.Body.SymbolToRegionalName(this.symbol);
+                    }
+                    else if (this.type != null)
+                    {
+                        this.regionalName = VisceralHelper.TypeToFullName(this.type);
+                    }
+                    else if (this.memberInfo != null)
+                    {
+                        this.regionalName = VisceralHelper.MemberInfoToFullName(this.memberInfo);
+                    }
+
+                    if (this.regionalName == null)
+                    {
+                        this.regionalName = string.Empty;
+                    }
+                }
+
+                return this.regionalName;
+            }
+
+            protected set
+            {
+                this.regionalName = value;
+            }
+        }
+
         private string? fullName;
 
         public string FullName

@@ -935,15 +935,13 @@ namespace Tinyhand.Generator
             var classFormat = "__gen__tf__{0:D4}";
             var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null);
 
-            if (info.UseModuleInitializer)
+            if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
             {
-                ssb.AppendLine("[ModuleInitializer]");
-            }
-            else
-            {
-                if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
+                // info.ModuleInitializerClass.Add(containingObject.FullName);
+                var constructedList = containingObject.ConstructedObjects;
+                if (constructedList != null && constructedList.Count > 0)
                 {
-                    info.ModuleInitializerClass.Add(containingObject.FullName);
+                    info.ModuleInitializerClass.Add(constructedList[0].FullName);
                 }
             }
 
@@ -952,7 +950,7 @@ namespace Tinyhand.Generator
                 foreach (var x in list2)
                 {
                     var name = string.Format(classFormat, x.FormatterNumber);
-                    var typeName = appendNamespace ? x.FullName : x.LocalName;
+                    var typeName = appendNamespace ? x.FullName : x.RegionalName;
                     ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{typeName}>(new {name}());");
                 }
             }
@@ -962,7 +960,7 @@ namespace Tinyhand.Generator
             foreach (var x in list2)
             {
                 var name = string.Format(classFormat, x.FormatterNumber);
-                var typeName = appendNamespace ? x.FullName : x.LocalName;
+                var typeName = appendNamespace ? x.FullName : x.RegionalName;
                 using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{typeName}>"))
                 {
                     // Serialize
@@ -1186,7 +1184,7 @@ namespace Tinyhand.Generator
 
         internal void GenerateSerialize_StaticMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"public static void Serialize(ref TinyhandWriter writer, {this.LocalName + this.QuestionMarkIfReferenceType} value, TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"public static void Serialize(ref TinyhandWriter writer, {this.RegionalName + this.QuestionMarkIfReferenceType} value, TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("value"))
             {
                 if (this.Kind.IsReferenceType())
@@ -1233,7 +1231,7 @@ namespace Tinyhand.Generator
 
         internal void GenerateDeserialize_StaticMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"public static {this.LocalName + this.QuestionMarkIfReferenceType} Deserialize{this.GenericsNumberString}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"public static {this.RegionalName + this.QuestionMarkIfReferenceType} Deserialize{this.GenericsNumberString}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
             {
                 ssb.AppendLine("if (reader.TryReadNil()) return default;"); // Nil checked
                 ssb.AppendLine($"var v = new {this.FullName}();");
@@ -1327,7 +1325,7 @@ namespace Tinyhand.Generator
 
         internal void GenerateReconstruct_StaticMethod(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"public static {this.LocalName} Reconstruct{this.GenericsNumberString}(TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"public static {this.RegionalName} Reconstruct{this.GenericsNumberString}(TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("v"))
             {
                 ssb.AppendLine($"var {v.FullObject} = new {this.FullName}();");

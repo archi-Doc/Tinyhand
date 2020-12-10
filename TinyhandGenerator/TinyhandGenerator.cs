@@ -36,7 +36,9 @@ namespace Tinyhand.Generator
         private TinyhandBody body = default!;
         private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
         private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
+#pragma warning disable RS1024
         private HashSet<INamedTypeSymbol?> processedSymbol = new();
+#pragma warning restore RS1024
 
         static TinyhandGenerator()
         {
