@@ -244,7 +244,7 @@ namespace Tinyhand.Generator
                 {
                     info.FinalizeBlock(ssb);
 
-                    TinyhandObject.GenerateLoader(ssb, info, rootObjects, true);
+                    TinyhandObject.GenerateLoader(ssb, info, rootObjects);
                 }
             }
 

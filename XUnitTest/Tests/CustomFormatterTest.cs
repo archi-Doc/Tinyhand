@@ -18,7 +18,7 @@ namespace Tinyhand.Tests
 
         public string Name { get; set; } = default!;
 
-        public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        void ITinyhandSerialize.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
         {
             if (!reader.TryReadNil())
             {

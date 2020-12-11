@@ -930,7 +930,7 @@ namespace Tinyhand.Generator
             this.CheckObject();
         }
 
-        public static void GenerateLoader(ScopingStringBuilder ssb, GeneratorInformation info, List<TinyhandObject> list, bool appendNamespace)
+        public static void GenerateLoader(ScopingStringBuilder ssb, GeneratorInformation info, List<TinyhandObject> list)
         {
             var classFormat = "__gen__tf__{0:D4}";
             var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null);
@@ -950,8 +950,7 @@ namespace Tinyhand.Generator
                 foreach (var x in list2)
                 {
                     var name = string.Format(classFormat, x.FormatterNumber);
-                    var typeName = appendNamespace ? x.FullName : x.RegionalName;
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{typeName}>(new {name}());");
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
                 }
             }
 
@@ -960,115 +959,25 @@ namespace Tinyhand.Generator
             foreach (var x in list2)
             {
                 var name = string.Format(classFormat, x.FormatterNumber);
-                var typeName = appendNamespace ? x.FullName : x.RegionalName;
-                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{typeName}>"))
+                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{x.FullName}>"))
                 {
                     // Serialize
-                    if (x.MethodCondition_Serialize == MethodCondition.StaticMethod)
-                    {// Static method
-                        using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter w, {typeName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions o)"))
-                        {
-                            if (x.Kind.IsReferenceType())
-                            {// Reference type
-                                ssb.AppendLine("if (v == null) { w.WriteNil(); return; }");
-                            }
-
-                            ssb.AppendLine($"{typeName}.Serialize(ref w, v, o);");
-                        }
-                    }
-                    else if (x.MethodCondition_Serialize == MethodCondition.ExplicitlyDeclared)
-                    {// Explicitly declared (Interface.Method())
-                        using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter w, {typeName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions o)"))
-                        {
-                            if (x.Kind.IsReferenceType())
-                            {// Reference type
-                                ssb.AppendLine("if (v == null) { w.WriteNil(); return; }");
-                            }
-
-                            ssb.AppendLine("((ITinyhandSerialize)v).Serialize(ref w, o);");
-                        }
-                    }
-                    else
-                    {// Member method
-                        using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter w, {typeName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions o)"))
-                        {
-                            if (x.Kind.IsReferenceType())
-                            {// Reference type
-                                ssb.AppendLine("if (v == null) { w.WriteNil(); return; }");
-                            }
-
-                            ssb.AppendLine("v.Serialize(ref w, o);");
-                        }
+                    using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"))
+                    using (var value = ssb.ScopeObject("v"))
+                    {
+                        x.GenerateFormatter_Serialize(ssb, info);
                     }
 
                     // Deserialize
-                    if (x.MethodCondition_Deserialize == MethodCondition.StaticMethod)
-                    {// Static method
-                        using (var d = ssb.ScopeBrace($"public {typeName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o)"))
-                        {
-                            if (x.Kind.IsReferenceType())
-                            {// Reference type
-                                ssb.AppendLine("if (r.TryReadNil()) return default;");
-                            }
-
-                            ssb.AppendLine($"var v = new {typeName}();");
-                            ssb.AppendLine($"{typeName}.Deserialize{x.GenericsNumberString}(ref v, ref r, o);");
-                            ssb.AppendLine("return v;");
-                        }
-                    }
-                    else if (x.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared)
-                    {// Explicitly declared (Interface.Method())
-                        if (x.Kind.IsReferenceType())
-                        {// Reference type
-                            ssb.AppendLine("if (r.TryReadNil()) return default;");
-                        }
-
-                        ssb.AppendLine($"var v = new {typeName}();");
-                        ssb.AppendLine("((ITinyhandSerialize)v).Deserialize(ref r, o);");
-                        ssb.AppendLine("return v;");
-                    }
-                    else
-                    {// Member method
-                        using (var d = ssb.ScopeBrace($"public {typeName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader r, TinyhandSerializerOptions o)"))
-                        {
-                            if (x.Kind.IsReferenceType())
-                            {// Reference type
-                                ssb.AppendLine("if (r.TryReadNil()) return default;");
-                            }
-
-                            ssb.AppendLine($"var v = new {typeName}();");
-                            ssb.AppendLine("v.Deserialize(ref r, o);");
-                            ssb.AppendLine("return v;");
-                        }
+                    using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+                    {
+                        x.GenerateFormatter_Deserialize(ssb, info);
                     }
 
                     // Reconstruct
-                    if (x.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
-                    {// Static method
-                        using (var r = ssb.ScopeBrace($"public {typeName} Reconstruct(TinyhandSerializerOptions o)"))
-                        {
-                            ssb.AppendLine($"var v = new {typeName}();");
-                            ssb.AppendLine($"{typeName}.Reconstruct{x.GenericsNumberString}(ref v, o);");
-                            ssb.AppendLine("return v;");
-                        }
-                    }
-                    else if (x.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
-                    {// Explicitly declared (Interface.Method())
-                        using (var r = ssb.ScopeBrace($"public {typeName} Reconstruct(TinyhandSerializerOptions o)"))
-                        {
-                            ssb.AppendLine($"var v = new {typeName}();");
-                            ssb.AppendLine("((ITinyhandReconstruct)v).Reconstruct(o);");
-                            ssb.AppendLine("return v;");
-                        }
-                    }
-                    else
-                    {// Member method
-                        using (var r = ssb.ScopeBrace($"public {typeName} Reconstruct(TinyhandSerializerOptions o)"))
-                        {
-                            ssb.AppendLine($"var v = new {typeName}();");
-                            ssb.AppendLine("v.Reconstruct(o);");
-                            ssb.AppendLine("return v;");
-                        }
+                    using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct(TinyhandSerializerOptions options)"))
+                    {
+                        x.GenerateFormatter_Reconstruct(ssb, info);
                     }
                 }
             }
@@ -1145,7 +1054,7 @@ namespace Tinyhand.Generator
                     }
 
                     ssb.AppendLine();
-                    GenerateLoader(ssb, info, this.Children, false);
+                    GenerateLoader(ssb, info, this.Children);
                 }
             }
         }
@@ -1215,6 +1124,72 @@ namespace Tinyhand.Generator
                     this.GenerateSerializerIntKey(ssb, info);
                 }
             }
+        }
+
+        internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.Kind.IsReferenceType())
+            {// Reference type
+                ssb.AppendLine($"if ({ssb.FullObject} == null) {{ writer.WriteNil(); return; }}");
+            }
+
+            if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
+            {// Static method
+                ssb.AppendLine($"{this.FullName}.Serialize(ref writer, {ssb.FullObject}, options);");
+            }
+            else if (this.MethodCondition_Serialize == MethodCondition.ExplicitlyDeclared)
+            {// Explicitly declared (Interface.Method())
+                ssb.AppendLine($"((ITinyhandSerialize){ssb.FullObject}).Serialize(ref writer, options);");
+            }
+            else
+            {// Member method
+                ssb.AppendLine($"{ssb.FullObject}.Serialize(ref writer, options);");
+            }
+        }
+
+        internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.Kind.IsReferenceType())
+            {// Reference type
+                ssb.AppendLine("if (reader.TryReadNil()) return default;");
+            }
+
+            ssb.AppendLine($"var v = new {this.FullName}();");
+
+            if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
+            {// Static method
+                ssb.AppendLine($"{this.FullName}.Deserialize{this.GenericsNumberString}(ref v, ref reader, options);");
+            }
+            else if (this.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared)
+            {// Explicitly declared (Interface.Method())
+                ssb.AppendLine("((ITinyhandSerialize)v).Deserialize(ref reader, options);");
+            }
+            else
+            {// Member method
+                ssb.AppendLine("v.Deserialize(ref reader, options);");
+            }
+
+            ssb.AppendLine("return v;");
+        }
+
+        internal void GenerateFormatter_Reconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            ssb.AppendLine($"var v = new {this.FullName}();");
+
+            if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
+            {// Static method
+                ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref v, options);");
+            }
+            else if (this.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
+            {// Explicitly declared (Interface.Method())
+                ssb.AppendLine("((ITinyhandReconstruct)v).Reconstruct(options);");
+            }
+            else
+            {// Member method
+                ssb.AppendLine("v.Reconstruct(options);");
+            }
+
+            ssb.AppendLine("return v;");
         }
 
         internal void GenerateDeserialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
