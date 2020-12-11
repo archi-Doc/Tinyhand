@@ -36,6 +36,7 @@ namespace Tinyhand.Generator
                 }
 
                 if (x.Member.NullableAnnotationIfReferenceType == NullableAnnotation.NotAnnotated ||
+                    x.Member.Kind.IsValueType() ||
                     x.Member.IsDefaultable ||
                     x.Member.ReconstructState == ReconstructState.Do)
                 {
@@ -56,12 +57,15 @@ namespace Tinyhand.Generator
             ssb.AppendLine();
             foreach (var x in this.NodeList)
             {
-                if (x.ReconstructIndex < 0)
+                if (x.ReconstructIndex < 0 || x.Member == null)
                 {
                     continue;
                 }
 
-                this.Object.GenerateReconstructCore2(ssb, info, x.Member, x.ReconstructIndex);
+                using (var c = ssb.ScopeObject(x.Member.SimpleName))
+                {
+                    this.Object.GenerateReconstructCore2(ssb, info, x.Member, x.ReconstructIndex);
+                }
             }
         }
 

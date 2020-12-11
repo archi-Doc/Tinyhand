@@ -14,6 +14,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
   - [Default value](#Default-value)
   - [Reconstruct](#Reconstruct)
   - [Serialization Callback](#Serialization-Callback)
+  - [Built-in supported types](#built-in-supported-types)
 - [External assembly](#External-assembly)
 
 
@@ -193,11 +194,31 @@ public partial class DefaultTestClass
 
     [DefaultValue("test")]
     public string String { get; set; }
+    
+    [DefaultValue("Test")] // Default value for TinyhandObject is supported.
+    public DefaultTestClassName NameClass { get; set; }
 }
 
 [TinyhandObject(KeyAsPropertyName = true)]
 public partial class StringEmptyClass
 {
+}
+
+[TinyhandObject]
+public partial class DefaultTestClassName
+{
+    public DefaultTestClassName()
+    {
+        
+    }
+
+    public void SetDefault(string name)
+    {// To receive the default value, SetDefault() is required.
+        // Constructor -> SetDefault -> Deserialize or Reconstruct
+        this.Name = name;
+    }
+
+    public string Name { get; private set; }
 }
 
 public class DefaultTest
@@ -298,6 +319,45 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 }
 ```
 
+
+
+### Built-in supported types
+
+These types can serialize by default:
+
+* Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
+
+* `TimeSpan`,  `DateTime`, `DateTimeOffset`
+
+* `Guid`, `Uri`, `Version`, `StringBuilder`
+
+* `BigInteger`, `Complex`
+
+* `Array[]`, `Array[,]`, `Array[,,]`, `Array[,,,]`, `ArraySegment<>`, `BitArray`
+
+* `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
+
+* `ArrayList`, `Hashtable`
+
+* `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
+
+* `IList<>`, `ICollection<>`, `IEnumerable<>`, `IReadOnlyCollection<>`, `IReadOnlyList<>`
+
+* `Dictionary<,>`, `IDictionary<,>`, `SortedDictionary<,>`, `ILookup<,>`, `IGrouping<,>`, `ReadOnlyDictionary<,>`, `IReadOnlyDictionary<,>`
+
+* `ObservableCollection<>`, `ReadOnlyObservableCollection<>`
+
+* `ISet<>`,
+
+* `ConcurrentBag<>`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentDictionary<,>`
+
+* Immutable collections (`ImmutableList<>`, etc)
+
+* Custom implementations of `ICollection<>` or `IDictionary<,>` with a parameterless constructor
+
+* Custom implementations of `IList` or `IDictionary` with a parameterless constructor
+
+  
 
 
 ## External assembly
