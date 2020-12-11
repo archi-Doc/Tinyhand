@@ -119,10 +119,37 @@ namespace Tinyhand.Tests
         C,
     }
 
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial struct DefaultTestStruct
+    {
+        [DefaultValue(true)]
+        public bool Bool { get; set; }
+
+        [DefaultValue(123)]
+        public int Int { get; set; }
+
+        [DefaultValue(1.23d)]
+        public DefaultTestStructDouble DoubleStruct { get; set; }
+    }
+
+    [TinyhandObject]
+    public partial struct DefaultTestStructDouble
+    {
+        public void SetDefault(double d)
+        {
+            this.Double = d;
+        }
+
+        public double Double { get; private set; }
+
+        [Key(0)]
+        public EmptyClass EmptyClass { get; set; }
+    }
+
     public class DefaultValueTest
     {
         [Fact]
-        public void Test1()
+        public void TestClass()
         {
             var t = new Empty2();
             var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
@@ -159,5 +186,20 @@ namespace Tinyhand.Tests
 
             b.IsStructuralEqual(b2);
         }
+
+        [Fact]
+        public void TestStruct()
+        {
+            var t = new Empty2();
+            var t2 = TinyhandSerializer.Deserialize<DefaultTestStruct>(TinyhandSerializer.Serialize(t));
+
+            t2.Bool.IsTrue();
+            t2.Int.Is(123);
+            t2.DoubleStruct.Double.Is(1.23d);
+            t2.DoubleStruct.EmptyClass.IsNotNull();
+
+            var t3 = TinyhandSerializer.Reconstruct<DefaultTestStruct>();
+            t3.IsStructuralEqual(t2);
         }
+    }
 }

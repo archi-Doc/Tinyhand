@@ -30,8 +30,8 @@ namespace Tinyhand.Generator
                 return ReconstructCondition.NotReferenceType;
             }
 
-            if (typeObject.ObjectAttribute != null || typeObject.Kind.IsReferenceType())
-            {// TinyhandObject or Reference type, check circular dependency.
+            if (typeObject.ObjectAttribute != null || typeObject.Kind.IsType())
+            {// TinyhandObject or Reference/Value type, check circular dependency.
                 if (CheckCircular(typeObject))
                 {
                     return ReconstructCondition.CircularDependency;
@@ -56,6 +56,10 @@ namespace Tinyhand.Generator
                     return ReconstructCondition.NoDefaultConstructor;
                 }
 
+                return ReconstructCondition.Can;
+            }
+            else if (typeObject.Kind.IsValueType())
+            {// Value type
                 return ReconstructCondition.Can;
             }
 

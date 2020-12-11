@@ -725,52 +725,6 @@ namespace Tinyhand.Generator
                 }
             }
 
-            // ReconstructTarget
-            if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
-            {// ITinyhandSerialize is implemented.
-                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) && this.TypeObject.Kind.IsReferenceType() == true)
-                { // Target && Reference type
-                    this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
-                }
-            }
-            else
-            {
-                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget) && this.TypeObject.Kind.IsReferenceType() == true)
-                { // SerializeTarget && Reference type
-                    this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
-                }
-            }
-
-            if (this.ReconstructAttribute?.Reconstruct == true)
-            {// Reconstruct(true)
-                this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
-                this.ReconstructState = ReconstructState.Do;
-            }
-            else if (this.ReconstructAttribute?.Reconstruct == false)
-            {// Reconstruct(false)
-                this.ObjectFlag &= ~TinyhandObjectFlag.ReconstructTarget;
-                this.ReconstructState = ReconstructState.Dont;
-            }
-
-            if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.ReconstructTarget))
-            {// Not ReconstructTarget
-                this.ReconstructState = ReconstructState.Dont;
-            }
-            else
-            {// ReconstructTarget
-                this.CheckMember_Reconstruct(parent);
-            }
-
-            // Check ReconstructTarget
-            if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.ReconstructTarget))
-            {// Not ReconstructTarget
-                this.Body.DebugAssert(this.ReconstructState == ReconstructState.Dont, "this.ReconstructState == ReconstructState.Dont");
-            }
-            else
-            {// ReconstructTarget
-                this.Body.DebugAssert(this.ReconstructState == ReconstructState.Do, "this.ReconstructState == ReconstructState.Do");
-            }
-
             if (this.DefaultValue != null)
             {
                 if (VisceralDefaultValue.IsDefaultableType(this.TypeObject.SimpleName))
@@ -828,13 +782,55 @@ namespace Tinyhand.Generator
                         this.DefaultValue = null;
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_SetDefaultMethod, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
                     }
-
-                    /*if (!this.TypeObject.AllMembers.Any(x => x.Method_IsConstructor && x.Method_Parameters.Length == 1 && x.Method_Parameters[0] == this.DefaultValueTypeName))
-                    {// Type-mathed constructor is required.
-                        this.DefaultValue = null;
-                        this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueConstructor, this.DefaultValueLocation ?? this.Location);
-                    }*/
                 }
+            }
+
+            // ReconstructTarget
+            if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
+            {// ITinyhandSerialize is implemented.
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) && this.TypeObject.Kind.IsReferenceType() == true)
+                { // Target && Reference type
+                    this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
+                }
+            }
+            else
+            {
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget) &&
+                    (this.TypeObject.Kind.IsReferenceType() ||
+                    this.TypeObject.ObjectAttribute != null))
+                { // SerializeTarget && (Reference type || TinyhandObject)
+                    this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
+                }
+            }
+
+            if (this.ReconstructAttribute?.Reconstruct == true)
+            {// Reconstruct(true)
+                this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
+                this.ReconstructState = ReconstructState.Do;
+            }
+            else if (this.ReconstructAttribute?.Reconstruct == false)
+            {// Reconstruct(false)
+                this.ObjectFlag &= ~TinyhandObjectFlag.ReconstructTarget;
+                this.ReconstructState = ReconstructState.Dont;
+            }
+
+            if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.ReconstructTarget))
+            {// Not ReconstructTarget
+                this.ReconstructState = ReconstructState.Dont;
+            }
+            else
+            {// ReconstructTarget
+                this.CheckMember_Reconstruct(parent);
+            }
+
+            // Check ReconstructTarget
+            if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.ReconstructTarget))
+            {// Not ReconstructTarget
+                this.Body.DebugAssert(this.ReconstructState == ReconstructState.Dont, "this.ReconstructState == ReconstructState.Dont");
+            }
+            else
+            {// ReconstructTarget
+                this.Body.DebugAssert(this.ReconstructState == ReconstructState.Do, "this.ReconstructState == ReconstructState.Do");
             }
 
             // OverwriteTarget
@@ -1526,29 +1522,25 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            if (!withNullable.Object.Kind.IsReferenceType())
-            {// Not a reference type
-                return;
-            }
+            var nullCheckCode = withNullable.Object.Kind.IsReferenceType() ? $"if ({ssb.FullObject} == null)" : string.Empty;
 
-            var coder = CoderResolver.Instance.TryGetCoder(withNullable);
             if (withNullable.Object.ObjectAttribute != null)
             {// TinyhandObject. For the purpose of default value and instance reuse.
-                using (var c = ssb.ScopeBrace($"if ({ssb.FullObject} == null) "))
+                using (var c = ssb.ScopeBrace(nullCheckCode))
                 {
                     withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue);
                 }
             }
-            else if (coder != null)
+            else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
             {// Coder
-                using (var c = ssb.ScopeBrace($"if ({ssb.FullObject} == null) "))
+                using (var c = ssb.ScopeBrace(nullCheckCode))
                 {
                     coder.CodeReconstruct(ssb, info);
                 }
             }
             else
             {// Default constructor
-                ssb.AppendLine($"if ({ssb.FullObject} == null) {ssb.FullObject} = new {withNullable.Object.FullName}();");
+                ssb.AppendLine($"{nullCheckCode} {ssb.FullObject} = new {withNullable.Object.FullName}();");
             }
         }
 
@@ -1562,7 +1554,6 @@ namespace Tinyhand.Generator
 
             if (x.IsDefaultable)
             {// Default
-                using (var m = ssb.ScopeObject(x.SimpleName))
                 using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
                 {
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
@@ -1571,28 +1562,19 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            if (!withNullable.Object.Kind.IsReferenceType())
-            {// Not a reference type
-                return;
-            }
+            var nullCheckCode = withNullable.Object.Kind.IsReferenceType() ? $"if (!deserializedFlag[{reconstructIndex}] && {ssb.FullObject} == null)" : $"if (!deserializedFlag[{reconstructIndex}])";
 
-            using (var m = ssb.ScopeObject(x.SimpleName))
-            using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}] && {ssb.FullObject} == null)"))
+            using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
             {
                 if (x.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated || x.ReconstructState == ReconstructState.Do)
                 {// T
-                    var coder = CoderResolver.Instance.TryGetCoder(withNullable);
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue);
                     }
-                    else if (coder != null)
+                    else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
                     {
                         coder.CodeReconstruct(ssb, info);
-                    }
-                    else if (withNullable.Object.ObjectAttribute != null)
-                    {// TinyhandObject
-                        ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
                     }
                     else
                     {// Default constructor
