@@ -1205,9 +1205,24 @@ namespace Tinyhand.Generator
             ssb.AppendLine("return v;");
         }
 
-        internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue)
+        internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue, bool reuseInstance)
         {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
-            ssb.AppendLine($"var v2 = new {this.FullName}();");
+            if (!reuseInstance)
+            {// New Instance
+                ssb.AppendLine($"var v2 = new {this.FullName}();");
+            }
+            else
+            {// Reuse Instance
+                if (this.Kind.IsReferenceType())
+                {// Reference type
+                    ssb.AppendLine($"var v2 = {ssb.FullObject} ?? new {this.FullName}();");
+                }
+                else
+                {// Value type
+                    ssb.AppendLine($"var v2 = {ssb.FullObject};");
+                }
+            }
+
             if (defaultValue != null)
             {
                 ssb.AppendLine($"v2.SetDefault({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
@@ -1405,7 +1420,7 @@ namespace Tinyhand.Generator
                     {
                         if (withNullable.Object.ObjectAttribute != null)
                         {// TinyhandObject. For the purpose of default value and instance reuse.
-                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue);
+                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                         }
                         else if (coder != null)
                         {
@@ -1470,7 +1485,7 @@ namespace Tinyhand.Generator
                     {
                         if (withNullable.Object.ObjectAttribute != null)
                         {// TinyhandObject. For the purpose of default value and instance reuse.
-                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue);
+                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                         }
                         else if (coder != null)
                         {
@@ -1504,13 +1519,14 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            var nullCheckCode = withNullable.Object.Kind.IsReferenceType() ? $"if ({ssb.FullObject} == null)" : string.Empty;
+            // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if ({ssb.FullObject} == null)" : string.Empty;
+            var nullCheckCode = string.Empty;
 
             if (withNullable.Object.ObjectAttribute != null)
             {// TinyhandObject. For the purpose of default value and instance reuse.
                 using (var c = ssb.ScopeBrace(nullCheckCode))
                 {
-                    withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue);
+                    withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 }
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
@@ -1544,7 +1560,8 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            var nullCheckCode = withNullable.Object.Kind.IsReferenceType() ? $"if (!deserializedFlag[{reconstructIndex}] && {ssb.FullObject} == null)" : $"if (!deserializedFlag[{reconstructIndex}])";
+            // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if (!deserializedFlag[{reconstructIndex}] && {ssb.FullObject} == null)" : $"if (!deserializedFlag[{reconstructIndex}])";
+            var nullCheckCode = $"if (!deserializedFlag[{reconstructIndex}])";
 
             using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
             {
@@ -1552,7 +1569,7 @@ namespace Tinyhand.Generator
                 {// T
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
-                        withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue);
+                        withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     }
                     else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
                     {
