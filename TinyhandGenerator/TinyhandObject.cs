@@ -47,7 +47,7 @@ namespace Tinyhand.Generator
         Target = 1 << 5,
         SerializeTarget = 1 << 6,
         ReconstructTarget = 1 << 7,
-        OverwriteTarget = 1 << 8,
+        ReuseInstanceTarget = 1 << 8,
 
         HasITinyhandSerializationCallback = 1 << 9, // Has ITinyhandSerializationCallback interface
         HasExplicitOnBeforeSerialize = 1 << 10, // ITinyhandSerializationCallback.OnBeforeSerialize()
@@ -78,7 +78,7 @@ namespace Tinyhand.Generator
 
         public ReconstructState ReconstructState { get; private set; }
 
-        public OverwriteAttributeMock? OverwriteAttribute { get; private set; }
+        public ReuseInstanceAttributeMock? ReuseInstanceAttribute { get; private set; }
 
         public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members have valid TypeObject && not static && property or field
 
@@ -275,16 +275,16 @@ namespace Tinyhand.Generator
                 }
             }
 
-            // OverwriteAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == OverwriteAttributeMock.FullName) is { } overwriteAttribute)
+            // ReuseInstanceAttribute
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == ReuseInstanceAttributeMock.FullName) is { } reuseInstanceAttribute)
             {
                 try
                 {
-                    this.OverwriteAttribute = OverwriteAttributeMock.FromArray(overwriteAttribute.ConstructorArguments, overwriteAttribute.NamedArguments);
+                    this.ReuseInstanceAttribute = ReuseInstanceAttributeMock.FromArray(reuseInstanceAttribute.ConstructorArguments, reuseInstanceAttribute.NamedArguments);
                 }
                 catch (InvalidCastException)
                 {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, overwriteAttribute.Location);
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, reuseInstanceAttribute.Location);
                 }
             }
 
@@ -833,20 +833,20 @@ namespace Tinyhand.Generator
                 this.Body.DebugAssert(this.ReconstructState == ReconstructState.Do, "this.ReconstructState == ReconstructState.Do");
             }
 
-            // OverwriteTarget
-            var overwriteFlag = this.TypeObject!.ObjectAttribute?.Overwrite == true;
-            if (this.OverwriteAttribute?.Overwrite == true)
+            // ReuseInstanceTarget
+            var reuseInstanceFlag = this.TypeObject!.ObjectAttribute?.ReuseInstance == true;
+            if (this.ReuseInstanceAttribute?.ReuseInstance == true)
             {
-                overwriteFlag = true;
+                reuseInstanceFlag = true;
             }
-            else if (this.OverwriteAttribute?.Overwrite == false)
+            else if (this.ReuseInstanceAttribute?.ReuseInstance == false)
             {
-                overwriteFlag = false;
+                reuseInstanceFlag = false;
             }
 
-            if (overwriteFlag)
+            if (reuseInstanceFlag)
             {
-                this.ObjectFlag |= TinyhandObjectFlag.OverwriteTarget;
+                this.ObjectFlag |= TinyhandObjectFlag.ReuseInstanceTarget;
             }
         }
 
@@ -1142,6 +1142,22 @@ namespace Tinyhand.Generator
             }
         }
 
+        internal void GenerateFormatter_DeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
+        {
+            if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
+            {// Static method
+                ssb.AppendLine($"{this.FullName}.Deserialize{this.GenericsNumberString}(ref {name}, ref reader, options);");
+            }
+            else if (this.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared)
+            {// Explicitly declared (Interface.Method())
+                ssb.AppendLine($"((ITinyhandSerialize){name}).Deserialize(ref reader, options);");
+            }
+            else
+            {// Member method
+                ssb.AppendLine($"{name}.Deserialize(ref reader, options);");
+            }
+        }
+
         internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             if (this.Kind.IsReferenceType())
@@ -1150,24 +1166,11 @@ namespace Tinyhand.Generator
             }
 
             ssb.AppendLine($"var v = new {this.FullName}();");
-
-            if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
-            {// Static method
-                ssb.AppendLine($"{this.FullName}.Deserialize{this.GenericsNumberString}(ref v, ref reader, options);");
-            }
-            else if (this.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared)
-            {// Explicitly declared (Interface.Method())
-                ssb.AppendLine("((ITinyhandSerialize)v).Deserialize(ref reader, options);");
-            }
-            else
-            {// Member method
-                ssb.AppendLine("v.Deserialize(ref reader, options);");
-            }
-
+            this.GenerateFormatter_DeserializeCore(ssb, info, "v");
             ssb.AppendLine("return v;");
         }
 
-        internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue)
+        internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue, bool reuseInstance)
         {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
             ssb.AppendLine($"var v2 = new {this.FullName}();");
             if (defaultValue != null)
@@ -1175,39 +1178,30 @@ namespace Tinyhand.Generator
                 ssb.AppendLine($"v2.SetDefault({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
             }
 
-            if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
+            this.GenerateFormatter_DeserializeCore(ssb, info, "v2");
+            ssb.AppendLine($"{ssb.FullObject} = v2;");
+        }
+
+        internal void GenerateFormatter_ReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
+        {
+            if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
             {// Static method
-                ssb.AppendLine($"{this.FullName}.Deserialize{this.GenericsNumberString}(ref v2, ref reader, options);");
+                ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref {name}, options);");
             }
-            else if (this.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared)
+            else if (this.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
             {// Explicitly declared (Interface.Method())
-                ssb.AppendLine("((ITinyhandSerialize)v2).Deserialize(ref reader, options);");
+                ssb.AppendLine($"((ITinyhandReconstruct){name}).Reconstruct(options);");
             }
             else
             {// Member method
-                ssb.AppendLine("v2.Deserialize(ref reader, options);");
+                ssb.AppendLine($"{name}.Reconstruct(options);");
             }
-
-            ssb.AppendLine($"{ssb.FullObject} = v2;");
         }
 
         internal void GenerateFormatter_Reconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"var v = new {this.FullName}();");
-
-            if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
-            {// Static method
-                ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref v, options);");
-            }
-            else if (this.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
-            {// Explicitly declared (Interface.Method())
-                ssb.AppendLine("((ITinyhandReconstruct)v).Reconstruct(options);");
-            }
-            else
-            {// Member method
-                ssb.AppendLine("v.Reconstruct(options);");
-            }
-
+            this.GenerateFormatter_ReconstructCore(ssb, info, "v");
             ssb.AppendLine("return v;");
         }
 
@@ -1219,19 +1213,7 @@ namespace Tinyhand.Generator
                 ssb.AppendLine($"v2.SetDefault({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
             }
 
-            if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
-            {// Static method
-                ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref v2, options);");
-            }
-            else if (this.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
-            {// Explicitly declared (Interface.Method())
-                ssb.AppendLine("((ITinyhandReconstruct)v2).Reconstruct(options);");
-            }
-            else
-            {// Member method
-                ssb.AppendLine("v2.Reconstruct(options);");
-            }
-
+            this.GenerateFormatter_ReconstructCore(ssb, info, "v2");
             ssb.AppendLine($"{ssb.FullObject} = v2;");
         }
 
@@ -1389,7 +1371,7 @@ namespace Tinyhand.Generator
                 {
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
-                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue);
+                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     }
                     else if (coder != null)
                     {
@@ -1454,7 +1436,7 @@ namespace Tinyhand.Generator
                 {
                     if (withNullable.Object.ObjectAttribute != null)
                     {
-                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue);
+                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     }
                     else if (coder != null)
                     {

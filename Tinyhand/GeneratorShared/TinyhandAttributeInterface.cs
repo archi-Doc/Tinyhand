@@ -26,7 +26,7 @@ namespace Tinyhand
         /// <summary>
         /// Gets or sets a value indicating whether or not to reuse an instance of class/struct when deserializing [Default value is false].
         /// </summary>
-        public bool Overwrite { get; set; } = false;
+        public bool ReuseInstance { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [Default value is false].
@@ -73,13 +73,13 @@ namespace Tinyhand
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class OverwriteAttribute : Attribute
+    public sealed class ReuseInstanceAttribute : Attribute
     {
-        public bool Overwrite { get; set; }
+        public bool ReuseInstance { get; set; }
 
-        public OverwriteAttribute(bool overwrite)
+        public ReuseInstanceAttribute(bool reuseInstance)
         {
-            this.Overwrite = overwrite;
+            this.ReuseInstance = reuseInstance;
         }
     }
 
