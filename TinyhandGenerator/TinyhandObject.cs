@@ -78,7 +78,7 @@ namespace Tinyhand.Generator
 
         public ReconstructState ReconstructState { get; private set; }
 
-        public ReuseInstanceAttributeMock? ReuseInstanceAttribute { get; private set; }
+        public ReuseAttributeMock? ReuseAttribute { get; private set; }
 
         public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members have valid TypeObject && not static && property or field
 
@@ -275,16 +275,16 @@ namespace Tinyhand.Generator
                 }
             }
 
-            // ReuseInstanceAttribute
-            if (this.AllAttributes.FirstOrDefault(x => x.FullName == ReuseInstanceAttributeMock.FullName) is { } reuseInstanceAttribute)
+            // ReuseAttribute
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == ReuseAttributeMock.FullName) is { } reuseAttribute)
             {
                 try
                 {
-                    this.ReuseInstanceAttribute = ReuseInstanceAttributeMock.FromArray(reuseInstanceAttribute.ConstructorArguments, reuseInstanceAttribute.NamedArguments);
+                    this.ReuseAttribute = ReuseAttributeMock.FromArray(reuseAttribute.ConstructorArguments, reuseAttribute.NamedArguments);
                 }
                 catch (InvalidCastException)
                 {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, reuseInstanceAttribute.Location);
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, reuseAttribute.Location);
                 }
             }
 
@@ -834,12 +834,12 @@ namespace Tinyhand.Generator
             }
 
             // ReuseInstanceTarget
-            var reuseInstanceFlag = this.TypeObject!.ObjectAttribute?.ReuseInstance == true;
-            if (this.ReuseInstanceAttribute?.ReuseInstance == true)
+            var reuseInstanceFlag = parent.ObjectAttribute?.ReuseMember == true;
+            if (this.ReuseAttribute?.ReuseInstance == true)
             {
                 reuseInstanceFlag = true;
             }
-            else if (this.ReuseInstanceAttribute?.ReuseInstance == false)
+            else if (this.ReuseAttribute?.ReuseInstance == false)
             {
                 reuseInstanceFlag = false;
             }
@@ -1172,7 +1172,22 @@ namespace Tinyhand.Generator
 
         internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue, bool reuseInstance)
         {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
-            ssb.AppendLine($"var v2 = new {this.FullName}();");
+            if (!reuseInstance)
+            {// New Instance
+                ssb.AppendLine($"var v2 = new {this.FullName}();");
+            }
+            else
+            {// Reuse Instance
+                if (this.Kind.IsReferenceType())
+                {// Reference type
+                    ssb.AppendLine($"var v2 = {ssb.FullObject} ?? new {this.FullName}();");
+                }
+                else
+                {// Value type
+                    ssb.AppendLine($"var v2 = {ssb.FullObject};");
+                }
+            }
+
             if (defaultValue != null)
             {
                 ssb.AppendLine($"v2.SetDefault({VisceralDefaultValue.DefaultValueToString(defaultValue)});");

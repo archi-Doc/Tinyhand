@@ -17,25 +17,30 @@ namespace Tinyhand.Tests
     public partial class ReuseInstanceClass
     {
         public ReuseInstanceClass()
+            : this(true)
         {
-            this.ReuseClass = new(true);
-            this.ReuseClassFalse = new(true);
-            this.NonReuseClass = new(true);
-            this.NonReuseClassTrue = new(true);
+        }
+
+        public ReuseInstanceClass(bool flag)
+        {
+            this.ReuseClass = new(flag);
+            this.ReuseClassFalse = new(flag);
+            this.ReuseStruct = new(flag);
+            this.ReuseStructFalse = new(flag);
         }
 
         public ReuseClass ReuseClass { get; set; } = default!;
 
-        [ReuseInstance(false)]
+        [Reuse(false)]
         public ReuseClass ReuseClassFalse { get; set; } = default!;
 
-        public NotReuseClass NonReuseClass { get; set; } = default!;
+        public ReuseStruct ReuseStruct { get; set; } = default!;
 
-        [ReuseInstance(true)]
-        public NotReuseClass NonReuseClassTrue { get; set; } = default!;
+        [Reuse(false)]
+        public ReuseStruct ReuseStructFalse { get; set; } = default!;
     }
 
-    [TinyhandObject(ReuseInstance = true)]
+    [TinyhandObject]
     public partial class ReuseClass
     {
         public ReuseClass()
@@ -55,21 +60,17 @@ namespace Tinyhand.Tests
         public bool Flag { get; set; }
     }
 
-    [TinyhandObject(ReuseInstance = false)]
-    public partial class NotReuseClass
+    [TinyhandObject]
+    public partial struct ReuseStruct
     {
-        public NotReuseClass()
-            : this(false)
+        public ReuseStruct(bool flag)
         {
-        }
-
-        public NotReuseClass(bool flag)
-        {
+            this.Double = 0d;
             this.Flag = flag;
         }
 
         [Key(0)]
-        public int Int { get; set; }
+        public double Double { get; set; }
 
         [IgnoreMember]
         public bool Flag { get; set; }
@@ -83,10 +84,32 @@ namespace Tinyhand.Tests
             var t = TinyhandSerializer.Reconstruct<ReuseInstanceClass>();
             t.ReuseClass.Flag.Is(true);
             t.ReuseClassFalse.Flag.Is(false);
-            t.NonReuseClass.Flag.Is(false);
-            t.NonReuseClassTrue.Flag.Is(true);
+            t.ReuseStruct.Flag.Is(true);
+            t.ReuseStructFalse.Flag.Is(false);
 
-            var b = TinyhandSerializer.Serialize(t);
+            t = TinyhandSerializer.Deserialize<ReuseInstanceClass>(TinyhandSerializer.Serialize(new Empty2()));
+            t.ReuseClass.Flag.Is(true);
+            t.ReuseClassFalse.Flag.Is(false);
+            t.ReuseStruct.Flag.Is(true);
+            t.ReuseStructFalse.Flag.Is(false);
+
+            // t = TinyhandSerializer.DeserializeWith<ReuseInstanceClass>(new ReuseInstanceClass(false), TinyhandSerializer.Serialize(new ReuseInstanceClass()));
+            var t2 = new ReuseInstanceClass(false);
+            var reader = new Tinyhand.IO.TinyhandReader(TinyhandSerializer.Serialize(new ReuseInstanceClass()));
+            t2.Deserialize(ref reader, TinyhandSerializerOptions.Standard);
+            t2.ReuseClass.Flag.Is(false);
+            t2.ReuseClassFalse.Flag.Is(false);
+            t2.ReuseStruct.Flag.Is(false);
+            t2.ReuseStructFalse.Flag.Is(false);
+
+            // t = TinyhandSerializer.DeserializeWith<ReuseInstanceClass>(new ReuseInstanceClass(true), TinyhandSerializer.Serialize(new ReuseInstanceClass()));
+            t2 = new ReuseInstanceClass(true);
+            reader = new Tinyhand.IO.TinyhandReader(TinyhandSerializer.Serialize(new ReuseInstanceClass()));
+            t2.Deserialize(ref reader, TinyhandSerializerOptions.Standard);
+            t2.ReuseClass.Flag.Is(true);
+            t2.ReuseClassFalse.Flag.Is(false);
+            t2.ReuseStruct.Flag.Is(true);
+            t2.ReuseStructFalse.Flag.Is(false);
         }
     }
 }
