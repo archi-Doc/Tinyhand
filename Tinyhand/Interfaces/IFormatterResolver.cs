@@ -20,6 +20,13 @@ namespace Tinyhand
         /// <typeparam name="T">The type of value to be serialized or deserialized.</typeparam>
         /// <returns>A formatter, if this resolver supplies one for type <typeparamref name="T"/>; otherwise <c>null</c>.</returns>
         ITinyhandFormatter<T>? TryGetFormatter<T>();
+
+        /// <summary>
+        /// Gets an <see cref="ITinyhandFormatterExtra{T}"/> instance that can serialize or deserialize some type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of value to be serialized or deserialized.</typeparam>
+        /// <returns>A formatter, if this resolver supplies one for type <typeparamref name="T"/>; otherwise <c>null</c>.</returns>
+        ITinyhandFormatterExtra<T>? TryGetFormatterExtra<T>() => default;
     }
 
     public static class ResolverExtensions
@@ -30,6 +37,20 @@ namespace Tinyhand
             ITinyhandFormatter<T>? formatter;
 
             formatter = resolver.TryGetFormatter<T>();
+            if (formatter == null)
+            {
+                Throw(typeof(T), resolver);
+            }
+
+            return formatter!;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ITinyhandFormatterExtra<T> GetFormatterExtra<T>(this IFormatterResolver resolver)
+        {
+            ITinyhandFormatterExtra<T>? formatter;
+
+            formatter = resolver.TryGetFormatterExtra<T>();
             if (formatter == null)
             {
                 Throw(typeof(T), resolver);

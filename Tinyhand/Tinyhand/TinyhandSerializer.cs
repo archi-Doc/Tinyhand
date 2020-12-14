@@ -295,6 +295,59 @@ namespace Tinyhand
             return result;
         }
 
+        public static T? DeserializeWith<T>(T reuse, byte[] buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            var reader = new TinyhandReader(buffer)
+            {
+                CancellationToken = cancellationToken,
+            };
+
+            return DeserializeWith<T>(reuse, ref reader, options);
+        }
+
+        public static T? DeserializeWith<T>(T reuse, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+        {
+            options = options ?? DefaultOptions;
+
+            try
+            {
+                if (options.Compression != TinyhandCompression.None)
+                {
+                    var byteSequence = new ByteSequence();
+                    try
+                    {
+                        if (TryDecompress(ref reader, byteSequence))
+                        {
+                            var r = reader.Clone(byteSequence.GetReadOnlySequence());
+                            return options.Resolver.GetFormatterExtra<T>().Deserialize(reuse, ref r, options);
+                        }
+                        else
+                        {
+                            return options.Resolver.GetFormatterExtra<T>().Deserialize(reuse, ref reader, options);
+                        }
+                    }
+                    finally
+                    {
+                        byteSequence.Dispose();
+                    }
+                }
+                else
+                {
+                    return options.Resolver.GetFormatterExtra<T>().Deserialize(reuse, ref reader, options);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+#if DEBUG
+            finally
+            {
+                Debug.Assert(reader.Depth == 0, "reader.Depth should be 0.");
+            }
+#endif
+        }
+
         /// <summary>
         /// Deserializes a value of a given type from a sequence of bytes.
         /// </summary>

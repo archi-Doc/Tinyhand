@@ -102,6 +102,8 @@ namespace Tinyhand.Generator
 
         public int FormatterNumber { get; private set; }
 
+        public int FormatterExtraNumber { get; private set; }
+
         internal Automata? Automata { get; private set; }
 
         public TinyhandObject[]? IntKey_Array;
@@ -977,6 +979,22 @@ namespace Tinyhand.Generator
                         x.GenerateFormatter_Reconstruct(ssb, info);
                     }
                 }
+
+                name = string.Format(classFormat, x.FormatterExtraNumber);
+                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatterExtra<{x.FullName}>"))
+                {
+                    // Deserialize
+                    using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+                    {
+                        x.GenerateFormatterExtra_Deserialize(ssb, info);
+                    }
+
+                    // Reconstruct
+                    using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct({x.FullName} reuse, TinyhandSerializerOptions options)"))
+                    {
+                        x.GenerateFormatterExtra_Reconstruct(ssb, info);
+                    }
+                }
             }
         }
 
@@ -1376,6 +1394,7 @@ namespace Tinyhand.Generator
         internal void Generate2(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             this.FormatterNumber = info.FormatterCount++;
+            this.FormatterExtraNumber = info.FormatterCount++;
 
             // Serialize/Deserialize/Reconstruct
             this.GenerateSerialize_Method(ssb, info);
