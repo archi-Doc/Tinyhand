@@ -950,6 +950,8 @@ namespace Tinyhand.Generator
                 {
                     var name = string.Format(classFormat, x.FormatterNumber);
                     ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
+                    name = string.Format(classFormat, x.FormatterExtraNumber);
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>(new {name}());");
                 }
             }
 
@@ -986,14 +988,20 @@ namespace Tinyhand.Generator
                     // Deserialize
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
-                        x.GenerateFormatterExtra_Deserialize(ssb, info);
+                        if (x.Kind.IsReferenceType())
+                        {// Reference type
+                            ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                        }
+
+                        x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
+                        ssb.AppendLine("return reuse;");
                     }
 
                     // Reconstruct
-                    using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct({x.FullName} reuse, TinyhandSerializerOptions options)"))
+                    /* using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct({x.FullName} reuse, TinyhandSerializerOptions options)"))
                     {
                         x.GenerateFormatterExtra_Reconstruct(ssb, info);
-                    }
+                    }*/
                 }
             }
         }

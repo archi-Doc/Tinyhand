@@ -59,18 +59,18 @@ namespace Tinyhand
         /// <summary>
         /// Reuse an existing instance and deserializes a value.
         /// </summary>
-        /// /// <param name="reuse">The existing instance to reuse.</param>
+        /// <param name="reuse">The existing instance to reuse.</param>
         /// <param name="reader">The reader to deserialize from.</param>
         /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
         /// <returns>The deserialized value.</returns>
         T? Deserialize(T reuse, ref TinyhandReader reader, TinyhandSerializerOptions options);
 
-        /// <summary>
+        /*/// <summary>
         /// Reuse an existing instance and reconstruct a object.
         /// </summary>
         /// <param name="reuse">The existing instance to reuse.</param>
         /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
         /// <returns>The new object.</returns>
-        T Reconstruct(T reuse, TinyhandSerializerOptions options);
+        T Reconstruct(T reuse, TinyhandSerializerOptions options);*/
     }
 }
