@@ -47,9 +47,9 @@ namespace Tinyhand.Generator
         public bool ReconstructMember { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to reuse an instance of class/struct when deserializing [Default value is false].
+        /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [Default value is true].
         /// </summary>
-        public bool Overwrite { get; set; } = false;
+        public bool ReuseMember { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [Default value is false].
@@ -89,10 +89,10 @@ namespace Tinyhand.Generator
                 attribute.ReconstructMember = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(-1, nameof(Overwrite), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(ReuseMember), constructorArguments, namedArguments);
             if (val != null)
             {
-                attribute.Overwrite = (bool)val;
+                attribute.ReuseMember = (bool)val;
             }
 
             val = AttributeHelper.GetValue(-1, nameof(SkipSerializingDefaultValue), constructorArguments, namedArguments);
@@ -193,28 +193,28 @@ namespace Tinyhand.Generator
         }
     }
 
-    public class OverwriteAttributeMock
+    public class ReuseAttributeMock
     {
-        public static readonly string SimpleName = "Overwrite";
+        public static readonly string SimpleName = "Reuse";
         public static readonly string Name = SimpleName + "Attribute";
         public static readonly string FullName = "Tinyhand." + Name;
 
-        public bool Overwrite { get; set; }
+        public bool ReuseInstance { get; set; }
 
-        public OverwriteAttributeMock(bool overwrite)
+        public ReuseAttributeMock(bool reuseInstance)
         {
-            this.Overwrite = overwrite;
+            this.ReuseInstance = reuseInstance;
         }
 
-        public static OverwriteAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        public static ReuseAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
-            var attribute = new OverwriteAttributeMock(false);
+            var attribute = new ReuseAttributeMock(false);
 
             object? val;
-            val = AttributeHelper.GetValue(0, nameof(Overwrite), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(0, nameof(ReuseInstance), constructorArguments, namedArguments);
             if (val != null)
             {
-                attribute.Overwrite = (bool)val;
+                attribute.ReuseInstance = (bool)val;
             }
 
             return attribute;

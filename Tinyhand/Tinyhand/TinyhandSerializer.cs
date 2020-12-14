@@ -236,6 +236,26 @@ namespace Tinyhand
         }
 
         /// <summary>
+        /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+        /// <param name="byteSequence">The sequence to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? DeserializeWith<T>(T reuse, in ReadOnlySequence<byte> byteSequence, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            var reader = new TinyhandReader(byteSequence)
+            {
+                CancellationToken = cancellationToken,
+            };
+
+            return DeserializeWith<T>(reuse, ref reader, options);
+        }
+
+        /// <summary>
         /// Deserializes a value of a given type from a sequence of bytes.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -252,6 +272,26 @@ namespace Tinyhand
             };
 
             return Deserialize<T>(ref reader, options);
+        }
+
+        /// <summary>
+        /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+        /// <param name="buffer">The buffer to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? DeserializeWith<T>(T reuse, ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            var reader = new TinyhandReader(buffer)
+            {
+                CancellationToken = cancellationToken,
+            };
+
+            return DeserializeWith<T>(reuse, ref reader, options);
         }
 
         /// <summary>
@@ -274,6 +314,26 @@ namespace Tinyhand
         }
 
         /// <summary>
+        /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+        /// <param name="buffer">The buffer to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? DeserializeWith<T>(T reuse, byte[] buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            var reader = new TinyhandReader(buffer)
+            {
+                CancellationToken = cancellationToken,
+            };
+
+            return DeserializeWith<T>(reuse, ref reader, options);
+        }
+
+        /// <summary>
         /// Deserializes a value of a given type from a sequence of bytes.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -291,6 +351,29 @@ namespace Tinyhand
             };
 
             T result = Deserialize<T>(ref reader, options);
+            bytesRead = buffer.Slice(0, (int)reader.Consumed).Length;
+            return result;
+        }
+
+        /// <summary>
+        /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+        /// <param name="buffer">The memory to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="bytesRead">The number of bytes read.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? DeserializeWith<T>(T reuse, ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options, out int bytesRead, CancellationToken cancellationToken = default)
+        {
+            var reader = new TinyhandReader(buffer)
+            {
+                CancellationToken = cancellationToken,
+            };
+
+            T result = DeserializeWith<T>(reuse, ref reader, options);
             bytesRead = buffer.Slice(0, (int)reader.Consumed).Length;
             return result;
         }
@@ -332,6 +415,58 @@ namespace Tinyhand
                 else
                 {
                     return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+#if DEBUG
+            finally
+            {
+                Debug.Assert(reader.Depth == 0, "reader.Depth should be 0.");
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+        /// <param name="reader">The reader to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? DeserializeWith<T>(T reuse, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+        {
+            options = options ?? DefaultOptions;
+
+            try
+            {
+                if (options.Compression != TinyhandCompression.None)
+                {
+                    var byteSequence = new ByteSequence();
+                    try
+                    {
+                        if (TryDecompress(ref reader, byteSequence))
+                        {
+                            var r = reader.Clone(byteSequence.GetReadOnlySequence());
+                            return options.Resolver.GetFormatterExtra<T>().Deserialize(reuse, ref r, options);
+                        }
+                        else
+                        {
+                            return options.Resolver.GetFormatterExtra<T>().Deserialize(reuse, ref reader, options);
+                        }
+                    }
+                    finally
+                    {
+                        byteSequence.Dispose();
+                    }
+                }
+                else
+                {
+                    return options.Resolver.GetFormatterExtra<T>().Deserialize(reuse, ref reader, options);
                 }
             }
             catch (Exception ex)

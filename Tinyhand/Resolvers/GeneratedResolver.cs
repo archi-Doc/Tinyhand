@@ -8,14 +8,14 @@ using Tinyhand;
 namespace Tinyhand.Resolvers
 {
     /// <summary>
-    /// Default composited resolver.
+    /// Source Generated resolver.
     /// </summary>
     public sealed class GeneratedResolver : IFormatterResolver
     {
         /// <summary>
         /// The singleton instance that can be used.
         /// </summary>
-        public static readonly GeneratedResolver Instance = new ();
+        public static readonly GeneratedResolver Instance = new();
 
         private GeneratedResolver()
         {
@@ -31,11 +31,30 @@ namespace Tinyhand.Resolvers
             FormatterCache<T>.Formatter = formatter;
         }
 
+        public ITinyhandFormatterExtra<T>? TryGetFormatterExtra<T>()
+        {
+            return FormatterCacheExtra<T>.Formatter;
+        }
+
+        public void SetFormatterExtra<T>(ITinyhandFormatterExtra<T> formatter)
+        {
+            FormatterCacheExtra<T>.Formatter = formatter;
+        }
+
         private static class FormatterCache<T>
         {
             public static ITinyhandFormatter<T>? Formatter;
 
             static FormatterCache()
+            {
+            }
+        }
+
+        private static class FormatterCacheExtra<T>
+        {
+            public static ITinyhandFormatterExtra<T>? Formatter;
+
+            static FormatterCacheExtra()
             {
             }
         }
