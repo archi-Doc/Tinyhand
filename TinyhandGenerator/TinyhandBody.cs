@@ -127,6 +127,10 @@ namespace Tinyhand.Generator
             id: "TG026", title: "SetDefault Method", messageFormat: "To receive the default value, an implementation of 'public SetDefault({0})' method is required",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Warning_TinyhandObjectRequiredToReuse = new DiagnosticDescriptor(
+            id: "TG027", title: "Reuse Instance", messageFormat: "The type of the member to be reused must have a TinyhandObject attribute",
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {

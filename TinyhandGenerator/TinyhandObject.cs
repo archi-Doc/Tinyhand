@@ -839,14 +839,21 @@ namespace Tinyhand.Generator
             var reuseInstanceFlag = parent.ObjectAttribute?.ReuseMember == true;
             if (this.ReuseAttribute?.ReuseInstance == true)
             {
-                reuseInstanceFlag = true;
+                if (this.TypeObject.ObjectAttribute != null)
+                {// Has TinyhandObject attribute
+                    reuseInstanceFlag = true;
+                }
+                else
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_TinyhandObjectRequiredToReuse, this.Location);
+                }
             }
             else if (this.ReuseAttribute?.ReuseInstance == false)
             {
                 reuseInstanceFlag = false;
             }
 
-            if (reuseInstanceFlag)
+            if (reuseInstanceFlag && this.TypeObject.ObjectAttribute != null)
             {
                 this.ObjectFlag |= TinyhandObjectFlag.ReuseInstanceTarget;
             }

@@ -13,6 +13,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
   - [Handling nullable reference types](#Handling-nullable-reference-types)
   - [Default value](#Default-value)
   - [Reconstruct](#Reconstruct)
+  - [Reuse Instance](#Reuse-Instance)
   - [Serialization Callback](#Serialization-Callback)
   - [Built-in supported types](#built-in-supported-types)
 - [External assembly](#External-assembly)
@@ -293,6 +294,73 @@ public class ClassWithDefaultConstructor
 ```
 
 If you don't want to create an instance with default behavior, set `ReconstructMember` of `TinyhandObject` to false ` [TinyhandObject(ReconstructMember = false)]`.
+
+
+
+### Reuse Instance
+
+Tinyhand will reuse an instance if its members have valid values. The type of the instance to be reused must have a `TinyhandObject` attribute.
+
+By adding `[Reuse(true)]` or `[Reuse(false)]` to member attributes, you can change the behavior of whether an instance is reused or not.
+
+```csharp
+[TinyhandObject(ReuseMember = true)]
+public partial class ReuseTestClass
+{
+    [Key(0)]
+    [Reuse(false)]
+    public ReuseObject ObjectToCreate { get; set; } = new("create");
+
+    [Key(1)]
+    public ReuseObject ObjectToReuse { get; set; } = new("reuse");
+
+    [IgnoreMember]
+    public bool Flag { get; set; } = false;
+}
+
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class ReuseObject
+{
+    public ReuseObject()
+        : this(string.Empty)
+    {
+    }
+
+    public ReuseObject(string name)
+    {
+        this.Name = name;
+        this.Length = name.Length;
+    }
+
+    public string Name { get; private set; }
+
+    public int Length { get; set; }
+}
+
+public class ReuseTest
+{
+    public void Test()
+    {
+        var t = new ReuseTestClass();
+        t.Flag = true;
+
+        var t2 = TinyhandSerializer.Deserialize<ReuseTestClass>(TinyhandSerializer.Serialize(t)); // Reuse member
+        // t2.Flag == false
+        // t2.ObjectToCreate.Name == "", t2.ObjectToCreate.Length == 6
+        // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
+
+        t2 = TinyhandSerializer.DeserializeWith<ReuseTestClass>(t, TinyhandSerializer.Serialize(t)); // Reuse ReuseTestClass
+        // t2.Flag == true
+        // t2.ObjectToCreate.Name == "", t2.ObjectToCreate.Length == 6
+        // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
+        
+        var reader = new Tinyhand.IO.TinyhandReader(TinyhandSerializer.Serialize(t));
+        t.Deserialize(ref reader, TinyhandSerializerOptions.Standard); ; // Same as above
+    }
+}
+```
+
+If you don't want to reuse an instance with default behavior, set `ReuseMember` of `TinyhandObject` to false ` [TinyhandObject(ReuseMember = false)]`.
 
 
 
