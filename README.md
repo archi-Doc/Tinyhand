@@ -16,6 +16,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
   - [Reuse Instance](#Reuse-Instance)
   - [Serialization Callback](#Serialization-Callback)
   - [Built-in supported types](#built-in-supported-types)
+  - [Non-Generic API](#Non-Generic-API)
 - [External assembly](#External-assembly)
 
 
@@ -425,7 +426,18 @@ These types can serialize by default:
 
 * Custom implementations of `IList` or `IDictionary` with a parameterless constructor
 
-  
+
+
+
+### Non-Generic API
+
+```csharp
+var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
+var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
+var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
+```
+
+
 
 
 ## External assembly

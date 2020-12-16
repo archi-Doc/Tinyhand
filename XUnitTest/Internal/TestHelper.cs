@@ -17,6 +17,8 @@ namespace Tinyhand.Tests
     {
         public static T? Convert<T>(T obj) => TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj));
 
+        public static object? ConvertNonGeneric(Type type, object obj) => TinyhandSerializer.Deserialize(type, TinyhandSerializer.Serialize(type, obj));
+
         public static T? TestWithMessagePack<T>(T obj)
         {
             var b = TinyhandSerializer.Serialize<T>(obj);

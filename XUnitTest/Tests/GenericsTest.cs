@@ -82,6 +82,8 @@ namespace Tinyhand.Tests
             t.ClassInt.VValue = 23;
             var tt = TestHelper.Convert(t);
             tt.IsStructuralEqual(t);
+            tt = (GenericsTestClass<string>)TestHelper.ConvertNonGeneric(t.GetType(), (object)t);
+            tt.IsStructuralEqual(t);
 
             var t2 = TinyhandSerializer.Reconstruct<GenericsTestClass<long>>();
             t2.Int = 13;
@@ -91,6 +93,9 @@ namespace Tinyhand.Tests
             t2.NestedClass2.String = "te";
             t2.ClassInt.VValue = 23;
             var tt2 = TestHelper.Convert(t2);
+            tt2.IsStructuralEqual(t2);
+
+            tt2 = (GenericsTestClass<long>)TestHelper.ConvertNonGeneric(t2.GetType(), (object)t2);
             tt2.IsStructuralEqual(t2);
         }
     }

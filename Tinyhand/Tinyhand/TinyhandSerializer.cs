@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Arc.IO;
 using MessagePack.LZ4;
 using Tinyhand.IO;
@@ -13,7 +14,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand
 {
-    public static class TinyhandSerializer
+    public static partial class TinyhandSerializer
     {
         private const int InitialBufferSize = 32 * 1024;
         private const int MaxHintSize = 1024 * 1024;
@@ -200,6 +201,42 @@ namespace Tinyhand
             catch (Exception ex)
             {
                 throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+            }
+        }
+
+        /// <summary>
+        /// Serializes a given value to the specified stream.
+        /// </summary>
+        /// <param name="stream">The stream to serialize to.</param>
+        /// <param name="value">The value to serialize.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A task that completes with the result of the async serialization operation.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+        public static async Task SerializeAsync<T>(Stream stream, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var byteSequence = new ByteSequence();
+            try
+            {
+                Serialize<T>(byteSequence, value, options, cancellationToken);
+
+                try
+                {
+                    foreach (var segment in byteSequence.GetReadOnlySequence())
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        await stream.WriteAsync(segment, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new TinyhandException("Error occurred while writing the serialized data to the stream.", ex);
+                }
+            }
+            finally
+            {
+                byteSequence.Dispose();
             }
         }
 
@@ -494,9 +531,6 @@ namespace Tinyhand
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The deserialized value.</returns>
         /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-        /// <remarks>
-        /// If multiple top-level msgpack data structures are expected on the stream, use <see cref="TinyhandReader"/> instead.
-        /// </remarks>
         public static T? Deserialize<T>(Stream stream, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T result))
@@ -511,8 +545,52 @@ namespace Tinyhand
                 do
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    Span<byte> span = byteSequence.GetSpan(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
+                    var span = byteSequence.GetSpan(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
                     bytesRead = stream.Read(span);
+                    byteSequence.Advance(bytesRead);
+                }
+                while (bytesRead > 0);
+
+                return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence.GetReadOnlySequence(), cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException("Error occurred while reading from the stream.", ex);
+            }
+            finally
+            {
+                byteSequence.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Deserializes the entire content of a <see cref="Stream"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="stream">
+        /// The stream to deserialize from.
+        /// The entire stream will be read, and the first msgpack token deserialized will be returned.
+        /// If <see cref="Stream.CanSeek"/> is true on the stream, its position will be set to just after the last deserialized byte.
+        /// </param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static async ValueTask<T?> DeserializeAsync<T>(Stream stream, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T result))
+            {
+                return result;
+            }
+
+            var byteSequence = new ByteSequence();
+            try
+            {
+                int bytesRead;
+                do
+                {
+                    var memory = byteSequence.GetMemory(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
+                    bytesRead = await stream.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
                     byteSequence.Advance(bytesRead);
                 }
                 while (bytesRead > 0);
