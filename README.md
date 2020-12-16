@@ -333,7 +333,8 @@ public partial class ReuseObject
         this.Length = name.Length;
     }
 
-    public string Name { get; private set; }
+    [IgnoreMember]
+    public string Name { get; set; } // Not a serialization target
 
     public int Length { get; set; }
 }
@@ -344,10 +345,13 @@ public class ReuseTest
     {
         var t = new ReuseTestClass();
         t.Flag = true;
+        // t2.Flag == true
+        // t2.ObjectToCreate.Name == "create", t2.ObjectToCreate.Length == 6
+        // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
 
         var t2 = TinyhandSerializer.Deserialize<ReuseTestClass>(TinyhandSerializer.Serialize(t)); // Reuse member
         // t2.Flag == false
-        // t2.ObjectToCreate.Name == "", t2.ObjectToCreate.Length == 6
+        // t2.ObjectToCreate.Name == "", t2.ObjectToCreate.Length == 6 // Note that Name is not a serialization target.
         // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
 
         t2 = TinyhandSerializer.DeserializeWith<ReuseTestClass>(t, TinyhandSerializer.Serialize(t)); // Reuse ReuseTestClass
