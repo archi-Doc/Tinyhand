@@ -169,10 +169,9 @@ namespace Sandbox
             var tt = new GenericsTestClass<string>();
             var tt2 = TinyhandSerializer.Deserialize<GenericsTestClass<string>>(TinyhandSerializer.Serialize(tt));
 
-
-            var myClass = new SampleCallback();
-            var b = TinyhandSerializer.Serialize(myClass);
-            var myClass2 = TinyhandSerializer.Deserialize<SampleCallback>(b);
+            var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
+            var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
+            var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
         }
     }
 }
