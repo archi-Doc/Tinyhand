@@ -9,6 +9,10 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
 
 - [Quick Start](#quick-start)
 - [Performance](#performance)
+- [Serialization Target](#Serialization-Target)
+  - [Readonly, Getter-only](#Readonly,-Getter-only)
+  - [Include private members](#Include-private-members)
+  - [Explicit key only](#Explicit-key-only)
 - [Features](#features)
   - [Handling nullable reference types](#Handling-nullable-reference-types)
   - [Default value](#Default-value)
@@ -196,10 +200,10 @@ By setting `ExplicitKeyOnly` to true, only members with the Key attribute will b
 [TinyhandObject(ExplicitKeyOnly = true)]
 public partial class ExplicitKeyClass
 {
-    public int X; // No warning
+    public int X; // No warning. Not serialized.
 
     [Key(0)]
-    public int Y; // To be serialized
+    public int Y; // Serialized
 }
 ```
 
