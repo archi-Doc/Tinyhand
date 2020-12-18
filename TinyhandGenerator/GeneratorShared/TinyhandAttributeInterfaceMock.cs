@@ -32,14 +32,19 @@ namespace Tinyhand.Generator
         public static readonly string FullName = "Tinyhand." + Name;
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not to use property names as string keys. String key and Int key are exclusive [Default value is false].
+        /// </summary>
+        public bool KeyAsPropertyName { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not to include private members as serialization targets [Default value is false].
         /// </summary>
         public bool IncludePrivateMembers { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to use property names as string keys. String key and Int key are exclusive [Default value is false].
+        /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [Default value is false].
         /// </summary>
-        public bool KeyAsPropertyName { get; set; } = false;
+        public bool ExplicitKeyOnly { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [Default value is true].
@@ -71,16 +76,22 @@ namespace Tinyhand.Generator
             var attribute = new TinyhandObjectAttributeMock();
 
             object? val;
+            val = AttributeHelper.GetValue(-1, nameof(KeyAsPropertyName), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.KeyAsPropertyName = (bool)val;
+            }
+
             val = AttributeHelper.GetValue(-1, nameof(IncludePrivateMembers), constructorArguments, namedArguments);
             if (val != null)
             {
                 attribute.IncludePrivateMembers = (bool)val;
             }
 
-            val = AttributeHelper.GetValue(-1, nameof(KeyAsPropertyName), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(ExplicitKeyOnly), constructorArguments, namedArguments);
             if (val != null)
             {
-                attribute.KeyAsPropertyName = (bool)val;
+                attribute.ExplicitKeyOnly = (bool)val;
             }
 
             val = AttributeHelper.GetValue(-1, nameof(ReconstructMember), constructorArguments, namedArguments);
