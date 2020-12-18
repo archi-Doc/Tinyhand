@@ -59,10 +59,10 @@ namespace ConsoleApp1
     [TinyhandObject(ExplicitKeyOnly = true)]
     public partial class ExplicitKeyClass
     {
-        public int X; // No warning
+        public int X; // No warning. Not serialized.
 
         [Key(0)]
-        public int Y; // To be serialized
+        public int Y; // Serialized
     }
 
     [TinyhandObject]
