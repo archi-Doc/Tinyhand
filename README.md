@@ -122,6 +122,89 @@ Tinyhand is quite fast and since it is based on Source Generator, it does not ta
 
 
 
+## Serialization Target
+
+All public members are serialization targets by default. Unless `KeyAsPropertyName` is set to true, you need to add `Key` attribute to public members.
+
+```csharp
+[TinyhandObject]
+public partial class DefaultBehaviourClass
+{
+    [Key(0)]
+    public int X; // Key required
+
+    public int Y { get; private set; } // Not required since it's private setter.
+
+    [Key(1)]
+    private int Z; // By adding the Key attribute, You can add a private member to the serialization target.
+}
+
+[TinyhandObject(KeyAsPropertyName = true)]
+public partial class KeyAsNameClass
+{
+    public int X; // Serialized with the key "X"
+
+    public int Y { get; private set; } // Not a serialization target
+
+    [Key("Z")]
+    private int Z; // Serialized with the key "Z"
+}
+```
+
+### Readonly, Getter-only
+
+Readonly field and getter-only property are not serialization target. 
+
+```csharp
+[TinyhandObject]
+public partial class ReadonlyGetteronlyClass
+{
+    [Key(0)]
+    public readonly int X; // Error!
+
+    [Key(1)]
+    public int Y { get; } = 0; // Error!
+}
+```
+
+Although it is not impossible to serialize read-only fields and getter-only properties, this feature is not supported because it requires dynamic code generation and read-only should be read-only.
+
+### Include private members
+
+By setting `IncludePrivateMembers` to true, you can add private and protected members to the serialization target.
+
+```csharp
+[TinyhandObject(IncludePrivateMembers = true)]
+public partial class IncludePrivateClass
+{
+    [Key(0)]
+    public int X; // Key required
+
+    [Key(1)]
+    public int Y { get; private set; } // Key required
+
+    [IgnoreMember]
+    private int Z; // Add the IgnoreMember attribute to exclude from serialization targets.
+}
+```
+
+### Explicit key only
+
+By setting `ExplicitKeyOnly` to true, only members with the Key attribute will be serialized.
+
+```csharp
+[TinyhandObject(ExplicitKeyOnly = true)]
+public partial class ExplicitKeyClass
+{
+    public int X; // No warning
+
+    [Key(0)]
+    public int Y; // To be serialized
+}
+```
+
+
+
 ## Features
 
 ### Handling nullable reference types

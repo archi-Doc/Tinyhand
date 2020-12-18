@@ -6,8 +6,65 @@ using System.Text;
 using System.Threading.Tasks;
 using Tinyhand;
 
+#pragma warning disable CS0169
+
 namespace ConsoleApp1
 {
+    [TinyhandObject]
+    public partial class DefaultBehaviourClass
+    {
+        [Key(0)]
+        public int X; // Key required
+
+        public int Y { get; private set; } // Not required since it's private setter.
+
+        [Key(1)]
+        private int Z; // By adding the Key attribute, You can add a private member to the serialization target.
+    }
+
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class KeyAsNameClass
+    {
+        public int X; // Serialized with the key "X"
+
+        public int Y { get; private set; } // Not a serialization target
+
+        [Key("Z")]
+        private int Z; // Serialized with the key "Z"
+    }
+
+    [TinyhandObject(IncludePrivateMembers = true)]
+    public partial class IncludePrivateClass
+    {
+        [Key(0)]
+        public int X; // Key required
+
+        [Key(1)]
+        public int Y { get; private set; } // Key required
+
+        [IgnoreMember]
+        private int Z; // Add the IgnoreMember attribute to exclude from serialization targets.
+    }
+
+    /* [TinyhandObject]
+    public partial class ReadonlyGetteronlyClass
+    {
+        [Key(0)]
+        public readonly int X; // Error!
+
+        [Key(1)]
+        public int Y { get; } = 0; // Error!
+    }*/
+
+    [TinyhandObject(ExplicitKeyOnly = true)]
+    public partial class ExplicitKeyClass
+    {
+        public int X; // No warning
+
+        [Key(0)]
+        public int Y; // To be serialized
+    }
+
     [TinyhandObject]
     public partial class SampleCallback : ITinyhandSerializationCallback
     {

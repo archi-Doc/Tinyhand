@@ -9,14 +9,19 @@ namespace Tinyhand
     public sealed class TinyhandObjectAttribute : Attribute
     {
         /// <summary>
+        /// Gets or sets a value indicating whether or not to use property names as string keys. String key and Int key are exclusive [Default value is false].
+        /// </summary>
+        public bool KeyAsPropertyName { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not to include private members as serialization targets [Default value is false].
         /// </summary>
         public bool IncludePrivateMembers { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to use property names as string keys. String key and Int key are exclusive [Default value is false].
+        /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [Default value is false].
         /// </summary>
-        public bool KeyAsPropertyName { get; set; } = false;
+        public bool ExplicitKeyOnly { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [Default value is true].

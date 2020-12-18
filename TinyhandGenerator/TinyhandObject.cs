@@ -508,6 +508,13 @@ namespace Tinyhand.Generator
                 {// Not serializable
                     continue;
                 }
+                else if (this.ObjectAttribute?.ExplicitKeyOnly == true)
+                {// Explicit key only
+                    if (x.KeyAttribute == null)
+                    {
+                        continue;
+                    }
+                }
                 else if (!x.IsPublic && this.ObjectAttribute?.IncludePrivateMembers != true)
                 {// Skip protected or private members if IncludePrivateMembers is false.
                     continue;
