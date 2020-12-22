@@ -200,7 +200,7 @@ By setting `ExplicitKeyOnly` to true, only members with the Key attribute will b
 [TinyhandObject(ExplicitKeyOnly = true)]
 public partial class ExplicitKeyClass
 {
-    public int X; // No warning. Not serialized.
+    public int X; // Not serialized (no error message).
 
     [Key(0)]
     public int Y; // Serialized
