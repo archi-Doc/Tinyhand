@@ -519,6 +519,17 @@ These types can serialize by default:
 
 
 
+### LZ4 Compression
+
+Tinyhand has LZ4 compression support.
+
+```csharp
+var b = TinyhandSerializer.Serialize(myClass, TinyhandSerializerOptions.Lz4);
+var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b, TinyhandSerializerOptions.Standard.WithCompression(TinyhandCompression.Lz4)); // Same as TinyhandSerializerOptions.Lz4
+```
+
+
+
 
 ### Non-Generic API
 
