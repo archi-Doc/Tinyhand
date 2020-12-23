@@ -122,6 +122,41 @@ namespace Tinyhand
             }
         }
 
+        public static byte[] SerializeLz4<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            if (initialBuffer == null)
+            {
+                initialBuffer = new byte[InitialBufferSize];
+            }
+
+            var w = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+            try
+            {
+                options = options ?? DefaultOptions;
+                if (options.Compression == TinyhandCompression.None)
+                {
+                    try
+                    {
+                        options.Resolver.GetFormatter<T>().Serialize(ref w, value, options);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+                    }
+                }
+                else
+                {
+                    SerializeLz4(ref w, value, options);
+                }
+
+                return w.FlushAndGetArray();
+            }
+            finally
+            {
+                w.Dispose();
+            }
+        }
+
         /// <summary>
         /// Serializes a given value to the specified stream.
         /// </summary>
@@ -169,6 +204,42 @@ namespace Tinyhand
         /// <param name="options">The options. Use <c>null</c> to use default options.</param>
         /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
         public static void Serialize<T>(ref TinyhandWriter writer, T value, TinyhandSerializerOptions? options = null)
+        {
+            options = options ?? DefaultOptions;
+
+            try
+            {
+                if (options.Compression != TinyhandCompression.None && !PrimitiveChecker<T>.IsTinyhandFixedSizePrimitive)
+                {
+                    if (initialBuffer2 == null)
+                    {
+                        initialBuffer2 = new byte[InitialBufferSize];
+                    }
+
+                    var w = writer.Clone(initialBuffer2);
+                    try
+                    {
+                        options.Resolver.GetFormatter<T>().Serialize(ref w, value, options);
+                        w.Flush();
+                        ToLZ4BinaryCore(w.FlushAndGetReadOnlySequence(), ref writer, options.Compression);
+                    }
+                    finally
+                    {
+                        w.Dispose();
+                    }
+                }
+                else
+                {
+                    options.Resolver.GetFormatter<T>().Serialize(ref writer, value, options);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+            }
+        }
+
+        public static void SerializeLz4<T>(ref TinyhandWriter writer, T value, TinyhandSerializerOptions? options = null)
         {
             options = options ?? DefaultOptions;
 

@@ -27,7 +27,9 @@ namespace Tinyhand.Tests
             b.IsStructuralEqual(b2);
 
             var t = TinyhandSerializer.Deserialize<T>(b);
-            t = MessagePack.MessagePackSerializer.Deserialize<T>(b);
+            obj.IsStructuralEqual(t);
+
+            t = TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Lz4), TinyhandSerializerOptions.Lz4);
             obj.IsStructuralEqual(t);
 
             return t;

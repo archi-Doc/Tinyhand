@@ -42,11 +42,12 @@ namespace Benchmark
             Console.WriteLine(Stopwatch.ToSimpleString());
             Console.WriteLine();
 
-            DebugRun<H2HTest.H2HBenchmark>();
+            DebugRun<H2HTest.H2HLarge>();
 
             var switcher = new BenchmarkSwitcher(new[]
             {
                 typeof(H2HTest.H2HBenchmark),
+                typeof(H2HTest.H2HLarge),
             });
             switcher.Run(args);
         }

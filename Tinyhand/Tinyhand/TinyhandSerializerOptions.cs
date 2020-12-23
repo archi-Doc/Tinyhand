@@ -41,6 +41,8 @@ namespace Tinyhand
     {
         public static TinyhandSerializerOptions Standard => new TinyhandSerializerOptions(StandardResolver.Instance);
 
+        public static TinyhandSerializerOptions Lz4 => Standard.WithCompression(TinyhandCompression.Lz4);
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TinyhandSerializerOptions"/> class.
         /// </summary>
