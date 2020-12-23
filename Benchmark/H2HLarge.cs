@@ -52,7 +52,6 @@ namespace Benchmark.H2HTest
         byte[] data = default!;
         byte[] dataMp = default!;
         byte[] dataTh = default!;
-        byte[] dataTh2 = default!;
 
         public H2HLarge()
         {
@@ -64,10 +63,8 @@ namespace Benchmark.H2HTest
             this.h2h = new LargeDataClass();
             this.h2h.Prepare();
             this.data = MessagePack.MessagePackSerializer.Serialize(this.h2h);
-            this.dataMp = MessagePack.MessagePackSerializer.Serialize(this.h2h, MessagePack.MessagePackSerializerOptions.Standard.WithCompression(MessagePack.MessagePackCompression.Lz4Block));
+            this.dataMp = MessagePack.MessagePackSerializer.Serialize(this.h2h, MessagePack.MessagePackSerializerOptions.Standard.WithCompression(MessagePack.MessagePackCompression.Lz4BlockArray));
             this.dataTh = TinyhandSerializer.Serialize(this.h2h, TinyhandSerializerOptions.Lz4);
-            this.dataTh2 = TinyhandSerializer.Serialize(this.h2h, TinyhandSerializerOptions.Lz4);
-            // this.data3 = this.SerializeProtoBuf();
         }
 
         [GlobalCleanup]
@@ -109,12 +106,6 @@ namespace Benchmark.H2HTest
         public byte[] SerializeTinyhandLz4()
         {
             return Tinyhand.TinyhandSerializer.Serialize(this.h2h, TinyhandSerializerOptions.Lz4);
-        }
-
-        [Benchmark]
-        public byte[] SerializeTinyhandLz4b()
-        {
-            return Tinyhand.TinyhandSerializer.SerializeLz4(this.h2h, TinyhandSerializerOptions.Lz4);
         }
 
         [Benchmark]

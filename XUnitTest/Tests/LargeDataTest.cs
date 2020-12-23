@@ -29,7 +29,7 @@ namespace Tinyhand.Tests
             }
 
             this.String = new string[M];
-            this.String[0] =  "test";
+            this.String[0] = "test";
             for (var n = 1; n < M; n++)
             {
                 this.String[n] = this.String[n - 1] + n.ToString();
