@@ -185,7 +185,6 @@ namespace Tinyhand
                     try
                     {
                         options.Resolver.GetFormatter<T>().Serialize(ref w, value, options);
-                        w.Flush();
                         ToLZ4BinaryCore(w.FlushAndGetReadOnlySequence(), ref writer, options.Compression);
                     }
                     finally
