@@ -20,6 +20,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
   - [Reuse Instance](#Reuse-Instance)
   - [Serialization Callback](#Serialization-Callback)
   - [Built-in supported types](#built-in-supported-types)
+  - [LZ4 Compression](#LZ4-Compression)
   - [Non-Generic API](#Non-Generic-API)
 - [External assembly](#External-assembly)
 
@@ -516,6 +517,17 @@ These types can serialize by default:
 * Custom implementations of `ICollection<>` or `IDictionary<,>` with a parameterless constructor
 
 * Custom implementations of `IList` or `IDictionary` with a parameterless constructor
+
+
+
+### LZ4 Compression
+
+Tinyhand has LZ4 compression support.
+
+```csharp
+var b = TinyhandSerializer.Serialize(myClass, TinyhandSerializerOptions.Lz4);
+var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b, TinyhandSerializerOptions.Standard.WithCompression(TinyhandCompression.Lz4)); // Same as TinyhandSerializerOptions.Lz4
+```
 
 
 
