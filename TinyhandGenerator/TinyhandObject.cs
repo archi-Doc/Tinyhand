@@ -92,6 +92,8 @@ namespace Tinyhand.Generator
 
         public bool IsDefaultable { get; private set; }
 
+        public bool IsAbstractOrInterface => this.Kind == VisceralObjectKind.Interface || (this.symbol is INamedTypeSymbol nts && nts.IsAbstract);
+
         public List<TinyhandObject>? Children { get; private set; } // The opposite of ContainingObject
 
         public List<TinyhandObject>? ConstructedObjects { get; private set; } // The opposite of ConstructedFrom
@@ -980,19 +982,36 @@ namespace Tinyhand.Generator
                     using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"))
                     using (var value = ssb.ScopeObject("v"))
                     {
-                        x.GenerateFormatter_Serialize(ssb, info);
+                        if (!x.IsAbstractOrInterface)
+                        {
+                            x.GenerateFormatter_Serialize(ssb, info);
+                        }
                     }
 
                     // Deserialize
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
-                        x.GenerateFormatter_Deserialize(ssb, info);
+                        if (!x.IsAbstractOrInterface)
+                        {
+                            x.GenerateFormatter_Deserialize(ssb, info);
+                        }
+                        else
+                        {// Union
+                            ssb.AppendLine("return default;");
+                        }
                     }
 
                     // Reconstruct
                     using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct(TinyhandSerializerOptions options)"))
                     {
-                        x.GenerateFormatter_Reconstruct(ssb, info);
+                        if (!x.IsAbstractOrInterface)
+                        {
+                            x.GenerateFormatter_Reconstruct(ssb, info);
+                        }
+                        else
+                        {
+                            ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");");
+                        }
                     }
                 }
 
@@ -1002,20 +1021,21 @@ namespace Tinyhand.Generator
                     // Deserialize
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
-                        if (x.Kind.IsReferenceType())
-                        {// Reference type
-                            ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                        if (!x.IsAbstractOrInterface)
+                        {
+                            if (x.Kind.IsReferenceType())
+                            {// Reference type
+                                ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                            }
+
+                            x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
+                            ssb.AppendLine("return reuse;");
                         }
-
-                        x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
-                        ssb.AppendLine("return reuse;");
+                        else
+                        {// Union
+                            ssb.AppendLine("return default;");
+                        }
                     }
-
-                    // Reconstruct
-                    /* using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct({x.FullName} reuse, TinyhandSerializerOptions options)"))
-                    {
-                        x.GenerateFormatterExtra_Reconstruct(ssb, info);
-                    }*/
                 }
             }
         }
