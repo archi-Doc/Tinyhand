@@ -84,7 +84,7 @@ namespace Tinyhand.Generator
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Error_ObjectAttributeRequired = new DiagnosticDescriptor(
-            id: "TG016", title: "Key attribute required", messageFormat: "Member to be serialized should have TinyhandObjectAttribute",
+            id: "TG016", title: "Key attribute required", messageFormat: "Member to be serialized must have TinyhandObjectAttribute",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Error_AttributePropertyError = new DiagnosticDescriptor(
@@ -130,6 +130,22 @@ namespace Tinyhand.Generator
         public static readonly DiagnosticDescriptor Warning_TinyhandObjectRequiredToReuse = new DiagnosticDescriptor(
             id: "TG027", title: "Reuse Instance", messageFormat: "The type of the member to be reused must have a TinyhandObject attribute",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Error_NullSubtype = new DiagnosticDescriptor(
+            id: "TG028", title: "Null Subtype", messageFormat: "Could not get the subtype from the specified string or type",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Error_UnionType = new DiagnosticDescriptor(
+            id: "TG029", title: "Union type", messageFormat: "Union can only be interface or abstract class",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Error_SubtypeConflicted = new DiagnosticDescriptor(
+            id: "TG030", title: "Subtype conflict", messageFormat: "Same subtype has found",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Error_UnionTargetError = new DiagnosticDescriptor(
+            id: "TG031", title: "Union target error", messageFormat: "Union target type must have TinyhandObject attribute",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)

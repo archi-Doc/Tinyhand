@@ -13,6 +13,8 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
+    [TinyhandUnion(0, typeof(UnionTestClassA))]
+    [TinyhandUnion(1, typeof(UnionTestClassC))]
     public interface IUnionTestInterface
     {
     }
@@ -31,7 +33,14 @@ namespace Tinyhand.Tests
         public string Name { get; set; }
     }
 
-    [TinyhandObject]
+    public partial class UnionTestClassC
+    {
+        [Key(0)]
+        public string Name { get; set; }
+    }
+
+    [TinyhandUnion(0, typeof(UnionTestClassA))]
+    [TinyhandUnion(1, typeof(UnionTestClassC))]
     public abstract partial class UnionTestBase
     {
         [Key(0)]

@@ -68,6 +68,8 @@ namespace Tinyhand.Generator
 
         public TinyhandObjectAttributeMock? ObjectAttribute { get; private set; }
 
+        public TinyhandUnion? Union { get; private set; }
+
         public KeyAttributeMock? KeyAttribute { get; private set; }
 
         public VisceralAttribute? KeyVisceralAttribute { get; private set; }
@@ -227,6 +229,13 @@ namespace Tinyhand.Generator
                 }
             }
 
+            // UnionAttribute
+            this.Union = TinyhandUnion.CreateFromObject(this);
+            if (this.Union != null && this.ObjectAttribute == null)
+            {// Add ObjectAttribute
+                this.ObjectAttribute = new TinyhandObjectAttributeMock();
+            }
+
             // KeyAttribute
             if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAttributeMock.FullName) is { } keyAttribute)
             {
@@ -308,7 +317,7 @@ namespace Tinyhand.Generator
             }
         }
 
-        public void ConfigureObject()
+        private void ConfigureObject()
         {
             // Method condition (Serialize/Deserialize)
             this.MethodCondition_Serialize = MethodCondition.MemberMethod;
@@ -502,6 +511,9 @@ namespace Tinyhand.Generator
 
                 parent = parent.ContainingObject;
             }
+
+            // Union
+            this.Union?.CheckAndPrepare();
 
             // Target
             foreach (var x in this.Members)

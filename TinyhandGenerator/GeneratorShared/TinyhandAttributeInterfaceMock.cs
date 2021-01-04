@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace Tinyhand.Generator
 {
@@ -265,6 +266,55 @@ namespace Tinyhand.Generator
             if (val != null)
             {
                 attribute.CustomNamespace = (string)val;
+            }
+
+            return attribute;
+        }
+    }
+
+    public class TinyhandUnionAttributeMock
+    {
+        public static readonly string SimpleName = "TinyhandUnion";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
+        public Location Location { get; }
+
+        /// <summary>
+        /// Gets the distinguishing value that identifies a particular subtype.
+        /// </summary>
+        public int Key { get; private set; }
+
+        /// <summary>
+        /// Gets the derived or implementing type.
+        /// </summary>
+        public ISymbol? SubType { get; private set; }
+
+        public TinyhandUnionAttributeMock(Microsoft.CodeAnalysis.Location location)
+        {
+            this.Location = location;
+        }
+
+        public static TinyhandUnionAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments, Microsoft.CodeAnalysis.Location location)
+        {
+            var attribute = new TinyhandUnionAttributeMock(location);
+
+            if (constructorArguments.Length > 0)
+            {
+                var val = constructorArguments[0];
+                if (val is int intKey)
+                {
+                    attribute.Key = intKey;
+                }
+            }
+
+            if (constructorArguments.Length > 1)
+            {
+                var val = constructorArguments[1];
+                if (val is ISymbol subType)
+                {
+                    attribute.SubType = subType;
+                }
             }
 
             return attribute;
