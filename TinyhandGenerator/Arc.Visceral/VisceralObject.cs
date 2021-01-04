@@ -2174,6 +2174,29 @@ namespace Arc.Visceral
             memberInfo = this.memberInfo;
         }
 
+        public bool IsDerivedOrImplementing(T target)
+        {
+            if (target.Kind == VisceralObjectKind.Interface)
+            {// Interface
+                return this.AllInterfaces.Any(x => x == target.FullName);
+            }
+            else
+            {// Other
+                T? t = (T)this;
+                while (t != null)
+                {
+                    if (t == target)
+                    {
+                        return true;
+                    }
+
+                    t = t.BaseObject;
+                }
+
+                return false;
+            }
+        }
+
         private ImmutableArray<VisceralAttribute> SymbolToAttribute(ISymbol symbol)
         {
             var builder = ImmutableArray.CreateBuilder<VisceralAttribute>();

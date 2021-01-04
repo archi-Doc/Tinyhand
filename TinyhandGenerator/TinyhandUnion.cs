@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 
 #pragma warning disable RS1024 // Compare symbols correctly
@@ -14,6 +15,7 @@ namespace Tinyhand.Generator
         public static TinyhandUnion? CreateFromObject(TinyhandObject obj)
         {
             List<TinyhandUnionAttributeMock>? unionList = null;
+            var errorFlag = false;
             foreach (var x in obj.AllAttributes)
             {
                 if (x.FullName == TinyhandUnionAttributeMock.FullName)
@@ -26,12 +28,14 @@ namespace Tinyhand.Generator
                     catch (InvalidCastException)
                     {
                         obj.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                        errorFlag = true;
                         continue;
                     }
 
                     if (attr.SubType == null)
                     {
                         obj.Body.ReportDiagnostic(TinyhandBody.Error_NullSubtype, x.Location);
+                        errorFlag = true;
                         continue;
                     }
 
@@ -44,7 +48,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            if (obj.Body.Abort)
+            if (errorFlag)
             {
                 return null;
             }
@@ -68,15 +72,17 @@ namespace Tinyhand.Generator
                 if (!checker1.Add(item.Key))
                 {
                     obj.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyConflicted, item.Location);
+                    errorFlag = true;
                 }
 
                 if (!checker2.Add(item.SubType))
                 {
                     obj.Body.ReportDiagnostic(TinyhandBody.Error_SubtypeConflicted, item.Location);
+                    errorFlag = true;
                 }
             }
 
-            if (obj.Body.Abort)
+            if (errorFlag)
             {
                 return null;
             }
@@ -94,20 +100,69 @@ namespace Tinyhand.Generator
 
         public List<TinyhandUnionAttributeMock> UnionList { get; }
 
+        public SortedDictionary<int, TinyhandObject>? UnionDictionary { get; private set; }
+
         public void CheckAndPrepare()
         {
             // Create SortedDictionary
             var unionDictionary = new SortedDictionary<int, TinyhandObject>();
+            var errorFlag = false;
             foreach (var x in this.UnionList)
             {
                 if (this.Object.Body.TryGet(x.SubType!, out var obj) && obj.ObjectAttribute != null)
                 {
-                    unionDictionary.Add(x.Key, obj);
+                    if (obj.IsDerivedOrImplementing(this.Object))
+                    {
+                        unionDictionary.Add(x.Key, obj);
+                    }
+                    else if (this.Object.Kind == Arc.Visceral.VisceralObjectKind.Interface)
+                    {
+                        this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionNotImplementing, x.Location, obj.FullName, this.Object.FullName);
+                        errorFlag = true;
+                    }
+                    else
+                    {
+                        this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionNotDerived, x.Location, obj.FullName, this.Object.FullName);
+                        errorFlag = true;
+                    }
                 }
                 else
                 {
                     this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionTargetError, x.Location);
+                    errorFlag = true;
                 }
+            }
+
+            if (errorFlag)
+            {
+                return;
+            }
+
+            this.UnionDictionary = unionDictionary;
+        }
+
+        internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.UnionDictionary == null)
+            {
+                return;
+            }
+
+            ssb.AppendLine($"if ({ssb.FullObject} == null) {{ writer.WriteNil(); return; }}");
+            using (var sw = ssb.ScopeBrace($"switch ({ssb.FullObject})"))
+            {
+                foreach (var x in this.UnionDictionary)
+                {
+                    var name = "x" + x.Key.ToString();
+                    ssb.AppendLine($"case: {x.Value.FullName} {name}");
+                    ssb.AppendLine("writer.Write();");
+                    ssb.AppendLine($"options.Resolver.GetFormatter<{x.Value.FullName}>().Serialize(ref writer, {name},options);");
+                    ssb.AppendLine("break;");
+                }
+
+                ssb.AppendLine("default:");
+                ssb.AppendLine("writer.WriteNil();");
+                ssb.AppendLine("break;");
             }
         }
     }

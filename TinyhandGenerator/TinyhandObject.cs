@@ -485,31 +485,34 @@ namespace Tinyhand.Generator
 
         public void CheckObject()
         {
-            // partial class required.
-            if (!this.IsPartial)
-            {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartial, this.Location, this.FullName);
-            }
-
-            // default constructor required.
-            if (this.Kind.IsReferenceType())
-            {
-                if (this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
+            if (this.Kind != VisceralObjectKind.Interface)
+            {// Non interface
+                // partial class required.
+                if (!this.IsPartial)
                 {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
-                }
-            }
-
-            // Parent class also needs to be a partial class.
-            var parent = this.ContainingObject;
-            while (parent != null)
-            {
-                if (!parent.IsPartial)
-                {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartialParent, parent.Location, parent.FullName);
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartial, this.Location, this.FullName);
                 }
 
-                parent = parent.ContainingObject;
+                // default constructor required.
+                if (this.Kind.IsReferenceType())
+                {
+                    if (this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
+                    }
+                }
+
+                // Parent class also needs to be a partial class.
+                var parent = this.ContainingObject;
+                while (parent != null)
+                {
+                    if (!parent.IsPartial)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartialParent, parent.Location, parent.FullName);
+                    }
+
+                    parent = parent.ContainingObject;
+                }
             }
 
             // Union
@@ -994,7 +997,11 @@ namespace Tinyhand.Generator
                     using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"))
                     using (var value = ssb.ScopeObject("v"))
                     {
-                        if (!x.IsAbstractOrInterface)
+                        if (x.Union != null)
+                        {// Union
+                            x.Union.GenerateFormatter_Serialize(ssb, info);
+                        }
+                        else
                         {
                             x.GenerateFormatter_Serialize(ssb, info);
                         }
@@ -1003,26 +1010,26 @@ namespace Tinyhand.Generator
                     // Deserialize
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
-                        if (!x.IsAbstractOrInterface)
-                        {
-                            x.GenerateFormatter_Deserialize(ssb, info);
-                        }
-                        else
+                        if (x.Union != null)
                         {// Union
                             ssb.AppendLine("return default;");
+                        }
+                        else
+                        {
+                            x.GenerateFormatter_Deserialize(ssb, info);
                         }
                     }
 
                     // Reconstruct
                     using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct(TinyhandSerializerOptions options)"))
                     {
-                        if (!x.IsAbstractOrInterface)
-                        {
-                            x.GenerateFormatter_Reconstruct(ssb, info);
+                        if (x.Union != null)
+                        {// Union
+                            ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");");
                         }
                         else
                         {
-                            ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");");
+                            x.GenerateFormatter_Reconstruct(ssb, info);
                         }
                     }
                 }
@@ -1056,6 +1063,12 @@ namespace Tinyhand.Generator
         {
             if (this.ConstructedObjects == null)
             {
+                return;
+            }
+            else if (this.Kind == VisceralObjectKind.Interface)
+            {// Skip generating partial type.
+                this.FormatterNumber = info.FormatterCount++;
+                this.FormatterExtraNumber = info.FormatterCount++;
                 return;
             }
 

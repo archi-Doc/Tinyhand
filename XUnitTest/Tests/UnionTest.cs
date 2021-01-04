@@ -14,7 +14,7 @@ using Xunit;
 namespace Tinyhand.Tests
 {
     [TinyhandUnion(0, typeof(UnionTestClassA))]
-    [TinyhandUnion(1, typeof(UnionTestClassC))]
+    [TinyhandUnion(1, typeof(UnionTestClassB))]
     public interface IUnionTestInterface
     {
     }
@@ -33,14 +33,8 @@ namespace Tinyhand.Tests
         public string Name { get; set; }
     }
 
-    public partial class UnionTestClassC
-    {
-        [Key(0)]
-        public string Name { get; set; }
-    }
-
-    [TinyhandUnion(0, typeof(UnionTestClassA))]
-    [TinyhandUnion(1, typeof(UnionTestClassC))]
+    [TinyhandUnion(0, typeof(UnionTestSubA))]
+    [TinyhandUnion(1, typeof(UnionTestSubB))]
     public abstract partial class UnionTestBase
     {
         [Key(0)]
@@ -66,6 +60,16 @@ namespace Tinyhand.Tests
         [Fact]
         public void TestInterface()
         {
+            IUnionTestInterface i;
+            switch (i)
+            {
+                case UnionTestClassA x1:
+                    ssb.AppendLine($"options.Resolver.GetFormatter<{Object.FullName}>().Serialize(ref writer, {v2.FullObject},options);");
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }

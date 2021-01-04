@@ -32,7 +32,7 @@ namespace Tinyhand.Generator
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Error_NoDefaultConstructor = new DiagnosticDescriptor(
-            id: "TG003", title: "No default constructor", messageFormat: "TinyhandObject '{0}' should have default constructor",
+            id: "TG003", title: "No default constructor", messageFormat: "TinyhandObject '{0}' must have default constructor",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Error_NotSerializableMember = new DiagnosticDescriptor(
@@ -145,6 +145,14 @@ namespace Tinyhand.Generator
 
         public static readonly DiagnosticDescriptor Error_UnionTargetError = new DiagnosticDescriptor(
             id: "TG031", title: "Union target error", messageFormat: "Union target type must have TinyhandObject attribute",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Error_UnionNotDerived = new DiagnosticDescriptor(
+            id: "TG032", title: "Union target error", messageFormat: "Union target type '{0}' is not derived from '{1}'",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Error_UnionNotImplementing = new DiagnosticDescriptor(
+            id: "TG033", title: "Union target error", messageFormat: "Union target type '{0}' does not implement '{1}'",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public TinyhandBody(GeneratorExecutionContext context)
