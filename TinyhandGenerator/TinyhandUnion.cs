@@ -191,11 +191,21 @@ namespace Tinyhand.Generator
                 foreach (var x in this.UnionDictionary)
                 {
                     var keyString = x.Key.ToString();
+                    var name = "x" + keyString;
                     ssb.AppendLine("case " + keyString + ":");
                     ssb.IncrementIndent();
+
                     if (reuseName != null)
                     {
-                        ssb.AppendLine($"return options.Resolver.GetFormatterExtra<{x.Value.FullName}>().Deserialize(({x.Value.FullName}){reuseName}, ref reader, options);");
+                        using (var reuseIf = ssb.ScopeBrace($"if ({reuseName} is {x.Value.FullName} {name})"))
+                        {
+                            ssb.AppendLine($"return options.Resolver.GetFormatterExtra<{x.Value.FullName}>().Deserialize({name}, ref reader, options);");
+                        }
+
+                        using (var reuseElse = ssb.ScopeBrace("else"))
+                        {
+                            ssb.AppendLine($"return options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options);");
+                        }
                     }
                     else
                     {
