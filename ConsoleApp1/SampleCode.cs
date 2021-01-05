@@ -243,11 +243,11 @@ namespace ConsoleApp1
 
             var b = TinyhandSerializer.Serialize((IUnionTestInterface)classA);
             var i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
-            i.Print(); // A: 10
+            i?.Print(); // A: 10
 
             b = TinyhandSerializer.Serialize((IUnionTestInterface)classB);
             i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
-            i.Print(); // B: test
+            i?.Print(); // B: test
         }
     }
 }
