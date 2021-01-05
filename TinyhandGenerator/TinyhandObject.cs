@@ -54,6 +54,8 @@ namespace Tinyhand.Generator
         HasExplicitOnAfterDeserialize = 1 << 11, // ITinyhandSerializationCallback.OnAfterDeserialize()
         HasITinyhandSerialize = 1 << 12, // Has ITinyhandSerialize interface
         HasITinyhandReconstruct = 1 << 13, // Has ITinyhandReconstruct interface
+        HasDefaultConstructor = 1 << 14, // Has Default constructor
+        CanNotReconstruct = 1 << 15, // Can Not reconstruct
     }
 
     public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -501,6 +503,8 @@ namespace Tinyhand.Generator
                         this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
                     }
                 }
+
+                this.ObjectFlag |= TinyhandObjectFlag.HasDefaultConstructor;
 
                 // Parent class also needs to be a partial class.
                 var parent = this.ContainingObject;
@@ -1012,7 +1016,7 @@ namespace Tinyhand.Generator
                     {
                         if (x.Union != null)
                         {// Union
-                            ssb.AppendLine("return default;");
+                            x.Union.GenerateFormatter_Deserialize(ssb, info, null);
                         }
                         else
                         {
@@ -1040,19 +1044,19 @@ namespace Tinyhand.Generator
                     // Deserialize
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
-                        if (!x.IsAbstractOrInterface)
+                        if (x.Union != null)
+                        {// Union
+                            x.Union.GenerateFormatter_Deserialize(ssb, info, "reuse");
+                        }
+                        else
                         {
-                            if (x.Kind.IsReferenceType())
+                            if (x.Kind.IsReferenceType() && x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasDefaultConstructor))
                             {// Reference type
                                 ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
                             }
 
                             x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
                             ssb.AppendLine("return reuse;");
-                        }
-                        else
-                        {// Union
-                            ssb.AppendLine("return default;");
                         }
                     }
                 }
@@ -1257,6 +1261,20 @@ namespace Tinyhand.Generator
 
         internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue, bool reuseInstance)
         {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
+            if (this.Kind == VisceralObjectKind.Interface)
+            {
+                if (!reuseInstance)
+                {// New Instance
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Deserialize(ref reader, options)!;");
+                }
+                else
+                {// Reuse Instance
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatterExtra<{this.FullName}>().Deserialize({ssb.FullObject}!, ref reader, options)!;");
+                }
+
+                return;
+            }
+
             if (!reuseInstance)
             {// New Instance
                 ssb.AppendLine($"var v2 = new {this.FullName}();");

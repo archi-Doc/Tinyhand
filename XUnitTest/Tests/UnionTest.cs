@@ -60,16 +60,6 @@ namespace Tinyhand.Tests
         [Fact]
         public void TestInterface()
         {
-            IUnionTestInterface i;
-            switch (i)
-            {
-                case UnionTestClassA x1:
-                    ssb.AppendLine($"options.Resolver.GetFormatter<{Object.FullName}>().Serialize(ref writer, {v2.FullObject},options);");
-                    break;
-
-                default:
-                    break;
-            }
         }
     }
 }

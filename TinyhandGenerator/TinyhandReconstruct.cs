@@ -30,6 +30,11 @@ namespace Tinyhand.Generator
                 return ReconstructCondition.NotReferenceType;
             }
 
+            if (typeObject.Kind == VisceralObjectKind.Interface && typeObject.ObjectAttribute != null)
+            {
+                return ReconstructCondition.NoDefaultConstructor;
+            }
+
             if (typeObject.ObjectAttribute != null || typeObject.Kind.IsType())
             {// TinyhandObject or Reference/Value type, check circular dependency.
                 if (CheckCircular(typeObject))

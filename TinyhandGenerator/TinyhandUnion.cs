@@ -149,20 +149,67 @@ namespace Tinyhand.Generator
             }
 
             ssb.AppendLine($"if ({ssb.FullObject} == null) {{ writer.WriteNil(); return; }}");
+
+            ssb.AppendLine("writer.WriteArrayHeader(2);");
             using (var sw = ssb.ScopeBrace($"switch ({ssb.FullObject})"))
             {
                 foreach (var x in this.UnionDictionary)
                 {
-                    var name = "x" + x.Key.ToString();
-                    ssb.AppendLine($"case: {x.Value.FullName} {name}");
-                    ssb.AppendLine("writer.Write();");
-                    ssb.AppendLine($"options.Resolver.GetFormatter<{x.Value.FullName}>().Serialize(ref writer, {name},options);");
+                    var keyString = x.Key.ToString();
+                    var name = "x" + keyString;
+                    ssb.AppendLine($"case {x.Value.FullName} {name}:");
+                    ssb.IncrementIndent();
+                    ssb.AppendLine("writer.Write(" + keyString + ");");
+                    ssb.AppendLine($"options.Resolver.GetFormatter<{x.Value.FullName}>().Serialize(ref writer, {name}, options);");
                     ssb.AppendLine("break;");
+                    ssb.DecrementIndent();
                 }
 
                 ssb.AppendLine("default:");
+                ssb.IncrementIndent();
+                ssb.AppendLine("writer.WriteNil();");
                 ssb.AppendLine("writer.WriteNil();");
                 ssb.AppendLine("break;");
+                ssb.DecrementIndent();
+            }
+        }
+
+        internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info, string? reuseName)
+        {
+            if (this.UnionDictionary == null)
+            {
+                return;
+            }
+
+            ssb.AppendLine($"if (reader.TryReadNil()) {{ return default; }}");
+            ssb.AppendLine("if (reader.ReadArrayHeader() != 2) { throw new TinyhandException(\"Invalid Union data was detected.\"); }");
+            ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return default; }}");
+
+            ssb.AppendLine("var key = reader.ReadInt32();");
+            using (var sw = ssb.ScopeBrace("switch (key)"))
+            {
+                foreach (var x in this.UnionDictionary)
+                {
+                    var keyString = x.Key.ToString();
+                    ssb.AppendLine("case " + keyString + ":");
+                    ssb.IncrementIndent();
+                    if (reuseName != null)
+                    {
+                        ssb.AppendLine($"return options.Resolver.GetFormatterExtra<{x.Value.FullName}>().Deserialize(({x.Value.FullName}){reuseName}, ref reader, options);");
+                    }
+                    else
+                    {
+                        ssb.AppendLine($"return options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options);");
+                    }
+
+                    ssb.DecrementIndent();
+                }
+
+                ssb.AppendLine("default:");
+                ssb.IncrementIndent();
+                ssb.AppendLine("reader.Skip();");
+                ssb.AppendLine("return default;");
+                ssb.DecrementIndent();
             }
         }
     }
