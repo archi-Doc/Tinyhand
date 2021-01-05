@@ -128,6 +128,10 @@ namespace Arc.Visceral
             }
         }
 
+        public int IncrementIndent() => this.CurrentScope.IncrementIndent();
+
+        public int DecrementIndent() => this.CurrentScope.DecrementIndent();
+
         /// <summary>
         /// Finalize and get the result. All scopes will be disposed.
         /// </summary>
@@ -242,6 +246,10 @@ namespace Arc.Visceral
                 }
             }
 
+            public int IncrementIndent() => ++this.CurrentIndent;
+
+            public int DecrementIndent() => this.CurrentIndent == 0 ? 0 : --this.CurrentIndent;
+
             public IScope? Parent { get; }
 
             public int CurrentIndent { get; private set; }
@@ -291,6 +299,10 @@ namespace Arc.Visceral
             string CurrentObject { get; }
 
             string FullObject { get; }
+
+            int IncrementIndent();
+
+            int DecrementIndent();
         }
     }
 }

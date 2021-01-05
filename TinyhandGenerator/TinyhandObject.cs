@@ -54,6 +54,8 @@ namespace Tinyhand.Generator
         HasExplicitOnAfterDeserialize = 1 << 11, // ITinyhandSerializationCallback.OnAfterDeserialize()
         HasITinyhandSerialize = 1 << 12, // Has ITinyhandSerialize interface
         HasITinyhandReconstruct = 1 << 13, // Has ITinyhandReconstruct interface
+        HasDefaultConstructor = 1 << 14, // Has Default constructor
+        CanNotReconstruct = 1 << 15, // Can Not reconstruct
     }
 
     public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -67,6 +69,8 @@ namespace Tinyhand.Generator
         public TinyhandObjectFlag ObjectFlag { get; private set; }
 
         public TinyhandObjectAttributeMock? ObjectAttribute { get; private set; }
+
+        public TinyhandUnion? Union { get; private set; }
 
         public KeyAttributeMock? KeyAttribute { get; private set; }
 
@@ -91,6 +95,8 @@ namespace Tinyhand.Generator
         public Location? DefaultValueLocation { get; private set; }
 
         public bool IsDefaultable { get; private set; }
+
+        public bool IsAbstractOrInterface => this.Kind == VisceralObjectKind.Interface || (this.symbol is INamedTypeSymbol nts && nts.IsAbstract);
 
         public List<TinyhandObject>? Children { get; private set; } // The opposite of ContainingObject
 
@@ -225,6 +231,13 @@ namespace Tinyhand.Generator
                 }
             }
 
+            // UnionAttribute
+            this.Union = TinyhandUnion.CreateFromObject(this);
+            if (this.Union != null && this.ObjectAttribute == null)
+            {// Add ObjectAttribute
+                this.ObjectAttribute = new TinyhandObjectAttributeMock();
+            }
+
             // KeyAttribute
             if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAttributeMock.FullName) is { } keyAttribute)
             {
@@ -306,7 +319,7 @@ namespace Tinyhand.Generator
             }
         }
 
-        public void ConfigureObject()
+        private void ConfigureObject()
         {
             // Method condition (Serialize/Deserialize)
             this.MethodCondition_Serialize = MethodCondition.MemberMethod;
@@ -474,32 +487,40 @@ namespace Tinyhand.Generator
 
         public void CheckObject()
         {
-            // partial class required.
-            if (!this.IsPartial)
-            {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartial, this.Location, this.FullName);
-            }
-
-            // default constructor required.
-            if (this.Kind.IsReferenceType())
-            {
-                if (this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
+            if (this.Kind != VisceralObjectKind.Interface)
+            {// Non interface
+                // partial class required.
+                if (!this.IsPartial)
                 {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartial, this.Location, this.FullName);
+                }
+
+                // default constructor required.
+                if (this.Kind.IsReferenceType())
+                {
+                    if (this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
+                    }
+                }
+
+                this.ObjectFlag |= TinyhandObjectFlag.HasDefaultConstructor;
+
+                // Parent class also needs to be a partial class.
+                var parent = this.ContainingObject;
+                while (parent != null)
+                {
+                    if (!parent.IsPartial)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartialParent, parent.Location, parent.FullName);
+                    }
+
+                    parent = parent.ContainingObject;
                 }
             }
 
-            // Parent class also needs to be a partial class.
-            var parent = this.ContainingObject;
-            while (parent != null)
-            {
-                if (!parent.IsPartial)
-                {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartialParent, parent.Location, parent.FullName);
-                }
-
-                parent = parent.ContainingObject;
-            }
+            // Union
+            this.Union?.CheckAndPrepare();
 
             // Target
             foreach (var x in this.Members)
@@ -980,19 +1001,40 @@ namespace Tinyhand.Generator
                     using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"))
                     using (var value = ssb.ScopeObject("v"))
                     {
-                        x.GenerateFormatter_Serialize(ssb, info);
+                        if (x.Union != null)
+                        {// Union
+                            x.Union.GenerateFormatter_Serialize(ssb, info);
+                        }
+                        else
+                        {
+                            x.GenerateFormatter_Serialize(ssb, info);
+                        }
                     }
 
                     // Deserialize
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
-                        x.GenerateFormatter_Deserialize(ssb, info);
+                        if (x.Union != null)
+                        {// Union
+                            x.Union.GenerateFormatter_Deserialize(ssb, info, null);
+                        }
+                        else
+                        {
+                            x.GenerateFormatter_Deserialize(ssb, info);
+                        }
                     }
 
                     // Reconstruct
                     using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct(TinyhandSerializerOptions options)"))
                     {
-                        x.GenerateFormatter_Reconstruct(ssb, info);
+                        if (x.Union != null)
+                        {// Union
+                            ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");");
+                        }
+                        else
+                        {
+                            x.GenerateFormatter_Reconstruct(ssb, info);
+                        }
                     }
                 }
 
@@ -1002,20 +1044,21 @@ namespace Tinyhand.Generator
                     // Deserialize
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
-                        if (x.Kind.IsReferenceType())
-                        {// Reference type
-                            ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                        if (x.Union != null)
+                        {// Union
+                            x.Union.GenerateFormatter_Deserialize(ssb, info, "reuse");
                         }
+                        else
+                        {
+                            if (x.Kind.IsReferenceType() && x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasDefaultConstructor))
+                            {// Reference type
+                                ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                            }
 
-                        x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
-                        ssb.AppendLine("return reuse;");
+                            x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
+                            ssb.AppendLine("return reuse;");
+                        }
                     }
-
-                    // Reconstruct
-                    /* using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct({x.FullName} reuse, TinyhandSerializerOptions options)"))
-                    {
-                        x.GenerateFormatterExtra_Reconstruct(ssb, info);
-                    }*/
                 }
             }
         }
@@ -1024,6 +1067,12 @@ namespace Tinyhand.Generator
         {
             if (this.ConstructedObjects == null)
             {
+                return;
+            }
+            else if (this.Kind == VisceralObjectKind.Interface)
+            {// Skip generating partial type.
+                this.FormatterNumber = info.FormatterCount++;
+                this.FormatterExtraNumber = info.FormatterCount++;
                 return;
             }
 
@@ -1212,6 +1261,20 @@ namespace Tinyhand.Generator
 
         internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue, bool reuseInstance)
         {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
+            if (this.Kind == VisceralObjectKind.Interface)
+            {
+                if (!reuseInstance)
+                {// New Instance
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Deserialize(ref reader, options)!;");
+                }
+                else
+                {// Reuse Instance
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatterExtra<{this.FullName}>().Deserialize({ssb.FullObject}!, ref reader, options)!;");
+                }
+
+                return;
+            }
+
             if (!reuseInstance)
             {// New Instance
                 ssb.AppendLine($"var v2 = new {this.FullName}();");

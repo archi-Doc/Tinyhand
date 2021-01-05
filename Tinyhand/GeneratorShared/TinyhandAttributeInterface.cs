@@ -128,4 +128,29 @@ namespace Tinyhand
     {
         void Reconstruct(TinyhandSerializerOptions options);
     }
+
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    public class TinyhandUnionAttribute : Attribute
+    {
+        /// <summary>
+        /// Gets the distinguishing value that identifies a particular subtype.
+        /// </summary>
+        public int Key { get; private set; }
+
+        /// <summary>
+        /// Gets the derived or implementing type.
+        /// </summary>
+        public Type SubType { get; private set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TinyhandUnionAttribute"/> class.
+        /// </summary>
+        /// <param name="key">The distinguishing value that identifies a particular subtype.</param>
+        /// <param name="subType">The derived or implementing type.</param>
+        public TinyhandUnionAttribute(int key, Type subType)
+        {
+            this.Key = key;
+            this.SubType = subType;
+        }
+    }
 }

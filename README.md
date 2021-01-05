@@ -10,7 +10,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
 - [Quick Start](#quick-start)
 - [Performance](#performance)
 - [Serialization Target](#Serialization-Target)
-  - [Readonly, Getter-only](#Readonly,-Getter-only)
+  - [Readonly and Getter-only](#Readonly-and-Getter-only)
   - [Include private members](#Include-private-members)
   - [Explicit key only](#Explicit-key-only)
 - [Features](#features)
@@ -156,7 +156,7 @@ public partial class KeyAsNameClass
 }
 ```
 
-### Readonly, Getter-only
+### Readonly and Getter-only
 
 Readonly field and getter-only property are not serialization target. 
 

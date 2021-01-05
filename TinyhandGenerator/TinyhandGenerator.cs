@@ -35,6 +35,7 @@ namespace Tinyhand.Generator
 
         private TinyhandBody body = default!;
         private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
+        private INamedTypeSymbol? tinyhandUnionAttributeSymbol;
         private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
 #pragma warning disable RS1024
         private HashSet<INamedTypeSymbol?> processedSymbol = new();
@@ -56,6 +57,12 @@ namespace Tinyhand.Generator
             var compilation = context.Compilation;
             this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
             if (this.tinyhandObjectAttributeSymbol == null)
+            {
+                return;
+            }
+
+            this.tinyhandUnionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandUnionAttributeMock.FullName);
+            if (this.tinyhandUnionAttributeSymbol == null)
             {
                 return;
             }
@@ -168,39 +175,6 @@ namespace Tinyhand.Generator
             }
         }
 
-        /* private void SalvageCloseGeneric()
-        {
-            var array = this.body.FullNameToObject.Values.ToArray();
-            foreach (var x in array)
-            {
-                SalvageCloseGenericCore(x);
-            }
-
-            void SalvageCloseGenericCore(TinyhandObject obj)
-            {
-                if (!obj.Kind.IsType() || obj.Generics_Kind != VisceralGenericsKind.CloseGeneric)
-                {// Not type or Not close generic
-                    return;
-                }
-
-                if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol))
-                {// Has TinyhandObject attribute
-                    this.body.Add(obj);
-                }
-
-                foreach (var y in obj.AllMembers)
-                {
-                    if (y.Kind.IsValue() && y.TypeObject is { } o)
-                    {
-                        if (!o.IsPrimitive)
-                        {
-                            SalvageCloseGenericCore(o);
-                        }
-                    }
-                }
-            }
-        }*/
-
         private void ProcessSymbol(INamedTypeSymbol s)
         {
             if (this.processedSymbol.Contains(s))
@@ -211,8 +185,9 @@ namespace Tinyhand.Generator
             this.processedSymbol.Add(s);
             foreach (var x in s.GetAttributes())
             {
-                if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol))
-                { // Attribute
+                if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol) ||
+                    SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandUnionAttributeSymbol))
+                { // TinyhandObject or TinyhandUnion
                     var obj = this.body.Add(s);
                     break;
                 }
@@ -310,7 +285,10 @@ namespace Tinyhand.Generator
                             }
                         }
 
-                        if (name.EndsWith(TinyhandObjectAttributeMock.Name) || name.EndsWith(TinyhandObjectAttributeMock.SimpleName))
+                        if (name.EndsWith(TinyhandObjectAttributeMock.Name) ||
+                            name.EndsWith(TinyhandObjectAttributeMock.SimpleName) ||
+                            name.EndsWith(TinyhandUnionAttributeMock.Name) ||
+                            name.EndsWith(TinyhandUnionAttributeMock.SimpleName))
                         {
                             return true;
                         }
