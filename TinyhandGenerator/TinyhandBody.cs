@@ -155,6 +155,10 @@ namespace Tinyhand.Generator
             id: "TG033", title: "Union target error", messageFormat: "Union target type '{0}' does not implement '{1}'",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Error_UnionSelf = new DiagnosticDescriptor(
+            id: "TG034", title: "Union target error", messageFormat: "The type '{0}' cannot be specified as a union target",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {

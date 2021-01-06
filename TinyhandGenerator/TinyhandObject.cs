@@ -54,8 +54,7 @@ namespace Tinyhand.Generator
         HasExplicitOnAfterDeserialize = 1 << 11, // ITinyhandSerializationCallback.OnAfterDeserialize()
         HasITinyhandSerialize = 1 << 12, // Has ITinyhandSerialize interface
         HasITinyhandReconstruct = 1 << 13, // Has ITinyhandReconstruct interface
-        HasDefaultConstructor = 1 << 14, // Has Default constructor
-        CanNotReconstruct = 1 << 15, // Can Not reconstruct
+        CanCreateInstance = 1 << 14, // Can create an instance
     }
 
     public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -487,8 +486,13 @@ namespace Tinyhand.Generator
 
         public void CheckObject()
         {
-            if (this.Kind != VisceralObjectKind.Interface)
-            {// Non interface
+            if (!this.IsAbstractOrInterface)
+            {
+                this.ObjectFlag |= TinyhandObjectFlag.CanCreateInstance;
+            }
+
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
+            {// Type which can create an instance
                 // partial class required.
                 if (!this.IsPartial)
                 {
@@ -503,8 +507,6 @@ namespace Tinyhand.Generator
                         this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
                     }
                 }
-
-                this.ObjectFlag |= TinyhandObjectFlag.HasDefaultConstructor;
 
                 // Parent class also needs to be a partial class.
                 var parent = this.ContainingObject;
@@ -1050,7 +1052,7 @@ namespace Tinyhand.Generator
                         }
                         else
                         {
-                            if (x.Kind.IsReferenceType() && x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasDefaultConstructor))
+                            if (x.Kind.IsReferenceType() && x.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
                             {// Reference type
                                 ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
                             }
@@ -1069,8 +1071,8 @@ namespace Tinyhand.Generator
             {
                 return;
             }
-            else if (this.Kind == VisceralObjectKind.Interface)
-            {// Skip generating partial type.
+            else if (this.IsAbstractOrInterface)
+            {// Skip generating partial method.
                 this.FormatterNumber = info.FormatterCount++;
                 this.FormatterExtraNumber = info.FormatterCount++;
                 return;
