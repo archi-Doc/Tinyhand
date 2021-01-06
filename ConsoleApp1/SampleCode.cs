@@ -209,6 +209,7 @@ namespace ConsoleApp1
         }
     }
 
+    // Annotate inheritance types
     [TinyhandUnion(0, typeof(UnionTestClassA))]
     [TinyhandUnion(1, typeof(UnionTestClassB))]
     public interface IUnionTestInterface
@@ -239,7 +240,7 @@ namespace ConsoleApp1
         public static void Test()
         {
             var classA = new UnionTestClassA() { X = 10, };
-            var classB = new UnionTestClassB() { Name = "test" , };
+            var classB = new UnionTestClassB() { Name = "test", };
 
             var b = TinyhandSerializer.Serialize((IUnionTestInterface)classA);
             var i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);

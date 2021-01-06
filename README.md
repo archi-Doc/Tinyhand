@@ -18,6 +18,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
   - [Default value](#Default-value)
   - [Reconstruct](#Reconstruct)
   - [Reuse Instance](#Reuse-Instance)
+  - [Union](#Union)
   - [Serialization Callback](#Serialization-Callback)
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#LZ4-Compression)
@@ -454,6 +455,59 @@ public class ReuseTest
 ```
 
 If you don't want to reuse an instance with default behavior, set `ReuseMember` of `TinyhandObject` to false ` [TinyhandObject(ReuseMember = false)]`.
+
+
+
+### Union
+
+Tinyhand supports serializing interface-typed and abstract class-typed objects. It behaves like `XmlInclude` or `ProtoInclude`. In Tinyhand these are called `Union`. Only interfaces and abstracts classes are allowed to be annotated with `TinyhandUnion` attributes. Unique union keys (`int`) are required.
+
+```csharp
+// Annotate inheritance types
+[TinyhandUnion(0, typeof(UnionTestClassA))]
+[TinyhandUnion(1, typeof(UnionTestClassB))]
+public interface IUnionTestInterface
+{
+    void Print();
+}
+
+[TinyhandObject]
+public partial class UnionTestClassA : IUnionTestInterface
+{
+    [Key(0)]
+    public int X { get; set; }
+
+    public void Print() => Console.WriteLine($"A: {this.X.ToString()}");
+}
+
+[TinyhandObject]
+public partial class UnionTestClassB : IUnionTestInterface
+{
+    [Key(0)]
+    public string Name { get; set; } = default!;
+
+    public void Print() => Console.WriteLine($"B: {this.Name}");
+}
+
+public static class UnionTest
+{
+    public static void Test()
+    {
+        var classA = new UnionTestClassA() { X = 10, };
+        var classB = new UnionTestClassB() { Name = "test" , };
+
+        var b = TinyhandSerializer.Serialize((IUnionTestInterface)classA);
+        var i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
+        i?.Print(); // A: 10
+
+        b = TinyhandSerializer.Serialize((IUnionTestInterface)classB);
+        i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
+        i?.Print(); // B: test
+    }
+}
+```
+
+Please be mindful that you cannot reuse the same keys in derived types that are already present in the parent type, as internally a single flat array or map will be used and thus cannot have duplicate indexes/keys.
 
 
 
