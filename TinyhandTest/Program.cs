@@ -21,14 +21,14 @@ namespace TinyhandTest
             var testPath = Path.Combine(projectPath, "Test");
 
             // TestFile(Path.Combine(testPath, "group.tinyhand"));
-            // TestFile(Path.Combine(testPath, "#.tinyhand"));
+            TestFile(Path.Combine(testPath, "#.tinyhand"));
             // TestAll(testPath);
 
             // TestCompose(Path.Combine(testPath, "#.tinyhand"));
 
             // TestDeepCopy(Path.Combine(testPath, "simple.tinyhand"));
 
-            TestProcess(Path.Combine(testPath, "process startup time.tinyhand"));
+            // TestProcess(Path.Combine(testPath, "process startup time.tinyhand"));
             // TestProcess(Path.Combine(testPath, "process language file.tinyhand"));
             // TestProcess(Path.Combine(testPath, "process log.tinyhand"));
         }
@@ -119,7 +119,7 @@ namespace TinyhandTest
 
             // Console.WriteLine(root.Dump());
 
-            var b = TinyhandComposer.Compose(root, TinyhandComposeOption.UseContextualInformation);
+            var b = TinyhandComposer.Compose(root, TinyhandComposeOption.Fancy); // TinyhandComposeOption.UseContextualInformation
             var st = Encoding.UTF8.GetString(b);
 
             Console.WriteLine("Copmpose:");
