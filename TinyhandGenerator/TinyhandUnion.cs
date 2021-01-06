@@ -111,7 +111,12 @@ namespace Tinyhand.Generator
             {
                 if (this.Object.Body.TryGet(x.SubType!, out var obj) && obj.ObjectAttribute != null)
                 {
-                    if (obj.IsDerivedOrImplementing(this.Object))
+                    if (obj == this.Object)
+                    {
+                        this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionSelf, x.Location, obj.FullName);
+                        errorFlag = true;
+                    }
+                    else if (obj.IsDerivedOrImplementing(this.Object))
                     {
                         unionDictionary.Add(x.Key, obj);
                     }
