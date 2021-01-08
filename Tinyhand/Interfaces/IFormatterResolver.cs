@@ -29,7 +29,7 @@ namespace Tinyhand
         ITinyhandFormatterExtra<T>? TryGetFormatterExtra<T>() => default;
     }
 
-    public static class ResolverExtensions
+    public static partial class ResolverExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ITinyhandFormatter<T> GetFormatter<T>(this IFormatterResolver resolver)

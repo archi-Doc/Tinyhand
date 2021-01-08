@@ -62,11 +62,21 @@ namespace Sandbox
         public double Height { get; set; }
     }
 
+    [TinyhandObject(EnableTextSerialization = true)]
+    public partial class TextSerializeClass
+    {
+        [Key(1)]
+        public double Height { get; set; }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            var classA = new UnionTestClassA() { X = 10, };
+            var c = new TextSerializeClass();
+            TinyhandSerializer.TextSerialize(c);
+
+            /* var classA = new UnionTestClassA() { X = 10, };
             var classB = new UnionTestClassB() { Name = "test", };
 
             var b = TinyhandSerializer.Serialize(classA);
@@ -76,7 +86,7 @@ namespace Sandbox
             var IUnionTest = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
 
             b = TinyhandSerializer.Serialize((IUnionTestInterface)classB);
-            IUnionTest = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
+            IUnionTest = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);*/
         }
     }
 }

@@ -62,6 +62,11 @@ namespace Tinyhand.Generator
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to add text serialization function (if true, KeyAsPropertyName will be automatically set to true) [Default value is false].
+        /// </summary>
+        public bool EnableTextSerialization { get; set; } = false;
+
         public TinyhandObjectAttributeMock()
         {
         }
@@ -111,6 +116,16 @@ namespace Tinyhand.Generator
             if (val != null)
             {
                 attribute.SkipSerializingDefaultValue = (bool)val;
+            }
+
+            val = AttributeHelper.GetValue(-1, nameof(EnableTextSerialization), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.EnableTextSerialization = (bool)val;
+                if (attribute.EnableTextSerialization)
+                {// Set KeyAsPropertyName true.
+                    attribute.KeyAsPropertyName = true;
+                }
             }
 
             return attribute;
