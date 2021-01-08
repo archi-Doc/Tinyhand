@@ -79,5 +79,88 @@ namespace Tinyhand
 
             return TinyhandComposer.Compose(element, options.Compose);
         }
+
+        /// <summary>
+        /// Serializes a given value with the specified buffer writer.
+        /// </summary>
+        /// <param name="value">The value to serialize.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A byte array with the serialized value (UTF-8).</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+        public static string TextSerializeToString<T>(T value, TinyhandTextSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            return TinyhandHelper.GetTextFromUtf8(TextSerialize(value, options, cancellationToken));
+        }
+
+        /// <summary>
+        /// Deserializes a value of a given type from a sequence of bytes (UTF-8).
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="utf8">The buffer to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? TextDeserialize<T>(ReadOnlySpan<byte> utf8, TinyhandTextSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            options = options ?? TextDefaultOptions;
+            var element = TinyhandParser.Parse(utf8);
+
+            try
+            {
+                return options.Resolver.GetFormatter<T>().Deserialize(element, options);
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+        }
+
+        /// <summary>
+        /// Deserializes a value of a given type from a sequence of bytes (UTF-8).
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="utf8">The buffer to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? TextDeserialize<T>(byte[] utf8, TinyhandTextSerializerOptions? options = null, CancellationToken cancellationToken = default) => TextDeserialize<T>(utf8.AsSpan(), options, cancellationToken);
+
+        /// <summary>
+        /// Deserializes a value of a given type from a sequence of bytes (UTF-8).
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="utf8">The buffer to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? TextDeserialize<T>(ReadOnlyMemory<byte> utf8, TinyhandTextSerializerOptions? options = null, CancellationToken cancellationToken = default) => TextDeserialize<T>(utf8.Span, options, cancellationToken);
+
+        /// <summary>
+        /// Deserializes a value of a given type from a sequence of bytes (UTF-8).
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="utf8">The buffer to deserialize from.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The deserialized value.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+        public static T? TextDeserialize<T>(string utf8, TinyhandTextSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            options = options ?? TextDefaultOptions;
+            var element = TinyhandParser.Parse(utf8);
+
+            try
+            {
+                return options.Resolver.GetFormatter<T>().Deserialize(element, options);
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+        }
     }
 }

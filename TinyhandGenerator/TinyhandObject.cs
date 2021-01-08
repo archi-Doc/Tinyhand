@@ -580,8 +580,8 @@ namespace Tinyhand.Generator
 
         private void CheckObject_Key()
         {
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
-            {// ITinyhandSerialize is implemented. KeyAttribute is ignored.
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize) && this.ObjectAttribute?.EnableTextSerialization != true)
+            {// ITinyhandSerialize is implemented and text serialization is disabled. KeyAttribute is ignored.
                 foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.Target))
                 {
                     if (x.KeyAttribute != null)
@@ -633,6 +633,10 @@ namespace Tinyhand.Generator
                     else if (x.KeyAttribute.IntKey != null)
                     {// Integer key
                         intKeyExists = true;
+                        if (this.ObjectAttribute?.EnableTextSerialization == true)
+                        {
+                            this.Body.ReportDiagnostic(TinyhandBody.Error_TextSerializationIntKey, x.KeyVisceralAttribute?.Location);
+                        }
                     }
                 }
 

@@ -65,8 +65,10 @@ namespace Sandbox
     [TinyhandObject(EnableTextSerialization = true)]
     public partial class TextSerializeClass
     {
-        [Key(1)]
+        [Key("1")]
         public double Height { get; set; }
+
+        public double Width { get; set; }
     }
 
     class Program
@@ -74,7 +76,8 @@ namespace Sandbox
         static void Main(string[] args)
         {
             var c = new TextSerializeClass();
-            TinyhandSerializer.TextSerialize(c);
+            var st = TinyhandSerializer.TextSerializeToString(c);
+            var c2 = TinyhandSerializer.TextDeserialize<TextSerializeClass>(st);
 
             /* var classA = new UnionTestClassA() { X = 10, };
             var classB = new UnionTestClassB() { Name = "test", };
