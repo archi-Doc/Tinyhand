@@ -71,6 +71,8 @@ namespace Tinyhand.Generator
 
         public TinyhandUnion? Union { get; private set; }
 
+        public TinyhandTextSerialization? TextSerialization { get; private set; }
+
         public KeyAttributeMock? KeyAttribute { get; private set; }
 
         public VisceralAttribute? KeyVisceralAttribute { get; private set; }
@@ -228,6 +230,12 @@ namespace Tinyhand.Generator
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, objectAttribute.Location);
                 }
+            }
+
+            // Enable text serialization
+            if (this.ObjectAttribute?.EnableTextSerialization == true)
+            {
+                this.TextSerialization = new TinyhandTextSerialization(this);
             }
 
             // UnionAttribute
@@ -654,6 +662,8 @@ namespace Tinyhand.Generator
 
         private void CheckObject_StringKey()
         {
+            this.TextSerialization?.CheckKey();
+
             this.Automata = new Automata(this);
 
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
