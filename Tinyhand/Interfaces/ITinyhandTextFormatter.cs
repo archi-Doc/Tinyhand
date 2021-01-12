@@ -34,12 +34,5 @@ namespace Tinyhand
         /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
         /// <returns>The deserialized value.</returns>
         T? Deserialize(Element element, TinyhandTextSerializerOptions options);
-
-        /// <summary>
-        /// Create a new object.
-        /// </summary>
-        /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
-        /// <returns>The new object.</returns>
-        T Reconstruct(TinyhandTextSerializerOptions options);
     }
 }

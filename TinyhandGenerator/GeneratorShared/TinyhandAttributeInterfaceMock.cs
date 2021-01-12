@@ -176,6 +176,12 @@ namespace Tinyhand.Generator
 
             return attribute;
         }
+
+        public void SetKey(string x)
+        {
+            this.IntKey = null;
+            this.StringKey = x;
+        }
     }
 
     public class IgnoreMemberAttributeMock

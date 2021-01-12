@@ -2,6 +2,7 @@
 
 using System;
 using Tinyhand.IO;
+using Tinyhand.Tree;
 
 namespace Tinyhand
 {
@@ -132,6 +133,17 @@ namespace Tinyhand
     public interface ITinyhandReconstruct
     {
         void Reconstruct(TinyhandSerializerOptions options);
+    }
+
+    /// <summary>
+    /// Interface for custom serialize/deserialize methods.
+    /// If this interface is implemented, Tinyhand use it instead of the generated code.
+    /// </summary>
+    public interface ITinyhandTextSerialize
+    {
+        void Serialize(out Element element, TinyhandTextSerializerOptions options);
+
+        void Deserialize(Element element, TinyhandTextSerializerOptions options);
     }
 
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]

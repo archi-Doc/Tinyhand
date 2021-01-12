@@ -163,6 +163,10 @@ namespace Tinyhand.Generator
             id: "TG035", title: "Int key not supported", messageFormat: "Integer key is not supported for text serialization",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Warning_InvalidIdentifier = new DiagnosticDescriptor(
+            id: "TG036", title: "Invalid identifier", messageFormat: "'{0}'is not a valid identifier, it's been replaced by '{1}'",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {

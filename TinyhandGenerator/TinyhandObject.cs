@@ -111,6 +111,8 @@ namespace Tinyhand.Generator
 
         public int FormatterExtraNumber { get; private set; }
 
+        public int FormatterTextNumber { get; private set; }
+
         internal Automata? Automata { get; private set; }
 
         public TinyhandObject[]? IntKey_Array;
@@ -1003,6 +1005,11 @@ namespace Tinyhand.Generator
                     ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
                     name = string.Format(classFormat, x.FormatterExtraNumber);
                     ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>(new {name}());");
+                    if (x.TextSerialization != null)
+                    {
+                        name = string.Format(classFormat, x.FormatterTextNumber);
+                        ssb.AppendLine($"GeneratedTextResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
+                    }
                 }
             }
 
@@ -1076,6 +1083,26 @@ namespace Tinyhand.Generator
                         }
                     }
                 }
+
+                if (x.TextSerialization != null)
+                {
+                    name = string.Format(classFormat, x.FormatterTextNumber);
+                    using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandTextFormatter<{x.FullName}>"))
+                    {
+                        // Serialize
+                        using (var s = ssb.ScopeBrace($"public void Serialize(out Element element, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandTextSerializerOptions options)"))
+                        using (var value = ssb.ScopeObject("v"))
+                        {
+                            x.GenerateFormatter_TextSerialize(ssb, info);
+                        }
+
+                        // Deserialize
+                        using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(Element element, TinyhandTextSerializerOptions options)"))
+                        {
+                            x.GenerateFormatter_TextDeserialize(ssb, info);
+                        }
+                    }
+                }
             }
         }
 
@@ -1089,6 +1116,7 @@ namespace Tinyhand.Generator
             {// Skip generating partial method.
                 this.FormatterNumber = info.FormatterCount++;
                 this.FormatterExtraNumber = info.FormatterCount++;
+                this.FormatterTextNumber = info.FormatterCount++;
                 return;
             }
 
@@ -1366,6 +1394,27 @@ namespace Tinyhand.Generator
             ssb.AppendLine($"{ssb.FullObject} = v2;");
         }
 
+        internal void GenerateFormatter_TextSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {// void Serialize(out Element element, T? value, TinyhandTextSerializerOptions options);
+            if (this.Kind.IsReferenceType())
+            {// Reference type
+                ssb.AppendLine($"if ({ssb.FullObject} == null) {{ writer.WriteNil(); return; }}");
+            }
+
+            if (this.MethodCondition_TextSerialize == MethodCondition.StaticMethod)
+            {// Static method
+                ssb.AppendLine($"{this.FullName}.Serialize(out element, {ssb.FullObject}, options);");
+            }
+            else if (this.MethodCondition_TextSerialize == MethodCondition.ExplicitlyDeclared)
+            {// Explicitly declared (Interface.Method())
+                ssb.AppendLine($"((ITinyhandTextSerialize){ssb.FullObject}).Serialize(out element, options);");
+            }
+            else
+            {// Member method
+                ssb.AppendLine($"{ssb.FullObject}.Serialize(out element, options);");
+            }
+        }
+
         internal void GenerateDeserialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             string methodCode;
@@ -1496,6 +1545,7 @@ namespace Tinyhand.Generator
         {
             this.FormatterNumber = info.FormatterCount++;
             this.FormatterExtraNumber = info.FormatterCount++;
+            this.FormatterTextNumber = info.FormatterCount++;
 
             // Serialize/Deserialize/Reconstruct
             this.GenerateSerialize_Method(ssb, info);

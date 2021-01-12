@@ -65,10 +65,13 @@ namespace Sandbox
     [TinyhandObject(EnableTextSerialization = true)]
     public partial class TextSerializeClass
     {
-        [Key("1")]
+        [Key("a1")]
         public double Height { get; set; }
 
         public double Width { get; set; }
+
+        [Key("rI32")]
+        public int Age { get; set; }
     }
 
     class Program
