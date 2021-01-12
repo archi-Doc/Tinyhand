@@ -25,7 +25,7 @@ namespace Tinyhand
         /// <param name="element">The serialized Tinyhand element.</param>
         /// <param name="value">The value to be serialized.</param>
         /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
-        void Serialize(out Element element, T? value, TinyhandTextSerializerOptions options);
+        void Serialize(out Element? element, T? value, TinyhandTextSerializerOptions options);
 
         /// <summary>
         /// Deserializes a value (convert a Tinyhand element to a value).
@@ -33,6 +33,6 @@ namespace Tinyhand
         /// <param name="element">The Tinyhand element to deserialize from.</param>
         /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
         /// <returns>The deserialized value.</returns>
-        T? Deserialize(Element element, TinyhandTextSerializerOptions options);
+        T? Deserialize(Element? element, TinyhandTextSerializerOptions options);
     }
 }

@@ -266,6 +266,7 @@ namespace Tinyhand.Generator
             ssb.AddUsing("Tinyhand");
             ssb.AddUsing("Tinyhand.IO");
             ssb.AddUsing("Tinyhand.Resolvers");
+            ssb.AddUsing("Tinyhand.Tree");
             ssb.AppendLine("#nullable enable", false);
             ssb.AppendLine("#pragma warning disable CS0108", false); // Hides inherited member
             ssb.AppendLine("#pragma warning disable CS0162", false); // Unreachable code detected

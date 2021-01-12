@@ -129,6 +129,10 @@ namespace Tinyhand.Generator
 
         public MethodCondition MethodCondition_Reconstruct { get; private set; }
 
+        public MethodCondition MethodCondition_TextSerialize { get; private set; }
+
+        public MethodCondition MethodCondition_TextDeserialize { get; private set; }
+
         private ReconstructCondition reconstructCondition;
 
         public ReconstructCondition ReconstructCondition
@@ -379,6 +383,15 @@ namespace Tinyhand.Generator
             else if (this.Generics_IsGeneric)
             {
                 this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
+            }
+
+            // Method condition (TextSerialize/TextDeserialize)
+            this.MethodCondition_TextSerialize = MethodCondition.MemberMethod;
+            this.MethodCondition_TextDeserialize = MethodCondition.MemberMethod;
+            if (this.Generics_IsGeneric)
+            {
+                this.MethodCondition_TextSerialize = MethodCondition.StaticMethod;
+                this.MethodCondition_TextDeserialize = MethodCondition.StaticMethod;
             }
 
             // ITinyhandSerializationCallback
@@ -1090,14 +1103,14 @@ namespace Tinyhand.Generator
                     using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandTextFormatter<{x.FullName}>"))
                     {
                         // Serialize
-                        using (var s = ssb.ScopeBrace($"public void Serialize(out Element element, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandTextSerializerOptions options)"))
+                        using (var s = ssb.ScopeBrace($"public void Serialize(out Element? element, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandTextSerializerOptions options)"))
                         using (var value = ssb.ScopeObject("v"))
                         {
                             x.GenerateFormatter_TextSerialize(ssb, info);
                         }
 
                         // Deserialize
-                        using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(Element element, TinyhandTextSerializerOptions options)"))
+                        using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(Element? element, TinyhandTextSerializerOptions options)"))
                         {
                             x.GenerateFormatter_TextDeserialize(ssb, info);
                         }
@@ -1137,6 +1150,18 @@ namespace Tinyhand.Generator
                     else
                     {
                         interfaceString += ", ITinyhandReconstruct";
+                    }
+                }
+
+                if (this.TextSerialization != null && this.MethodCondition_TextSerialize == MethodCondition.MemberMethod)
+                {
+                    if (interfaceString == string.Empty)
+                    {
+                        interfaceString = " : ITinyhandTextSerialize";
+                    }
+                    else
+                    {
+                        interfaceString += ", ITinyhandTextSerialize";
                     }
                 }
             }
@@ -1251,6 +1276,36 @@ namespace Tinyhand.Generator
                 {// Int Key
                     this.GenerateSerializerIntKey(ssb, info);
                 }
+            }
+        }
+
+        internal void GenerateTextSerialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            string methodCode;
+            string objectCode;
+
+            if (this.MethodCondition_Serialize == MethodCondition.MemberMethod)
+            {
+                methodCode = "public void Serialize(out Element? element, TinyhandTextSerializerOptions options)";
+                objectCode = "this";
+            }
+            else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
+            {
+                methodCode = $"public static void Serialize(out Element? element, {this.RegionalName} v, TinyhandTextSerializerOptions options)";
+                objectCode = "v";
+            }
+            else
+            {
+                return;
+            }
+
+            using (var m = ssb.ScopeBrace(methodCode))
+            using (var v = ssb.ScopeObject(objectCode))
+            {
+                // ITinyhandSerializationCallback.OnBeforeSerialize
+                this.Generate_OnBeforeSerialize(ssb, info);
+
+                this.GenerateTextSerializer(ssb, info);
             }
         }
 
@@ -1395,10 +1450,10 @@ namespace Tinyhand.Generator
         }
 
         internal void GenerateFormatter_TextSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
-        {// void Serialize(out Element element, T? value, TinyhandTextSerializerOptions options);
+        {// void Serialize(out Element? element, T? value, TinyhandTextSerializerOptions options);
             if (this.Kind.IsReferenceType())
             {// Reference type
-                ssb.AppendLine($"if ({ssb.FullObject} == null) {{ writer.WriteNil(); return; }}");
+                ssb.AppendLine($"if ({ssb.FullObject} == null) {{ element = null; return; }}");
             }
 
             if (this.MethodCondition_TextSerialize == MethodCondition.StaticMethod)
@@ -1413,6 +1468,30 @@ namespace Tinyhand.Generator
             {// Member method
                 ssb.AppendLine($"{ssb.FullObject}.Serialize(out element, options);");
             }
+        }
+
+        internal void GenerateFormatter_TextDeserialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {// T? Deserialize(Element? element, TinyhandTextSerializerOptions options);
+            if (this.Kind.IsReferenceType())
+            {// Reference type
+                ssb.AppendLine("if (element == null) return default;");
+            }
+
+            ssb.AppendLine($"var v = new {this.FullName}();");
+            if (this.MethodCondition_TextDeserialize == MethodCondition.StaticMethod)
+            {// Static method
+                ssb.AppendLine($"{this.FullName}.Deserialize{this.GenericsNumberString}(ref v, element, options);");
+            }
+            else if (this.MethodCondition_TextDeserialize == MethodCondition.ExplicitlyDeclared)
+            {// Explicitly declared (Interface.Method())
+                ssb.AppendLine($"((ITinyhandTextSerialize)v).Deserialize(element, options);");
+            }
+            else
+            {// Member method
+                ssb.AppendLine($"v.Deserialize(element, options);");
+            }
+
+            ssb.AppendLine("return v;");
         }
 
         internal void GenerateDeserialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1446,6 +1525,36 @@ namespace Tinyhand.Generator
                 {// Int Key
                     this.GenerateDeserializerIntKey(ssb, info);
                 }
+
+                // ITinyhandSerializationCallback.OnAfterDeserialize
+                this.Generate_OnAfterDeserialize(ssb, info);
+            }
+        }
+
+        internal void GenerateTextDeserialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            string methodCode;
+            string objectCode;
+
+            if (this.MethodCondition_Deserialize == MethodCondition.MemberMethod)
+            {
+                methodCode = "public void Deserialize(Element? element, TinyhandTextSerializerOptions options)";
+                objectCode = "this";
+            }
+            else if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
+            {
+                methodCode = $"public static void Deserialize{this.GenericsNumberString}(ref {this.RegionalName} v, Element? element, TinyhandTextSerializerOptions options)";
+                objectCode = "v";
+            }
+            else
+            {
+                return;
+            }
+
+            using (var m = ssb.ScopeBrace(methodCode))
+            using (var v = ssb.ScopeObject(objectCode))
+            {
+                this.GenerateTextDeserializer(ssb, info);
 
                 // ITinyhandSerializationCallback.OnAfterDeserialize
                 this.Generate_OnAfterDeserialize(ssb, info);
@@ -1551,6 +1660,12 @@ namespace Tinyhand.Generator
             this.GenerateSerialize_Method(ssb, info);
             this.GenerateDeserialize_Method(ssb, info);
             this.GenerateReconstruct_Method(ssb, info);
+
+            if (this.TextSerialization != null)
+            {// Text Serialize/Deserialize
+                this.GenerateTextSerialize_Method(ssb, info);
+                this.GenerateTextDeserialize_Method(ssb, info);
+            }
 
             return;
         }

@@ -68,7 +68,7 @@ namespace Tinyhand.Generator
             }
 
             if (this.reservedString.Contains(identifier))
-            {// Reserved
+            {// Reservedw
                 return false;
             }
 
@@ -76,8 +76,8 @@ namespace Tinyhand.Generator
         }
 
 #pragma warning disable SA1500
-        private HashSet<string> reservedString = new() { "null", "true", "false", "Bool", "I32", "I64", "U32", "U64",
-          "Single", "Double", "String", "Key", "Array", "Map", "Required", "Optional", };
+        private HashSet<string> reservedString = new() { "null", "true", "false", "bool", "i32", "i64", "u32", "u64",
+          "single", "double", "string", "key", "array", "map", "required", "optional", };
 #pragma warning restore SA1500
     }
 }

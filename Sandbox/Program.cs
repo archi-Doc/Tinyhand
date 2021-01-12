@@ -70,7 +70,7 @@ namespace Sandbox
 
         public double Width { get; set; }
 
-        [Key("rI32")]
+        [Key("i32")]
         public int Age { get; set; }
     }
 
