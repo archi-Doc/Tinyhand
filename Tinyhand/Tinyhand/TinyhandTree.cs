@@ -510,6 +510,17 @@ namespace Tinyhand.Tree
         public Group()
             : base(ElementType.Group)
         {
+            this.ElementList = new();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Group"/> class.
+        /// </summary>
+        /// <param name="capacity">The number of elements that the new group can initially store.</param>
+        public Group(int capacity)
+            : base(ElementType.Group)
+        {
+            this.ElementList = new(capacity);
         }
 
         public override void RemoveChild(Element child)
@@ -536,7 +547,7 @@ namespace Tinyhand.Tree
             return instance;
         }
 
-        public List<Element> ElementList = new List<Element>();
+        public List<Element> ElementList { get; private set; }
 
         public virtual void Add(Element element)
         {

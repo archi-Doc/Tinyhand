@@ -61,7 +61,7 @@ namespace Arc.Visceral
 
         public IScope ScopeNamespace(string @namespace) => this.ScopeBrace($"namespace {@namespace}");
 
-        public IScope ScopeBrace(string? preface)
+        public IScope ScopeBrace(string? preface = null)
         {
             if (preface != null)
             {

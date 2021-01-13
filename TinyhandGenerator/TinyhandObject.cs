@@ -1305,7 +1305,7 @@ namespace Tinyhand.Generator
                 // ITinyhandSerializationCallback.OnBeforeSerialize
                 this.Generate_OnBeforeSerialize(ssb, info);
 
-                this.GenerateTextSerializer(ssb, info);
+                this.GenerateTextSerialize(ssb, info);
             }
         }
 
@@ -1554,10 +1554,204 @@ namespace Tinyhand.Generator
             using (var m = ssb.ScopeBrace(methodCode))
             using (var v = ssb.ScopeObject(objectCode))
             {
-                this.GenerateTextDeserializer(ssb, info);
+                this.GenerateTextDeserialize(ssb, info);
 
                 // ITinyhandSerializationCallback.OnAfterDeserialize
                 this.Generate_OnAfterDeserialize(ssb, info);
+            }
+        }
+
+        internal void GenerateTextSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {// out Element? element, {this.RegionalName} ssb.FullObject
+            if (this.Automata == null)
+            {
+                return;
+            }
+
+            var cf = this.OriginalDefinition; // For generics. get Class<T>
+            if (cf == null)
+            {
+                cf = this;
+            }
+
+            ssb.AppendLine($"var group = new Group({this.Automata.NodeList.Count})"); // writer.WriteMapHeader({this.Automata.NodeList.Count});
+            var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
+            foreach (var x in this.Automata.NodeList)
+            {
+                using (var s = ssb.ScopeBrace())
+                {
+                    ssb.AppendLine("Element e;");
+                    this.GenerateTextSerializeCore(ssb, info, x.Member, skipDefaultValue);
+
+                    // "writer.WriteString({cf.LocalName}.{string.Format(TinyhandBody.StringKeyFieldFormat, x.Index)});"
+                    ssb.AppendLine($"group.Add(new Assignment(new Value_Identifier({cf.LocalName}.{string.Format(TinyhandBody.StringKeyFieldFormat, x.Index)}), element));");
+                }
+            }
+
+            ssb.AppendLine("element = group;");
+        }
+
+        internal void GenerateTextSerializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, bool skipDefaultValue)
+        {// Element? e, {this.RegionalName} ssb.FullObject
+            var withNullable = x?.TypeObjectWithNullable;
+            if (x == null || withNullable == null)
+            {// no object
+                ssb.AppendLine("e = null;");
+                return;
+            }
+
+            using (var v2 = ssb.ScopeObject(x.SimpleName))
+            {
+                ScopingStringBuilder.IScope? skipDefaultValueScope = null;
+                if (skipDefaultValue)
+                {
+                    if (x.IsDefaultable)
+                    {
+                        ssb.AppendLine($"if ({v2.FullObject} == {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)}) {{ e = null; }}");
+                        skipDefaultValueScope = ssb.ScopeBrace("else");
+                    }
+                    else if (withNullable.Object.AllMembers.Any(a => a.Kind == VisceralObjectKind.Method &&
+                    a.SimpleName == "CompareDefaultValue" && a.Method_Parameters.Length == 1 && a.Method_Parameters[0] == x.DefaultValueTypeName) == true)
+                    {
+                        ssb.AppendLine($"if ({v2.FullObject}.CompareDefaultValue({VisceralDefaultValue.DefaultValueToString(x.DefaultValue)})) {{ e = null; }}");
+                        skipDefaultValueScope = ssb.ScopeBrace("else");
+                    }
+                }
+
+                var coder = TextCoderResolver.Instance.TryGetCoder(withNullable);
+                if (coder != null)
+                {// Coder
+                    coder.CodeSerializer(ssb, info);
+                }
+                else
+                {// Formatter
+                    if (x.HasNullableAnnotation)
+                    {
+                        ssb.AppendLine($"if ({v2.FullObject} == null) e = null;");
+                        ssb.AppendLine($"else options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(out e, {v2.FullObject}, options);");
+                    }
+                    else
+                    {
+                        ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(out e, {v2.FullObject}, options);");
+                    }
+                }
+
+                skipDefaultValueScope?.Dispose();
+            }
+        }
+
+        internal void GenerateTextDeserialize(ScopingStringBuilder ssb, GeneratorInformation info)
+        {// Element? element, {this.RegionalName} ssb.FullObject
+            if (this.Automata == null)
+            {
+                return;
+            }
+
+            if (this.Kind.IsValueType())
+            {// Value type
+                ssb.AppendLine("if (element == null) throw new TinyhandException(\"Element is null, struct can not be null.\");");
+            }
+
+            // this.Automata.PrepareReconstruct(); // Already called
+
+            ssb.AppendLine("ulong key;");
+            if (this.Automata.ReconstructCount > 0)
+            {
+                ssb.AppendLine($"var deserializedFlag = new bool[{this.Automata.ReconstructCount}];");
+            }
+
+            ssb.AppendLine("var group = TinyhandTreeHelper.GetGroup(element);");
+
+            using (var security = ssb.ScopeSecurityDepth())
+            {
+                
+                using (var loop = ssb.ScopeBrace("for (var n = 0; n < group.ElementList.Count; n++)"))
+                {
+                    ssb.AppendLine("var utf8 = TinyhandTreeHelper.GetValue_Identifier(group.ElementList[n]).IdentifierUtf8;");
+                    using (var c = ssb.ScopeBrace("if (utf8.Length == 0)"))
+                    {
+                        ssb.GotoSkipLabel();
+                    }
+
+                    ssb.AppendLine("key = global::Tinyhand.Generator.AutomataKey.GetKey(ref utf8);");
+
+                    this.Automata.GenerateDeserialize(ssb, info);
+
+                    ssb.AppendLine("continue;");
+                    ssb.AppendLine("SkipLabel:", false);
+                    ssb.ReaderSkip();
+                }
+
+                // Reconstruct
+                this.Automata.GenerateReconstruct(ssb, info);
+                this.GenerateReconstructRemaining(ssb, info);
+            }
+
+            ssb.RestoreSecurityDepth();
+        }
+
+        internal void GenerateTextDeserializeCore2(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
+        {// String key
+            var withNullable = x?.TypeObjectWithNullable;
+            if (x == null || withNullable == null)
+            {// no object
+                ssb.GotoSkipLabel();
+                return;
+            }
+
+            using (var m = ssb.ScopeObject(x.SimpleName))
+            {
+                var coder = CoderResolver.Instance.TryGetCoder(withNullable);
+                using (var valid = ssb.ScopeBrace($"if (!reader.TryReadNil())"))
+                {
+                    if (withNullable.Object.ObjectAttribute != null)
+                    {
+                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    }
+                    else if (coder != null)
+                    {
+                        coder.CodeDeserializer(ssb, info, true);
+                    }
+                    else
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
+                        if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
+                        {// T?
+                            ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                        }
+                        else
+                        {// T
+                            ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
+                            ssb.AppendLine($"{m.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
+                        }
+                    }
+                }
+
+                if (x!.IsDefaultable)
+                {// Default
+                    using (var invalid = ssb.ScopeBrace("else"))
+                    {
+                        ssb.AppendLine($"{m.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                    }
+                }
+                else if (x.ReconstructState == ReconstructState.Do)
+                {
+                    using (var invalid = ssb.ScopeBrace("else"))
+                    {
+                        if (withNullable.Object.ObjectAttribute != null)
+                        {// TinyhandObject. For the purpose of default value and instance reuse.
+                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                        }
+                        else if (coder != null)
+                        {
+                            coder.CodeReconstruct(ssb, info);
+                        }
+                        else
+                        {
+                            ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
+                        }
+                    }
+                }
             }
         }
 
@@ -1661,10 +1855,12 @@ namespace Tinyhand.Generator
             this.GenerateDeserialize_Method(ssb, info);
             this.GenerateReconstruct_Method(ssb, info);
 
-            if (this.TextSerialization != null)
+            if (this.TextSerialization != null && this.Automata != null)
             {// Text Serialize/Deserialize
+                this.Automata.TextSerialize = true;
                 this.GenerateTextSerialize_Method(ssb, info);
                 this.GenerateTextDeserialize_Method(ssb, info);
+                this.Automata.TextSerialize = false;
             }
 
             return;

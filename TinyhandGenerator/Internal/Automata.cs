@@ -24,6 +24,8 @@ namespace Tinyhand.Generator
 
         public int ReconstructCount { get; private set; }
 
+        public bool TextSerialize { get; set; }
+
         public void PrepareReconstruct()
         {
             var count = 0;
@@ -172,7 +174,15 @@ namespace Tinyhand.Generator
                     ssb.AppendLine($"deserializedFlag[{x.ReconstructIndex}] = true;");
                 }
 
-                this.Object.GenerateDeserializeCore2(ssb, info, x.Member);
+                if (this.TextSerialize)
+                {
+                    this.Object.GenerateTextDeserializeCore2(ssb, info, x.Member);
+                }
+                else
+                {
+                    this.Object.GenerateDeserializeCore2(ssb, info, x.Member);
+                }
+
                 return;
             }
 
@@ -188,7 +198,14 @@ namespace Tinyhand.Generator
                         ssb.AppendLine($"deserializedFlag[{x.ReconstructIndex}] = true;");
                     }
 
-                    this.Object.GenerateDeserializeCore2(ssb, info, x.Member);
+                    if (this.TextSerialize)
+                    {
+                        this.Object.GenerateTextDeserializeCore2(ssb, info, x.Member);
+                    }
+                    else
+                    {
+                        this.Object.GenerateDeserializeCore2(ssb, info, x.Member);
+                    }
                 }
             }
 
