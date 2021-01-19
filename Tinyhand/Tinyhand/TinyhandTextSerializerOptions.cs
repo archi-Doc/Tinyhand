@@ -11,7 +11,7 @@ namespace Tinyhand
 {
     public static class TinyhandTextSerializerOptionsExtension
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /* [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T DeserializeAndReconstruct<T>(this TinyhandTextSerializerOptions options, Element element)
         {
             ITinyhandTextFormatter<T>? formatter;
@@ -28,7 +28,7 @@ namespace Tinyhand
         private static void Throw(Type t, ITextFormatterResolver resolver)
         {
             throw new FormatterNotRegisteredException(t.FullName + " is not registered in resolver: " + resolver.GetType());
-        }
+        }*/
     }
 
     public class TinyhandTextSerializerOptions
