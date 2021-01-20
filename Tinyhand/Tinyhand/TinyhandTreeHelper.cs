@@ -7,6 +7,40 @@ namespace Tinyhand
 {
     public static class TinyhandTreeHelper
     {
+        public static string GetTypeString(this Element element)
+        {
+            string s;
+
+            if (element is Value v)
+            {
+                s = v.ValueType switch
+                {
+                    ValueElementType.Identifier => "Identifier",
+                    ValueElementType.SpecialIdentifier => "Identifier",
+                    ValueElementType.Value_Binary => "Binary",
+                    ValueElementType.Value_String => "String",
+                    ValueElementType.Value_Long => "Long",
+                    ValueElementType.Value_Double => "Double",
+                    ValueElementType.Value_Null => "Null",
+                    ValueElementType.Value_Bool => "Bool",
+                    _ => "Value",
+                };
+            }
+            else
+            {
+                s = element.Type switch
+                {
+                    ElementType.Assignment => "Assignment",
+                    ElementType.Group => "Group",
+                    ElementType.LineFeed => "LineFeed",
+                    ElementType.Comment => "Comment",
+                    _ => "Element",
+                };
+            }
+
+            return s;
+        }
+
         /// <summary>
         /// Returns true if the element is assigned (the element's parent is TinyhandAssignment).
         /// </summary>

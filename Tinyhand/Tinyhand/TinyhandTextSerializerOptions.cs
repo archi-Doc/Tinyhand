@@ -9,9 +9,9 @@ using Tinyhand.Tree;
 
 namespace Tinyhand
 {
-    public static class TinyhandTextSerializerOptionsExtension
+    /* public static class TinyhandTextSerializerOptionsExtension
     {
-        /* [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T DeserializeAndReconstruct<T>(this TinyhandTextSerializerOptions options, Element element)
         {
             ITinyhandTextFormatter<T>? formatter;
@@ -28,7 +28,7 @@ namespace Tinyhand
         private static void Throw(Type t, ITextFormatterResolver resolver)
         {
             throw new FormatterNotRegisteredException(t.FullName + " is not registered in resolver: " + resolver.GetType());
-        }*/
+        }
     }
 
     public class TinyhandTextSerializerOptions
@@ -38,10 +38,10 @@ namespace Tinyhand
         /// <summary>
         /// Initializes a new instance of the <see cref="TinyhandTextSerializerOptions"/> class.
         /// </summary>
-        /// <param name="resolver">The new value for the <see cref="Resolver"/>.</param>
+        /// <param name="resolver">The new value for the <see cref="TextResolver"/>.</param>
         protected internal TinyhandTextSerializerOptions(ITextFormatterResolver resolver)
         {
-            this.Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+            this.TextResolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Tinyhand
         /// <param name="copyFrom">The options to copy from.</param>
         protected TinyhandTextSerializerOptions(TinyhandTextSerializerOptions copyFrom)
         {
-            this.Resolver = copyFrom.Resolver;
+            this.TextResolver = copyFrom.TextResolver;
             this.Compose = copyFrom.Compose;
         }
 
@@ -60,7 +60,7 @@ namespace Tinyhand
         /// </summary>
         /// <value>An instance of <see cref="ITextFormatterResolver"/>. Never <c>null</c>.</value>
         /// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <c>null</c>.</exception>
-        public ITextFormatterResolver Resolver { get; private set; }
+        public ITextFormatterResolver TextResolver { get; private set; }
 
         /// <summary>
         /// Gets the compose option.
@@ -68,19 +68,19 @@ namespace Tinyhand
         public TinyhandComposeOption Compose { get; private set; }
 
         /// <summary>
-        /// Gets a copy of these options with the <see cref="Resolver"/> property set to a new value.
+        /// Gets a copy of these options with the <see cref="TextResolver"/> property set to a new value.
         /// </summary>
-        /// <param name="resolver">The new value for the <see cref="Resolver"/>.</param>
+        /// <param name="resolver">The new value for the <see cref="TextResolver"/>.</param>
         /// <returns>The new instance; or the original if the value is unchanged.</returns>
         public TinyhandTextSerializerOptions WithResolver(ITextFormatterResolver resolver)
         {
-            if (this.Resolver == resolver)
+            if (this.TextResolver == resolver)
             {
                 return this;
             }
 
             var result = this.Clone();
-            result.Resolver = resolver;
+            result.TextResolver = resolver;
             return result;
         }
 
@@ -115,5 +115,5 @@ namespace Tinyhand
 
             return new TinyhandTextSerializerOptions(this);
         }
-    }
+    }*/
 }

@@ -132,6 +132,10 @@ namespace Arc.Visceral
 
         public int DecrementIndent() => this.CurrentScope.DecrementIndent();
 
+        public string SecondaryObject => this.CurrentScope.SecondaryObject;
+
+        public void SetSecondaryObject(string secondaryObject) => this.CurrentScope.SetSecondaryObject(secondaryObject);
+
         /// <summary>
         /// Finalize and get the result. All scopes will be disposed.
         /// </summary>
@@ -210,6 +214,7 @@ namespace Arc.Visceral
                 }
 
                 this.CurrentObject = string.Empty;
+                this.SecondaryObject = this.Parent?.SecondaryObject ?? string.Empty;
             }
 
             public Scope(ScopingStringBuilder ssb, string objectName, bool addPeriod)
@@ -220,6 +225,7 @@ namespace Arc.Visceral
 
                 this.HasBrace = false;
                 this.CurrentObject = objectName;
+                this.SecondaryObject = this.Parent.SecondaryObject;
                 if (this.Parent == null)
                 {
                     this.CurrentIndent = 0;
@@ -250,6 +256,11 @@ namespace Arc.Visceral
 
             public int DecrementIndent() => this.CurrentIndent == 0 ? 0 : --this.CurrentIndent;
 
+            public void SetSecondaryObject(string secondaryObject)
+            {
+                this.SecondaryObject = secondaryObject;
+            }
+
             public IScope? Parent { get; }
 
             public int CurrentIndent { get; private set; }
@@ -259,6 +270,8 @@ namespace Arc.Visceral
             public string CurrentObject { get; }
 
             public string FullObject { get; }
+
+            public string SecondaryObject { get; private set; }
 
             public bool IsDisposed { get; private set; }
 
@@ -300,9 +313,13 @@ namespace Arc.Visceral
 
             string FullObject { get; }
 
+            string SecondaryObject { get; }
+
             int IncrementIndent();
 
             int DecrementIndent();
+
+            void SetSecondaryObject(string secondaryObject);
         }
     }
 }

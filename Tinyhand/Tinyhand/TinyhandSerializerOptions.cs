@@ -4,6 +4,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 using Tinyhand.Resolvers;
+using Tinyhand.TextResolvers;
 
 #pragma warning disable SA1602 // Enumeration items should be documented
 
@@ -50,6 +51,7 @@ namespace Tinyhand
         protected internal TinyhandSerializerOptions(IFormatterResolver resolver)
         {
             this.Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+            this.TextResolver = StandardTextResolver.Instance;
         }
 
         /// <summary>
@@ -60,8 +62,10 @@ namespace Tinyhand
         protected TinyhandSerializerOptions(TinyhandSerializerOptions copyFrom)
         {
             this.Resolver = copyFrom.Resolver;
+            this.TextResolver = copyFrom.TextResolver;
             this.Compression = copyFrom.Compression;
             this.Security = copyFrom.Security;
+            this.Compose = copyFrom.Compose;
         }
 
         /// <summary>
@@ -70,6 +74,13 @@ namespace Tinyhand
         /// <value>An instance of <see cref="IFormatterResolver"/>. Never <c>null</c>.</value>
         /// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <c>null</c>.</exception>
         public IFormatterResolver Resolver { get; private set; }
+
+        /// <summary>
+        /// Gets the text resolver to use for complex types.
+        /// </summary>
+        /// <value>An instance of <see cref="ITextFormatterResolver"/>. Never <c>null</c>.</value>
+        /// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <c>null</c>.</exception>
+        public ITextFormatterResolver TextResolver { get; private set; }
 
         /// <summary>
         /// Gets the compression scheme to apply to serialized sequences.
@@ -90,6 +101,11 @@ namespace Tinyhand
         public TinyhandSecurity Security { get; private set; } = TinyhandSecurity.TrustedData;
 
         /// <summary>
+        /// Gets the compose option.
+        /// </summary>
+        public TinyhandComposeOption Compose { get; private set; }
+
+        /// <summary>
         /// Gets a copy of these options with the <see cref="Resolver"/> property set to a new value.
         /// </summary>
         /// <param name="resolver">The new value for the <see cref="Resolver"/>.</param>
@@ -103,6 +119,23 @@ namespace Tinyhand
 
             var result = this.Clone();
             result.Resolver = resolver;
+            return result;
+        }
+
+        /// <summary>
+        /// Gets a copy of these options with the <see cref="TextResolver"/> property set to a new value.
+        /// </summary>
+        /// <param name="textResolver">The new value for the <see cref="TextResolver"/>.</param>
+        /// <returns>The new instance; or the original if the value is unchanged.</returns>
+        public TinyhandSerializerOptions WithTextResolver(ITextFormatterResolver textResolver)
+        {
+            if (this.TextResolver == textResolver)
+            {
+                return this;
+            }
+
+            var result = this.Clone();
+            result.TextResolver = textResolver;
             return result;
         }
 
@@ -142,6 +175,23 @@ namespace Tinyhand
 
             var result = this.Clone();
             result.Security = security;
+            return result;
+        }
+
+        /// <summary>
+        /// Gets a copy of these options with the <see cref="Compose"/> property set to a new value.
+        /// </summary>
+        /// <param name="compose">The new value for the <see cref="Compose"/> property.</param>
+        /// <returns>The new instance; or the original if the value is unchanged.</returns>
+        public TinyhandSerializerOptions WithCompose(TinyhandComposeOption compose)
+        {
+            if (this.Compose == compose)
+            {
+                return this;
+            }
+
+            var result = this.Clone();
+            result.Compose = compose;
             return result;
         }
 
