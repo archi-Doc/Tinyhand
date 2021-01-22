@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Arc.Visceral;
 using Tinyhand.Generator;
+
 #pragma warning disable SA1401 // Fields should be private
 #pragma warning disable SA1509 // Opening braces should not be preceded by blank line
 
