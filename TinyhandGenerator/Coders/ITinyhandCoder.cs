@@ -44,7 +44,6 @@ namespace Tinyhand.Coders
         /// </summary>
         /// <param name="ssb">The scoping string builder to output code.</param>
         /// <param name="info">The generator information.</param>
-        /// <param name="nilChecked">True if the next code is non-Nil.</param>
-        void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked = false);
+        void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info);
     }
 }

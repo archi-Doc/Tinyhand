@@ -1673,7 +1673,6 @@ namespace Tinyhand.Generator
 
             using (var security = ssb.ScopeSecurityDepth())
             {
-
                 using (var loop = ssb.ScopeBrace("for (var n = 0; n < group.ElementList.Count; n++)"))
                 {
                     ssb.AppendLine("Value_Identifier id;");
@@ -1725,7 +1724,7 @@ namespace Tinyhand.Generator
                     }
                     else if (textCoder != null)
                     {
-                        textCoder.CodeDeserializer(ssb, info, true);
+                        textCoder.CodeDeserializer(ssb, info);
                     }
                     else
                     {

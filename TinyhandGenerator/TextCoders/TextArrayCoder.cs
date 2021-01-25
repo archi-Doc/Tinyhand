@@ -49,7 +49,7 @@ namespace Tinyhand.Coders
             ssb.AppendLine($"{GeneratorInformation.GeneratedMethod}.SerializeArray_{this.block!.SerialNumber:0000}(out {ssb.SecondaryObject}, {ssb.FullObject}, options);");
         }
 
-        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {// Element ssb.SecondaryObject -> withNullable ssb.FullObject
             // if (this.block == null) // XUnitTest static issue
             {
@@ -58,50 +58,10 @@ namespace Tinyhand.Coders
 
             if (this.nullableAnnotation != NullableAnnotation.NotAnnotated)
             {// Nullable
-                if (nilChecked)
-                {// Nil already checked.
-                    CodeDeserializerNullable();
-                }
-                else
-                {
-                    using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
-                    {
-                        ssb.AppendLine($"{ssb.FullObject} = default;");
-                    }
-
-                    using (var b = ssb.ScopeBrace($"else"))
-                    {
-                        CodeDeserializerNullable();
-                    }
-                }
+                ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options);");
             }
             else
             {// Non-nullable
-                if (nilChecked)
-                {// Nil already checked.
-                    CodeDeserializerNonNullable();
-                }
-                else
-                {
-                    using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
-                    {
-                        ssb.AppendLine($"{ssb.FullObject} = System.Array.Empty<{this.element.FullNameWithNullable}>();");
-                    }
-
-                    using (var b = ssb.ScopeBrace($"else"))
-                    {
-                        CodeDeserializerNonNullable();
-                    }
-                }
-            }
-
-            void CodeDeserializerNullable()
-            {
-                ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options);");
-            }
-
-            void CodeDeserializerNonNullable()
-            {
                 ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options) ?? System.Array.Empty<{this.element.FullNameWithNullable}>();");
             }
         }

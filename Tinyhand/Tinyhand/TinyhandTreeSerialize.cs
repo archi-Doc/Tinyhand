@@ -17,7 +17,7 @@ namespace Tinyhand
                 return group;
             }
 
-            throw new TinyhandTreeTypeException(element, "Group");
+            throw new TinyhandTreeTypeException(element, typeof(Group));
         }
 
         public static void GetGroupItem(Element element, out Value_Identifier identifier, out Element e)
@@ -36,10 +36,10 @@ namespace Tinyhand
                     throw new TinyhandTreeException(element, "Right value is null.");
                 }
 
-                throw new TinyhandTreeTypeException(element, "Identifier");
+                throw new TinyhandTreeTypeException(element, typeof(Value_Identifier));
             }
 
-            throw new TinyhandTreeTypeException(element, "Assignment");
+            throw new TinyhandTreeTypeException(element, typeof(Assignment));
         }
     }
 
@@ -58,13 +58,13 @@ namespace Tinyhand
 
     public class TinyhandTreeTypeException : TinyhandTreeException
     {
-        public TinyhandTreeTypeException(Element element, string expected)
-            : base(element, $"The expected type is {expected}, but actual type is {element.ToString()}.")
+        public TinyhandTreeTypeException(Element element, Type typeExpected)
+            : base(element, $"The expected type is {typeExpected.Name}, but the actual type is {element.ToString()}.")
         {
         }
 
-        public TinyhandTreeTypeException(Element element, string expected, Exception innerException)
-            : base(element, $"The expected type is {expected}, but actual type is {element.ToString()}.", innerException)
+        public TinyhandTreeTypeException(Element element, Type typeExpected, Exception innerException)
+            : base(element, $"The expected type is {typeExpected.Name}, but the actual type is {element.ToString()}.", innerException)
         {
         }
     }
