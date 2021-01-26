@@ -40,7 +40,7 @@ namespace Tinyhand.Coders
         }
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
-        {// out Element ssb.SecondaryObject, withNullable ssb.FullObject
+        {
             // if (this.block == null) // XUnitTest static issue
             {
                 this.GenerateMethod(info);
@@ -50,7 +50,7 @@ namespace Tinyhand.Coders
         }
 
         public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info)
-        {// Element ssb.SecondaryObject -> withNullable ssb.FullObject
+        {
             // if (this.block == null) // XUnitTest static issue
             {
                 this.GenerateMethod(info);
@@ -58,11 +58,11 @@ namespace Tinyhand.Coders
 
             if (this.nullableAnnotation != NullableAnnotation.NotAnnotated)
             {// Nullable
-                ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options);");
+                ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}({ssb.SecondaryObject}, options);");
             }
             else
             {// Non-nullable
-                ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options) ?? System.Array.Empty<{this.element.FullNameWithNullable}>();");
+                ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}({ssb.SecondaryObject}, options) ?? System.Array.Empty<{this.element.FullNameWithNullable}>();");
             }
         }
 
@@ -81,25 +81,26 @@ namespace Tinyhand.Coders
 
         private void GenerateSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"internal static void SerializeArray_{this.block!.SerialNumber:0000}(ref TinyhandWriter writer, {this.element.FullNameWithNullable}[]? value, TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"internal static void SerializeArray_{this.block!.SerialNumber:0000}(out Element element, {this.element.FullNameWithNullable}[]? value, TinyhandSerializerOptions options)"))
             using (var v = ssb.ScopeObject("value"))
             {
-                ssb.AppendLine($"if ({ssb.FullObject} == null) writer.WriteNil();");
+                ssb.AppendLine($"if ({ssb.FullObject} == null) element = new Value_Null();");
                 using (var e = ssb.ScopeBrace("else"))
                 {
                     if (this.elementCoder == null)
                     {// use option.Resolver.GetFormatter<T>()
-                        ssb.AppendLine($"var formatter = options.Resolver.GetFormatter<{this.element.FullName}>();");
+                        ssb.AppendLine($"var textFormatter = options.TextResolver.GetFormatter<{this.element.FullName}>();");
                     }
 
-                    ssb.AppendLine($"writer.WriteArrayHeader({ssb.FullObject}.Length);");
+                    ssb.AppendLine($"element = new Group({ssb.FullObject}.Length);");
                     using (var b = ssb.ScopeBrace($"for (int i = 0; i < {ssb.FullObject}.Length; i++)"))
                     {
                         using (var element = ssb.ScopeObject("[i]", false))
                         {
+                            ssb.SetSecondaryObject("element[i]");
                             if (this.elementCoder == null)
                             {// use option.Resolver.GetFormatter<T>()
-                                ssb.AppendLine($"formatter.Serialize(ref writer, {ssb.FullObject}, options);");
+                                ssb.AppendLine($"formatter.Serialize(out {ssb.SecondaryObject}, {ssb.FullObject}, options);");
                             }
                             else
                             {// use coder
@@ -113,14 +114,16 @@ namespace Tinyhand.Coders
 
         private void GenerateDeserializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            using (var m = ssb.ScopeBrace($"internal static {this.element.FullNameWithNullable}[]? DeserializeArray_{this.block!.SerialNumber:0000}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+            using (var m = ssb.ScopeBrace($"internal static {this.element.FullNameWithNullable}[]? DeserializeArray_{this.block!.SerialNumber:0000}(Element element, TinyhandSerializerOptions options)"))
             {
                 if (this.elementCoder == null)
                 {// use option.Resolver.GetFormatter<T>()
                     ssb.AppendLine($"var formatter = options.Resolver.GetFormatter<{this.element.FullName}>();");
+                    ssb.AppendLine($"var textFormatter = options.TextResolver.GetFormatter<{this.element.FullName}>();");
                 }
 
-                ssb.AppendLine("var len = reader.ReadArrayHeader();");
+                ssb.AppendLine("var group = TreeSerialize.GetGroup(element);");
+                ssb.AppendLine("var len = group.ElementList.Count");
                 var idx = this.element.FullName.IndexOf('[');
                 if (idx < 0)
                 { // int
@@ -142,11 +145,11 @@ namespace Tinyhand.Coders
                             {// use option.Resolver.GetFormatter<T>()
                                 if (this.element.Nullable == NullableAnnotation.NotAnnotated)
                                 {
-                                    ssb.AppendLine($"{element.FullObject} = formatter.Deserialize(ref reader, options)!;");
+                                    ssb.AppendLine($"{element.FullObject} = textFormatter.Deserialize(group.ElementList[i], options)!;");
                                 }
                                 else
                                 {
-                                    ssb.AppendLine($"{element.FullObject} = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);");
+                                    ssb.AppendLine($"{element.FullObject} = textFormatter.Deserialize(group.ElementList[i], options) ?? formatter.Reconstruct(options);");
                                 }
                             }
                             else

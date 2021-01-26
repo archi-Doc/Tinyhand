@@ -17,11 +17,11 @@ namespace Tinyhand.Coders
         private static readonly ITextCoderResolver[] Resolvers = new ITextCoderResolver[]
         {
             TextBuiltinCoder.Instance,
-            TextNullableResolver.Instance,
+            // TextNullableResolver.Instance,
             TextArrayResolver.Instance,
-            TextListResolver.Instance,
-            TextEnumResolver.Instance,
-            TextFormatterResolver.Instance,
+            // TextListResolver.Instance,
+            // TextEnumResolver.Instance,
+            // TextFormatterResolver.Instance,
         };
 
         private TextCoderResolver()

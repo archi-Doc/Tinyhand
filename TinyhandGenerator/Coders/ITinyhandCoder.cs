@@ -37,6 +37,7 @@ namespace Tinyhand.Coders
         /// </summary>
         /// <param name="ssb">The scoping string builder to output code.</param>
         /// <param name="info">The generator information.</param>
+        /// <remarks>withNullable ssb.FullObject -> out Element ssb.SecondaryObject.</remarks>
         void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info);
 
         /// <summary>
@@ -44,6 +45,7 @@ namespace Tinyhand.Coders
         /// </summary>
         /// <param name="ssb">The scoping string builder to output code.</param>
         /// <param name="info">The generator information.</param>
+        /// <remarks>Element ssb.SecondaryObject -> withNullable ssb.FullObject.</remarks>
         void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info);
     }
 }

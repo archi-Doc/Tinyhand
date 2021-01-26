@@ -32,6 +32,22 @@ namespace Tinyhand
             return formatter!.Deserialize(ref reader, options) ?? formatter!.Reconstruct(options);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T TextDeserializeAndReconstruct<T>(this TinyhandSerializerOptions options, Tree.Element element)
+        {
+            ITinyhandFormatter<T>? formatter;
+            ITinyhandTextFormatter<T>? textFormatter;
+
+            formatter = options.Resolver.TryGetFormatter<T>();
+            textFormatter = options.TextResolver.TryGetFormatter<T>();
+            if (formatter == null || textFormatter == null)
+            {
+                Throw(typeof(T), options.Resolver);
+            }
+
+            return textFormatter!.Deserialize(element, options) ?? formatter!.Reconstruct(options);
+        }
+
         private static void Throw(Type t, IFormatterResolver resolver)
         {
             throw new FormatterNotRegisteredException(t.FullName + " is not registered in resolver: " + resolver.GetType());

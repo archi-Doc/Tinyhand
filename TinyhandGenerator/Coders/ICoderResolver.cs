@@ -27,7 +27,7 @@ namespace Tinyhand
     public interface ITextCoderResolver
     {
         /// <summary>
-        /// Gets an <see cref="ITinyhandCoder"/> instance that can serialize or deserialize some type <see cref="TinyhandObject" />.
+        /// Gets an <see cref="ITinyhandTextCoder"/> instance that can serialize or deserialize some type <see cref="TinyhandObject" />.
         /// </summary>
         /// <param name="withNullable">The <see cref="TinyhandObject" /> to be serialized or deserialized.</param>
         /// <returns>A coder, if this resolver supplies one for type <see cref="TinyhandObject" />; otherwise <c>null</c>.</returns>
