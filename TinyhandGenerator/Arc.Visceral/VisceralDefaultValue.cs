@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Globalization;
 
 namespace Arc.Visceral
 {
@@ -18,48 +19,48 @@ namespace Arc.Visceral
 
                 if (typeName == "sbyte")
                 {
-                    return Convert.ToSByte(defaultValue);
+                    return Convert.ToSByte(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "byte")
                 {
-                    return Convert.ToByte(defaultValue);
+                    return Convert.ToByte(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "short")
                 {
-                    return Convert.ToInt16(defaultValue);
+                    return Convert.ToInt16(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "ushort")
                 {
-                    return Convert.ToUInt16(defaultValue);
+                    return Convert.ToUInt16(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "int")
                 {
-                    return Convert.ToInt32(defaultValue);
+                    return Convert.ToInt32(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "uint")
                 {
-                    return Convert.ToUInt32(defaultValue);
+                    return Convert.ToUInt32(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "long")
                 {
-                    return Convert.ToInt64(defaultValue);
+                    return Convert.ToInt64(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "ulong")
                 {
-                    return Convert.ToUInt64(defaultValue);
+                    return Convert.ToUInt64(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "float")
                 {
-                    return Convert.ToSingle(defaultValue);
+                    return Convert.ToSingle(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "double")
                 {
-                    return Convert.ToDouble(defaultValue);
+                    return Convert.ToDouble(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else if (typeName == "decimal")
                 {
                     // return decimal.Parse(ds);
-                    return Convert.ToDecimal(defaultValue);
+                    return Convert.ToDecimal(defaultValue, CultureInfo.InvariantCulture);
                 }
                 else
                 {
@@ -197,17 +198,17 @@ namespace Arc.Visceral
             {
                 return obj.ToString() + "ul";
             }
-            else if (type == typeof(float))
+            else if (obj is float f)
             {
-                return obj.ToString() + "f";
+                return f.ToString(CultureInfo.InvariantCulture) + "f";
             }
-            else if (type == typeof(double))
+            else if (obj is double d)
             {
-                return obj.ToString() + "d";
+                return d.ToString(CultureInfo.InvariantCulture) + "d";
             }
-            else if (type == typeof(decimal))
+            else if (obj is decimal d2)
             {
-                return obj.ToString() + "m";
+                return d2.ToString(CultureInfo.InvariantCulture) + "m";
             }
             else if (type == typeof(string))
             {
