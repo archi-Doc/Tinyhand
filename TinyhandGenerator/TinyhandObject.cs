@@ -1753,7 +1753,7 @@ namespace Tinyhand.Generator
                 ssb.AppendLine($"var deserializedFlag = new bool[{this.Automata.ReconstructCount}];");
             }
 
-            ssb.AppendLine("var numberOfData = reader.ReadMapHeader();");
+            ssb.AppendLine("var numberOfData = reader.ReadMapHeader2();");
 
             using (var security = ssb.ScopeSecurityDepth())
             {

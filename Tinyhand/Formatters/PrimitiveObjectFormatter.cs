@@ -304,7 +304,7 @@ namespace Tinyhand.Formatters
 
                 case MessagePackType.Map:
                     {
-                        var length = reader.ReadMapHeader();
+                        var length = reader.ReadMapHeader2();
 
                         options.Security.DepthStep(ref reader);
                         try

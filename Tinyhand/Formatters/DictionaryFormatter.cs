@@ -81,7 +81,7 @@ namespace Tinyhand.Formatters
                 ITinyhandFormatter<TKey> keyFormatter = resolver.GetFormatter<TKey>();
                 ITinyhandFormatter<TValue> valueFormatter = resolver.GetFormatter<TValue>();
 
-                var len = reader.ReadMapHeader();
+                var len = reader.ReadMapHeader2();
 
                 TIntermediate dict = this.Create(len, options);
                 options.Security.DepthStep(ref reader);

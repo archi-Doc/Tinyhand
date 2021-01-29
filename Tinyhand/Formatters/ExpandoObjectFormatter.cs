@@ -24,7 +24,7 @@ namespace Tinyhand.Formatters
             }
 
             var result = new ExpandoObject();
-            int count = reader.ReadMapHeader();
+            int count = reader.ReadMapHeader2();
             if (count > 0)
             {
                 IFormatterResolver resolver = options.Resolver;
