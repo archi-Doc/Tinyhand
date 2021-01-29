@@ -62,6 +62,7 @@ namespace Tinyhand
             this.Resolver = copyFrom.Resolver;
             this.Compression = copyFrom.Compression;
             this.Security = copyFrom.Security;
+            this.Compose = copyFrom.Compose;
         }
 
         /// <summary>
@@ -88,6 +89,11 @@ namespace Tinyhand
         /// The default value is to use <see cref="TinyhandSecurity.TrustedData"/>.
         /// </value>
         public TinyhandSecurity Security { get; private set; } = TinyhandSecurity.TrustedData;
+
+        /// <summary>
+        /// Gets the compose option.
+        /// </summary>
+        public TinyhandComposeOption Compose { get; private set; }
 
         /// <summary>
         /// Gets a copy of these options with the <see cref="Resolver"/> property set to a new value.
@@ -142,6 +148,23 @@ namespace Tinyhand
 
             var result = this.Clone();
             result.Security = security;
+            return result;
+        }
+
+        /// <summary>
+        /// Gets a copy of these options with the <see cref="Compose"/> property set to a new value.
+        /// </summary>
+        /// <param name="compose">The new value for the <see cref="Compose"/> property.</param>
+        /// <returns>The new instance; or the original if the value is unchanged.</returns>
+        public TinyhandSerializerOptions WithCompose(TinyhandComposeOption compose)
+        {
+            if (this.Compose == compose)
+            {
+                return this;
+            }
+
+            var result = this.Clone();
+            result.Compose = compose;
             return result;
         }
 
