@@ -29,7 +29,7 @@ namespace Tinyhand
         {
             options = options ?? DefaultOptions;
             var binary = Serialize<T>(value, options, cancellationToken);
-            TinyhandTreeConverter.FromBinary(binary, out var element);
+            TinyhandTreeConverter.FromBinary(binary, out var element, options);
             TinyhandComposer.Compose(writer, element, options.Compose);
         }
 
@@ -45,7 +45,7 @@ namespace Tinyhand
         {
             options = options ?? DefaultOptions;
             var binary = Serialize<T>(value, options, cancellationToken);
-            TinyhandTreeConverter.FromBinary(binary, out var element);
+            TinyhandTreeConverter.FromBinary(binary, out var element, options);
             return TinyhandComposer.Compose(element, options.Compose);
         }
 
@@ -81,7 +81,7 @@ namespace Tinyhand
         public static T? DeserializeFromElement<T>(Element element, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
-            TinyhandTreeConverter.ToBinary(element, out var binary, out var debugInformation);
+            TinyhandTreeConverter.ToBinary(element, out var binary, out var debugInformation, options);
 
             var reader = new TinyhandReader(binary)
             {

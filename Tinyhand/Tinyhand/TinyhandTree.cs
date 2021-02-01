@@ -273,6 +273,12 @@ namespace Tinyhand.Tree
         {
         }
 
+        public Value_Bool(bool valueBool)
+            : this()
+        {
+            this.ValueBool = valueBool;
+        }
+
         public bool ValueBool { get; set; }
     }
 
@@ -297,6 +303,12 @@ namespace Tinyhand.Tree
         {
         }
 
+        public Value_Long(long valueLong)
+            : this()
+        {
+            this.ValueLong = valueLong;
+        }
+
         public long ValueLong { get; set; }
     }
 
@@ -305,6 +317,12 @@ namespace Tinyhand.Tree
         public Value_Double()
             : base(ValueElementType.Value_Double)
         {
+        }
+
+        public Value_Double(double valueDouble)
+            : this()
+        {
+            this.ValueDouble = valueDouble;
         }
 
         public double ValueDouble { get; set; }
@@ -321,6 +339,12 @@ namespace Tinyhand.Tree
             : base(ValueElementType.Value_String)
         {
             this.valueStringUtf8 = valueStringUtf8;
+        }
+
+        public Value_String(string valueStringUtf16)
+            : base(ValueElementType.Value_String)
+        {
+            this.valueStringUtf16 = valueStringUtf16;
         }
 
         public override object DeepCopy()
@@ -495,7 +519,7 @@ namespace Tinyhand.Tree
     }
 
     /// <summary>
-    /// TinyhandGroup holds multiple Element.
+    /// TinyhandGroup holds multiple Elements.
     /// </summary>
     public class Group : Element, IEnumerable<Element>
     {
@@ -510,6 +534,17 @@ namespace Tinyhand.Tree
         public Group()
             : base(ElementType.Group)
         {
+            this.ElementList = new();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Group"/> class.
+        /// </summary>
+        /// <param name="capacity">The number of elements that the new group can initially store.</param>
+        public Group(int capacity)
+            : base(ElementType.Group)
+        {
+            this.ElementList = new(capacity);
         }
 
         public override void RemoveChild(Element child)
@@ -536,7 +571,7 @@ namespace Tinyhand.Tree
             return instance;
         }
 
-        public List<Element> ElementList = new List<Element>();
+        public List<Element> ElementList { get; private set; }
 
         public virtual void Add(Element element)
         {
