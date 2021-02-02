@@ -17,9 +17,9 @@ namespace Tinyhand
 {
     public enum TinyhandComposeOption
     {
-        Fast,
+        Standard,
         UseContextualInformation,
-        Fancy,
+        Fast,
     }
 
     public static class TinyhandComposer
@@ -27,7 +27,7 @@ namespace Tinyhand
         [ThreadStatic]
         private static byte[] initialBuffer = new byte[32 * 1024];
 
-        public static byte[] Compose(Element element, TinyhandComposeOption option = TinyhandComposeOption.Fast)
+        public static byte[] Compose(Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
         {
             var writer = new TinyhandRawWriter(initialBuffer);
             try
@@ -41,7 +41,7 @@ namespace Tinyhand
             }
         }
 
-        public static void Compose(IBufferWriter<byte> bufferWriter, Element element, TinyhandComposeOption option = TinyhandComposeOption.Fast)
+        public static void Compose(IBufferWriter<byte> bufferWriter, Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
         {
             var writer = new TinyhandRawWriter(bufferWriter);
             try
@@ -253,7 +253,13 @@ namespace Tinyhand
 
             private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
             {
-                if (element.Parent != null)
+                var addBrace = true;
+                if (this.option == TinyhandComposeOption.Fast && element.Parent != null)
+                {
+                    addBrace = false;
+                }
+
+                if (addBrace)
                 {
                     writer.WriteUInt8(TinyhandConstants.OpenBrace);
                     this.NewLine(ref writer, 1);
@@ -266,7 +272,7 @@ namespace Tinyhand
                     this.Compose(ref writer, x);
                 }
 
-                if (element.Parent != null)
+                if (addBrace)
                 {
                     writer.WriteUInt8(TinyhandConstants.CloseBrace);
                     this.NewLine(ref writer, -1);

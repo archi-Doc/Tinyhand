@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -710,7 +711,15 @@ namespace Tinyhand.IO
         /// Expects extension type code <see cref="ReservedMessagePackExtensionTypeCode.DateTime"/>.
         /// </summary>
         /// <returns>The value.</returns>
-        public DateTime ReadDateTime() => this.ReadDateTime(this.ReadExtensionFormatHeader());
+        public DateTime ReadDateTime()
+        {
+            if (this.NextMessagePackType == MessagePackType.String)
+            {
+                return DateTime.Parse(this.ReadString(), CultureInfo.InvariantCulture).ToUniversalTime();
+            }
+
+            return this.ReadDateTime(this.ReadExtensionFormatHeader());
+        }
 
         /// <summary>
         /// Reads a <see cref="DateTime"/> from a value encoded with

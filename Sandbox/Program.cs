@@ -34,6 +34,9 @@ namespace Sandbox
 
             var st = TinyhandSerializer.SerializeToString(classB);
             var classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
+
+            st = TinyhandSerializer.SerializeToString(classB, TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Fast));
+            classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
         }
     }
 }
