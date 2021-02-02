@@ -683,6 +683,15 @@ Unexpected_Symbol:
             this.ValueSpan = localBuffer.Slice(0, position);
             this.AddPosition(position);
 
+            if (this.ValueSpan.Length > 0)
+            {
+                var last = this.ValueSpan[this.ValueSpan.Length - 1];
+                if (last == 'f' || last == 'F' || last == 'd' || last == 'D')
+                {
+                    isDouble = true;
+                }
+            }
+
             if (isDouble)
             {
                 this.AtomType = TinyhandAtomType.Value_Double;

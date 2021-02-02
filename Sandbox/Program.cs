@@ -17,20 +17,23 @@ namespace Sandbox
 
         [DefaultValue("test")]
         public string String { get; set; } = default!;
+
+        public float Float { get; set; }
+
+        [DefaultValue(1d)]
+        public double Double { get; set; }
+
+        public DateTime Date { get; set; } = DateTime.UtcNow;
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            var classA = new DefaultTestClass();
             var classB = TinyhandSerializer.Reconstruct<DefaultTestClass>();
 
-            var st = TinyhandSerializer.SerializeToString(classA);
+            var st = TinyhandSerializer.SerializeToString(classB);
             var classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
-
-            st = TinyhandSerializer.SerializeToString(classB);
-            classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
         }
     }
 }

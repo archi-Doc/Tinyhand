@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Arc.Crypto;
 
@@ -174,6 +175,8 @@ namespace Tinyhand.Tree
             : base(ElementType.LineFeed)
         {
         }
+
+        public override string ToString() => "LF";
     }
 
     /// <summary>
@@ -209,6 +212,8 @@ namespace Tinyhand.Tree
                 this.commentUtf16 = null;
             }
         }
+
+        public override string ToString() => "Comment: " + this.CommentUtf16;
 
         private string? commentUtf16;
 
@@ -264,6 +269,8 @@ namespace Tinyhand.Tree
                 this.identifierUtf16 = value;
             }
         }
+
+        public override string ToString() => "Identifier: " + this.IdentifierUtf16;
     }
 
     public class Value_Bool : Value
@@ -280,6 +287,8 @@ namespace Tinyhand.Tree
         }
 
         public bool ValueBool { get; set; }
+
+        public override string ToString() => "Bool: " + this.ValueBool.ToString();
     }
 
     public class Value_Null : Value
@@ -294,6 +303,8 @@ namespace Tinyhand.Tree
         {
             this.contextualChain = (Element?)original?.contextualChain?.DeepCopy();
         }
+
+        public override string ToString() => "Null";
     }
 
     public class Value_Long : Value
@@ -308,6 +319,8 @@ namespace Tinyhand.Tree
         {
             this.ValueLong = valueLong;
         }
+
+        public override string ToString() => "Long: " + this.ValueLong.ToString();
 
         public long ValueLong { get; set; }
     }
@@ -324,6 +337,8 @@ namespace Tinyhand.Tree
         {
             this.ValueDouble = valueDouble;
         }
+
+        public override string ToString() => "Double: " + this.ValueDouble.ToString(CultureInfo.InvariantCulture) + "d";
 
         public double ValueDouble { get; set; }
     }
@@ -353,6 +368,8 @@ namespace Tinyhand.Tree
             instance.valueStringUtf8 = (byte[]?)this.valueStringUtf8?.Clone();
             return instance;
         }
+
+        public override string ToString() => "String: " + this.ValueStringUtf16;
 
         public bool IsTripleQuoted { get; set; }
 
@@ -400,6 +417,8 @@ namespace Tinyhand.Tree
             instance.ValueBinary = (byte[])this.ValueBinary.Clone();
             return instance;
         }
+
+        public override string ToString() => "Binary";
 
         public byte[] ValueBinary { get; set; }
 
@@ -475,6 +494,9 @@ namespace Tinyhand.Tree
             return instance;
         }
 
+        public override string ToString() => (this.LeftElement == null ? "Null" : this.LeftElement.ToString()) +
+            " = " + (this.RightElement == null ? "Null" : this.RightElement.ToString());
+
         private Element? leftElement;
 
         public Element? LeftElement
@@ -536,6 +558,8 @@ namespace Tinyhand.Tree
         {
             this.ElementList = new();
         }
+
+        public override string ToString() => "Group(" + this.ElementList.Count + ")";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Group"/> class.

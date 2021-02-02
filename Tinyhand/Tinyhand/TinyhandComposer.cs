@@ -205,6 +205,7 @@ namespace Tinyhand
                     case ValueElementType.Value_Double:
                         var d = (Value_Double)element;
                         writer.WriteStringDouble(d.ValueDouble);
+                        // writer.WriteUInt8(TinyhandConstants.DoubleSuffix);
                         break;
 
                     case ValueElementType.Value_Null:

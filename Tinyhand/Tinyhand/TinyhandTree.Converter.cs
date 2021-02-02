@@ -305,7 +305,7 @@ namespace Tinyhand
                     if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
                     {
                         var dt = reader.ReadDateTime(extHeader);
-                        return new Value_String("\"" + dt.ToString("o", CultureInfo.InvariantCulture) + "\"");
+                        return new Value_String(dt.ToString("o", CultureInfo.InvariantCulture));
                     }
                     else
                     {

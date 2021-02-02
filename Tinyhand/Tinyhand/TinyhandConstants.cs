@@ -35,6 +35,7 @@ namespace Tinyhand
         public const byte LeftParenthesis = (byte)'(';
         public const byte RightParenthesis = (byte)')';
         public const byte AtSign = (byte)'@';
+        public const byte DoubleSuffix = (byte)'d';
 
         public static ReadOnlySpan<byte> Utf8Bom => new byte[] { 0xEF, 0xBB, 0xBF };
         public static ReadOnlySpan<byte> AssignmentSpan => new byte[] { Space, EqualsSign, Space };
