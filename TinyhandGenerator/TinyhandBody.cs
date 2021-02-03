@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -159,12 +160,67 @@ namespace Tinyhand.Generator
             id: "TG034", title: "Union target error", messageFormat: "The type '{0}' cannot be specified as a union target",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Warning_InvalidIdentifier = new DiagnosticDescriptor(
+            id: "TG035", title: "Invalid identifier", messageFormat: "'{0}'is not a valid identifier, it's been replaced by '{1}'",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {
         }
 
         internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
+
+        internal HashSet<string> ReservedString = new()
+        {
+            "null",
+            "true",
+            "false",
+            "bool",
+            "i32",
+            "i64",
+            "u32",
+            "u64",
+            "single",
+            "double",
+            "string",
+            "key",
+            "array",
+            "map",
+            "required",
+            "optional",
+        };
+
+        public bool IsValidIdentifier(string identifier)
+        {
+            var s = identifier.AsSpan();
+            if (s.Length == 0)
+            {
+                return false;
+            }
+
+            for (var n = 0; n < s.Length; n++)
+            {
+                if (s[n] == '{' || s[n] == '}' || s[n] == '"' || s[n] == '=' ||
+                    s[n] == '/' || s[n] == ' ' || s[n] == '\r' || s[n] == '\n' ||
+                    s[n] == '\\' || s[n] == '+' || s[n] == '-' || s[n] == '*')
+                {// Invalid character
+                    return false;
+                }
+            }
+
+            if (s[0] >= '0' && s[0] <= '9')
+            {// Number
+                return false;
+            }
+
+            if (this.ReservedString.Contains(identifier))
+            {// Reserved
+                return false;
+            }
+
+            return true;
+        }
 
         // public void Generate(bool generateToFile, bool useModuleInitializer, string? targetFolder)
         public void Generate(TinyhandGenerator generator)

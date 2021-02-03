@@ -652,6 +652,7 @@ namespace Tinyhand.Generator
         {
             this.Automata = new Automata(this);
 
+            var keyNumber = 0;
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
             {
                 if (x.KeyAttribute?.IntKey is int i)
@@ -660,6 +661,17 @@ namespace Tinyhand.Generator
                 }
                 else if (x.KeyAttribute?.StringKey is string s)
                 {
+                    // Check string key (if it's a valid identifier)
+                    s = s.Trim();
+                    if (!this.Body.IsValidIdentifier(s))
+                    {// Not a valid identifier
+                        var s2 = "key" + keyNumber++;
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_InvalidIdentifier, x.KeyVisceralAttribute?.Location, s, s2);
+                        s = s2;
+                    }
+
+                    x.KeyAttribute.SetKey(s);
+
                     this.Automata.AddNode(s, x);
                 }
             }
