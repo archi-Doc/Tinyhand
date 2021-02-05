@@ -19,6 +19,8 @@ namespace Sandbox
         [DefaultValue(77)]
         public int Int { get; set; }
 
+        public MyClass MyClass0 { get; set; } = default!;
+
         [Key("St{")]
         [DefaultValue("test\"\"\"e")]
         public string String { get; set; } = default!;
@@ -30,6 +32,9 @@ namespace Sandbox
         public double Double { get; set; }
 
         public DateTime Date { get; set; } = DateTime.UtcNow;
+
+        public MyClass MyClass { get; set; } = default!;
+
     }
 
     class Program

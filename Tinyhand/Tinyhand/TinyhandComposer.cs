@@ -151,12 +151,13 @@ namespace Tinyhand
                     return;
                 }
 
+                writer.WriteCRLF();
+
                 this.indent += indent;
                 for (var n = 0; n < this.indent; n++)
                 {
                     writer.WriteSpan(TinyhandConstants.IndentSpan);
                 }
-                writer.WriteCRLF();
             }
 
             private void ComposeValue(ref TinyhandRawWriter writer, Value element)
@@ -254,15 +255,24 @@ namespace Tinyhand
             private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
             {
                 var addBrace = true;
-                if (this.option == TinyhandComposeOption.Fast && element.Parent != null)
+                if (this.option == TinyhandComposeOption.Fast && element.Parent == null)
                 {
                     addBrace = false;
+                }
+
+                var newLine = true;
+                if (element.ElementList.Count == 0)
+                {
+                    newLine = false;
                 }
 
                 if (addBrace)
                 {
                     writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    this.NewLine(ref writer, 1);
+                    if (newLine)
+                    {
+                        this.NewLine(ref writer, 1);
+                    }
                 }
 
                 this.ComposeContextualInformation(ref writer, element.forwardContextual?.contextualChain);
@@ -274,8 +284,17 @@ namespace Tinyhand
 
                 if (addBrace)
                 {
+                    if (newLine)
+                    {
+                        this.NewLine(ref writer, -1);
+                    }
+
                     writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                    this.NewLine(ref writer, -1);
+                }
+
+                if (!element.IsAssigned())
+                {
+                    writer.WriteUInt16(0x2C20); // ", "
                 }
             }
         }
