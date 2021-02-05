@@ -74,7 +74,7 @@ namespace Tinyhand
         public static T? DeserializeFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
-            var element = TinyhandParser.Parse(utf8);
+            var element = TinyhandParser.Parse(utf8, TinyhandParserOptions.TextSerialization);
             return DeserializeFromElement<T>(element, options, cancellationToken);
         }
 
@@ -132,7 +132,7 @@ namespace Tinyhand
         public static T? DeserializeFromString<T>(string utf16, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
-            var element = TinyhandParser.Parse(utf16);
+            var element = TinyhandParser.Parse(utf16, TinyhandParserOptions.TextSerialization);
             return DeserializeFromElement<T>(element, options, cancellationToken);
         }
     }

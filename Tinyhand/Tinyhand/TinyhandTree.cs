@@ -39,6 +39,11 @@ namespace Tinyhand.Tree
         Group,
 
         /// <summary>
+        /// Modifier
+        /// </summary>
+        Modifier,
+
+        /// <summary>
         /// Line Feed. Used for contextual information.
         /// </summary>
         LineFeed,
@@ -64,10 +69,56 @@ namespace Tinyhand.Tree
     /// <summary>
     /// Tinyhand Modifier.
     /// </summary>
-    public class Modifier
+    public class Modifier : Element
     {
         public Modifier()
+            : this(Array.Empty<byte>())
         {
+        }
+
+        public Modifier(byte[] modifierUtf8)
+            : base(ElementType.Modifier)
+        {
+            this.modifierUtf8 = modifierUtf8;
+        }
+
+        public Modifier(string valueStringUtf16)
+            : base(ElementType.Modifier)
+        {
+            this.modifierUtf16 = valueStringUtf16;
+        }
+
+        public override object DeepCopy()
+        {
+            var instance = (Modifier)base.DeepCopy();
+            instance.modifierUtf8 = (byte[]?)this.modifierUtf8?.Clone();
+            return instance;
+        }
+
+        public override string ToString() => "Modifier: " + this.ModifierUtf16;
+
+        private byte[]? modifierUtf8;
+
+        public byte[] ModifierUtf8
+        {
+            get => this.modifierUtf8 ??= Encoding.UTF8.GetBytes(this.modifierUtf16!);
+            set
+            {
+                this.modifierUtf8 = value;
+                this.modifierUtf16 = null;
+            }
+        }
+
+        private string? modifierUtf16;
+
+        public string ModifierUtf16
+        {
+            get => this.modifierUtf16 ??= Encoding.UTF8.GetString(this.modifierUtf8!);
+            set
+            {
+                this.modifierUtf8 = null;
+                this.modifierUtf16 = value;
+            }
         }
     }
 

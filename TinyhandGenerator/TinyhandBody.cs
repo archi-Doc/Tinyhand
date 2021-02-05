@@ -162,7 +162,7 @@ namespace Tinyhand.Generator
 
         public static readonly DiagnosticDescriptor Warning_InvalidIdentifier = new DiagnosticDescriptor(
             id: "TG035", title: "Invalid identifier", messageFormat: "'{0}'is not a valid identifier, it's been replaced by '{1}'",
-            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
@@ -171,7 +171,7 @@ namespace Tinyhand.Generator
 
         internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
 
-        internal HashSet<string> ReservedString = new()
+        internal HashSet<string> ReservedKeywords = new()
         {
             "null",
             "true",
@@ -214,7 +214,7 @@ namespace Tinyhand.Generator
                 return false;
             }
 
-            if (this.ReservedString.Contains(identifier))
+            if (this.ReservedKeywords.Contains(identifier))
             {// Reserved
                 return false;
             }

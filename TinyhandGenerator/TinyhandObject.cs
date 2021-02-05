@@ -669,6 +669,7 @@ namespace Tinyhand.Generator
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_InvalidIdentifier, x.KeyVisceralAttribute?.Location, s, s2);
                         s = s2;
                     }
+                    char.IsWhiteSpace(c);
 
                     x.KeyAttribute.SetKey(s);
 

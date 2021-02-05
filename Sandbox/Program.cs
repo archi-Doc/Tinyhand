@@ -9,9 +9,11 @@ namespace Sandbox
     [TinyhandObject(KeyAsPropertyName = true)]
     public partial class DefaultTestClass
     {
+        [Key("double")]
         [DefaultValue(true)]
         public bool Bool { get; set; }
 
+        [Key("2")]
         [DefaultValue(77)]
         public int Int { get; set; }
 

@@ -22,10 +22,13 @@ namespace Tinyhand
     {
         internal class ParserCore
         {
-            public ParserCore()
+            public ParserCore(TinyhandParserOptions options)
             {
+                this.Options = options;
                 this.ElementStack.Push(this.Root);
             }
+
+            public TinyhandParserOptions Options { get; }
 
             public Stack<Group> ElementStack { get; set; } = new Stack<Group>();
 
@@ -33,16 +36,18 @@ namespace Tinyhand
 
             public Group Root { get; set; } = new Group();
 
-            public Element Parse(ref TinyhandUtf8Reader reader, bool parseContextualInformation = false)
+            public Element Parse(ref TinyhandUtf8Reader reader)
             {
                 Element? currentElement = null;
                 Element? previousElement = null;
+                ReadOnlySpan<byte> previousSpan;
                 var contextualElement = this.Root.forwardContextual; // {
 
                 while (true)
                 {
-                    currentElement = this.ReadElement(ref reader, parseContextualInformation);
-                    if (parseContextualInformation)
+                    previousSpan = reader.ValueSpan;
+                    currentElement = this.ReadElement(ref reader, this.Options.ParseContextualInformation);
+                    if (this.Options.ParseContextualInformation)
                     { // Parse Comment/LineFeed.
                         if (currentElement != null)
                         {
@@ -113,6 +118,22 @@ namespace Tinyhand
                     { // =, If the current element is TinyhandAssignment, set LeftElement.
                         if (previousElement != null)
                         {
+                            if (this.Options.TextSerializationMode && !previousSpan.IsEmpty)
+                            {// Convert an element to an identifier.
+                                if (previousElement is Value v)
+                                {// value element
+                                    if (v.ValueType != ValueElementType.Identifier &&
+                                        v.ValueType != ValueElementType.SpecialIdentifier)
+                                    {
+                                        previousElement = new Value_Identifier(false, previousSpan.ToArray());
+                                    }
+                                }
+                                else if (previousElement.Type == ElementType.Modifier)
+                                {// modifier
+                                    previousElement = new Value_Identifier(false, previousSpan.ToArray());
+                                }
+                            }
+
                             currentAssignment.LeftElement = previousElement;
                         }
                     }
@@ -182,9 +203,6 @@ namespace Tinyhand
 
             internal Element? ReadElement(ref TinyhandUtf8Reader reader, bool parseContextualInformation)
             {
-                List<Modifier>? modifierList = null;
-
-ReadElementLoop:
                 reader.Read();
                 switch (reader.AtomType)
                 {
@@ -206,13 +224,7 @@ ReadElementLoop:
                         return identifier;
 
                     case TinyhandAtomType.Modifier: // i32: key(1): required
-                        if (modifierList == null)
-                        {
-                            modifierList = new List<Modifier>();
-                        }
-
-                        modifierList.Add(new Modifier());
-                        goto ReadElementLoop;
+                        return new Modifier(reader.ValueSpan.ToArray());
 
                     case TinyhandAtomType.Assignment: // =
                         var assignment = new Assignment();
@@ -259,60 +271,66 @@ ReadElementLoop:
             }
         }
 
-        public static Element ParseFile(string fileName, bool parseContextualInformation = false)
+        public static Element ParseFile(string fileName, TinyhandParserOptions? options = null)
         {
+            options ??= TinyhandParserOptions.Standard;
             using var fs = new FileStream(fileName, FileMode.Open);
             var length = fs.Length;
             var buffer = new byte[length];
             fs.Read(buffer.AsSpan());
 
-            return Parse(buffer, parseContextualInformation);
+            return Parse(buffer, options);
         }
 
-        public static async Task<Element> ParseFileAsync(string fileName, bool parseContextualInformation = false)
+        public static async Task<Element> ParseFileAsync(string fileName, TinyhandParserOptions? options = null)
         {
+            options ??= TinyhandParserOptions.Standard;
             using var fs = new FileStream(fileName, FileMode.Open);
             var length = fs.Length;
             var buffer = new byte[length];
             await fs.ReadAsync(buffer.AsMemory());
 
-            return Parse(buffer, parseContextualInformation);
+            return Parse(buffer, options);
         }
 
-        public static Element Parse(ReadOnlySpan<byte> utf8, bool parseContextualInformation = false)
+        public static Element Parse(ReadOnlySpan<byte> utf8, TinyhandParserOptions? options = null)
         {
+            options ??= TinyhandParserOptions.Standard;
             var reader = new TinyhandUtf8Reader(utf8, true);
-            var core = new ParserCore();
+            var core = new ParserCore(options);
 
-            return core.Parse(ref reader, parseContextualInformation);
+            return core.Parse(ref reader);
         }
 
-        public static Element Parse(Stream stream, bool parseContextualInformation = false)
+        public static Element Parse(Stream stream, TinyhandParserOptions? options = null)
         {
+            options ??= TinyhandParserOptions.Standard;
+
             Element result;
 
             if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
             {// MemoryStream
                 var span = streamBuffer.AsSpan(checked((int)ms.Position));
                 ms.Seek(span.Length, SeekOrigin.Current);
-                result = Parse(span, parseContextualInformation);
+                result = Parse(span, options);
             }
             else
             {// Other
                 var buffer = ArrayPool<byte>.Shared.Rent(checked((int)(stream.Length - stream.Position)));
                 var span = buffer.AsSpan();
                 var readBytes = stream.Read(span);
-                result = Parse(span.Slice(0, readBytes), parseContextualInformation);
+                result = Parse(span.Slice(0, readBytes), options);
                 ArrayPool<byte>.Shared.Return(buffer);
             }
 
             return result;
         }
 
-        public static Element Parse(string text, bool parseContextualInformation = false)
+        public static Element Parse(string text, TinyhandParserOptions? options = null)
         {
-            const long ArrayPoolMaxSizeBeforeUsingNormalAlloc = 1024 * 1024;
+            options ??= TinyhandParserOptions.Standard;
 
+            const long ArrayPoolMaxSizeBeforeUsingNormalAlloc = 1024 * 1024;
             byte[]? tempArray = null;
 
             // For performance, avoid obtaining actual byte count unless memory usage is higher than the threshold.
@@ -328,7 +346,7 @@ ReadElementLoop:
                 int actualByteCount = TinyhandHelper.GetUtf8FromText(text.AsSpan(), utf8);
                 utf8 = utf8.Slice(0, actualByteCount);
 
-                return Parse(utf8, parseContextualInformation);
+                return Parse(utf8, options);
             }
             finally
             {
