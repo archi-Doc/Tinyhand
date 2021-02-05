@@ -447,6 +447,37 @@ namespace Tinyhand.Tree
                 this.valueStringUtf16 = value;
             }
         }
+
+        public bool HasTripleQuote()
+        {
+            ReadOnlySpan<byte> s = this.ValueStringUtf8;
+
+            if (s.Length < 3)
+            {
+                return false;
+            }
+            else if (s[0] == (byte)'\"' && s[1] == (byte)'\"' && s[2] == (byte)'\"')
+            {
+                return true;
+            }
+
+            for (var i = 2; i < s.Length; i += 2)
+            {
+                if (s[i] == (byte)'\"')
+                {
+                    if (s[i - 1] == (byte)'\"' && (i + 1) < s.Length && s[i + 1] == (byte)'\"')
+                    {
+                        return true;
+                    }
+                    else if ((i + 2) < s.Length && s[i + 1] == (byte)'\"' && s[i + 2] == (byte)'\"')
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 
     public class Value_Binary : Value

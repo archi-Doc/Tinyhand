@@ -13,7 +13,6 @@ namespace Sandbox
         [DefaultValue(true)]
         public bool Bool { get; set; }
 
-        [Key("")]
         public byte Byte { get; set; }
 
         [Key("2")]
@@ -21,7 +20,7 @@ namespace Sandbox
         public int Int { get; set; }
 
         [Key("St{")]
-        [DefaultValue("test")]
+        [DefaultValue("test\"\"\"e")]
         public string String { get; set; } = default!;
 
         [Key("3 2")]

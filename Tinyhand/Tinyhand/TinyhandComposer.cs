@@ -183,7 +183,7 @@ namespace Tinyhand
 
                     case ValueElementType.Value_String:
                         var s = (Value_String)element;
-                        if (!s.IsTripleQuoted)
+                        if (!s.IsTripleQuoted || s.HasTripleQuote())
                         { // Escape.
                             writer.WriteUInt8(TinyhandConstants.Quote);
                             writer.WriteEscapedUtf8(s.ValueStringUtf8);
