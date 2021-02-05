@@ -13,13 +13,18 @@ namespace Sandbox
         [DefaultValue(true)]
         public bool Bool { get; set; }
 
+        [Key("")]
+        public byte Byte { get; set; }
+
         [Key("2")]
         [DefaultValue(77)]
         public int Int { get; set; }
 
+        [Key("St{")]
         [DefaultValue("test")]
         public string String { get; set; } = default!;
 
+        [Key("3 2")]
         public float Float { get; set; }
 
         [DefaultValue(1d)]

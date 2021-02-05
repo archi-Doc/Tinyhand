@@ -660,6 +660,48 @@ Unexpected_Symbol:
             return false;
         }
 
+        public static bool HasDelimiter(byte[] utf8)
+        {
+            for (var n = 0; n < utf8.Length; n++)
+            {
+                var val = utf8[n];
+                var tv = TinyhandConstants.FirstByteTable[val]; // UTF-8 first byte table. 0:other, 1:may be white space, 2:white space, 3:delimiters
+
+                if (tv >= 2)
+                { // White space or delimiters
+                    return true;
+                }
+                else if (tv == 0)
+                { // Other characters.
+                    continue;
+                }
+
+                if (val == 0xC2 && (utf8.Length - n) >= 2 && utf8[n + 1] == 0xA0)
+                { // U+00A0 (C2 A0)
+                    return true;
+                }
+
+                if (val == 0xE2 && (utf8.Length - n) >= 3 && utf8[n + 1] == 0x80)
+                { // U+2000 to U+200A, E2 80 80 to E2 80 8A  U+2028- U+2029, E2 80 A8 to E2 80 A9
+                    if (utf8[n + 2] >= 0x80 && utf8[n + 2] <= 0x8A)
+                    {
+                        return true;
+                    }
+                    else if (utf8[n + 2] == 0xA8 || utf8[n + 2] == 0xA9)
+                    {
+                        return true;
+                    }
+                }
+
+                if (val == 0xE3 && (utf8.Length - n) >= 3 && utf8[n + 1] == 0x80 && utf8[n + 2] == 0x80)
+                { // U+3000, E3 80 80
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private bool ReadNumber()
         {
             ReadOnlySpan<byte> localBuffer = this.buffer.Slice(this.Position);

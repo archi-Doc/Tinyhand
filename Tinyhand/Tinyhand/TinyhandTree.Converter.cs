@@ -203,6 +203,25 @@ namespace Tinyhand
             }
         }
 
+        private static bool IsValidIdentifier(byte[] s)
+        {
+            if (s.Length == 0)
+            {
+                return false;
+            }
+
+            for (var n = 0; n < s.Length; n++)
+            {
+                if (s[n] == '{' || s[n] == '}' || s[n] == '"' || s[n] == '=' ||
+                    s[n] == '/' || s[n] == ' ' || s[n] == '\r' || s[n] == '\n')
+                {// Invalid character
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private static Element FromReaderCore(ref TinyhandReader reader, TinyhandSerializerOptions options, bool identifierFlag = false)
         {
             var type = reader.NextMessagePackType;
@@ -238,13 +257,21 @@ namespace Tinyhand
                         return new Value_Null();
                     }
 
+                    var utf8 = seq.Value.ToArray();
                     if (identifierFlag)
                     {
-                        return new Value_Identifier(false, seq.Value.ToArray());
+                        if (utf8.Length > 0 && !TinyhandUtf8Reader.HasDelimiter(utf8))
+                        {
+                            return new Value_Identifier(false, utf8);
+                        }
+                        else
+                        {
+                            return new Value_String(utf8);
+                        }
                     }
                     else
                     {
-                        return new Value_String(seq.Value.ToArray());
+                        return new Value_String(utf8);
                     }
 
                 case MessagePackType.Binary:
