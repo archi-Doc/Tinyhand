@@ -46,6 +46,7 @@ namespace Sandbox
             var classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
 
             st = TinyhandSerializer.SerializeToString(classB, TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple));
+            st = "double = 1, Byte = 0, 2 = 77, MyClass0 = {99, \"\", \"Doe\", {}, null}, \"St{\" = \"test\\\"\\\"\\\"e\", \"3 2\" = 0, Double = 1, Date = \"2021-02-06T13:17:48.7898669Z\", MyClass = {99, \"\", \"Doe\", {}, null}";
             classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
         }
     }

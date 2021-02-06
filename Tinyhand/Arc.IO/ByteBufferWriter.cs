@@ -20,6 +20,7 @@ namespace Arc.IO
         private Span<byte> span; // A byte span to be consumed.
         private int spanSize; // The size of the span.
         private Span<byte> originalSpan; // The original (not sliced) version of the span.
+        private long spanWritten; // The size of the written span.
 
         public ByteBufferWriter(IBufferWriter<byte> bufferWriter)
         { // Use other IBufferWriter instance.
@@ -28,6 +29,7 @@ namespace Arc.IO
             this.span = this.bufferWriter.GetSpan();
             this.spanSize = 0;
             this.originalSpan = this.span;
+            this.spanWritten = 0;
         }
 
         public ByteBufferWriter(byte[] initialBuffer)
@@ -37,6 +39,7 @@ namespace Arc.IO
             this.span = initialBuffer.AsSpan();
             this.spanSize = 0;
             this.originalSpan = this.span;
+            this.spanWritten = 0;
         }
 
         public void Dispose()
@@ -123,6 +126,7 @@ namespace Arc.IO
                     this.originalSpan.Slice(0, this.spanSize).CopyTo(span);
                 }
 
+                this.spanWritten += this.spanSize;
                 this.bufferWriter.Advance(this.spanSize);
                 this.span = default;
                 this.spanSize = 0;
@@ -182,6 +186,11 @@ namespace Arc.IO
             this.spanSize += count;
             this.span = this.span.Slice(count); // Faster then position++
         }
+
+        /// <summary>
+        /// Gets the total number of bytes written by the writer.
+        /// </summary>
+        public long Written => this.spanWritten + this.spanSize;
 
         /// <summary>
         /// Write a span of data to the buffer.
