@@ -34,7 +34,6 @@ namespace Sandbox
         public DateTime Date { get; set; } = DateTime.UtcNow;
 
         public MyClass MyClass { get; set; } = default!;
-
     }
 
     class Program
@@ -46,7 +45,7 @@ namespace Sandbox
             var st = TinyhandSerializer.SerializeToString(classB);
             var classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
 
-            st = TinyhandSerializer.SerializeToString(classB, TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Fast));
+            st = TinyhandSerializer.SerializeToString(classB, TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple));
             classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
         }
     }

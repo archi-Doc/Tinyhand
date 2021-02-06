@@ -19,7 +19,7 @@ namespace Tinyhand
     {
         Standard,
         UseContextualInformation,
-        Fast,
+        Simple,
     }
 
     public static class TinyhandComposer
@@ -225,11 +225,6 @@ namespace Tinyhand
                         }
                         break;
                 }
-
-                if (!element.IsAssigned())
-                {
-                    writer.WriteUInt16(0x2C20); // ", "
-                }
             }
 
             private void ComposeAssignment(ref TinyhandRawWriter writer, Assignment element)
@@ -248,20 +243,18 @@ namespace Tinyhand
                     this.requireDelimiter = true;
                     this.Compose(ref writer, element.RightElement);
                 }
-
-                this.NewLine(ref writer);
             }
 
             private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
             {
                 var addBrace = true;
-                if (this.option == TinyhandComposeOption.Fast && element.Parent == null)
+                if (this.option == TinyhandComposeOption.Simple && element.Parent == null)
                 {
                     addBrace = false;
                 }
 
                 var newLine = true;
-                if (element.ElementList.Count == 0)
+                if (this.option == TinyhandComposeOption.Simple || element.ElementList.Count == 0)
                 {
                     newLine = false;
                 }
@@ -277,9 +270,28 @@ namespace Tinyhand
 
                 this.ComposeContextualInformation(ref writer, element.forwardContextual?.contextualChain);
 
-                foreach (var x in element.ElementList)
+                var hasAssignment = false;
+                if (element.ElementList.Count > 0 && element.ElementList[0] is Assignment)
                 {
-                    this.Compose(ref writer, x);
+                    hasAssignment = true;
+                }
+
+                for (var i = 0; i < element.ElementList.Count; i++)
+                {
+                    this.Compose(ref writer, element.ElementList[i]);
+                    if (i == element.ElementList.Count - 1)
+                    {
+                        break;
+                    }
+
+                    if (!hasAssignment || this.option == TinyhandComposeOption.Simple)
+                    {
+                        writer.WriteUInt16(0x2C20); // ", "
+                    }
+                    else
+                    {
+                        this.NewLine(ref writer);
+                    }
                 }
 
                 if (addBrace)
@@ -292,10 +304,10 @@ namespace Tinyhand
                     writer.WriteUInt8(TinyhandConstants.CloseBrace);
                 }
 
-                if (!element.IsAssigned())
+                /* if (!element.IsAssigned())
                 {
                     writer.WriteUInt16(0x2C20); // ", "
-                }
+                }*/
             }
         }
     }
