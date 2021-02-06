@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Arc.Crypto;
 
@@ -38,6 +39,11 @@ namespace Tinyhand.Tree
         Group,
 
         /// <summary>
+        /// Modifier
+        /// </summary>
+        Modifier,
+
+        /// <summary>
         /// Line Feed. Used for contextual information.
         /// </summary>
         LineFeed,
@@ -63,10 +69,56 @@ namespace Tinyhand.Tree
     /// <summary>
     /// Tinyhand Modifier.
     /// </summary>
-    public class Modifier
+    public class Modifier : Element
     {
         public Modifier()
+            : this(Array.Empty<byte>())
         {
+        }
+
+        public Modifier(byte[] modifierUtf8)
+            : base(ElementType.Modifier)
+        {
+            this.modifierUtf8 = modifierUtf8;
+        }
+
+        public Modifier(string valueStringUtf16)
+            : base(ElementType.Modifier)
+        {
+            this.modifierUtf16 = valueStringUtf16;
+        }
+
+        public override object DeepCopy()
+        {
+            var instance = (Modifier)base.DeepCopy();
+            instance.modifierUtf8 = (byte[]?)this.modifierUtf8?.Clone();
+            return instance;
+        }
+
+        public override string ToString() => "Modifier: " + this.ModifierUtf16;
+
+        private byte[]? modifierUtf8;
+
+        public byte[] ModifierUtf8
+        {
+            get => this.modifierUtf8 ??= Encoding.UTF8.GetBytes(this.modifierUtf16!);
+            set
+            {
+                this.modifierUtf8 = value;
+                this.modifierUtf16 = null;
+            }
+        }
+
+        private string? modifierUtf16;
+
+        public string ModifierUtf16
+        {
+            get => this.modifierUtf16 ??= Encoding.UTF8.GetString(this.modifierUtf8!);
+            set
+            {
+                this.modifierUtf8 = null;
+                this.modifierUtf16 = value;
+            }
         }
     }
 
@@ -174,6 +226,8 @@ namespace Tinyhand.Tree
             : base(ElementType.LineFeed)
         {
         }
+
+        public override string ToString() => "LF";
     }
 
     /// <summary>
@@ -209,6 +263,8 @@ namespace Tinyhand.Tree
                 this.commentUtf16 = null;
             }
         }
+
+        public override string ToString() => "Comment: " + this.CommentUtf16;
 
         private string? commentUtf16;
 
@@ -264,6 +320,8 @@ namespace Tinyhand.Tree
                 this.identifierUtf16 = value;
             }
         }
+
+        public override string ToString() => "Identifier: " + this.IdentifierUtf16;
     }
 
     public class Value_Bool : Value
@@ -273,7 +331,15 @@ namespace Tinyhand.Tree
         {
         }
 
+        public Value_Bool(bool valueBool)
+            : this()
+        {
+            this.ValueBool = valueBool;
+        }
+
         public bool ValueBool { get; set; }
+
+        public override string ToString() => "Bool: " + this.ValueBool.ToString();
     }
 
     public class Value_Null : Value
@@ -288,6 +354,8 @@ namespace Tinyhand.Tree
         {
             this.contextualChain = (Element?)original?.contextualChain?.DeepCopy();
         }
+
+        public override string ToString() => "Null";
     }
 
     public class Value_Long : Value
@@ -296,6 +364,14 @@ namespace Tinyhand.Tree
             : base(ValueElementType.Value_Long)
         {
         }
+
+        public Value_Long(long valueLong)
+            : this()
+        {
+            this.ValueLong = valueLong;
+        }
+
+        public override string ToString() => "Long: " + this.ValueLong.ToString();
 
         public long ValueLong { get; set; }
     }
@@ -306,6 +382,14 @@ namespace Tinyhand.Tree
             : base(ValueElementType.Value_Double)
         {
         }
+
+        public Value_Double(double valueDouble)
+            : this()
+        {
+            this.ValueDouble = valueDouble;
+        }
+
+        public override string ToString() => "Double: " + this.ValueDouble.ToString(CultureInfo.InvariantCulture) + "d";
 
         public double ValueDouble { get; set; }
     }
@@ -323,12 +407,20 @@ namespace Tinyhand.Tree
             this.valueStringUtf8 = valueStringUtf8;
         }
 
+        public Value_String(string valueStringUtf16)
+            : base(ValueElementType.Value_String)
+        {
+            this.valueStringUtf16 = valueStringUtf16;
+        }
+
         public override object DeepCopy()
         {
             var instance = (Value_String)base.DeepCopy();
             instance.valueStringUtf8 = (byte[]?)this.valueStringUtf8?.Clone();
             return instance;
         }
+
+        public override string ToString() => "String: " + this.ValueStringUtf16;
 
         public bool IsTripleQuoted { get; set; }
 
@@ -355,6 +447,37 @@ namespace Tinyhand.Tree
                 this.valueStringUtf16 = value;
             }
         }
+
+        public bool HasTripleQuote()
+        {
+            ReadOnlySpan<byte> s = this.ValueStringUtf8;
+
+            if (s.Length < 3)
+            {
+                return false;
+            }
+            else if (s[0] == (byte)'\"' && s[1] == (byte)'\"' && s[2] == (byte)'\"')
+            {
+                return true;
+            }
+
+            for (var i = 2; i < s.Length; i += 2)
+            {
+                if (s[i] == (byte)'\"')
+                {
+                    if (s[i - 1] == (byte)'\"' && (i + 1) < s.Length && s[i + 1] == (byte)'\"')
+                    {
+                        return true;
+                    }
+                    else if ((i + 2) < s.Length && s[i + 1] == (byte)'\"' && s[i + 2] == (byte)'\"')
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 
     public class Value_Binary : Value
@@ -376,6 +499,8 @@ namespace Tinyhand.Tree
             instance.ValueBinary = (byte[])this.ValueBinary.Clone();
             return instance;
         }
+
+        public override string ToString() => "Binary";
 
         public byte[] ValueBinary { get; set; }
 
@@ -451,6 +576,9 @@ namespace Tinyhand.Tree
             return instance;
         }
 
+        public override string ToString() => (this.LeftElement == null ? "Null" : this.LeftElement.ToString()) +
+            " = " + (this.RightElement == null ? "Null" : this.RightElement.ToString());
+
         private Element? leftElement;
 
         public Element? LeftElement
@@ -495,7 +623,7 @@ namespace Tinyhand.Tree
     }
 
     /// <summary>
-    /// TinyhandGroup holds multiple Element.
+    /// TinyhandGroup holds multiple Elements.
     /// </summary>
     public class Group : Element, IEnumerable<Element>
     {
@@ -510,6 +638,19 @@ namespace Tinyhand.Tree
         public Group()
             : base(ElementType.Group)
         {
+            this.ElementList = new();
+        }
+
+        public override string ToString() => "Group(" + this.ElementList.Count + ")";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Group"/> class.
+        /// </summary>
+        /// <param name="capacity">The number of elements that the new group can initially store.</param>
+        public Group(int capacity)
+            : base(ElementType.Group)
+        {
+            this.ElementList = new(capacity);
         }
 
         public override void RemoveChild(Element child)
@@ -536,7 +677,7 @@ namespace Tinyhand.Tree
             return instance;
         }
 
-        public List<Element> ElementList = new List<Element>();
+        public List<Element> ElementList { get; private set; }
 
         public virtual void Add(Element element)
         {

@@ -7,6 +7,63 @@ namespace Arc.Visceral
 {
     public static class VisceralDefaultValue
     {
+        public static string GetEscapedString(string s)
+        {
+            int max = (s.Length * 2) + 1;
+            var source = s.AsSpan();
+            Span<char> buffer = max <= 1024 ? stackalloc char[max] : new char[max];
+            var destination = buffer;
+
+            var from = 0;
+            for (int i = 0; i < source.Length; i++)
+            {
+                char escapeChar;
+                switch (source[i])
+                {
+                    case '"': // 0x22
+                        escapeChar = '"';
+                        break;
+                    case '\\': // 0x5C
+                        escapeChar = '\\';
+                        break;
+                    case '\b': // 0x08
+                        escapeChar = 'b';
+                        break;
+                    case '\f': // 0xC
+                        escapeChar = 'f';
+                        break;
+                    case '\n': // 0x0A
+                        escapeChar = 'n';
+                        break;
+                    case '\r': // 0x0D
+                        escapeChar = 'r';
+                        break;
+                    case '\t': // 0x09
+                        escapeChar = 't';
+                        break;
+
+                    default:
+                        continue;
+                }
+
+                source.Slice(from, i - from).CopyTo(destination);
+                destination = destination.Slice(i - from);
+                from = i + 1;
+                destination[0] = '\\';
+                destination[1] = escapeChar;
+                destination = destination.Slice(2);
+            }
+
+            if (from != source.Length)
+            {
+                source.Slice(from, source.Length - from).CopyTo(destination);
+                destination = destination.Slice(source.Length - from);
+            }
+
+            return buffer.Slice(0, buffer.Length - destination.Length).ToString();
+            // return new string();
+        }
+
         public static object? ConvertDefaultValue(object defaultValue, string typeName)
         {
             try
@@ -14,6 +71,11 @@ namespace Arc.Visceral
                 var defaultValueTypeName = VisceralHelper.Primitives_ShortenName(defaultValue.GetType().FullName);
                 if (defaultValueTypeName == typeName)
                 {// Type matched
+                    if (defaultValueTypeName == "string")
+                    {
+                        return GetEscapedString((string)defaultValue);
+                    }
+
                     return defaultValue;
                 }
 

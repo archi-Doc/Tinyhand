@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -377,6 +378,31 @@ namespace Tinyhand.IO
         }
 
         /// <summary>
+        /// Read a map header from
+        /// <see cref="MessagePackCode.Map16"/>,
+        /// <see cref="MessagePackCode.Map32"/>, or
+        /// some built-in code between <see cref="MessagePackCode.MinFixMap"/> and <see cref="MessagePackCode.MaxFixMap"/>.
+        /// </summary>
+        /// <returns>The number of key=value pairs in the map.</returns>
+        /// <exception cref="EndOfStreamException">
+        /// Thrown if the header cannot be read in the bytes left in the <see cref="Sequence"/>
+        /// or if it is clear that there are insufficient bytes remaining after the header to include all the elements the header claims to be there.
+        /// </exception>
+        /// <exception cref="TinyhandException">Thrown if a code other than an map header is encountered.</exception>
+        /// <remarks>Returns 0 if the next code is an empty array.</remarks>
+        public int ReadMapHeader2()
+        {
+            ThrowInsufficientBufferUnless(this.TryReadMapHeader2(out int count));
+
+            // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
+            // We allow for each primitive to be the minimal 1 byte in size, and we have a key=value map, so that's 2 bytes.
+            // Formatters that know each element is larger can optionally add a stronger check.
+            ThrowInsufficientBufferUnless(this.reader.Remaining >= count * 2);
+
+            return count;
+        }
+
+        /// <summary>
         /// Reads a map header from
         /// <see cref="MessagePackCode.Map16"/>,
         /// <see cref="MessagePackCode.Map32"/>, or
@@ -420,6 +446,96 @@ namespace Tinyhand.IO
                     if (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap)
                     {
                         count = (byte)(code & 0xF);
+                        break;
+                    }
+
+                    throw ThrowInvalidCode(code);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Reads a map header from
+        /// <see cref="MessagePackCode.Map16"/>,
+        /// <see cref="MessagePackCode.Map32"/>, or
+        /// some built-in code between <see cref="MessagePackCode.MinFixMap"/> and <see cref="MessagePackCode.MaxFixMap"/>
+        /// if there is sufficient buffer to read it. This method can read an array with zero element.
+        /// </summary>
+        /// <param name="count">Receives the number of key=value pairs in the map if the entire map header can be read.</param>
+        /// <returns><c>true</c> if there was sufficient buffer and a map header was found; <c>false</c> if the buffer incompletely describes an map header.</returns>
+        /// <exception cref="TinyhandException">Thrown if a code other than an map header is encountered.</exception>
+        /// <remarks>
+        /// When this method returns <c>false</c> the position of the reader is left in an undefined position.
+        /// The caller is expected to recreate the reader (presumably with a longer sequence to read from) before continuing.
+        /// </remarks>
+        public bool TryReadMapHeader2(out int count)
+        {
+            count = -1;
+            if (!this.reader.TryRead(out byte code))
+            {
+                return false;
+            }
+
+            short shortValue;
+            int intValue;
+            switch (code)
+            {
+                case MessagePackCode.Map16:
+                    if (!this.reader.TryReadBigEndian(out shortValue))
+                    {
+                        return false;
+                    }
+
+                    count = unchecked((ushort)shortValue);
+                    break;
+
+                case MessagePackCode.Map32:
+                    if (!this.reader.TryReadBigEndian(out intValue))
+                    {
+                        return false;
+                    }
+
+                    count = intValue;
+                    break;
+
+                case MessagePackCode.Array16:
+                    if (!this.reader.TryReadBigEndian(out shortValue))
+                    {
+                        return false;
+                    }
+
+                    count = unchecked((ushort)shortValue);
+                    if (count != 0)
+                    {// Map expected
+                        throw ThrowInvalidCode(code);
+                    }
+
+                    break;
+
+                case MessagePackCode.Array32:
+                    if (!this.reader.TryReadBigEndian(out intValue))
+                    {
+                        return false;
+                    }
+
+                    count = intValue;
+                    if (count != 0)
+                    {// Map expected
+                        throw ThrowInvalidCode(code);
+                    }
+
+                    break;
+
+                default:
+                    if (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap)
+                    {
+                        count = code & 0xF;
+                        break;
+                    }
+                    else if (code == MessagePackCode.MinFixArray)
+                    {
+                        count = 0;
                         break;
                     }
 
@@ -595,7 +711,15 @@ namespace Tinyhand.IO
         /// Expects extension type code <see cref="ReservedMessagePackExtensionTypeCode.DateTime"/>.
         /// </summary>
         /// <returns>The value.</returns>
-        public DateTime ReadDateTime() => this.ReadDateTime(this.ReadExtensionFormatHeader());
+        public DateTime ReadDateTime()
+        {
+            if (this.NextMessagePackType == MessagePackType.String)
+            {
+                return DateTime.Parse(this.ReadString(), CultureInfo.InvariantCulture).ToUniversalTime();
+            }
+
+            return this.ReadDateTime(this.ReadExtensionFormatHeader());
+        }
 
         /// <summary>
         /// Reads a <see cref="DateTime"/> from a value encoded with

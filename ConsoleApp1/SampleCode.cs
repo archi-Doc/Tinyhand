@@ -251,4 +251,19 @@ namespace ConsoleApp1
             i?.Print(); // B: test
         }
     }
+
+    public static class TextSerializeTest
+    {
+        public static void Test()
+        {
+            // Serialize an object to string (UTF-16 text) and deserialize from it.
+            var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
+            var st = TinyhandSerializer.SerializeToString(myClass);
+            var myClass2 = TinyhandSerializer.DeserializeFromString<MyClass>(st);
+
+            // UTF-8 version
+            var utf8 = TinyhandSerializer.SerializeToUtf8(myClass);
+            var myClass3 = TinyhandSerializer.DeserializeFromUtf8<MyClass>(utf8);
+        }
+    }
 }

@@ -51,7 +51,7 @@ namespace TinyhandTest
             var buffer = new byte[length];
             fs.Read(buffer.AsSpan());
 
-            var element = TinyhandParser.Parse(buffer, true);
+            var element = TinyhandParser.Parse(buffer, TinyhandParserOptions.ContextualInformation);
             var element2 = (Element)element.DeepCopy();
 
             var b = TinyhandComposer.Compose(element);
@@ -115,7 +115,7 @@ namespace TinyhandTest
             var buffer = new byte[length];
             fs.Read(buffer.AsSpan());
 
-            var root = TinyhandParser.Parse(buffer, true);
+            var root = TinyhandParser.Parse(buffer, TinyhandParserOptions.ContextualInformation);
 
             // Console.WriteLine(root.Dump());
 
@@ -133,7 +133,7 @@ namespace TinyhandTest
             var buffer = new byte[length];
             fs.Read(buffer.AsSpan());
 
-            var root = TinyhandParser.Parse(buffer, true);
+            var root = TinyhandParser.Parse(buffer, TinyhandParserOptions.ContextualInformation);
             var b = TinyhandComposer.Compose(root, TinyhandComposeOption.UseContextualInformation);
 
             var composedFile = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(fileName));

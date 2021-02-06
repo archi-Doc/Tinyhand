@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -158,6 +159,10 @@ namespace Tinyhand.Generator
         public static readonly DiagnosticDescriptor Error_UnionSelf = new DiagnosticDescriptor(
             id: "TG034", title: "Union target error", messageFormat: "The type '{0}' cannot be specified as a union target",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor Warning_InvalidIdentifier = new DiagnosticDescriptor(
+            id: "TG035", title: "Invalid identifier", messageFormat: "'{0}'is not a valid identifier, it's been replaced by '{1}'",
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)

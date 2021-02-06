@@ -1185,7 +1185,7 @@ namespace Tinyhand.Formatters
 
             ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
 
-            var count = reader.ReadMapHeader();
+            var count = reader.ReadMapHeader2();
 
             var dict = CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(count, options.Security.GetEqualityComparer());
             options.Security.DepthStep(ref reader);
@@ -1249,7 +1249,7 @@ namespace Tinyhand.Formatters
 
             ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
 
-            var count = reader.ReadMapHeader();
+            var count = reader.ReadMapHeader2();
 
             var dict = new Dictionary<object, object>(count, options.Security.GetEqualityComparer<object>());
             options.Security.DepthStep(ref reader);

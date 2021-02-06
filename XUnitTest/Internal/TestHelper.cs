@@ -32,6 +32,10 @@ namespace Tinyhand.Tests
             t = TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Lz4), TinyhandSerializerOptions.Lz4);
             obj.IsStructuralEqual(t);
 
+            var st = TinyhandSerializer.SerializeToString<T>(obj);
+            t = TinyhandSerializer.DeserializeFromString<T>(st);
+            obj.IsStructuralEqual(t);
+
             // t = TinyhandSerializer.Deserialize<T>(MessagePack.MessagePackSerializer.Serialize<T>(obj, MessagePack.MessagePackSerializerOptions.Standard.WithCompression(MessagePack.MessagePackCompression.Lz4BlockArray)), TinyhandSerializerOptions.Lz4);
             // obj.IsStructuralEqual(t);
 

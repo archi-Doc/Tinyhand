@@ -660,6 +660,12 @@ namespace Tinyhand.Generator
                 }
                 else if (x.KeyAttribute?.StringKey is string s)
                 {
+                    if (s == string.Empty)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_InvalidIdentifier, x.KeyVisceralAttribute?.Location, s, "_");
+                        s = "_";
+                    }
+
                     this.Automata.AddNode(s, x);
                 }
             }
@@ -1753,7 +1759,7 @@ namespace Tinyhand.Generator
                 ssb.AppendLine($"var deserializedFlag = new bool[{this.Automata.ReconstructCount}];");
             }
 
-            ssb.AppendLine("var numberOfData = reader.ReadMapHeader();");
+            ssb.AppendLine("var numberOfData = reader.ReadMapHeader2();");
 
             using (var security = ssb.ScopeSecurityDepth())
             {

@@ -66,7 +66,7 @@ namespace Tinyhand
 
             try
             {
-                this.referenceGroup = (Group)TinyhandParser.ParseFile(referencePath, true);
+                this.referenceGroup = (Group)TinyhandParser.ParseFile(referencePath, TinyhandParserOptions.ContextualInformation);
             }
             catch (Exception e)
             {
@@ -99,7 +99,7 @@ namespace Tinyhand
             // Parse.
             try
             {
-                targetGroup = (Group)TinyhandParser.ParseFile(targetPath, true);
+                targetGroup = (Group)TinyhandParser.ParseFile(targetPath, TinyhandParserOptions.ContextualInformation);
             }
             catch (Exception e)
             {

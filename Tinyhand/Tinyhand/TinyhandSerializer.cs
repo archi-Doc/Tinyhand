@@ -606,47 +606,7 @@ namespace Tinyhand
             }
         }
 
-        private static bool TryDeserializeFromMemoryStream<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken, out T? result)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
-            {
-                result = Deserialize<T>(streamBuffer.AsMemory(checked((int)ms.Position)), options, out int bytesRead, cancellationToken);
-
-                // Emulate that we had actually "read" from the stream.
-                ms.Seek(bytesRead, SeekOrigin.Current);
-                return true;
-            }
-
-            result = default;
-            return false;
-        }
-
-        private static T? DeserializeFromSequenceAndRewindStreamIfPossible<T>(Stream streamToRewind, TinyhandSerializerOptions? options, ReadOnlySequence<byte> sequence, CancellationToken cancellationToken)
-        {
-            if (streamToRewind is null)
-            {
-                throw new ArgumentNullException(nameof(streamToRewind));
-            }
-
-            var reader = new TinyhandReader(sequence)
-            {
-                CancellationToken = cancellationToken,
-            };
-
-            var result = Deserialize<T>(ref reader, options);
-
-            if (streamToRewind.CanSeek && !reader.End)
-            {
-                // Reverse the stream as many bytes as we left unread.
-                int bytesNotRead = checked((int)reader.Sequence.Slice(reader.Position).Length);
-                streamToRewind.Seek(-bytesNotRead, SeekOrigin.Current);
-            }
-
-            return result;
-        }
-
-        private static bool TryDecompress(ref TinyhandReader reader, IBufferWriter<byte> writer)
+        internal static bool TryDecompress(ref TinyhandReader reader, IBufferWriter<byte> writer)
         {
             if (!reader.End)
             {
@@ -700,6 +660,46 @@ namespace Tinyhand
             }
 
             return false;
+        }
+
+        private static bool TryDeserializeFromMemoryStream<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken, out T? result)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
+            {
+                result = Deserialize<T>(streamBuffer.AsMemory(checked((int)ms.Position)), options, out int bytesRead, cancellationToken);
+
+                // Emulate that we had actually "read" from the stream.
+                ms.Seek(bytesRead, SeekOrigin.Current);
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        private static T? DeserializeFromSequenceAndRewindStreamIfPossible<T>(Stream streamToRewind, TinyhandSerializerOptions? options, ReadOnlySequence<byte> sequence, CancellationToken cancellationToken)
+        {
+            if (streamToRewind is null)
+            {
+                throw new ArgumentNullException(nameof(streamToRewind));
+            }
+
+            var reader = new TinyhandReader(sequence)
+            {
+                CancellationToken = cancellationToken,
+            };
+
+            var result = Deserialize<T>(ref reader, options);
+
+            if (streamToRewind.CanSeek && !reader.End)
+            {
+                // Reverse the stream as many bytes as we left unread.
+                int bytesNotRead = checked((int)reader.Sequence.Slice(reader.Position).Length);
+                streamToRewind.Seek(-bytesNotRead, SeekOrigin.Current);
+            }
+
+            return result;
         }
 
         /// <summary>

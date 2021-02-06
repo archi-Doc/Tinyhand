@@ -17,9 +17,9 @@ namespace Tinyhand
 {
     public enum TinyhandComposeOption
     {
-        Fast,
+        Standard,
         UseContextualInformation,
-        Fancy,
+        Simple,
     }
 
     public static class TinyhandComposer
@@ -27,7 +27,7 @@ namespace Tinyhand
         [ThreadStatic]
         private static byte[] initialBuffer = new byte[32 * 1024];
 
-        public static byte[] Compose(Element element, TinyhandComposeOption option = TinyhandComposeOption.Fast)
+        public static byte[] Compose(Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
         {
             var writer = new TinyhandRawWriter(initialBuffer);
             try
@@ -41,7 +41,7 @@ namespace Tinyhand
             }
         }
 
-        public static void Compose(IBufferWriter<byte> bufferWriter, Element element, TinyhandComposeOption option = TinyhandComposeOption.Fast)
+        public static void Compose(IBufferWriter<byte> bufferWriter, Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
         {
             var writer = new TinyhandRawWriter(bufferWriter);
             try
@@ -151,12 +151,13 @@ namespace Tinyhand
                     return;
                 }
 
+                writer.WriteCRLF();
+
                 this.indent += indent;
                 for (var n = 0; n < this.indent; n++)
                 {
                     writer.WriteSpan(TinyhandConstants.IndentSpan);
                 }
-                writer.WriteCRLF();
             }
 
             private void ComposeValue(ref TinyhandRawWriter writer, Value element)
@@ -183,7 +184,7 @@ namespace Tinyhand
 
                     case ValueElementType.Value_String:
                         var s = (Value_String)element;
-                        if (!s.IsTripleQuoted)
+                        if (!s.IsTripleQuoted || s.HasTripleQuote())
                         { // Escape.
                             writer.WriteUInt8(TinyhandConstants.Quote);
                             writer.WriteEscapedUtf8(s.ValueStringUtf8);
@@ -205,6 +206,7 @@ namespace Tinyhand
                     case ValueElementType.Value_Double:
                         var d = (Value_Double)element;
                         writer.WriteStringDouble(d.ValueDouble);
+                        // writer.WriteUInt8(TinyhandConstants.DoubleSuffix);
                         break;
 
                     case ValueElementType.Value_Null:
@@ -222,11 +224,6 @@ namespace Tinyhand
                             writer.WriteSpan(TinyhandConstants.FalseSpan);
                         }
                         break;
-                }
-
-                if (!element.IsAssigned())
-                {
-                    writer.WriteUInt16(0x2C20); // ", "
                 }
             }
 
@@ -246,30 +243,71 @@ namespace Tinyhand
                     this.requireDelimiter = true;
                     this.Compose(ref writer, element.RightElement);
                 }
-
-                this.NewLine(ref writer);
             }
 
             private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
             {
-                if (element.Parent != null)
+                var addBrace = true;
+                if (this.option == TinyhandComposeOption.Simple && element.Parent == null)
+                {
+                    addBrace = false;
+                }
+
+                var newLine = true;
+                if (this.option == TinyhandComposeOption.Simple || element.ElementList.Count == 0)
+                {
+                    newLine = false;
+                }
+
+                if (addBrace)
                 {
                     writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    this.NewLine(ref writer, 1);
+                    if (newLine)
+                    {
+                        this.NewLine(ref writer, 1);
+                    }
                 }
 
                 this.ComposeContextualInformation(ref writer, element.forwardContextual?.contextualChain);
 
-                foreach (var x in element.ElementList)
+                var hasAssignment = false;
+                if (element.ElementList.Count > 0 && element.ElementList[0] is Assignment)
                 {
-                    this.Compose(ref writer, x);
+                    hasAssignment = true;
                 }
 
-                if (element.Parent != null)
+                for (var i = 0; i < element.ElementList.Count; i++)
                 {
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                    this.NewLine(ref writer, -1);
+                    this.Compose(ref writer, element.ElementList[i]);
+                    if (i == element.ElementList.Count - 1)
+                    {
+                        break;
+                    }
+
+                    if (!hasAssignment || this.option == TinyhandComposeOption.Simple)
+                    {
+                        writer.WriteUInt16(0x2C20); // ", "
+                    }
+                    else
+                    {
+                        this.NewLine(ref writer);
+                    }
                 }
+
+                if (addBrace)
+                {
+                    if (newLine)
+                    {
+                        this.NewLine(ref writer, -1);
+                    }
+
+                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                }
+
+                /* if (!element.IsAssigned())
+                {
+                    writer.WriteUInt16(0x2C20); // ", "
+                }*/
             }
         }
     }
