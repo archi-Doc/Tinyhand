@@ -19,6 +19,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
   - [Reconstruct](#Reconstruct)
   - [Reuse Instance](#Reuse-Instance)
   - [Union](#Union)
+  - [Text Serializaiton](#Text-Serialization)
   - [Serialization Callback](#Serialization-Callback)
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#LZ4-Compression)
@@ -508,6 +509,34 @@ public static class UnionTest
 ```
 
 Please be mindful that you cannot reuse the same keys in derived types that are already present in the parent type, as internally a single flat array or map will be used and thus cannot have duplicate indexes/keys.
+
+
+
+### Text Serialization
+
+Tinyhand can serialize an object to Tinyhand text format .
+
+```csharp
+// Serialize an object to string (UTF-16 text) and deserialize from it.
+var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
+var st = TinyhandSerializer.SerializeToString(myClass);
+var myClass2 = TinyhandSerializer.DeserializeFromString<MyClass>(st);
+```
+
+The result is
+
+```
+{
+  10, "hoge", "huga", null, null
+}
+```
+
+UTF-8 version is available.
+
+```csharp
+var utf8 = TinyhandSerializer.SerializeToUtf8(myClass);
+var myClass3 = TinyhandSerializer.DeserializeFromUtf8<MyClass>(utf8);
+```
 
 
 

@@ -1,3 +1,9 @@
+## 0.8.0 - 2021/02/06
+
+Added Text serialization.
+
+
+
 ## 0.7.0 - 2021/01/05
 
 Added Union support.
