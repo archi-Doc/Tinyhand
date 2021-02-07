@@ -16,4 +16,21 @@ namespace Tinyhand
         {
         }
     }
+
+    public class TinyhandInvalidCodeException : TinyhandException
+    {
+        public TinyhandInvalidCodeException(string message, byte code)
+            : base(message)
+        {
+            this.Code = code;
+        }
+
+        public TinyhandInvalidCodeException(string message, byte code, Exception innerException)
+            : base(message, innerException)
+        {
+            this.Code = code;
+        }
+
+        public byte Code { get; }
+    }
 }

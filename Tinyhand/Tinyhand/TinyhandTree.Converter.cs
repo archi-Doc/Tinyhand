@@ -112,19 +112,69 @@ namespace Tinyhand
 
             public bool TryGet(long position, [MaybeNullWhen(false)] out Element element)
             {
-                element = null;
-                return false;
+                var i = Binary_search(this.ElementList, position, 0, this.ElementList.Count);
+
+                if (this.ElementList.Count == 0 || position < this.ElementList[i].Position)
+                {
+                    element = null;
+                    return false;
+                }
+
+                element = this.ElementList[i].Element;
+                return true;
+
+                int Binary_search(List<Item> list, long position, int left, int right)
+                {
+                    while (left < right)
+                    {
+                        var middle = left + ((right - left) / 2);
+                        if (list[middle].Position < position)
+                        {
+                            left = middle + 1;
+                        }
+                        else
+                        {
+                            right = middle;
+                        }
+                    }
+
+                    return left;
+                }
+
+                /*int Binary_search(List<Item> list, long position, int imin, int imax)
+               {
+                   if (imax < imin)
+                   {
+                       return -1;
+                   }
+                   else
+                   {
+                       var imid = imin + ((imax - imin) / 2);
+                       if (list[imid].Position > position)
+                       {
+                           return Binary_search(list, position, imin, imid - 1);
+                       }
+                       else if (list[imid].Position < position)
+                       {
+                           return Binary_search(list, position, imid + 1, imax);
+                       }
+                       else
+                       {
+                           return imid;
+                       }
+                   }
+               }*/
             }
 
-            private struct Item
+            internal struct Item
             {
-                private long position;
-                private Element element;
+                public long Position;
+                public Element Element;
 
                 public Item(long position, Element element)
                 {
-                    this.position = position;
-                    this.element = element;
+                    this.Position = position;
+                    this.Element = element;
                 }
             }
         }

@@ -81,7 +81,7 @@ namespace Tinyhand
         public static T? DeserializeFromElement<T>(Element element, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
-            TinyhandTreeConverter.ToBinary(element, out var binary, out var debugInformation, options);
+            TinyhandTreeConverter.ToBinary(element, out var binary, out var debugInfo, options);
 
             var reader = new TinyhandReader(binary)
             {
@@ -91,6 +91,23 @@ namespace Tinyhand
             try
             {
                 return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+            }
+            catch (TinyhandInvalidCodeException invalidCode)
+            {
+                var position = reader.Consumed;
+                if (position > 0)
+                {
+                    position--;
+                }
+
+                if (debugInfo.TryGet(position, out var elelemt))
+                {
+                    throw new TinyhandException($"ya", invalidCode);
+                }
+                else
+                {
+                    throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", invalidCode);
+                }
             }
             catch (Exception ex)
             {
