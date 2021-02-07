@@ -74,20 +74,19 @@ namespace Tinyhand
         /// </summary>
         /// <param name="element">Element to convert.</param>
         /// <param name="byteArray">A byte array converted from an element.</param>
-        /// <param name="info">Debugging information.</param>
         /// <param name="options">The serialization options.</param>
-        public static void ToBinary(Element element, out byte[] byteArray, out ToBinaryDebugInfo info, TinyhandSerializerOptions options)
+        public static void ToBinary(Element element, out byte[] byteArray, TinyhandSerializerOptions options)
         {
             if (initialBuffer == null)
             {
                 initialBuffer = new byte[InitialBufferSize];
             }
 
-            info = new();
             var w = new TinyhandWriter(initialBuffer);
             try
             {
-                ToBinaryCore(element, ref w, info, options);
+                var state = new ToBinaryCoreState(options, -1);
+                ToBinaryCore(element, ref w, state);
                 byteArray = w.FlushAndGetArray();
             }
             finally
@@ -96,92 +95,70 @@ namespace Tinyhand
             }
         }
 
-        public class ToBinaryDebugInfo
+        /// <summary>
+        /// Get the Element from binary position.
+        /// </summary>
+        /// <param name="element">Element to search.</param>
+        /// <param name="position">The byte position.</param>
+        /// <param name="options">The serialization options.</param>
+        /// <returns>Element found at position in byte array.</returns>
+        public static Element? GetElementFromPosition(Element element, long position, TinyhandSerializerOptions options)
         {
-            public ToBinaryDebugInfo()
+            if (initialBuffer == null)
             {
-                this.ElementList = new();
+                initialBuffer = new byte[InitialBufferSize];
             }
 
-            private List<Item> ElementList { get; }
-
-            public void Add(long position, Element element)
+            var w = new TinyhandWriter(initialBuffer);
+            try
             {
-                this.ElementList.Add(new Item(position, element));
+                var state = new ToBinaryCoreState(options, position);
+                ToBinaryCore(element, ref w, state);
+                return state.ElementFound;
             }
-
-            public bool TryGet(long position, [MaybeNullWhen(false)] out Element element)
+            finally
             {
-                var i = Binary_search(this.ElementList, position, 0, this.ElementList.Count);
-
-                if (this.ElementList.Count == 0 || position < this.ElementList[i].Position)
-                {
-                    element = null;
-                    return false;
-                }
-
-                element = this.ElementList[i].Element;
-                return true;
-
-                int Binary_search(List<Item> list, long position, int left, int right)
-                {
-                    while (left < right)
-                    {
-                        var middle = left + ((right - left) / 2);
-                        if (list[middle].Position < position)
-                        {
-                            left = middle + 1;
-                        }
-                        else
-                        {
-                            right = middle;
-                        }
-                    }
-
-                    return left;
-                }
-
-                /*int Binary_search(List<Item> list, long position, int imin, int imax)
-               {
-                   if (imax < imin)
-                   {
-                       return -1;
-                   }
-                   else
-                   {
-                       var imid = imin + ((imax - imin) / 2);
-                       if (list[imid].Position > position)
-                       {
-                           return Binary_search(list, position, imin, imid - 1);
-                       }
-                       else if (list[imid].Position < position)
-                       {
-                           return Binary_search(list, position, imid + 1, imax);
-                       }
-                       else
-                       {
-                           return imid;
-                       }
-                   }
-               }*/
-            }
-
-            internal struct Item
-            {
-                public long Position;
-                public Element Element;
-
-                public Item(long position, Element element)
-                {
-                    this.Position = position;
-                    this.Element = element;
-                }
+                w.Dispose();
             }
         }
 
-        private static void ToBinaryCore(Element element, ref TinyhandWriter writer, ToBinaryDebugInfo info, TinyhandSerializerOptions options)
+        internal class ToBinaryCoreState
         {
-            info.Add(writer.Written, element);
+            public ToBinaryCoreState(TinyhandSerializerOptions options, long positionToSearch)
+            {
+                this.Options = options;
+                this.PositionToSearch = positionToSearch;
+            }
+
+            public TinyhandSerializerOptions Options { get; }
+
+            public long PositionToSearch { get; }
+
+            public Element? PreviousElement { get; set; }
+
+            public Element? ElementFound { get; set; }
+        }
+
+        private static void ToBinaryCore(Element element, ref TinyhandWriter writer, ToBinaryCoreState state)
+        {
+            if (state.PositionToSearch >= 0)
+            {
+                if (state.ElementFound != null)
+                {// Found
+                    return;
+                }
+
+                var position = writer.Written;
+                if (position < state.PositionToSearch)
+                {
+                    state.PreviousElement = element;
+                }
+                else
+                {
+                    state.ElementFound = state.PreviousElement;
+                    return;
+                }
+            }
 
             if (element.Type == ElementType.Value)
             {
@@ -233,7 +210,7 @@ namespace Tinyhand
                 }
                 else
                 {
-                    ToBinaryCore(assignment.LeftElement, ref writer, info, options);
+                    ToBinaryCore(assignment.LeftElement, ref writer, state);
                 }
 
                 if (assignment.RightElement == null)
@@ -242,7 +219,7 @@ namespace Tinyhand
                 }
                 else
                 {
-                    ToBinaryCore(assignment.RightElement, ref writer, info, options);
+                    ToBinaryCore(assignment.RightElement, ref writer, state);
                 }
             }
             else if (element.Type == ElementType.Group)
@@ -265,12 +242,12 @@ namespace Tinyhand
                     {
                         if (group.ElementList[i] is Assignment assignment)
                         {
-                            ToBinaryCore(assignment, ref writer, info, options);
+                            ToBinaryCore(assignment, ref writer, state);
                         }
                         else
                         {
                             writer.WriteNil();
-                            ToBinaryCore(group.ElementList[i], ref writer, info, options);
+                            ToBinaryCore(group.ElementList[i], ref writer, state);
                         }
                     }
                 }
@@ -279,7 +256,7 @@ namespace Tinyhand
                     writer.WriteArrayHeader(group.ElementList.Count);
                     for (var i = 0; i < group.ElementList.Count; i++)
                     {
-                        ToBinaryCore(group.ElementList[i], ref writer, info, options);
+                        ToBinaryCore(group.ElementList[i], ref writer, state);
                     }
                 }
             }

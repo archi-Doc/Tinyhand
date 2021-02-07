@@ -81,7 +81,7 @@ namespace Tinyhand
         public static T? DeserializeFromElement<T>(Element element, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
-            TinyhandTreeConverter.ToBinary(element, out var binary, out var debugInfo, options);
+            TinyhandTreeConverter.ToBinary(element, out var binary, options);
 
             var reader = new TinyhandReader(binary)
             {
@@ -95,12 +95,15 @@ namespace Tinyhand
             catch (TinyhandInvalidCodeException invalidCode)
             {
                 var position = reader.Consumed;
-                if (position > 0)
+                /*if (position > 0)
                 {
                     position--;
-                }
+                }*/
 
-                if (debugInfo.TryGet(position, out var elelemt))
+                // Get the Element from which the exception was thrown.
+                var e = TinyhandTreeConverter.GetElementFromPosition(element, position, options);
+
+                if (e != null)
                 {
                     throw new TinyhandException($"ya", invalidCode);
                 }
