@@ -112,7 +112,8 @@ namespace Tinyhand
 
             public bool TryGet(long position, [MaybeNullWhen(false)] out Element element)
             {
-
+                element = null;
+                return false;
             }
 
             private struct Item
