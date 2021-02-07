@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using Arc.Crypto;
@@ -97,10 +98,41 @@ namespace Tinyhand
 
         public class ToBinaryDebugInfo
         {
+            public ToBinaryDebugInfo()
+            {
+                this.ElementList = new();
+            }
+
+            private List<Item> ElementList { get; }
+
+            public void Add(long position, Element element)
+            {
+                this.ElementList.Add(new Item(position, element));
+            }
+
+            public bool TryGet(long position, [MaybeNullWhen(false)] out Element element)
+            {
+                element = null;
+                return false;
+            }
+
+            private struct Item
+            {
+                private long position;
+                private Element element;
+
+                public Item(long position, Element element)
+                {
+                    this.position = position;
+                    this.element = element;
+                }
+            }
         }
 
         private static void ToBinaryCore(Element element, ref TinyhandWriter writer, ToBinaryDebugInfo info, TinyhandSerializerOptions options)
         {
+            info.Add(writer.Written, element);
+
             if (element.Type == ElementType.Value)
             {
                 Value v = (Value)element;

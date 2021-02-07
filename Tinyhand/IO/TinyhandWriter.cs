@@ -77,6 +77,8 @@ namespace Tinyhand.IO
 
         public void Ensure(int sizeHint) => this.writer.Ensure(sizeHint);
 
+        public long Written => this.writer.Written;
+
         /// <summary>
         /// Copies bytes directly into the message pack writer.
         /// </summary>
