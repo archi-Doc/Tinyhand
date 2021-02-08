@@ -36,11 +36,12 @@ namespace Tinyhand.Tests
             st = TinyhandSerializer.SerializeToString(c3, simple);
             c3.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<EmptyClass2>(st));
 
-            /* var c4 = TinyhandSerializer.Reconstruct<FormatterResolverClass>();
+            var c4 = new FormatterResolverClass();
             st = TinyhandSerializer.SerializeToString(c4);
+            var c5 = TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st);
             c4.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st));
             st = TinyhandSerializer.SerializeToString(c4, simple);
-            c4.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st));*/
+            c4.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st));
         }
     }
 }
