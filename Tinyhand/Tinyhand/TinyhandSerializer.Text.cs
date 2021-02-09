@@ -93,24 +93,19 @@ namespace Tinyhand
                 return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
             }
             catch (TinyhandInvalidCodeException invalidCode)
-            {
+            {// Invalid code
                 var position = reader.Consumed;
-                /*if (position > 0)
-                {
-                    position--;
-                }*/
 
                 // Get the Element from which the exception was thrown.
                 var e = TinyhandTreeConverter.GetElementFromPosition(element, position, options);
+                TinyhandException? ex = invalidCode;
 
                 if (e != null)
                 {
-                    throw new TinyhandException($"ya", invalidCode);
+                    ex = new TinyhandException($"Unexpected element type, actual: {invalidCode.ActualType.ToString()} expected: {invalidCode.ExpectedType.ToString()}");
                 }
-                else
-                {
-                    throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", invalidCode);
-                }
+
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
             }
             catch (Exception ex)
             {

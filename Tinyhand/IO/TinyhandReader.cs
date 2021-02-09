@@ -209,7 +209,7 @@ namespace Tinyhand.IO
 
                     // We don't actually expect to ever hit this point, since every code is supported.
                     Debug.Fail("Missing handler for code: " + code);
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Unknown);
             }
         }
 
@@ -223,7 +223,7 @@ namespace Tinyhand.IO
 
             return code == MessagePackCode.Nil
                 ? Nil.Default
-                : throw ThrowInvalidCode(code);
+                : throw ThrowInvalidCode(code, MessagePackType.Nil);
         }
 
         /// <summary>
@@ -347,7 +347,7 @@ namespace Tinyhand.IO
                         break;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Array);
             }
 
             return true;
@@ -449,7 +449,7 @@ namespace Tinyhand.IO
                         break;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Map);
             }
 
             return true;
@@ -508,7 +508,7 @@ namespace Tinyhand.IO
                     count = unchecked((ushort)shortValue);
                     if (count != 0)
                     {// Map expected
-                        throw ThrowInvalidCode(code);
+                        throw ThrowInvalidCode(code, MessagePackType.Map);
                     }
 
                     break;
@@ -522,7 +522,7 @@ namespace Tinyhand.IO
                     count = intValue;
                     if (count != 0)
                     {// Map expected
-                        throw ThrowInvalidCode(code);
+                        throw ThrowInvalidCode(code, MessagePackType.Map);
                     }
 
                     break;
@@ -539,7 +539,7 @@ namespace Tinyhand.IO
                         break;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Map);
             }
 
             return true;
@@ -559,7 +559,7 @@ namespace Tinyhand.IO
                 case MessagePackCode.False:
                     return false;
                 default:
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Boolean);
             }
         }
 
@@ -633,7 +633,7 @@ namespace Tinyhand.IO
                         return code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Float);
             }
         }
 
@@ -699,7 +699,7 @@ namespace Tinyhand.IO
                         return code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Float);
             }
         }
 
@@ -996,7 +996,7 @@ namespace Tinyhand.IO
                     length = unchecked((uint)intLength);
                     break;
                 default:
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Extension);
             }
 
             if (!this.reader.TryRead(out byte typeCode))
@@ -1077,9 +1077,12 @@ namespace Tinyhand.IO
         /// </summary>
         /// <param name="code">The code that was encountered.</param>
         /// <returns>Nothing. This method always throws.</returns>
-        private static Exception ThrowInvalidCode(byte code)
+        private static Exception ThrowInvalidCode(byte code, MessagePackType expected)
         {
-            throw new TinyhandInvalidCodeException(string.Format("Unexpected msgpack code {0} ({1}) encountered.", code, MessagePackCode.ToFormatName(code)), code);
+            throw new TinyhandInvalidCodeException(
+                string.Format("Unexpected msgpack code {0} ({1}) encountered.", code, MessagePackCode.ToFormatName(code)),
+                MessagePackCode.ToMessagePackType(code),
+                expected);
         }
 
         private int GetBytesLength()
@@ -1132,7 +1135,7 @@ namespace Tinyhand.IO
                         return true;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Binary);
             }
 
             length = 0;
@@ -1208,7 +1211,7 @@ namespace Tinyhand.IO
                         return true;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.String);
             }
 
             length = 0;

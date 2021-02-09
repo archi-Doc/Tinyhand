@@ -19,18 +19,22 @@ namespace Tinyhand
 
     public class TinyhandInvalidCodeException : TinyhandException
     {
-        public TinyhandInvalidCodeException(string message, byte code)
+        public TinyhandInvalidCodeException(string message, MessagePackType actual, MessagePackType expected)
             : base(message)
         {
-            this.Code = code;
+            this.ActualType = actual;
+            this.ExpectedType = expected;
         }
 
-        public TinyhandInvalidCodeException(string message, byte code, Exception innerException)
+        public TinyhandInvalidCodeException(string message, MessagePackType actual, MessagePackType expected, Exception innerException)
             : base(message, innerException)
         {
-            this.Code = code;
+            this.ActualType = actual;
+            this.ExpectedType = expected;
         }
 
-        public byte Code { get; }
+        public MessagePackType ActualType { get; }
+
+        public MessagePackType ExpectedType { get; }
     }
 }
