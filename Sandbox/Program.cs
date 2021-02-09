@@ -54,7 +54,7 @@ namespace Sandbox
             var classA2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
 
             st = TinyhandSerializer.SerializeToString(classB, TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple));
-            st = "\"2int-string\" = {33 = \"rr\"}, \" st d \" = {test = 33}, \"double\" = 33, Byte = 0, \"2\" = 77, MyClass0 = {99, \"\", \"Doe\", {}, null}, \"St{\" = \"test\", \"3 2\" = 0, Double = 1, Date = \"2021-02-09T10:20:29.7825986Z\", MyClass = {99, \"\", \"Doe\", {}, null}";
+            // st = "\"2int-string\" = {33 = \"rr\"}, \" st d \" = {test = 33}, \"double\" = 33, Byte = 0, \"2\" = 77, MyClass0 = {99, \"\", \"Doe\", {}, null}, \"St{\" = \"test\", \"3 2\" = 0, Double = 1, Date = \"2021-02-09T10:20:29.7825986Z\", MyClass = {99, \"\", \"Doe\", {}, null}";
             classA2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
         }
     }

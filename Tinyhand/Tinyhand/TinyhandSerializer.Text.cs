@@ -102,7 +102,7 @@ namespace Tinyhand
 
                 if (e != null)
                 {
-                    ex = new TinyhandException($"Unexpected element type, actual: {invalidCode.ActualType.ToString()} expected: {invalidCode.ExpectedType.ToString()}");
+                    ex = new TinyhandException($"Unexpected element type, actual: {invalidCode.ActualType.ToString()} expected: {invalidCode.ExpectedType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
                 }
 
                 throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
