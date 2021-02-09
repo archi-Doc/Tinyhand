@@ -60,7 +60,7 @@ namespace Tinyhand.IO
                         return (byte)code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Integer);
             }
         }
 
@@ -113,7 +113,7 @@ namespace Tinyhand.IO
                         return (sbyte)code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Integer);
             }
         }
 
@@ -166,7 +166,7 @@ namespace Tinyhand.IO
                         return (ushort)code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Integer);
             }
         }
 
@@ -219,7 +219,7 @@ namespace Tinyhand.IO
                         return (short)code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Integer);
             }
         }
 
@@ -272,7 +272,7 @@ namespace Tinyhand.IO
                         return (uint)code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Integer);
             }
         }
 
@@ -325,7 +325,7 @@ namespace Tinyhand.IO
                         return (int)code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Integer);
             }
         }
 
@@ -378,7 +378,7 @@ namespace Tinyhand.IO
                         return (ulong)code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Integer);
             }
         }
 
@@ -431,7 +431,7 @@ namespace Tinyhand.IO
                         return (long)code;
                     }
 
-                    throw ThrowInvalidCode(code);
+                    throw ThrowInvalidCode(code, MessagePackType.Integer);
             }
         }
     }

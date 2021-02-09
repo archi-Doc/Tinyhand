@@ -118,22 +118,6 @@ namespace Tinyhand
                     { // =, If the current element is TinyhandAssignment, set LeftElement.
                         if (previousElement != null)
                         {
-                            if (this.Options.TextSerializationMode && !previousSpan.IsEmpty)
-                            {// Convert an element to an identifier.
-                                if (previousElement is Value v)
-                                {// value element
-                                    if (v.ValueType != ValueElementType.Identifier &&
-                                        v.ValueType != ValueElementType.SpecialIdentifier)
-                                    {
-                                        previousElement = new Value_Identifier(false, previousSpan.ToArray());
-                                    }
-                                }
-                                else if (previousElement.Type == ElementType.Modifier)
-                                {// modifier
-                                    previousElement = new Value_Identifier(false, previousSpan.ToArray());
-                                }
-                            }
-
                             currentAssignment.LeftElement = previousElement;
                         }
                     }

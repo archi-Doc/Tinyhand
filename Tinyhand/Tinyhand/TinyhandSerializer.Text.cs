@@ -29,7 +29,7 @@ namespace Tinyhand
         {
             options = options ?? DefaultOptions;
             var binary = Serialize<T>(value, options, cancellationToken);
-            TinyhandTreeConverter.FromBinary(binary, out var element, options);
+            TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
             TinyhandComposer.Compose(writer, element, options.Compose);
         }
 
@@ -45,7 +45,7 @@ namespace Tinyhand
         {
             options = options ?? DefaultOptions;
             var binary = Serialize<T>(value, options, cancellationToken);
-            TinyhandTreeConverter.FromBinary(binary, out var element, options);
+            TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
             return TinyhandComposer.Compose(element, options.Compose);
         }
 
@@ -81,7 +81,7 @@ namespace Tinyhand
         public static T? DeserializeFromElement<T>(Element element, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
-            TinyhandTreeConverter.ToBinary(element, out var binary, out var debugInformation, options);
+            TinyhandTreeConverter.FromElementToBinary(element, out var binary, options);
 
             var reader = new TinyhandReader(binary)
             {
@@ -91,6 +91,21 @@ namespace Tinyhand
             try
             {
                 return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+            }
+            catch (TinyhandInvalidCodeException invalidCode)
+            {// Invalid code
+                var position = reader.Consumed;
+
+                // Get the Element from which the exception was thrown.
+                var e = TinyhandTreeConverter.GetElementFromPosition(element, position, options);
+                TinyhandException? ex = invalidCode;
+
+                if (e != null)
+                {
+                    ex = new TinyhandException($"Unexpected element type, actual: {invalidCode.ActualType.ToString()} expected: {invalidCode.ExpectedType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
+                }
+
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
             }
             catch (Exception ex)
             {
