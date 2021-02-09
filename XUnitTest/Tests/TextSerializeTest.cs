@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,10 +11,65 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
+    [TinyhandObject(KeyAsPropertyName = true)]
+    public partial class TextSerializeClass1
+    {
+        [Key("2int-string")]
+        public Dictionary<int, string> DictionaryIntString { get; set; } = default!;
+
+        [Key(" st d ")]
+        public IDictionary<string, double> IDictionaryStringDouble { get; set; } = default!;
+
+        [Key("double")]
+        [DefaultValue(true)]
+        public bool Bool { get; set; }
+
+        public byte Byte { get; set; }
+
+        [Key("2")]
+        [DefaultValue(77)]
+        public int Int { get; set; }
+
+        public MyClass MyClass0 { get; set; } = default!;
+
+        [Key("St{")]
+        [DefaultValue("test\"\"\"e")]
+        public string String { get; set; } = default!;
+
+        [Key("3 2")]
+        public float Float { get; set; }
+
+        [DefaultValue(1d)]
+        public double Double { get; set; }
+
+        public DateTime Date { get; set; } = DateTime.UtcNow;
+
+        public MyClass MyClass { get; set; } = default!;
+    }
+
     public class TextSerializeTest
     {
         [Fact]
         public void Test1()
+        {// Requires visual assessment.
+            string st;
+            var simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
+
+            var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
+            c1.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
+            c1.IDictionaryStringDouble = new Dictionary<string, double>(new KeyValuePair<string, double>[] { new KeyValuePair<string, double>("test", 33d) });
+
+            st = TinyhandSerializer.SerializeToString(c1);
+            var c2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
+            c1.IsStructuralEqual(c2);
+
+            st = TinyhandSerializer.SerializeToString(c1, simple);
+            c2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
+            c1.IsStructuralEqual(c2);
+        }
+
+        [Fact]
+        public void Test2()
         {// Requires visual assessment.
             string st;
             var simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
@@ -39,9 +95,19 @@ namespace Tinyhand.Tests
             var c4 = new FormatterResolverClass();
             st = TinyhandSerializer.SerializeToString(c4);
             var c5 = TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st);
-            c4.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st));
+            c5.ObjectArray = c4.ObjectArray; // avoid int != byte issue
+            c5.ObjectList = c4.ObjectList; // avoid int != byte issue
+            var b = MessagePack.MessagePackSerializer.Serialize<FormatterResolverClass>(c4);
+            var b2 = TinyhandSerializer.Serialize<FormatterResolverClass>(c5);
+            b.IsStructuralEqual(b2);
+
             st = TinyhandSerializer.SerializeToString(c4, simple);
-            c4.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st));
+            c5 = TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st);
+            c5.ObjectArray = c4.ObjectArray; // avoid int != byte issue
+            c5.ObjectList = c4.ObjectList; // avoid int != byte issue
+            b = MessagePack.MessagePackSerializer.Serialize<FormatterResolverClass>(c4);
+            b2 = TinyhandSerializer.Serialize<FormatterResolverClass>(c5);
+            b.IsStructuralEqual(b2);
         }
     }
 }

@@ -23,6 +23,10 @@ namespace Tinyhand
     {
         static TinyhandHelper()
         {
+            ReservedTable.TryAdd(TinyhandConstants.NullSpan, 1);
+            ReservedTable.TryAdd(TinyhandConstants.TrueSpan, 1);
+            ReservedTable.TryAdd(TinyhandConstants.FalseSpan, 1);
+
             foreach (var x in Enum.GetValues(typeof(TinyhandModifierType)).Cast<TinyhandModifierType>())
             {
                 if (x == TinyhandModifierType.None)
@@ -33,12 +37,16 @@ namespace Tinyhand
                 var name = Enum.GetName(typeof(TinyhandModifierType), x);
                 if (name != null)
                 {
-                    ModifierTable.TryAdd(Encoding.UTF8.GetBytes(name.ToLower()), x);
+                    var s = Encoding.UTF8.GetBytes(name.ToLower());
+                    ModifierTable.TryAdd(s, x);
+                    ReservedTable.TryAdd(s, 2);
                 }
             }
         }
 
-        public static Utf8Hashtable<TinyhandModifierType> ModifierTable { get; } = new Utf8Hashtable<TinyhandModifierType>();
+        public static Utf8Hashtable<int> ReservedTable { get; } = new();
+
+        public static Utf8Hashtable<TinyhandModifierType> ModifierTable { get; } = new();
 
         public static ReadOnlySpan<byte> GetUnescapedSpan(ReadOnlySpan<byte> utf8Source)
         {

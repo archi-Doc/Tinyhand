@@ -36,7 +36,7 @@ namespace Tinyhand
         /// <param name="byteArray">A byte array to convert.</param>
         /// <param name="element">Element converted from a byte array.</param>
         /// <param name="options">The serialization options.</param>
-        public static void FromBinary(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
+        public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
         {
             var reader = new TinyhandReader(byteArray);
             var byteSequence = new ByteSequence();
@@ -45,11 +45,11 @@ namespace Tinyhand
                 if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
                 {
                     var r = reader.Clone(byteSequence.GetReadOnlySequence());
-                    FromReader(ref r, out element, options);
+                    FromReaderToElement(ref r, out element, options);
                 }
                 else
                 {
-                    FromReader(ref reader, out element, options);
+                    FromReaderToElement(ref reader, out element, options);
                 }
             }
             finally
@@ -64,9 +64,9 @@ namespace Tinyhand
         /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
         /// <param name="element">Output element.</param>
         /// <param name="options">The serialization options.</param>
-        public static void FromReader(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
+        public static void FromReaderToElement(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
         {
-            element = FromReaderCore(ref reader, options);
+            element = FromReaderToElement_Core(ref reader, options);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Tinyhand
         /// <param name="element">Element to convert.</param>
         /// <param name="byteArray">A byte array converted from an element.</param>
         /// <param name="options">The serialization options.</param>
-        public static void ToBinary(Element element, out byte[] byteArray, TinyhandSerializerOptions options)
+        public static void FromElementToBinary(Element element, out byte[] byteArray, TinyhandSerializerOptions options)
         {
             if (initialBuffer == null)
             {
@@ -86,7 +86,7 @@ namespace Tinyhand
             try
             {
                 var state = new ToBinaryCoreState(options, -1);
-                ToBinaryCore(element, ref w, state);
+                FromElementToBinary_Core(element, ref w, state);
                 byteArray = w.FlushAndGetArray();
             }
             finally
@@ -113,7 +113,7 @@ namespace Tinyhand
             try
             {
                 var state = new ToBinaryCoreState(options, position);
-                ToBinaryCore(element, ref w, state);
+                FromElementToBinary_Core(element, ref w, state);
                 return state.ElementFound;
             }
             finally
@@ -139,7 +139,7 @@ namespace Tinyhand
             public Element? ElementFound { get; set; }
         }
 
-        private static void ToBinaryCore(Element element, ref TinyhandWriter writer, ToBinaryCoreState state)
+        private static void FromElementToBinary_Core(Element element, ref TinyhandWriter writer, ToBinaryCoreState state)
         {
             if (state.PositionToSearch >= 0)
             {
@@ -210,7 +210,7 @@ namespace Tinyhand
                 }
                 else
                 {
-                    ToBinaryCore(assignment.LeftElement, ref writer, state);
+                    FromElementToBinary_Core(assignment.LeftElement, ref writer, state);
                 }
 
                 if (assignment.RightElement == null)
@@ -219,7 +219,7 @@ namespace Tinyhand
                 }
                 else
                 {
-                    ToBinaryCore(assignment.RightElement, ref writer, state);
+                    FromElementToBinary_Core(assignment.RightElement, ref writer, state);
                 }
             }
             else if (element.Type == ElementType.Group)
@@ -242,12 +242,12 @@ namespace Tinyhand
                     {
                         if (group.ElementList[i] is Assignment assignment)
                         {
-                            ToBinaryCore(assignment, ref writer, state);
+                            FromElementToBinary_Core(assignment, ref writer, state);
                         }
                         else
                         {
                             writer.WriteNil();
-                            ToBinaryCore(group.ElementList[i], ref writer, state);
+                            FromElementToBinary_Core(group.ElementList[i], ref writer, state);
                         }
                     }
                 }
@@ -256,7 +256,7 @@ namespace Tinyhand
                     writer.WriteArrayHeader(group.ElementList.Count);
                     for (var i = 0; i < group.ElementList.Count; i++)
                     {
-                        ToBinaryCore(group.ElementList[i], ref writer, state);
+                        FromElementToBinary_Core(group.ElementList[i], ref writer, state);
                     }
                 }
             }
@@ -265,23 +265,29 @@ namespace Tinyhand
         private static bool IsValidIdentifier(byte[] s)
         {
             if (s.Length == 0)
-            {
+            {// Empty
                 return false;
             }
 
-            for (var n = 0; n < s.Length; n++)
-            {
-                if (s[n] == '{' || s[n] == '}' || s[n] == '"' || s[n] == '=' ||
-                    s[n] == '/' || s[n] == ' ' || s[n] == '\r' || s[n] == '\n')
-                {// Invalid character
-                    return false;
-                }
+            if (TinyhandUtf8Reader.HasDelimiter(s))
+            {// Has delimiter
+                return false;
+            }
+
+            if (s[0] >= '0' && s[0] <= '9')
+            {// Number
+                return false;
+            }
+
+            if (TinyhandHelper.ReservedTable.TryGetValue(s, out _))
+            {// Reserved
+                return false;
             }
 
             return true;
         }
 
-        private static Element FromReaderCore(ref TinyhandReader reader, TinyhandSerializerOptions options, bool identifierFlag = false)
+        private static Element FromReaderToElement_Core(ref TinyhandReader reader, TinyhandSerializerOptions options, bool identifierFlag = false)
         {
             var type = reader.NextMessagePackType;
             switch (type)
@@ -319,7 +325,7 @@ namespace Tinyhand
                     var utf8 = seq.Value.ToArray();
                     if (identifierFlag)
                     {
-                        if (utf8.Length > 0 && !TinyhandUtf8Reader.HasDelimiter(utf8))
+                        if (IsValidIdentifier(utf8))
                         {
                             return new Value_Identifier(false, utf8);
                         }
@@ -352,7 +358,7 @@ namespace Tinyhand
                             group = new Group(length);
                             for (int i = 0; i < length; i++)
                             {
-                                group.Add(FromReaderCore(ref reader, options));
+                                group.Add(FromReaderToElement_Core(ref reader, options));
                             }
                         }
                         finally
@@ -373,8 +379,8 @@ namespace Tinyhand
                             group = new Group(length);
                             for (int i = 0; i < length; i++)
                             {
-                                var left = FromReaderCore(ref reader, options, true);
-                                var right = FromReaderCore(ref reader, options);
+                                var left = FromReaderToElement_Core(ref reader, options, true);
+                                var right = FromReaderToElement_Core(ref reader, options);
                                 group.Add(new Assignment(left, right));
                             }
                         }

@@ -7,8 +7,14 @@ using Tinyhand;
 namespace Sandbox
 {
     [TinyhandObject(KeyAsPropertyName = true)]
-    public partial class DefaultTestClass
+    public partial class TextSerializeClass1
     {
+        [Key("2int-string")]
+        public Dictionary<int, string> DictionaryIntString { get; set; } = default!;
+
+        [Key(" st d ")]
+        public IDictionary<string, double> IDictionaryStringDouble { get; set; } = default!;
+
         [Key("double")]
         [DefaultValue(true)]
         public bool Bool { get; set; }
@@ -40,14 +46,16 @@ namespace Sandbox
     {
         static void Main(string[] args)
         {
-            var classB = TinyhandSerializer.Reconstruct<DefaultTestClass>();
+            var classB = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
+            classB.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
+            classB.IDictionaryStringDouble = new Dictionary<string, double>(new KeyValuePair<string, double>[] { new KeyValuePair<string, double>("test", 33d) });
 
             var st = TinyhandSerializer.SerializeToString(classB);
-            var classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
+            var classA2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
 
             st = TinyhandSerializer.SerializeToString(classB, TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple));
             st = "double = true, Byte = 0, 2 = 77, MyClass0 = 33, \"St{\" = \"test\\\"\\\"\\\"e\", \"3 2\" = 0, Double = 1, Date = \"2021-02-06T13:17:48.7898669Z\", MyClass = {99, \"\", \"Doe\", {}, null}";
-            classA2 = TinyhandSerializer.DeserializeFromString<DefaultTestClass>(st);
+            classA2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
         }
     }
 }
