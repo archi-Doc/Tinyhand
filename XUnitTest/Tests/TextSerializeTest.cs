@@ -102,6 +102,8 @@ namespace Tinyhand.Tests
             b.IsStructuralEqual(b2);
 
             st = TinyhandSerializer.SerializeToString(c4, simple);
+            // var json = MessagePack.MessagePackSerializer.ConvertToJson(MessagePack.MessagePackSerializer.Serialize<FormatterResolverClass>(c4));
+            // var cc = MessagePack.MessagePackSerializer.Deserialize<FormatterResolverClass>(MessagePack.MessagePackSerializer.ConvertFromJson(json));
             c5 = TinyhandSerializer.DeserializeFromString<FormatterResolverClass>(st);
             c5.ObjectArray = c4.ObjectArray; // avoid int != byte issue
             c5.ObjectList = c4.ObjectList; // avoid int != byte issue

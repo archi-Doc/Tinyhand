@@ -42,7 +42,7 @@ namespace Benchmark
             Console.WriteLine(Stopwatch.ToSimpleString());
             Console.WriteLine();
 
-            DebugRun<H2HTest.H2HLarge>();
+            DebugRun<H2HTest.H2HBenchmark>();
 
             var switcher = new BenchmarkSwitcher(new[]
             {
