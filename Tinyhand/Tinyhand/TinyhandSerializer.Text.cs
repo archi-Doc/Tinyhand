@@ -20,17 +20,30 @@ namespace Tinyhand
         /// <summary>
         /// Serializes a given value with the specified buffer writer.
         /// </summary>
-        /// <param name="writer">The buffer writer to serialize with.</param>
+        /// <param name="bufferWriter">The buffer writer to serialize with.</param>
         /// <param name="value">The value to serialize.</param>
         /// <param name="options">The options. Use <c>null</c> to use default options.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-        public static void SerializeToUtf8<T>(IBufferWriter<byte> writer, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        public static void SerializeToUtf8<T>(IBufferWriter<byte> bufferWriter, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             options = options ?? DefaultOptions;
             var binary = Serialize<T>(value, options, cancellationToken);
-            TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
-            TinyhandComposer.Compose(writer, element, options.Compose);
+
+            // Slow
+            // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
+            // TinyhandComposer.Compose(writer, element, options.Compose);
+
+            var writer = new TinyhandRawWriter(bufferWriter);
+            try
+            {
+                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer);
+                return;
+            }
+            finally
+            {
+                writer.Dispose();
+            }
         }
 
         /// <summary>
@@ -43,10 +56,28 @@ namespace Tinyhand
         /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
         public static byte[] SerializeToUtf8<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
+            if (initialBuffer == null)
+            {
+                initialBuffer = new byte[InitialBufferSize];
+            }
+
             options = options ?? DefaultOptions;
             var binary = Serialize<T>(value, options, cancellationToken);
-            TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
-            return TinyhandComposer.Compose(element, options.Compose);
+
+            // Slow
+            // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
+            // return TinyhandComposer.Compose(element, options.Compose);
+
+            var writer = new TinyhandRawWriter(initialBuffer);
+            try
+            {
+                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer);
+                return writer.FlushAndGetArray();
+            }
+            finally
+            {
+                writer.Dispose();
+            }
         }
 
         /// <summary>
