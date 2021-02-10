@@ -252,6 +252,163 @@ namespace Tinyhand
         }
 
         /// <summary>
+        /// Converts UTF-8 text to a sequence of byte.
+        /// </summary>
+        /// <param name="utf8">UTF-8 text.</param>
+        /// <param name="writer">TinyhandRawWriter.</param>
+        public static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, ref TinyhandWriter writer)
+        {
+            var reader = new TinyhandUtf8Reader(utf8, true);
+            FromReaderToBinary(ref reader, ref writer, out _);
+        }
+
+        /// <summary>
+        /// Converts TinyhandUtf8Reader (UTF-8 text) to a sequence of byte.
+        /// </summary>
+        /// <param name="reader">TinyhandUtf8Reader.</param>
+        /// <param name="writer">TinyhandRawWriter.</param>
+        /// <param name="assignedFlag">Assignment element processed.</param>
+        /// <returns>The number of the processed items.</returns>
+        public static uint FromReaderToBinary(ref TinyhandUtf8Reader reader, ref TinyhandWriter writer, out bool assignedFlag)
+        {
+            uint assignedCount = 0;
+            uint count = 0;
+
+            assignedFlag = false;
+            while (reader.Read())
+            {
+                switch (reader.AtomType)
+                {
+                    case TinyhandAtomType.StartGroup: // {
+                        var scratchWriter = default(TinyhandWriter);
+                        try
+                        {
+                            var numberOfItems = FromReaderToBinary(ref reader, ref scratchWriter, out var assigned);
+
+                            if (assigned)
+                            {
+                                writer.WriteMapHeader(numberOfItems / 2);
+                                writer.WriteSequence(scratchWriter.FlushAndGetReadOnlySequence());
+                            }
+                            else
+                            {
+                                writer.WriteArrayHeader(numberOfItems);
+                                writer.WriteSequence(scratchWriter.FlushAndGetReadOnlySequence());
+                            }
+                        }
+                        finally
+                        {
+                            scratchWriter.Dispose();
+                        }
+
+                        count++;
+                        break;
+
+                    case TinyhandAtomType.EndGroup: // }
+                        return count;
+
+                    case TinyhandAtomType.Identifier: // objectA
+                        if (assignedCount <= 1)
+                        {
+                            writer.WriteString(reader.ValueSpan.ToArray());
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.SpecialIdentifier: // @mode
+                        if (assignedCount <= 1)
+                        {
+                            var utf8 = reader.ValueSpan.ToArray();
+                            writer.WriteStringHeader(utf8.Length + 1);
+                            writer.RawWriteUInt8(TinyhandConstants.AtSign);
+                            writer.WriteSpan(utf8);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Modifier: // i32: key(1): required
+                        break;
+
+                    case TinyhandAtomType.Assignment: // =
+                        assignedFlag = true;
+                        assignedCount++;
+                        break;
+
+                    case TinyhandAtomType.Value_Base64: // b"Base64"
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(reader.ValueBinary);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_String: // "text"
+                        if (assignedCount <= 1)
+                        {
+                            writer.WriteString(reader.ValueSpan.ToArray());
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_Long: // 123(long)
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(reader.ValueLong);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_Double: // 1.23(double)
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(reader.ValueDouble);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_Null: // null
+                        if (assignedCount <= 1)
+                        {
+                            writer.WriteNil();
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_True: // true
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(true);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_False: // false
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(false);
+                            count++;
+                        }
+
+                        break;
+
+                    default:
+                        assignedCount = 0;
+                        break;
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>
         /// Converts an Element to a sequence of byte.
         /// </summary>
         /// <param name="element">Element to convert.</param>

@@ -102,6 +102,8 @@ namespace Tinyhand
             this.bytePositionInLine = InitialLinePosition;
         }
 
+        public bool End => this.Position >= this.Length;
+
         public int Length => this.buffer.Length;
 
         public int Remaining => this.buffer.Length - this.Position;

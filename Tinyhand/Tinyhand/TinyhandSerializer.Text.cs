@@ -104,9 +104,33 @@ namespace Tinyhand
         /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
         public static T? DeserializeFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
+            if (initialBuffer == null)
+            {
+                initialBuffer = new byte[InitialBufferSize];
+            }
+
             options = options ?? DefaultOptions;
-            var element = TinyhandParser.Parse(utf8, TinyhandParserOptions.TextSerialization);
-            return DeserializeFromElement<T>(element, options, cancellationToken);
+
+            // Slow
+            // var element = TinyhandParser.Parse(utf8, TinyhandParserOptions.TextSerialization);
+            // return DeserializeFromElement<T>(element, options, cancellationToken);
+
+            var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+            try
+            {
+                TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer);
+
+                /* var ww = default(TinyhandRawWriter);
+                TinyhandTreeConverter.FromBinaryToUtf8(writer.FlushAndGetArray(), ref ww);
+                var st = TinyhandHelper.GetTextFromUtf8(ww.FlushAndGetArray());*/
+
+                var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
+                return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+            }
+            finally
+            {
+                writer.Dispose();
+            }
         }
 
         public static T? DeserializeFromElement<T>(Element element, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
@@ -177,9 +201,27 @@ namespace Tinyhand
         /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
         public static T? DeserializeFromString<T>(string utf16, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
-            options = options ?? DefaultOptions;
-            var element = TinyhandParser.Parse(utf16, TinyhandParserOptions.TextSerialization);
-            return DeserializeFromElement<T>(element, options, cancellationToken);
+            const long ArrayPoolMaxSizeBeforeUsingNormalAlloc = 1024 * 1024;
+            byte[]? tempArray = null;
+
+            Span<byte> utf8 = utf16.Length <= (ArrayPoolMaxSizeBeforeUsingNormalAlloc / TinyhandConstants.MaxExpansionFactorWhileTranscoding) ?
+                tempArray = ArrayPool<byte>.Shared.Rent(utf16.Length * TinyhandConstants.MaxExpansionFactorWhileTranscoding) :
+                new byte[TinyhandHelper.GetUtf8ByteCount(utf16.AsSpan())];
+
+            try
+            {
+                int actualByteCount = TinyhandHelper.GetUtf8FromText(utf16.AsSpan(), utf8);
+                utf8 = utf8.Slice(0, actualByteCount);
+                return DeserializeFromUtf8<T>(utf8, options, cancellationToken);
+            }
+            finally
+            {
+                if (tempArray != null)
+                {
+                    utf8.Clear();
+                    ArrayPool<byte>.Shared.Return(tempArray);
+                }
+            }
         }
     }
 }
