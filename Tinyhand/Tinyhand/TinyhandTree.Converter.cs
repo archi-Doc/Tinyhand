@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using Arc.Crypto;
 using Arc.IO;
@@ -13,6 +14,7 @@ using Tinyhand.Tree;
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly
 #pragma warning disable SA1201 // Elements should appear in the correct order
+#pragma warning disable SA1202
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1401 // Fields should be private
 #pragma warning disable SA1602 // Enumeration items should be documented
@@ -23,12 +25,27 @@ namespace Tinyhand
     public static class TinyhandTreeConverter
     {
         private const int InitialBufferSize = 32 * 1024;
+        private const int MaxIndentBuffer = 16;
 
         /// <summary>
         /// A thread-local, recyclable array that may be used for short bursts of code.
         /// </summary>
         [ThreadStatic]
         private static byte[]? initialBuffer;
+
+        private static byte[][] indentBuffer;
+
+        static TinyhandTreeConverter()
+        {
+            indentBuffer = new byte[MaxIndentBuffer][];
+            indentBuffer[0] = Array.Empty<byte>();
+            var spaces = Enumerable.Repeat<byte>(TinyhandConstants.Space, 2);
+
+            for (var i = 1; i < MaxIndentBuffer; i++)
+            {
+                indentBuffer[i] = indentBuffer[i - 1].Concat(spaces).ToArray();
+            }
+        }
 
         /// <summary>
         /// Converts a sequence of byte to UTF-8 text.
@@ -46,14 +63,14 @@ namespace Tinyhand
                     var r = reader.Clone(byteSequence.GetReadOnlySequence());
                     while (!r.End)
                     {
-                        FromReaderToUtf8(ref r, ref writer);
+                        FromReaderToUtf8(ref r, ref writer); // r.ConvertToUtf8(ref writer);
                     }
                 }
                 else
                 {
                     while (!reader.End)
                     {
-                        FromReaderToUtf8(ref reader, ref writer);
+                        FromReaderToUtf8(ref reader, ref writer); // reader.ConvertToUtf8(ref writer);
                     }
                 }
             }
@@ -68,7 +85,8 @@ namespace Tinyhand
         /// </summary>
         /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
         /// <param name="writer">TinyhandRawWriter.</param>
-        public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer)
+        /// <param name="indent">The number of indents.</param>
+        public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, int indent = 0)
         {
             var type = reader.NextMessagePackType;
             switch (type)
@@ -166,15 +184,19 @@ namespace Tinyhand
 
                         if (length > 0)
                         {
+                            indent++;
                             for (int i = 0; i < length; i++)
                             {
                                 writer.WriteCRLF();
-                                FromReaderToUtf8(ref reader, ref writer);
+                                writer.WriteSpan(indentBuffer[indent < MaxIndentBuffer ? indent : (MaxIndentBuffer - 1)]);
+                                FromReaderToUtf8(ref reader, ref writer, indent);
                                 writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                                FromReaderToUtf8(ref reader, ref writer);
+                                FromReaderToUtf8(ref reader, ref writer, indent);
                             }
 
+                            indent--;
                             writer.WriteCRLF();
+                            writer.WriteSpan(indentBuffer[indent < MaxIndentBuffer ? indent : (MaxIndentBuffer - 1)]);
                         }
 
                         writer.WriteUInt8(TinyhandConstants.CloseBrace);
@@ -251,6 +273,35 @@ namespace Tinyhand
             element = FromReaderToElement_Core(ref reader, options);
         }
 
+        internal class FromReaderToBinary_State
+        {
+            public FromReaderToBinary_State(long positionToSearch)
+            {
+                this.PositionToSearch = positionToSearch;
+            }
+
+            public long PositionToSearch { get; }
+
+            public TinyhandUtf8LinePosition Previous;
+
+            public TinyhandUtf8LinePosition Found;
+        }
+
+        /// <summary>
+        /// Get the Line/BytePosition from binary position.
+        /// </summary>
+        /// <param name="utf8">UTF-8 text.</param>
+        /// <param name="position">The byte position.</param>
+        /// <returns>Line/BytePosition found at position in byte array.</returns>
+        public static TinyhandUtf8LinePosition GetTextPositionFromBinaryPosition(ReadOnlySpan<byte> utf8,  long position)
+        {
+            var reader = new TinyhandUtf8Reader(utf8, true);
+            var writer = default(TinyhandWriter);
+            var state = new FromReaderToBinary_State(position);
+            FromReaderToBinary(ref reader, ref writer, out _, state);
+            return state.Found;
+        }
+
         /// <summary>
         /// Converts UTF-8 text to a sequence of byte.
         /// </summary>
@@ -259,7 +310,8 @@ namespace Tinyhand
         public static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, ref TinyhandWriter writer)
         {
             var reader = new TinyhandUtf8Reader(utf8, true);
-            FromReaderToBinary(ref reader, ref writer, out _);
+            var state = new FromReaderToBinary_State(-1);
+            FromReaderToBinary(ref reader, ref writer, out _, state);
         }
 
         /// <summary>
@@ -268,8 +320,9 @@ namespace Tinyhand
         /// <param name="reader">TinyhandUtf8Reader.</param>
         /// <param name="writer">TinyhandRawWriter.</param>
         /// <param name="assignedFlag">Assignment element processed.</param>
+        /// <param name="state">State.</param>
         /// <returns>The number of the processed items.</returns>
-        public static uint FromReaderToBinary(ref TinyhandUtf8Reader reader, ref TinyhandWriter writer, out bool assignedFlag)
+        internal static uint FromReaderToBinary(ref TinyhandUtf8Reader reader, ref TinyhandWriter writer, out bool assignedFlag, FromReaderToBinary_State state)
         {
             uint assignedCount = 0;
             uint count = 0;
@@ -277,13 +330,33 @@ namespace Tinyhand
             assignedFlag = false;
             while (reader.Read())
             {
+                if (state.PositionToSearch >= 0)
+                {
+                    if (state.Found.LineNumber != 0)
+                    {// Found
+                        return count;
+                    }
+
+                    var position = writer.Written;
+                    if (position < state.PositionToSearch)
+                    {
+                        state.Previous.LineNumber = reader.AtomLineNumber;
+                        state.Previous.BytePosition = reader.AtomBytePositionInLine;
+                    }
+                    else
+                    {
+                        state.Found = state.Previous;
+                        return count;
+                    }
+                }
+
                 switch (reader.AtomType)
                 {
                     case TinyhandAtomType.StartGroup: // {
                         var scratchWriter = default(TinyhandWriter);
                         try
                         {
-                            var numberOfItems = FromReaderToBinary(ref reader, ref scratchWriter, out var assigned);
+                            var numberOfItems = FromReaderToBinary(ref reader, ref scratchWriter, out var assigned, state);
 
                             if (assigned)
                             {

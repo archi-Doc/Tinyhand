@@ -120,12 +120,31 @@ namespace Tinyhand
             {
                 TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer);
 
-                /* var ww = default(TinyhandRawWriter);
-                TinyhandTreeConverter.FromBinaryToUtf8(writer.FlushAndGetArray(), ref ww);
-                var st = TinyhandHelper.GetTextFromUtf8(ww.FlushAndGetArray());*/
-
                 var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
-                return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+
+                try
+                {
+                    return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+                }
+                catch (TinyhandInvalidCodeException invalidCode)
+                {// Invalid code
+                    var position = reader.Consumed;
+
+                    // Get the Line/BytePosition from which the exception was thrown.
+                    var e = TinyhandTreeConverter.GetTextPositionFromBinaryPosition(utf8, position);
+                    TinyhandException? ex = invalidCode;
+
+                    if (e.LineNumber != 0)
+                    {
+                        ex = new TinyhandException($"Unexpected element type, actual: {invalidCode.ActualType.ToString()} expected: {invalidCode.ExpectedType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePosition})");
+                    }
+
+                    throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+                }
+                catch (Exception ex)
+                {
+                    throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+                }
             }
             finally
             {

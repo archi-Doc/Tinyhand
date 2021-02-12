@@ -53,6 +53,12 @@ namespace Tinyhand
         Optional,
     }
 
+    public struct TinyhandUtf8LinePosition
+    {
+        public int LineNumber;
+        public int BytePosition;
+    }
+
     public ref struct TinyhandUtf8Reader
     {
         private const int InitialLinePosition = 1;

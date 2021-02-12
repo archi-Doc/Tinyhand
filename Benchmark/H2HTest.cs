@@ -100,6 +100,12 @@ namespace Benchmark.H2HTest
         }
 
         [Benchmark]
+        public string SerializeMessagePackStringUtf8()
+        {
+            return MessagePack.MessagePackSerializer.SerializeToJson(this.h2h2);
+        }
+
+        [Benchmark]
         public byte[] SerializeJsonStringUtf8()
         {
             return JsonSerializer.SerializeToUtf8Bytes(this.h2h2);
