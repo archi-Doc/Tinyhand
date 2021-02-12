@@ -46,6 +46,7 @@ namespace Benchmark
 
             var switcher = new BenchmarkSwitcher(new[]
             {
+                typeof(H2HTest.H2HSandbox),
                 typeof(H2HTest.H2HBenchmark),
                 typeof(H2HTest.H2HLarge),
             });
