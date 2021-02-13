@@ -79,6 +79,60 @@ namespace Benchmark.H2HTest
     }
 
     [Config(typeof(BenchmarkConfig))]
+    public class H2HSandbox
+    {
+        ObjectH2H2 h2h2 = default!;
+        byte[] utf8 = default!;
+        byte[] json = default!;
+        TinyhandSerializerOptions simple = default!;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            this.h2h2 = new ObjectH2H2();
+            this.utf8 = TinyhandSerializer.SerializeToUtf8(this.h2h2);
+            this.json = JsonSerializer.SerializeToUtf8Bytes(this.h2h2);
+            this.simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
+        }
+
+        [Benchmark]
+        public byte[] SerializeTinyhandStringUtf8()
+        {
+            return Tinyhand.TinyhandSerializer.SerializeToUtf8(this.h2h2);
+        }
+
+        [Benchmark]
+        public byte[] SerializeTinyhandStringUtf8Simple()
+        {
+            return Tinyhand.TinyhandSerializer.SerializeToUtf8(this.h2h2, this.simple);
+        }
+
+        [Benchmark]
+        public string SerializeMessagePackStringUtf8()
+        {
+            return MessagePack.MessagePackSerializer.SerializeToJson(this.h2h2);
+        }
+
+        [Benchmark]
+        public byte[] SerializeJsonStringUtf8()
+        {
+            return JsonSerializer.SerializeToUtf8Bytes(this.h2h2);
+        }
+
+        [Benchmark]
+        public ObjectH2H2? DeserializeTinyhandStringUtf8()
+        {
+            return Tinyhand.TinyhandSerializer.DeserializeFromUtf8<ObjectH2H2>(this.utf8);
+        }
+
+        [Benchmark]
+        public ObjectH2H2? DeserializeJsonStringUtf8()
+        {
+            return JsonSerializer.Deserialize<ObjectH2H2>(this.json);
+        }
+    }
+
+    [Config(typeof(BenchmarkConfig))]
     public class H2HBenchmark
     {
         ObjectH2H h2h = default!;

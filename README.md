@@ -538,7 +538,7 @@ var utf8 = TinyhandSerializer.SerializeToUtf8(myClass);
 var myClass3 = TinyhandSerializer.DeserializeFromUtf8<MyClass>(utf8);
 ```
 
-Text Serialization is optional because it is 10 to 15 times slower than binary serialization.
+Text Serialization is optional because it is 5 to 6 times slower than binary serialization.
 
 
 

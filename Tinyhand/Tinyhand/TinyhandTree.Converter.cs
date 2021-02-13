@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using Arc.Crypto;
 using Arc.IO;
@@ -13,6 +14,7 @@ using Tinyhand.Tree;
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly
 #pragma warning disable SA1201 // Elements should appear in the correct order
+#pragma warning disable SA1202
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1401 // Fields should be private
 #pragma warning disable SA1602 // Enumeration items should be documented
@@ -23,6 +25,7 @@ namespace Tinyhand
     public static class TinyhandTreeConverter
     {
         private const int InitialBufferSize = 32 * 1024;
+        private const int MaxIndentBuffer = 16;
 
         /// <summary>
         /// A thread-local, recyclable array that may be used for short bursts of code.
@@ -30,14 +33,30 @@ namespace Tinyhand
         [ThreadStatic]
         private static byte[]? initialBuffer;
 
+        private static byte[][] indentBuffer;
+
+        static TinyhandTreeConverter()
+        {
+            indentBuffer = new byte[MaxIndentBuffer][];
+            indentBuffer[0] = Array.Empty<byte>();
+            var spaces = Enumerable.Repeat<byte>(TinyhandConstants.Space, 2);
+
+            for (var i = 1; i < MaxIndentBuffer; i++)
+            {
+                indentBuffer[i] = indentBuffer[i - 1].Concat(spaces).ToArray();
+            }
+        }
+
         /// <summary>
-        /// Converts a sequence of byte to an Element.
+        /// Converts a sequence of byte to UTF-8 text.
         /// </summary>
         /// <param name="byteArray">A byte array to convert.</param>
-        /// <param name="element">Element converted from a byte array.</param>
-        /// <param name="options">The serialization options.</param>
-        public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
+        /// <param name="writer">TinyhandRawWriter.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        public static void FromBinaryToUtf8(byte[] byteArray, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options)
         {
+            options ??= TinyhandSerializer.DefaultOptions;
+
             var reader = new TinyhandReader(byteArray);
             var byteSequence = new ByteSequence();
             try
@@ -45,11 +64,17 @@ namespace Tinyhand
                 if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
                 {
                     var r = reader.Clone(byteSequence.GetReadOnlySequence());
-                    FromReaderToElement(ref r, out element, options);
+                    while (!r.End)
+                    {
+                        FromReaderToUtf8(ref r, ref writer, options); // r.ConvertToUtf8(ref writer);
+                    }
                 }
                 else
                 {
-                    FromReaderToElement(ref reader, out element, options);
+                    while (!reader.End)
+                    {
+                        FromReaderToUtf8(ref reader, ref writer, options); // reader.ConvertToUtf8(ref writer);
+                    }
                 }
             }
             finally
@@ -62,11 +87,387 @@ namespace Tinyhand
         /// Converts a sequence of byte to an Element using TinyhandReader.
         /// </summary>
         /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
-        /// <param name="element">Output element.</param>
-        /// <param name="options">The serialization options.</param>
-        public static void FromReaderToElement(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
+        /// <param name="writer">TinyhandRawWriter.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="indents">The number of indents.</param>
+        /// <param name="convertToIdentifier">Convert a string to an identifier if possible.</param>
+        public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, int indents = 0, bool convertToIdentifier = false)
         {
-            element = FromReaderToElement_Core(ref reader, options);
+            var type = reader.NextMessagePackType;
+            switch (type)
+            {
+                case MessagePackType.Integer:
+                    if (MessagePackCode.IsSignedInteger(reader.NextCode))
+                    {
+                        writer.WriteStringInt64(reader.ReadInt64());
+                    }
+                    else
+                    {
+                        writer.WriteStringUInt64(reader.ReadUInt64());
+                    }
+
+                    return;
+
+                case MessagePackType.Boolean:
+                    if (reader.ReadBoolean())
+                    {
+                        writer.WriteSpan(TinyhandConstants.TrueSpan);
+                    }
+                    else
+                    {
+                        writer.WriteSpan(TinyhandConstants.FalseSpan);
+                    }
+
+                    return;
+
+                case MessagePackType.Float:
+                    if (reader.NextCode == MessagePackCode.Float32)
+                    {
+                        writer.WriteStringSingle(reader.ReadSingle());
+                    }
+                    else
+                    {
+                        writer.WriteStringDouble(reader.ReadDouble());
+                    }
+
+                    return;
+
+                case MessagePackType.String:
+                    var seq = reader.ReadStringSequence();
+                    if (seq == null)
+                    {
+                        writer.WriteSpan(TinyhandConstants.NullSpan);
+                    }
+                    else
+                    {
+                        var utf8 = seq.Value.ToArray();
+
+                        if (convertToIdentifier && IsValidIdentifier(utf8))
+                        {
+                            writer.WriteSpan(utf8);
+                        }
+                        else
+                        {
+                            writer.WriteUInt8(TinyhandConstants.Quote);
+                            writer.WriteEscapedUtf8(utf8);
+                            writer.WriteUInt8(TinyhandConstants.Quote);
+                        }
+                    }
+
+                    return;
+
+                case MessagePackType.Binary:
+                    var bytes = reader.ReadBytes();
+                    if (bytes == null)
+                    {
+                        writer.WriteSpan(TinyhandConstants.NullSpan);
+                    }
+                    else
+                    {
+                        writer.WriteUInt8((byte)'b');
+                        writer.WriteUInt8(TinyhandConstants.Quote);
+                        writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
+                        writer.WriteUInt8(TinyhandConstants.Quote);
+                    }
+
+                    return;
+
+                case MessagePackType.Array:
+                    {
+                        int length = reader.ReadArrayHeader();
+                        writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                        for (int i = 0; i < length; i++)
+                        {
+                            FromReaderToUtf8(ref reader, ref writer, options);
+                            if (i != (length - 1))
+                            {
+                                writer.WriteUInt16(0x2C20); // ", "
+                            }
+                        }
+
+                        writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    }
+
+                    return;
+
+                case MessagePackType.Map:
+                    {
+                        int length = reader.ReadMapHeader();
+                        writer.WriteUInt8(TinyhandConstants.OpenBrace);
+
+                        if (length > 0)
+                        {
+                            indents++;
+                            for (int i = 0; i < length; i++)
+                            {
+                                if (options.Compose != TinyhandComposeOption.Simple)
+                                {
+                                    writer.WriteCRLF();
+                                    writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                                }
+
+                                FromReaderToUtf8(ref reader, ref writer, options, indents, options.Compose != TinyhandComposeOption.Simple);
+                                writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+                                FromReaderToUtf8(ref reader, ref writer, options, indents);
+
+                                if (options.Compose == TinyhandComposeOption.Simple)
+                                {
+                                    if (i != (length - 1))
+                                    {
+                                        writer.WriteUInt16(0x2C20); // ", "
+                                    }
+                                }
+                            }
+
+                            indents--;
+                            if (options.Compose != TinyhandComposeOption.Simple)
+                            {
+                                writer.WriteCRLF();
+                                writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                            }
+                        }
+
+                        writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    }
+
+                    return;
+
+                case MessagePackType.Extension:
+                    var extHeader = reader.ReadExtensionFormatHeader();
+                    string st;
+                    if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
+                    {
+                        var dt = reader.ReadDateTime(extHeader);
+                        st = dt.ToString("o", CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        var data = reader.ReadRaw((long)extHeader.Length);
+                        st = "[" + extHeader.TypeCode + ",\"" + Convert.ToBase64String(data.ToArray()) + "\"]";
+                    }
+
+                    writer.WriteUInt8(TinyhandConstants.Quote);
+                    writer.WriteEscapedUtf8(Encoding.UTF8.GetBytes(st));
+                    writer.WriteUInt8(TinyhandConstants.Quote);
+
+                    return;
+
+                case MessagePackType.Nil:
+                    reader.Skip();
+                    writer.WriteSpan(TinyhandConstants.NullSpan);
+                    return;
+
+                default:
+                    throw new TinyhandException($"code is invalid. code: {reader.NextCode} format: {MessagePackCode.ToFormatName(reader.NextCode)}");
+            }
+        }
+
+        internal class FromReaderToBinary_State
+        {
+            public FromReaderToBinary_State(long positionToSearch)
+            {
+                this.PositionToSearch = positionToSearch;
+            }
+
+            public long PositionToSearch { get; }
+
+            public TinyhandUtf8LinePosition Previous;
+
+            public TinyhandUtf8LinePosition Found;
+        }
+
+        /// <summary>
+        /// Get the Line/BytePosition from binary position.
+        /// </summary>
+        /// <param name="utf8">UTF-8 text.</param>
+        /// <param name="position">The byte position.</param>
+        /// <returns>Line/BytePosition found at position in byte array.</returns>
+        public static TinyhandUtf8LinePosition GetTextPositionFromBinaryPosition(ReadOnlySpan<byte> utf8, long position)
+        {
+            var reader = new TinyhandUtf8Reader(utf8, true);
+            var writer = default(TinyhandWriter);
+            var state = new FromReaderToBinary_State(position);
+            FromReaderToBinary(ref reader, ref writer, out _, state);
+            return state.Found;
+        }
+
+        /// <summary>
+        /// Converts UTF-8 text to a sequence of byte.
+        /// </summary>
+        /// <param name="utf8">UTF-8 text.</param>
+        /// <param name="writer">TinyhandRawWriter.</param>
+        public static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, ref TinyhandWriter writer)
+        {
+            var reader = new TinyhandUtf8Reader(utf8, true);
+            var state = new FromReaderToBinary_State(-1);
+            FromReaderToBinary(ref reader, ref writer, out _, state);
+        }
+
+        /// <summary>
+        /// Converts TinyhandUtf8Reader (UTF-8 text) to a sequence of byte.
+        /// </summary>
+        /// <param name="reader">TinyhandUtf8Reader.</param>
+        /// <param name="writer">TinyhandRawWriter.</param>
+        /// <param name="assignedFlag">Assignment element processed.</param>
+        /// <param name="state">State.</param>
+        /// <returns>The number of the processed items.</returns>
+        internal static uint FromReaderToBinary(ref TinyhandUtf8Reader reader, ref TinyhandWriter writer, out bool assignedFlag, FromReaderToBinary_State state)
+        {
+            uint assignedCount = 0;
+            uint count = 0;
+
+            assignedFlag = false;
+            while (reader.Read())
+            {
+                if (state.PositionToSearch >= 0)
+                {
+                    if (state.Found.LineNumber != 0)
+                    {// Found
+                        return count;
+                    }
+
+                    var position = writer.Written;
+                    if (position < state.PositionToSearch)
+                    {
+                        state.Previous.LineNumber = reader.AtomLineNumber;
+                        state.Previous.BytePosition = reader.AtomBytePositionInLine;
+                    }
+                    else
+                    {
+                        state.Found = state.Previous;
+                        return count;
+                    }
+                }
+
+                switch (reader.AtomType)
+                {
+                    case TinyhandAtomType.StartGroup: // {
+                        var scratchWriter = default(TinyhandWriter);
+                        try
+                        {
+                            var numberOfItems = FromReaderToBinary(ref reader, ref scratchWriter, out var assigned, state);
+
+                            if (assigned)
+                            {
+                                writer.WriteMapHeader(numberOfItems / 2);
+                                writer.WriteSequence(scratchWriter.FlushAndGetReadOnlySequence());
+                            }
+                            else
+                            {
+                                writer.WriteArrayHeader(numberOfItems);
+                                writer.WriteSequence(scratchWriter.FlushAndGetReadOnlySequence());
+                            }
+                        }
+                        finally
+                        {
+                            scratchWriter.Dispose();
+                        }
+
+                        count++;
+                        break;
+
+                    case TinyhandAtomType.EndGroup: // }
+                        return count;
+
+                    case TinyhandAtomType.Identifier: // objectA
+                        if (assignedCount <= 1)
+                        {
+                            writer.WriteString(reader.ValueSpan.ToArray());
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.SpecialIdentifier: // @mode
+                        if (assignedCount <= 1)
+                        {
+                            var utf8 = reader.ValueSpan.ToArray();
+                            writer.WriteStringHeader(utf8.Length + 1);
+                            writer.RawWriteUInt8(TinyhandConstants.AtSign);
+                            writer.WriteSpan(utf8);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Modifier: // i32: key(1): required
+                        break;
+
+                    case TinyhandAtomType.Assignment: // =
+                        assignedFlag = true;
+                        assignedCount++;
+                        break;
+
+                    case TinyhandAtomType.Value_Base64: // b"Base64"
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(reader.ValueBinary);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_String: // "text"
+                        if (assignedCount <= 1)
+                        {
+                            writer.WriteString(reader.ValueSpan.ToArray());
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_Long: // 123(long)
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(reader.ValueLong);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_Double: // 1.23(double)
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(reader.ValueDouble);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_Null: // null
+                        if (assignedCount <= 1)
+                        {
+                            writer.WriteNil();
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_True: // true
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(true);
+                            count++;
+                        }
+
+                        break;
+
+                    case TinyhandAtomType.Value_False: // false
+                        if (assignedCount <= 1)
+                        {
+                            writer.Write(false);
+                            count++;
+                        }
+
+                        break;
+
+                    default:
+                        assignedCount = 0;
+                        break;
+                }
+            }
+
+            return count;
         }
 
         /// <summary>
@@ -285,6 +686,45 @@ namespace Tinyhand
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Converts a sequence of byte to an Element.
+        /// </summary>
+        /// <param name="byteArray">A byte array to convert.</param>
+        /// <param name="element">Element converted from a byte array.</param>
+        /// <param name="options">The serialization options.</param>
+        public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
+        {
+            var reader = new TinyhandReader(byteArray);
+            var byteSequence = new ByteSequence();
+            try
+            {
+                if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
+                {
+                    var r = reader.Clone(byteSequence.GetReadOnlySequence());
+                    FromReaderToElement(ref r, out element, options);
+                }
+                else
+                {
+                    FromReaderToElement(ref reader, out element, options);
+                }
+            }
+            finally
+            {
+                byteSequence.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Converts a sequence of byte to an Element using TinyhandReader.
+        /// </summary>
+        /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
+        /// <param name="element">Output element.</param>
+        /// <param name="options">The serialization options.</param>
+        public static void FromReaderToElement(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
+        {
+            element = FromReaderToElement_Core(ref reader, options);
         }
 
         private static Element FromReaderToElement_Core(ref TinyhandReader reader, TinyhandSerializerOptions options, bool identifierFlag = false)

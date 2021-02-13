@@ -1264,5 +1264,276 @@ namespace Tinyhand.IO
 
             return true;
         }
+
+        /*
+#pragma warning disable SA1202 // Elements should be ordered by access
+        public void ConvertToUtf8(ref TinyhandRawWriter writer)
+#pragma warning restore SA1202 // Elements should be ordered by access
+        {
+            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+
+            switch (code)
+            {
+                case MessagePackCode.Nil:
+                    writer.WriteSpan(TinyhandConstants.NullSpan);
+                    return;
+
+                case MessagePackCode.False:
+                    writer.WriteSpan(TinyhandConstants.FalseSpan);
+                    return;
+
+                case MessagePackCode.True:
+                    writer.WriteSpan(TinyhandConstants.TrueSpan);
+                    return;
+
+                case MessagePackCode.UInt8:
+                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    writer.WriteStringUInt64(checked((ulong)byteResult));
+                    return;
+
+                case MessagePackCode.Int8:
+                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    writer.WriteStringInt64(checked((long)sbyteResult));
+                    return;
+
+                case MessagePackCode.UInt16:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    writer.WriteStringUInt64(checked((ulong)ushortResult));
+                    return;
+
+                case MessagePackCode.Int16:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    writer.WriteStringInt64(checked((long)shortResult));
+                    return;
+
+                case MessagePackCode.UInt32:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    writer.WriteStringUInt64(checked((ulong)uintResult));
+                    return;
+
+                case MessagePackCode.Int32:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    writer.WriteStringInt64(checked((long)intResult));
+                    return;
+
+                case MessagePackCode.UInt64:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    writer.WriteStringUInt64(checked((ulong)ulongResult));
+                    return;
+
+                case MessagePackCode.Int64:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    writer.WriteStringInt64(checked((long)longResult));
+                    return;
+
+                case MessagePackCode.Float32:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out float floatValue));
+                    writer.WriteStringSingle(floatValue);
+                    return;
+                case MessagePackCode.Float64:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out double doubleValue));
+                    writer.WriteStringDouble(doubleValue);
+                    return;
+
+                case MessagePackCode.Str8:
+                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteValue));
+                    this.ConvertToUtf8_String(ref writer, byteValue);
+                    return;
+
+                case MessagePackCode.Str16:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortValue));
+                    this.ConvertToUtf8_String(ref writer, shortValue);
+                    return;
+
+                case MessagePackCode.Str32:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intValue));
+                    this.ConvertToUtf8_String(ref writer, intValue);
+                    return;
+
+                case MessagePackCode.Bin8:
+                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteLength));
+                    this.ConvertToUtf8_Binary(ref writer, byteLength);
+                    return;
+
+                case MessagePackCode.Bin16:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortLength));
+                    this.ConvertToUtf8_Binary(ref writer, shortLength);
+                    return;
+
+                case MessagePackCode.Bin32:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int length));
+                    this.ConvertToUtf8_Binary(ref writer, length);
+                    return;
+
+                case MessagePackCode.Array16:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out shortValue));
+                    this.ConvertToUtf8_Array(ref writer, shortValue);
+                    return;
+
+                case MessagePackCode.Array32:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out intValue));
+                    this.ConvertToUtf8_Array(ref writer, intValue);
+                    return;
+
+                case MessagePackCode.Map16:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out shortValue));
+                    this.ConvertToUtf8_Map(ref writer, shortValue);
+                    return;
+
+                case MessagePackCode.Map32:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out intValue));
+                    this.ConvertToUtf8_Map(ref writer, intValue);
+                    return;
+
+                case MessagePackCode.FixExt1:
+                    this.ConvertToUtf8_Extention(ref writer, 1);
+                    return;
+
+                case MessagePackCode.FixExt2:
+                    this.ConvertToUtf8_Extention(ref writer, 2);
+                    return;
+
+                case MessagePackCode.FixExt4:
+                    this.ConvertToUtf8_Extention(ref writer, 4);
+                    return;
+
+                case MessagePackCode.FixExt8:
+                    this.ConvertToUtf8_Extention(ref writer, 8);
+                    return;
+
+                case MessagePackCode.FixExt16:
+                    this.ConvertToUtf8_Extention(ref writer, 16);
+                    return;
+
+                case MessagePackCode.Ext8:
+                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byteLength));
+                    this.ConvertToUtf8_Extention(ref writer, byteLength);
+                    return;
+
+                case MessagePackCode.Ext16:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out shortLength));
+                    this.ConvertToUtf8_Extention(ref writer, shortLength);
+                    return;
+
+                case MessagePackCode.Ext32:
+                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intLength));
+                    this.ConvertToUtf8_Extention(ref writer, intLength);
+                    return;
+
+                default:
+                    if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
+                    {
+                        writer.WriteStringInt64(checked((long)unchecked((sbyte)code)));
+                        return;
+                    }
+                    else if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
+                    {
+                        writer.WriteStringUInt64((ulong)code);
+                        return;
+                    }
+                    else if (code >= MessagePackCode.MinFixStr && code <= MessagePackCode.MaxFixStr)
+                    {
+                        this.ConvertToUtf8_String(ref writer, code & 0x1F);
+                        return;
+                    }
+                    else if (code >= MessagePackCode.MinFixArray && code <= MessagePackCode.MaxFixArray)
+                    {
+                        this.ConvertToUtf8_Array(ref writer, code & 0xF);
+                        return;
+                    }
+                    else if (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap)
+                    {
+                        this.ConvertToUtf8_Map(ref writer, code & 0xF);
+                        break;
+                    }
+
+                    throw new TinyhandException($"code is invalid. code: {code} format: {MessagePackCode.ToFormatName(code)}");
+            }
+        }
+
+        private void ConvertToUtf8_String(ref TinyhandRawWriter writer, int length)
+        {
+            ThrowInsufficientBufferUnless(this.reader.Remaining >= length);
+            var seq = this.reader.Sequence.Slice(this.reader.Position, length);
+            this.reader.Advance(length);
+
+            var utf8 = seq.ToArray();
+            writer.WriteUInt8(TinyhandConstants.Quote);
+            writer.WriteEscapedUtf8(utf8);
+            writer.WriteUInt8(TinyhandConstants.Quote);
+        }
+
+        private void ConvertToUtf8_Binary(ref TinyhandRawWriter writer, int length)
+        {
+            ThrowInsufficientBufferUnless(this.reader.Remaining >= length);
+            var result = this.reader.Sequence.Slice(this.reader.Position, length);
+            this.reader.Advance(length);
+
+            writer.WriteUInt8((byte)'b');
+            writer.WriteUInt8(TinyhandConstants.Quote);
+            writer.WriteSpan(Arc.Crypto.Base64.EncodeToBase64Utf8(result.ToArray()));
+            writer.WriteUInt8(TinyhandConstants.Quote);
+        }
+
+        private void ConvertToUtf8_Array(ref TinyhandRawWriter writer, int length)
+        {
+            ThrowInsufficientBufferUnless(this.reader.Remaining >= length);
+
+            writer.WriteUInt8(TinyhandConstants.OpenBrace);
+            for (int i = 0; i < length; i++)
+            {
+                this.ConvertToUtf8(ref writer);
+                if (i != (length - 1))
+                {
+                    writer.WriteUInt16(0x2C20); // ", "
+                }
+            }
+
+            writer.WriteUInt8(TinyhandConstants.CloseBrace);
+        }
+
+        private void ConvertToUtf8_Map(ref TinyhandRawWriter writer, int length)
+        {
+            ThrowInsufficientBufferUnless(this.reader.Remaining >= length * 2);
+
+            writer.WriteUInt8(TinyhandConstants.OpenBrace);
+
+            if (length > 0)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    writer.WriteCRLF();
+                    this.ConvertToUtf8(ref writer);
+                    writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+                    this.ConvertToUtf8(ref writer);
+                }
+
+                writer.WriteCRLF();
+            }
+
+            writer.WriteUInt8(TinyhandConstants.CloseBrace);
+        }
+
+        private void ConvertToUtf8_Extention(ref TinyhandRawWriter writer, int length)
+        {
+            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte typeCode));
+            var header = new ExtensionHeader(unchecked((sbyte)typeCode), length);
+
+            string st;
+            if (header.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
+            {
+                var dt = this.ReadDateTime(header);
+                st = dt.ToString("o", CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                var data = this.ReadRaw((long)header.Length);
+                st = "[" + header.TypeCode + ",\"" + Convert.ToBase64String(data.ToArray()) + "\"]";
+            }
+
+            writer.WriteUInt8(TinyhandConstants.Quote);
+            writer.WriteEscapedUtf8(Encoding.UTF8.GetBytes(st));
+            writer.WriteUInt8(TinyhandConstants.Quote);
+        }*/
     }
 }

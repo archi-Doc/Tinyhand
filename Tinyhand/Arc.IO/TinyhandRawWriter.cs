@@ -157,6 +157,30 @@ namespace Arc.IO
             return false;
         }
 
+        public bool WriteStringUInt64(ulong value)
+        {
+            Span<byte> span = this.writer.GetSpan(20);
+            if (Utf8Formatter.TryFormat(value, span, out var written))
+            {
+                this.WriteSpan(span.Slice(0, written));
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool WriteStringSingle(float value)
+        {
+            Span<byte> span = this.writer.GetSpan(32);
+            if (Utf8Formatter.TryFormat(value, span, out var written))
+            {
+                this.WriteSpan(span.Slice(0, written));
+                return true;
+            }
+
+            return false;
+        }
+
         public bool WriteStringDouble(double value)
         {
             Span<byte> span = this.writer.GetSpan(32);
