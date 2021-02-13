@@ -197,33 +197,31 @@ namespace Tinyhand
 
                         if (length > 0)
                         {
-                            if (options.Compose == TinyhandComposeOption.Simple)
+                            indents++;
+                            for (int i = 0; i < length; i++)
                             {
-                                for (int i = 0; i < length; i++)
+                                if (options.Compose != TinyhandComposeOption.Simple)
                                 {
-                                    FromReaderToUtf8(ref reader, ref writer, options);
-                                    writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                                    FromReaderToUtf8(ref reader, ref writer, options);
+                                    writer.WriteCRLF();
+                                    writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                                }
 
+                                FromReaderToUtf8(ref reader, ref writer, options, indents, options.Compose != TinyhandComposeOption.Simple);
+                                writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+                                FromReaderToUtf8(ref reader, ref writer, options, indents);
+
+                                if (options.Compose == TinyhandComposeOption.Simple)
+                                {
                                     if (i != (length - 1))
                                     {
                                         writer.WriteUInt16(0x2C20); // ", "
                                     }
                                 }
                             }
-                            else
-                            {
-                                indents++;
-                                for (int i = 0; i < length; i++)
-                                {
-                                    writer.WriteCRLF();
-                                    writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
-                                    FromReaderToUtf8(ref reader, ref writer, options, indents, true);
-                                    writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                                    FromReaderToUtf8(ref reader, ref writer, options, indents);
-                                }
 
-                                indents--;
+                            indents--;
+                            if (options.Compose != TinyhandComposeOption.Simple)
+                            {
                                 writer.WriteCRLF();
                                 writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                             }
