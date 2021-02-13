@@ -126,7 +126,7 @@ namespace Tinyhand
                 {
                     return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
                 }
-                catch (TinyhandInvalidCodeException invalidCode)
+                catch (TinyhandUnexpectedCodeException invalidCode)
                 {// Invalid code
                     var position = reader.Consumed;
                     if (position > 0)
@@ -170,7 +170,7 @@ namespace Tinyhand
             {
                 return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
             }
-            catch (TinyhandInvalidCodeException invalidCode)
+            catch (TinyhandUnexpectedCodeException invalidCode)
             {// Invalid code
                 var position = reader.Consumed;
 

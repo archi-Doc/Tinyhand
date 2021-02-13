@@ -17,16 +17,16 @@ namespace Tinyhand
         }
     }
 
-    public class TinyhandInvalidCodeException : TinyhandException
+    public class TinyhandUnexpectedCodeException : TinyhandException
     {
-        public TinyhandInvalidCodeException(string message, MessagePackType actual, MessagePackType expected)
+        public TinyhandUnexpectedCodeException(string message, MessagePackType actual, MessagePackType expected)
             : base(message)
         {
             this.ActualType = actual;
             this.ExpectedType = expected;
         }
 
-        public TinyhandInvalidCodeException(string message, MessagePackType actual, MessagePackType expected, Exception innerException)
+        public TinyhandUnexpectedCodeException(string message, MessagePackType actual, MessagePackType expected, Exception innerException)
             : base(message, innerException)
         {
             this.ActualType = actual;

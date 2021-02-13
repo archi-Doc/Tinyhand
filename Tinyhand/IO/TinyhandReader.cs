@@ -1079,7 +1079,7 @@ namespace Tinyhand.IO
         /// <returns>Nothing. This method always throws.</returns>
         private static Exception ThrowInvalidCode(byte code, MessagePackType expected)
         {
-            throw new TinyhandInvalidCodeException(
+            throw new TinyhandUnexpectedCodeException(
                 string.Format("Unexpected msgpack code {0} ({1}) encountered.", code, MessagePackCode.ToFormatName(code)),
                 MessagePackCode.ToMessagePackType(code),
                 expected);
