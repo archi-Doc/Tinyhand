@@ -234,45 +234,6 @@ namespace Tinyhand
             }
         }
 
-        /// <summary>
-        /// Converts a sequence of byte to an Element.
-        /// </summary>
-        /// <param name="byteArray">A byte array to convert.</param>
-        /// <param name="element">Element converted from a byte array.</param>
-        /// <param name="options">The serialization options.</param>
-        public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
-        {
-            var reader = new TinyhandReader(byteArray);
-            var byteSequence = new ByteSequence();
-            try
-            {
-                if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
-                {
-                    var r = reader.Clone(byteSequence.GetReadOnlySequence());
-                    FromReaderToElement(ref r, out element, options);
-                }
-                else
-                {
-                    FromReaderToElement(ref reader, out element, options);
-                }
-            }
-            finally
-            {
-                byteSequence.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Converts a sequence of byte to an Element using TinyhandReader.
-        /// </summary>
-        /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
-        /// <param name="element">Output element.</param>
-        /// <param name="options">The serialization options.</param>
-        public static void FromReaderToElement(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
-        {
-            element = FromReaderToElement_Core(ref reader, options);
-        }
-
         internal class FromReaderToBinary_State
         {
             public FromReaderToBinary_State(long positionToSearch)
@@ -697,6 +658,45 @@ namespace Tinyhand
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Converts a sequence of byte to an Element.
+        /// </summary>
+        /// <param name="byteArray">A byte array to convert.</param>
+        /// <param name="element">Element converted from a byte array.</param>
+        /// <param name="options">The serialization options.</param>
+        public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
+        {
+            var reader = new TinyhandReader(byteArray);
+            var byteSequence = new ByteSequence();
+            try
+            {
+                if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
+                {
+                    var r = reader.Clone(byteSequence.GetReadOnlySequence());
+                    FromReaderToElement(ref r, out element, options);
+                }
+                else
+                {
+                    FromReaderToElement(ref reader, out element, options);
+                }
+            }
+            finally
+            {
+                byteSequence.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Converts a sequence of byte to an Element using TinyhandReader.
+        /// </summary>
+        /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
+        /// <param name="element">Output element.</param>
+        /// <param name="options">The serialization options.</param>
+        public static void FromReaderToElement(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
+        {
+            element = FromReaderToElement_Core(ref reader, options);
         }
 
         private static Element FromReaderToElement_Core(ref TinyhandReader reader, TinyhandSerializerOptions options, bool identifierFlag = false)

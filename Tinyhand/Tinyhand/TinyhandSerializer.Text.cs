@@ -129,6 +129,10 @@ namespace Tinyhand
                 catch (TinyhandInvalidCodeException invalidCode)
                 {// Invalid code
                     var position = reader.Consumed;
+                    if (position > 0)
+                    {
+                        position--;
+                    }
 
                     // Get the Line/BytePosition from which the exception was thrown.
                     var e = TinyhandTreeConverter.GetTextPositionFromBinaryPosition(utf8, position);
