@@ -37,7 +37,7 @@ namespace Tinyhand
             var writer = new TinyhandRawWriter(bufferWriter);
             try
             {
-                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer);
+                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options);
                 return;
             }
             finally
@@ -71,7 +71,7 @@ namespace Tinyhand
             var writer = new TinyhandRawWriter(initialBuffer);
             try
             {
-                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer);
+                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options);
                 return writer.FlushAndGetArray();
             }
             finally

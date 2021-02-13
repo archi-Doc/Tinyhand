@@ -84,6 +84,7 @@ namespace Benchmark.H2HTest
         ObjectH2H2 h2h2 = default!;
         byte[] utf8 = default!;
         byte[] json = default!;
+        TinyhandSerializerOptions simple = default!;
 
         [GlobalSetup]
         public void Setup()
@@ -91,12 +92,19 @@ namespace Benchmark.H2HTest
             this.h2h2 = new ObjectH2H2();
             this.utf8 = TinyhandSerializer.SerializeToUtf8(this.h2h2);
             this.json = JsonSerializer.SerializeToUtf8Bytes(this.h2h2);
+            this.simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
         }
 
         [Benchmark]
         public byte[] SerializeTinyhandStringUtf8()
         {
             return Tinyhand.TinyhandSerializer.SerializeToUtf8(this.h2h2);
+        }
+
+        [Benchmark]
+        public byte[] SerializeTinyhandStringUtf8Simple()
+        {
+            return Tinyhand.TinyhandSerializer.SerializeToUtf8(this.h2h2, this.simple);
         }
 
         [Benchmark]

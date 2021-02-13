@@ -52,8 +52,11 @@ namespace Tinyhand
         /// </summary>
         /// <param name="byteArray">A byte array to convert.</param>
         /// <param name="writer">TinyhandRawWriter.</param>
-        public static void FromBinaryToUtf8(byte[] byteArray, ref TinyhandRawWriter writer)
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        public static void FromBinaryToUtf8(byte[] byteArray, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options)
         {
+            options ??= TinyhandSerializer.DefaultOptions;
+
             var reader = new TinyhandReader(byteArray);
             var byteSequence = new ByteSequence();
             try
@@ -63,14 +66,14 @@ namespace Tinyhand
                     var r = reader.Clone(byteSequence.GetReadOnlySequence());
                     while (!r.End)
                     {
-                        FromReaderToUtf8(ref r, ref writer); // r.ConvertToUtf8(ref writer);
+                        FromReaderToUtf8(ref r, ref writer, options); // r.ConvertToUtf8(ref writer);
                     }
                 }
                 else
                 {
                     while (!reader.End)
                     {
-                        FromReaderToUtf8(ref reader, ref writer); // reader.ConvertToUtf8(ref writer);
+                        FromReaderToUtf8(ref reader, ref writer, options); // reader.ConvertToUtf8(ref writer);
                     }
                 }
             }
@@ -85,8 +88,10 @@ namespace Tinyhand
         /// </summary>
         /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
         /// <param name="writer">TinyhandRawWriter.</param>
-        /// <param name="indent">The number of indents.</param>
-        public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, int indent = 0)
+        /// <param name="options">The options.</param>
+        /// <param name="indents">The number of indents.</param>
+        /// <param name="convertToIdentifier">Convert a string to an identifier if possible.</param>
+        public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, int indents = 0, bool convertToIdentifier = false)
         {
             var type = reader.NextMessagePackType;
             switch (type)
@@ -136,9 +141,17 @@ namespace Tinyhand
                     else
                     {
                         var utf8 = seq.Value.ToArray();
-                        writer.WriteUInt8(TinyhandConstants.Quote);
-                        writer.WriteEscapedUtf8(utf8);
-                        writer.WriteUInt8(TinyhandConstants.Quote);
+
+                        if (convertToIdentifier && IsValidIdentifier(utf8))
+                        {
+                            writer.WriteSpan(utf8);
+                        }
+                        else
+                        {
+                            writer.WriteUInt8(TinyhandConstants.Quote);
+                            writer.WriteEscapedUtf8(utf8);
+                            writer.WriteUInt8(TinyhandConstants.Quote);
+                        }
                     }
 
                     return;
@@ -165,7 +178,7 @@ namespace Tinyhand
                         writer.WriteUInt8(TinyhandConstants.OpenBrace);
                         for (int i = 0; i < length; i++)
                         {
-                            FromReaderToUtf8(ref reader, ref writer);
+                            FromReaderToUtf8(ref reader, ref writer, options);
                             if (i != (length - 1))
                             {
                                 writer.WriteUInt16(0x2C20); // ", "
@@ -184,19 +197,36 @@ namespace Tinyhand
 
                         if (length > 0)
                         {
-                            indent++;
-                            for (int i = 0; i < length; i++)
+                            if (options.Compose == TinyhandComposeOption.Simple)
                             {
-                                writer.WriteCRLF();
-                                writer.WriteSpan(indentBuffer[indent < MaxIndentBuffer ? indent : (MaxIndentBuffer - 1)]);
-                                FromReaderToUtf8(ref reader, ref writer, indent);
-                                writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                                FromReaderToUtf8(ref reader, ref writer, indent);
-                            }
+                                for (int i = 0; i < length; i++)
+                                {
+                                    FromReaderToUtf8(ref reader, ref writer, options);
+                                    writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+                                    FromReaderToUtf8(ref reader, ref writer, options);
 
-                            indent--;
-                            writer.WriteCRLF();
-                            writer.WriteSpan(indentBuffer[indent < MaxIndentBuffer ? indent : (MaxIndentBuffer - 1)]);
+                                    if (i != (length - 1))
+                                    {
+                                        writer.WriteUInt16(0x2C20); // ", "
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                indents++;
+                                for (int i = 0; i < length; i++)
+                                {
+                                    writer.WriteCRLF();
+                                    writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                                    FromReaderToUtf8(ref reader, ref writer, options, indents, true);
+                                    writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+                                    FromReaderToUtf8(ref reader, ref writer, options, indents);
+                                }
+
+                                indents--;
+                                writer.WriteCRLF();
+                                writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                            }
                         }
 
                         writer.WriteUInt8(TinyhandConstants.CloseBrace);
@@ -254,7 +284,7 @@ namespace Tinyhand
         /// <param name="utf8">UTF-8 text.</param>
         /// <param name="position">The byte position.</param>
         /// <returns>Line/BytePosition found at position in byte array.</returns>
-        public static TinyhandUtf8LinePosition GetTextPositionFromBinaryPosition(ReadOnlySpan<byte> utf8,  long position)
+        public static TinyhandUtf8LinePosition GetTextPositionFromBinaryPosition(ReadOnlySpan<byte> utf8, long position)
         {
             var reader = new TinyhandUtf8Reader(utf8, true);
             var writer = default(TinyhandWriter);
