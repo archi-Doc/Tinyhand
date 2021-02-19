@@ -20,6 +20,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
   - [Reuse Instance](#Reuse-Instance)
   - [Union](#Union)
   - [Text Serializaiton](#Text-Serialization)
+  - [Versioning](#Versioning)
   - [Serialization Callback](#Serialization-Callback)
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#LZ4-Compression)
@@ -539,6 +540,60 @@ var myClass3 = TinyhandSerializer.DeserializeFromUtf8<MyClass>(utf8);
 ```
 
 Text Serialization is optional because it is 5 to 6 times slower than binary serialization.
+
+
+
+### Versioning
+
+Tinyhand serializer is version tolerant. If you serialize a version 1 object and deserialize it as version 2, the new members will be set to their default values. In the opposite direction, if you serialize a version 2 object and deserialize it as version 1, the new members will just be ignored.
+
+```csharp
+[TinyhandObject]
+public partial class VersioningClass1
+{
+    [Key(0)]
+    public int Id { get; set; }
+
+    public override string ToString() => $"  Version 1, ID: {this.Id}";
+}
+
+[TinyhandObject]
+public partial class VersioningClass2
+{
+    [Key(0)]
+    public int Id { get; set; }
+
+    [Key(1)]
+    [DefaultValue("John")]
+    public string Name { get; set; } = default!;
+
+    public override string ToString() => $"  Version 2, ID: {this.Id} Name: {this.Name}";
+}
+
+public static class VersioningTest
+{
+    public static void Test()
+    {
+        var v1 = new VersioningClass1() { Id = 1, };
+        Console.WriteLine("Original Version 1:");
+        Console.WriteLine(v1.ToString());// Version 1, ID: 1
+
+        var v12 = TinyhandSerializer.Deserialize<VersioningClass2>(TinyhandSerializer.Serialize(v1))!;
+        Console.WriteLine("Serialize v1 and deserialize as v2:");
+        Console.WriteLine(v12.ToString());// Version 2, ID: 1 Name: John (Default value is set)
+
+        Console.WriteLine();
+
+        var v2 = new VersioningClass2() { Id = 2, Name = "Fuga", };
+        Console.WriteLine("Original Version 2:");
+        Console.WriteLine(v2.ToString());// Version 2, ID: 2 Name: Fuga
+
+        var v21 = TinyhandSerializer.Deserialize<VersioningClass1>(TinyhandSerializer.Serialize(v2))!;
+        Console.WriteLine("Serialize v2 and deserialize as v1:");
+        Console.WriteLine(v21.ToString());// Version 1, ID: 2 (Name ignored)
+    }
+}
+```
 
 
 
