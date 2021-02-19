@@ -58,7 +58,7 @@ namespace ConsoleApp1
 
             var myClassRecon = TinyhandSerializer.Reconstruct<MyClass>(); // Create a new instance whose members have default values.
 
-            TextSerializeTest.Test();
+            VersioningTest.Test();
         }
     }
 }

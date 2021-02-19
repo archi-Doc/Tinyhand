@@ -266,4 +266,50 @@ namespace ConsoleApp1
             var myClass3 = TinyhandSerializer.DeserializeFromUtf8<MyClass>(utf8);
         }
     }
+
+    [TinyhandObject]
+    public partial class VersioningClass1
+    {
+        [Key(0)]
+        public int Id { get; set; }
+
+        public override string ToString() => $"  Version 1, ID: {this.Id}";
+    }
+
+    [TinyhandObject]
+    public partial class VersioningClass2
+    {
+        [Key(0)]
+        public int Id { get; set; }
+
+        [Key(1)]
+        [DefaultValue("John")]
+        public string Name { get; set; } = default!;
+
+        public override string ToString() => $"  Version 2, ID: {this.Id} Name: {this.Name}";
+    }
+
+    public static class VersioningTest
+    {
+        public static void Test()
+        {
+            var v1 = new VersioningClass1() { Id = 1, };
+            Console.WriteLine("Original Version 1:");
+            Console.WriteLine(v1.ToString());// Version 1, ID: 1
+
+            var v12 = TinyhandSerializer.Deserialize<VersioningClass2>(TinyhandSerializer.Serialize(v1))!;
+            Console.WriteLine("Serialize v1 and deserialize as v2:");
+            Console.WriteLine(v12.ToString());// Version 2, ID: 1 Name: John (Default value is set)
+
+            Console.WriteLine();
+
+            var v2 = new VersioningClass2() { Id = 2, Name = "Fuga", };
+            Console.WriteLine("Original Version 2:");
+            Console.WriteLine(v2.ToString());// Version 2, ID: 2 Name: Fuga
+
+            var v21 = TinyhandSerializer.Deserialize<VersioningClass1>(TinyhandSerializer.Serialize(v2))!;
+            Console.WriteLine("Serialize v2 and deserialize as v1:");
+            Console.WriteLine(v21.ToString());// Version 1, ID: 2 (Name ignored)
+        }
+    }
 }
