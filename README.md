@@ -3,6 +3,8 @@
 
 Tinyhand is a tiny and simple data format/serializer largely based on [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) by neuecc, AArnott.
 
+**My native language is Japanese, so the documentation may be inaccurate. It would be greatly appreciated if anyone could make additions and corrections.**
+
 
 
 ## Table of Contents

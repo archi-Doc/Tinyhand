@@ -15,8 +15,14 @@ namespace Tinyhand.Generator
             {// Constructor Argument.
                 return constructorArguments[constructorIndex];
             }
-            else if (name != null && namedArguments.FirstOrDefault(x => x.Key == name) is { } pair)
+            else if (name != null)
             {// Named Argument.
+                var pair = namedArguments.FirstOrDefault(x => x.Key == name);
+                if (pair.Equals(default(KeyValuePair<string, object?>)))
+                {
+                    return null;
+                }
+
                 return pair.Value;
             }
             else
