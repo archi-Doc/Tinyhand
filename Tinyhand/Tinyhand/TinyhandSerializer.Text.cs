@@ -140,7 +140,7 @@ namespace Tinyhand
 
                     if (e.LineNumber != 0)
                     {
-                        ex = new TinyhandException($"Unexpected element type, actual: {invalidCode.ActualType.ToString()} expected: {invalidCode.ExpectedType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePosition})");
+                        ex = new TinyhandException($"Unexpected element type, expected: {invalidCode.ExpectedType.ToString()} actual: {invalidCode.ActualType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
                     }
 
                     throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
@@ -180,7 +180,7 @@ namespace Tinyhand
 
                 if (e != null)
                 {
-                    ex = new TinyhandException($"Unexpected element type, actual: {invalidCode.ActualType.ToString()} expected: {invalidCode.ExpectedType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
+                    ex = new TinyhandException($"Unexpected element type, expected: {invalidCode.ExpectedType.ToString()} actual: {invalidCode.ActualType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
                 }
 
                 throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);

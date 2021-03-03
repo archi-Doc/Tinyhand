@@ -55,7 +55,7 @@ namespace Tinyhand.Formatters
                 try
                 {
 <# for(var j = 1; j <= i; j++) { #>
-                    <#= toT(j) #> item<#= j #> = resolver.GetFormatter<<#= toT(j) #>>().Deserialize(ref reader, options);
+                    var item<#= j #> = resolver.GetFormatter<<#= toT(j) #>>().Deserialize(ref reader, options);
 <# } #>
 
                     return new ValueTuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "item" + x + "!")) #>);
