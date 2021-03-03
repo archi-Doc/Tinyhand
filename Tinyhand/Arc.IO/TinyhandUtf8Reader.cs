@@ -56,7 +56,7 @@ namespace Tinyhand
     public struct TinyhandUtf8LinePosition
     {
         public int LineNumber;
-        public int BytePosition;
+        public int BytePositionInLine;
     }
 
     public ref struct TinyhandUtf8Reader

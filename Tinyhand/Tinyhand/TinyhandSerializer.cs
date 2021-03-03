@@ -386,7 +386,7 @@ namespace Tinyhand
                 CancellationToken = cancellationToken,
             };
 
-            T result = Deserialize<T>(ref reader, options);
+            var result = Deserialize<T>(ref reader, options);
             bytesRead = buffer.Slice(0, (int)reader.Consumed).Length;
             return result;
         }
@@ -409,7 +409,7 @@ namespace Tinyhand
                 CancellationToken = cancellationToken,
             };
 
-            T result = DeserializeWith<T>(reuse, ref reader, options);
+            var result = DeserializeWith<T>(reuse, ref reader, options);
             bytesRead = buffer.Slice(0, (int)reader.Consumed).Length;
             return result;
         }
@@ -532,7 +532,7 @@ namespace Tinyhand
         /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
         public static T? Deserialize<T>(Stream stream, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
-            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T result))
+            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T? result))
             {
                 return result;
             }
@@ -577,7 +577,7 @@ namespace Tinyhand
         /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
         public static async ValueTask<T?> DeserializeAsync<T>(Stream stream, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
-            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T result))
+            if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T? result))
             {
                 return result;
             }

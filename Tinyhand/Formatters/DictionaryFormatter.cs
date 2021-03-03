@@ -90,9 +90,9 @@ namespace Tinyhand.Formatters
                     for (int i = 0; i < len; i++)
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
-                        TKey key = keyFormatter.Deserialize(ref reader, options);
+                        var key = keyFormatter.Deserialize(ref reader, options);
 
-                        TValue value = valueFormatter.Deserialize(ref reader, options);
+                        var value = valueFormatter.Deserialize(ref reader, options);
 
                         this.Add(dict, i, key!, value!, options);
                     }

@@ -330,7 +330,7 @@ namespace Tinyhand
                     if (position < state.PositionToSearch)
                     {
                         state.Previous.LineNumber = reader.AtomLineNumber;
-                        state.Previous.BytePosition = reader.AtomBytePositionInLine;
+                        state.Previous.BytePositionInLine = reader.AtomBytePositionInLine;
                     }
                     else
                     {

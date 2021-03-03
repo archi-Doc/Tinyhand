@@ -517,7 +517,7 @@ namespace Tinyhand.Formatters
                 {
                     // deserialize immediately(no delay, because capture byte[] causes memory leak)
                     IFormatterResolver resolver = options.Resolver;
-                    T v = resolver.GetFormatter<T>().Deserialize(ref reader, options);
+                    var v = resolver.GetFormatter<T>().Deserialize(ref reader, options);
                     if (v != null)
                     {
                         return new Lazy<T>(() => v);

@@ -165,7 +165,7 @@ namespace Tinyhand.Internal
 
         public TValue GetOrAdd(Type key, Func<Type, TValue> valueFactory)
         {
-            TValue v;
+            TValue? v;
             if (this.TryGetValue(key, out v))
             {
                 return v;
