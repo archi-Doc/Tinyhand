@@ -6,6 +6,9 @@ using System.Reflection;
 using Arc.Visceral;
 using Xunit;
 
+#pragma warning disable SA1300
+#pragma warning disable CS0067
+
 namespace Tinyhand.TypeAndSymbolTests
 {
     [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = true)]
@@ -63,6 +66,8 @@ namespace Tinyhand.TypeAndSymbolTests
 
     public class TempClass
     {
+        public event Action testEvent;
+        private event Func<int> testEvent2;
         private int? x;
         private int[] x2;
         private int?[] x3;
@@ -81,8 +86,6 @@ namespace Tinyhand.TypeAndSymbolTests
         public void Test1()
         {
             var roslyn = new XUnitTest.RoslynUnit();
-
-            var tc = new TempClass();
 
             var typeBody = new VisceralSampleBody(null);
             var symbolBody = new VisceralSampleBody(null);
