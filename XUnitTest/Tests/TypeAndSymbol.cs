@@ -1,6 +1,7 @@
 // Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Arc.Visceral;
@@ -64,10 +65,25 @@ namespace Tinyhand.TypeAndSymbolTests
         C,
     }
 
-    public class TempClass
+    public class TempClass// : INotifyPropertyChanged
     {
         public event Action testEvent;
         private event Func<int> testEvent2;
+        public event PropertyChangedEventHandler? PropertyChanged;
+        /*private PropertyChangedEventHandler propertyChange;// Error! symbol: Error type, type: correct type
+        event PropertyChangedEventHandler? INotifyPropertyChanged.PropertyChanged
+        {
+            add
+            {
+                this.propertyChange += value;
+            }
+
+            remove
+            {
+                this.propertyChange -= value;
+            }
+        }*/
+
         private int? x;
         private int[] x2;
         private int?[] x3;
