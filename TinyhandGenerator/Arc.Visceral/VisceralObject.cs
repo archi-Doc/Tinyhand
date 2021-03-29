@@ -27,6 +27,7 @@ namespace Arc.Visceral
         Field, // Value (IFieldSymbol)
         Property, // Value (IPropertySymbol)
         Method, // Method (IMethodSymbol)
+        Event, // Event (IEventSymbol)
     }
 
     [Flags]
@@ -42,6 +43,7 @@ namespace Arc.Visceral
         Struct = 32,
         Interface = 64,
         Record = 128,
+        Event = 256,
         Type = Class | Struct | Interface | Record,
         All = ~0,
     }
@@ -521,7 +523,7 @@ namespace Arc.Visceral
             this.FullName = fullName;
             this.Kind = this.ISymbolToObjectKind(this.symbol);
             if (this.Kind == VisceralObjectKind.None)
-            {
+            {// "<global namespace>.INotifyPropertyChanged", "<global namespace>.PropertyChangedEventHandler"
                 return false;
             }
 
@@ -901,7 +903,7 @@ namespace Arc.Visceral
                         this.allMembers = ImmutableArray<T>.Empty;
                     }
                     else if (this.symbol is ITypeSymbol typeSymbol)
-                    {
+                    {// Symbol
                         var builder = ImmutableArray.CreateBuilder<T>();
                         foreach (var x in typeSymbol.GetBaseTypesAndThis().SelectMany(x => x.GetMembers()))
                         {
@@ -949,7 +951,7 @@ namespace Arc.Visceral
                         this.allMembers = builder.ToImmutable();
                     }
                     else if (this.type != null)
-                    {
+                    {// Type
                         var builder = ImmutableArray.CreateBuilder<T>();
                         foreach (var x in this.type.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly))
                         {
@@ -1001,6 +1003,13 @@ namespace Arc.Visceral
                     if (this.symbol is ITypeSymbol typeSymbol)
                     {
                         var builder = ImmutableArray.CreateBuilder<string>();
+                        if (typeSymbol.BaseType is INamedTypeSymbol baseType &&
+                            baseType.TypeKind == TypeKind.Error &&
+                            baseType.ToString() == "INotifyPropertyChanged")
+                        {
+                            builder.Add("System.ComponentModel.INotifyPropertyChanged");
+                        }
+
                         foreach (var x in typeSymbol.AllInterfaces)
                         {
                             builder.Add(this.Body.SymbolToFullName(x));
@@ -1203,8 +1212,12 @@ namespace Arc.Visceral
                         this.typeObject = this.Body.Add(ps.Type);
                     }
                     else if (this.symbol is IMethodSymbol ms)
-                    {
+                    {// Method symbol
                         this.typeObject = this.Body.Add(ms.ReturnType);
+                    }
+                    else if (this.symbol is IEventSymbol es)
+                    {// Event symbol
+                        this.typeObject = this.Body.Add(es.Type);
                     }
                     else if (this.memberInfo is FieldInfo fi)
                     {// Field
@@ -1213,6 +1226,10 @@ namespace Arc.Visceral
                     else if (this.memberInfo is PropertyInfo pi)
                     {// Property
                         this.typeObject = this.Body.Add(pi.PropertyType);
+                    }
+                    else if (this.memberInfo is EventInfo ei)
+                    {// Event
+                        this.typeObject = this.Body.Add(ei.EventHandlerType);
                     }
                 }
 
@@ -1491,7 +1508,7 @@ namespace Arc.Visceral
                     {
                         this.isPublic = (this.symbol.DeclaredAccessibility == Accessibility.Public) || (this.symbol.DeclaredAccessibility == Accessibility.NotApplicable);
                         if (this.symbol is IPropertySymbol ps)
-                        {
+                        {// Property
                             if (ps.GetMethod is IMethodSymbol m)
                             {
                                 if (m.DeclaredAccessibility != Accessibility.Public)
@@ -1505,6 +1522,32 @@ namespace Arc.Visceral
                             }
 
                             if (ps.SetMethod is IMethodSymbol m2)
+                            {
+                                if (m2.DeclaredAccessibility != Accessibility.Public)
+                                {
+                                    this.isPublic = false;
+                                }
+                            }
+                            else
+                            {
+                                this.isPublic = false;
+                            }
+                        }
+                        else if (this.symbol is IEventSymbol es)
+                        {// Event
+                            if (es.AddMethod is IMethodSymbol m)
+                            {
+                                if (m.DeclaredAccessibility != Accessibility.Public)
+                                {
+                                    this.isPublic = false;
+                                }
+                            }
+                            else
+                            {
+                                this.isPublic = false;
+                            }
+
+                            if (es.RemoveMethod is IMethodSymbol m2)
                             {
                                 if (m2.DeclaredAccessibility != Accessibility.Public)
                                 {
@@ -1532,6 +1575,10 @@ namespace Arc.Visceral
                     else if (this.memberInfo is PropertyInfo pi)
                     {// Property
                         this.isPublic = pi.SetMethod?.IsPublic == true && pi.GetMethod?.IsPublic == true;
+                    }
+                    else if (this.memberInfo is EventInfo ei)
+                    {// Property
+                        this.isPublic = ei.AddMethod?.IsPublic == true && ei.RemoveMethod?.IsPublic == true;
                     }
                 }
 
@@ -1718,6 +1765,7 @@ namespace Arc.Visceral
             VisceralObjectKind.Field => "field",
             VisceralObjectKind.Property => "property",
             VisceralObjectKind.Method => "method",
+            VisceralObjectKind.Event => "event",
             _ => string.Empty,
         };
 
@@ -1826,6 +1874,10 @@ namespace Arc.Visceral
                 {// Method
                     return VisceralHelper.MethodBaseToAccessibility(mb).AccessibilityToString();
                 }
+                else if (this.memberInfo is EventInfo ei)
+                {// Event
+                    return VisceralHelper.EventInfoToAccessibilityName(ei);
+                }
 
                 return string.Empty;
             }
@@ -1835,18 +1887,28 @@ namespace Arc.Visceral
         {
             get
             {
-                if (this.symbol != null)
+                if (this.location == Location.None)
                 {
-                    var first = this.symbol.Locations.First();
-                    if (first != null)
+                    if (this.symbol != null)
                     {
-                        return first;
+                        var first = this.symbol.Locations.First();
+                        if (first != null)
+                        {
+                            this.location = first;
+                        }
                     }
                 }
 
-                return Location.None;
+                return this.location;
+            }
+
+            set
+            {
+                this.location = value;
             }
         }
+
+        private Location location = Location.None;
 
         public bool Generics_IsGeneric
         {
@@ -2242,6 +2304,7 @@ namespace Arc.Visceral
             MemberTypes.NestedType => this.TypeToObjectKind((Type)memberInfo),
             MemberTypes.Property => VisceralObjectKind.Property,
             MemberTypes.TypeInfo => this.TypeToObjectKind((Type)memberInfo),
+            MemberTypes.Event => VisceralObjectKind.Event,
             _ => VisceralObjectKind.None,
         };
 
@@ -2281,6 +2344,7 @@ namespace Arc.Visceral
             IFieldSymbol => VisceralObjectKind.Field,
             IPropertySymbol => VisceralObjectKind.Property,
             IMethodSymbol => VisceralObjectKind.Method,
+            IEventSymbol => VisceralObjectKind.Event,
             _ => VisceralObjectKind.None,
         };
 
@@ -2293,6 +2357,7 @@ namespace Arc.Visceral
             VisceralObjectKind.Field => (target & VisceralTarget.Field) != 0,
             VisceralObjectKind.Property => (target & VisceralTarget.Property) != 0,
             VisceralObjectKind.Method => (target & VisceralTarget.Method) != 0,
+            VisceralObjectKind.Event => (target & VisceralTarget.Event) != 0,
             _ => false,
         };
 

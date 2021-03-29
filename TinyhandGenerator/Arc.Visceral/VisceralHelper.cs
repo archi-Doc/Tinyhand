@@ -79,6 +79,15 @@ namespace Arc.Visceral
             return AccessibilityToString(min);
         }
 
+        public static string EventInfoToAccessibilityName(EventInfo ei)
+        {
+            var a1 = MethodBaseToAccessibility(ei.AddMethod);
+            var a2 = MethodBaseToAccessibility(ei.RemoveMethod);
+
+            var min = a1 < a2 ? a1 : a2;
+            return AccessibilityToString(min);
+        }
+
         public static VisceralGenericsKind TypeToGenericsKind(ISymbol symbol)
         {
             var ts = symbol as INamedTypeSymbol;

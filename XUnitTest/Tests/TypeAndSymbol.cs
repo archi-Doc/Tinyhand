@@ -1,10 +1,14 @@
 // Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Arc.Visceral;
 using Xunit;
+
+#pragma warning disable SA1300
+#pragma warning disable CS0067
 
 namespace Tinyhand.TypeAndSymbolTests
 {
@@ -61,8 +65,25 @@ namespace Tinyhand.TypeAndSymbolTests
         C,
     }
 
-    public class TempClass
+    public class TempClass// : INotifyPropertyChanged
     {
+        public event Action testEvent;
+        private event Func<int> testEvent2;
+        public event PropertyChangedEventHandler? PropertyChanged;
+        /*private PropertyChangedEventHandler propertyChange;// Error! symbol: Error type, type: correct type
+        event PropertyChangedEventHandler? INotifyPropertyChanged.PropertyChanged
+        {
+            add
+            {
+                this.propertyChange += value;
+            }
+
+            remove
+            {
+                this.propertyChange -= value;
+            }
+        }*/
+
         private int? x;
         private int[] x2;
         private int?[] x3;
@@ -81,8 +102,6 @@ namespace Tinyhand.TypeAndSymbolTests
         public void Test1()
         {
             var roslyn = new XUnitTest.RoslynUnit();
-
-            var tc = new TempClass();
 
             var typeBody = new VisceralSampleBody(null);
             var symbolBody = new VisceralSampleBody(null);
