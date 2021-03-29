@@ -523,7 +523,7 @@ namespace Arc.Visceral
             this.FullName = fullName;
             this.Kind = this.ISymbolToObjectKind(this.symbol);
             if (this.Kind == VisceralObjectKind.None)
-            {
+            {// "<global namespace>.INotifyPropertyChanged", "<global namespace>.PropertyChangedEventHandler"
                 return false;
             }
 
@@ -1003,6 +1003,13 @@ namespace Arc.Visceral
                     if (this.symbol is ITypeSymbol typeSymbol)
                     {
                         var builder = ImmutableArray.CreateBuilder<string>();
+                        if (typeSymbol.BaseType is INamedTypeSymbol baseType &&
+                            baseType.TypeKind == TypeKind.Error &&
+                            baseType.ToString() == "INotifyPropertyChanged")
+                        {
+                            builder.Add("System.ComponentModel.INotifyPropertyChanged");
+                        }
+
                         foreach (var x in typeSymbol.AllInterfaces)
                         {
                             builder.Add(this.Body.SymbolToFullName(x));
@@ -1205,8 +1212,12 @@ namespace Arc.Visceral
                         this.typeObject = this.Body.Add(ps.Type);
                     }
                     else if (this.symbol is IMethodSymbol ms)
-                    {
+                    {// Method symbol
                         this.typeObject = this.Body.Add(ms.ReturnType);
+                    }
+                    else if (this.symbol is IEventSymbol es)
+                    {// Event symbol
+                        this.typeObject = this.Body.Add(es.Type);
                     }
                     else if (this.memberInfo is FieldInfo fi)
                     {// Field
