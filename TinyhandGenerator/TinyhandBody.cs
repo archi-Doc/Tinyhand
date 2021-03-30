@@ -164,6 +164,10 @@ namespace Tinyhand.Generator
             id: "TG035", title: "Invalid identifier", messageFormat: "'{0}'is not a valid identifier, it's been replaced by '{1}'",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Warning_KeyAsNameExclusive = new DiagnosticDescriptor(
+            id: "TG036", title: "KeyAsName exclusive", messageFormat: "KeyAttribute and KeyAsNameAttribute are exclusive",
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {

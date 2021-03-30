@@ -175,6 +175,20 @@ namespace Tinyhand.Generator
         }
     }
 
+    public class KeyAsNameAttributeMock
+    {
+        public static readonly string SimpleName = "KeyAsName";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
+        public static KeyAsNameAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        {
+            var attribute = new KeyAsNameAttributeMock();
+
+            return attribute;
+        }
+    }
+
     public class IgnoreMemberAttributeMock
     {
         public static readonly string SimpleName = "IgnoreMember";

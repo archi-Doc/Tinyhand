@@ -251,6 +251,20 @@ namespace Tinyhand.Generator
                 }
             }
 
+            // KeyAsNameAttribute
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAsNameAttributeMock.FullName) is { } keyAsNameAttribute)
+            {
+                if (this.KeyAttribute != null)
+                {// KeyAttribute and KeyAsNameAttribute are exclusive.
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_KeyAsNameExclusive, keyAsNameAttribute.Location);
+                }
+                else
+                {// KeyAsNameAttribute to KeyAttribute.
+                    this.KeyVisceralAttribute = keyAsNameAttribute;
+                    this.KeyAttribute = new KeyAttributeMock(this.SimpleName);
+                }
+            }
+
             // IgnoreMemberAttribute
             if (this.AllAttributes.FirstOrDefault(x => x.FullName == IgnoreMemberAttributeMock.FullName) is { } ignoreMemberAttribute)
             {

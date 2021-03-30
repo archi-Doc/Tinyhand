@@ -5,6 +5,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand
 {
+    /// <summary>
+    /// Annotate TinyhandObjectAttribute to enable serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
     public sealed class TinyhandObjectAttribute : Attribute
     {
@@ -43,6 +46,9 @@ namespace Tinyhand
         }
     }
 
+    /// <summary>
+    /// Adds the member to the serialization target and specify the Key (integer or string).
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
     public class KeyAttribute : Attribute
     {
@@ -61,11 +67,28 @@ namespace Tinyhand
         }
     }
 
+    /// <summary>
+    /// Adds the member to the serialization target and specify the Key as the member's name.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    public class KeyAsNameAttribute : Attribute
+    {
+        public KeyAsNameAttribute()
+        {
+        }
+    }
+
+    /// <summary>
+    /// Removes the member from the serialization target.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
     public class IgnoreMemberAttribute : Attribute
     {
     }
 
+    /// <summary>
+    /// Adds the member to the reconstruct target if reconstruct is true.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ReconstructAttribute : Attribute
     {
@@ -77,6 +100,9 @@ namespace Tinyhand
         }
     }
 
+    /// <summary>
+    /// Reuse the member instance when deserializing. The member must have TinyhandObject attribute.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ReuseAttribute : Attribute
     {

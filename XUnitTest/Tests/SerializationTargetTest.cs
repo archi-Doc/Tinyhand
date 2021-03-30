@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    [TinyhandObject] // No option
+    [TinyhandObject] // Integer key
     public partial class SerializationTargetClass1
     {
         [Key(0)]
@@ -33,8 +33,35 @@ namespace Tinyhand.Tests
         }
     }
 
-    [TinyhandObject(ExplicitKeyOnly = true)] // ExplicitKeyOnly
+    [TinyhandObject] // String key
     public partial class SerializationTargetClass2
+    {
+        [Key("A")]
+        [DefaultValue(1)]
+        public int A; // Serialize
+
+        [IgnoreMember]
+        [DefaultValue(1)]
+        public int B; // Not
+
+        [DefaultValue(1)]
+        private int C; // Not
+
+        [KeyAsName]
+        [DefaultValue(1)]
+        public int D; // Serialize
+
+        public void Test(SerializationTargetClass2 target)
+        {
+            this.A.Is(target.A);
+            this.B.IsNot(target.B);
+            this.C.IsNot(target.C);
+            this.D.Is(target.D);
+        }
+    }
+
+    [TinyhandObject(ExplicitKeyOnly = true, KeyAsPropertyName = true)] // ExplicitKeyOnly
+    public partial class SerializationTargetClass3
     {
         [Key(0)]
         [DefaultValue(1)]
@@ -50,7 +77,7 @@ namespace Tinyhand.Tests
         [DefaultValue(1)]
         private int D; // Serialize
 
-        public void Test(SerializationTargetClass2 target)
+        public void Test(SerializationTargetClass3 target)
         {
             this.A.Is(target.A);
             this.B.IsNot(target.B);
@@ -74,6 +101,14 @@ namespace Tinyhand.Tests
         {
             var c = TinyhandSerializer.Deserialize<SerializationTargetClass2>(TinyhandSerializer.Serialize(TinyhandSerializer.Reconstruct<SerializationTargetClass2>()));
             var target = TinyhandSerializer.Reconstruct<SerializationTargetClass2>();
+            c.Test(target);
+        }
+
+        [Fact]
+        public void Test3()
+        {
+            var c = TinyhandSerializer.Deserialize<SerializationTargetClass3>(TinyhandSerializer.Serialize(TinyhandSerializer.Reconstruct<SerializationTargetClass3>()));
+            var target = TinyhandSerializer.Reconstruct<SerializationTargetClass3>();
             c.Test(target);
         }
     }
