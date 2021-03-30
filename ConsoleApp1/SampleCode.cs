@@ -299,7 +299,7 @@ namespace ConsoleApp1
 
             var v12 = TinyhandSerializer.Deserialize<VersioningClass2>(TinyhandSerializer.Serialize(v1))!;
             Console.WriteLine("Serialize v1 and deserialize as v2:");
-            Console.WriteLine(v12.ToString());// Version 2, ID: 1 Name: John (Default value is set)
+            Console.WriteLine(v12.ToString());// Version 2, ID: 1 Name: John (the default value is set)
 
             Console.WriteLine();
 
