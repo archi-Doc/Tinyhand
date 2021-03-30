@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class NullableTestClass
     {
         public int Int { get; set; } = default!; // 0

@@ -57,7 +57,7 @@ namespace Benchmark.H2HTest
     }
 
     [MessagePack.MessagePackObject(true)]
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class ObjectH2H2
     {
         public const int ArrayN = 10;

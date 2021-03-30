@@ -168,6 +168,10 @@ namespace Tinyhand.Generator
             id: "TG036", title: "KeyAsName exclusive", messageFormat: "KeyAttribute and KeyAsNameAttribute are exclusive",
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Error_ImplicitExplicitKey = new DiagnosticDescriptor(
+            id: "TG037", title: "Implicit Explicit conflict", messageFormat: "ImplicitKeyAsName and ExplicitKeyOnly are exclusive",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {

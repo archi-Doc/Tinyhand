@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class GenericsTestClass<T>
     {
         [DefaultValue(12)]
@@ -46,7 +46,7 @@ namespace Tinyhand.Tests
         public GenericsTestClass2<int> ClassInt { get; set; } = default!;
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class GenericsTestClass2<V>
     {
         public V VValue { get; set; } = default!;

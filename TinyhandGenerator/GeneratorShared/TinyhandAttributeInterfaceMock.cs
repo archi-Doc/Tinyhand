@@ -39,14 +39,14 @@ namespace Tinyhand.Generator
         public static readonly string FullName = "Tinyhand." + Name;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to use property names as string keys. String key and Int key are exclusive [the default is false].
-        /// </summary>
-        public bool KeyAsPropertyName { get; set; } = false;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether or not to include private members as serialization targets [the default is false].
+        /// Gets or sets a value indicating whether or not to include private/protected members as serialization targets [the default is false].
         /// </summary>
         public bool IncludePrivateMembers { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to use member names as string keys. String key and Int key are exclusive [the default is false].
+        /// </summary>
+        public bool ImplicitKeyAsName { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [the default is false].
@@ -83,10 +83,10 @@ namespace Tinyhand.Generator
             var attribute = new TinyhandObjectAttributeMock();
 
             object? val;
-            val = AttributeHelper.GetValue(-1, nameof(KeyAsPropertyName), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(ImplicitKeyAsName), constructorArguments, namedArguments);
             if (val != null)
             {
-                attribute.KeyAsPropertyName = (bool)val;
+                attribute.ImplicitKeyAsName = (bool)val;
             }
 
             val = AttributeHelper.GetValue(-1, nameof(IncludePrivateMembers), constructorArguments, namedArguments);

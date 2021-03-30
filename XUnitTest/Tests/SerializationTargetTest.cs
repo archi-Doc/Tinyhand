@@ -60,7 +60,7 @@ namespace Tinyhand.Tests
         }
     }
 
-    [TinyhandObject(ExplicitKeyOnly = true, KeyAsPropertyName = true)] // ExplicitKeyOnly
+    [TinyhandObject(ExplicitKeyOnly = true)] // ExplicitKeyOnly
     public partial class SerializationTargetClass3
     {
         [Key(0)]
@@ -83,6 +83,32 @@ namespace Tinyhand.Tests
             this.B.IsNot(target.B);
             this.C.IsNot(target.C);
             this.D.Is(target.D);
+        }
+    }
+
+    [TinyhandObject(ImplicitKeyAsName = true)] // ImplicitKeyAsName
+    public partial class SerializationTargetClass4
+    {
+        [Key("A")]
+        [DefaultValue(1)]
+        public int A; // Serialize
+
+        [DefaultValue(1)]
+        public int B; // Serialize
+
+        [KeyAsName]
+        [DefaultValue(1)]
+        private int C; // Serialize
+
+        [DefaultValue(1)]
+        private int D; // Not
+
+        public void Test(SerializationTargetClass4 target)
+        {
+            this.A.Is(target.A);
+            this.B.Is(target.B);
+            this.C.Is(target.C);
+            this.D.IsNot(target.D);
         }
     }
 
@@ -109,6 +135,14 @@ namespace Tinyhand.Tests
         {
             var c = TinyhandSerializer.Deserialize<SerializationTargetClass3>(TinyhandSerializer.Serialize(TinyhandSerializer.Reconstruct<SerializationTargetClass3>()));
             var target = TinyhandSerializer.Reconstruct<SerializationTargetClass3>();
+            c.Test(target);
+        }
+
+        [Fact]
+        public void Test4()
+        {
+            var c = TinyhandSerializer.Deserialize<SerializationTargetClass4>(TinyhandSerializer.Serialize(TinyhandSerializer.Reconstruct<SerializationTargetClass4>()));
+            var target = TinyhandSerializer.Reconstruct<SerializationTargetClass4>();
             c.Test(target);
         }
     }
