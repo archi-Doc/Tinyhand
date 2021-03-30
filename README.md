@@ -134,7 +134,7 @@ Tinyhand is quite fast and since it is based on Source Generator, it does not ta
 
 ## Serialization Target
 
-All public members are serialization targets by default. Unless `KeyAsPropertyName` is set to true, you need to add `Key` attribute to public members.
+All public members are serialization targets by default. Unless `ImplicitKeyAsName` is set to true, you need to add `Key` attribute to public members.
 
 ```csharp
 [TinyhandObject]
@@ -149,7 +149,7 @@ public partial class DefaultBehaviourClass
     private int Z; // By adding the Key attribute, You can add a private member to the serialization target.
 }
 
-[TinyhandObject(KeyAsPropertyName = true)]
+[TinyhandObject(ImplicitKeyAsName = true)]
 public partial class KeyAsNameClass
 {
     public int X; // Serialized with the key "X"
@@ -158,6 +158,9 @@ public partial class KeyAsNameClass
 
     [Key("Z")]
     private int Z; // Serialized with the key "Z"
+    
+    [KeyAsName]
+    public int A; // Use the member name as the key "A".
 }
 ```
 
@@ -222,7 +225,7 @@ public partial class ExplicitKeyClass
 Tinyhand tries to handle nullable/non-nullable reference types properly.
 
 ```csharp
-[TinyhandObject(KeyAsPropertyName = true)]
+[TinyhandObject(ImplicitKeyAsName = true)]
 public partial class NullableTestClass
 {
     public int Int { get; set; } = default!; // 0
@@ -278,7 +281,7 @@ If the serialized data does not have a matching data for a member, Tinyhand will
 Primitive types (bool, sbyte, byte, short, ushort, int, uint, long, ulong, float, double, decimal, string, char, enum) are supported.
 
 ```csharp
-[TinyhandObject(KeyAsPropertyName = true)]
+[TinyhandObject(ImplicitKeyAsName = true)]
 public partial class DefaultTestClass
 {
     [DefaultValue(true)]
@@ -294,7 +297,7 @@ public partial class DefaultTestClass
     public DefaultTestClassName NameClass { get; set; }
 }
 
-[TinyhandObject(KeyAsPropertyName = true)]
+[TinyhandObject(ImplicitKeyAsName = true)]
 public partial class StringEmptyClass
 {
 }
@@ -335,7 +338,7 @@ You can skip serializing values if the value is identical to the default value, 
 Tinyhand creates an instance of a member variable even if there is no matching data. By adding `[Reconstruct(false)]` or `[Reconstruct(true)]` to member attributes, you can change the behavior of whether an instance is created or not. 
 
 ```csharp
-[TinyhandObject(KeyAsPropertyName = true)]
+[TinyhandObject(ImplicitKeyAsName = true)]
 public partial class ReconstructTestClass
 {
     [DefaultValue(12)]
@@ -412,7 +415,7 @@ public partial class ReuseTestClass
     public bool Flag { get; set; } = false;
 }
 
-[TinyhandObject(KeyAsPropertyName = true)]
+[TinyhandObject(ImplicitKeyAsName = true)]
 public partial class ReuseObject
 {
     public ReuseObject()
