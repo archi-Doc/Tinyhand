@@ -251,6 +251,20 @@ namespace Tinyhand.Generator
                 }
             }
 
+            // KeyAsNameAttribute
+            if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAsNameAttributeMock.FullName) is { } keyAsNameAttribute)
+            {
+                if (this.KeyAttribute != null)
+                {// KeyAttribute and KeyAsNameAttribute are exclusive.
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_KeyAsNameExclusive, keyAsNameAttribute.Location);
+                }
+                else
+                {// KeyAsNameAttribute to KeyAttribute.
+                    this.KeyVisceralAttribute = keyAsNameAttribute;
+                    this.KeyAttribute = new KeyAttributeMock(this.SimpleName);
+                }
+            }
+
             // IgnoreMemberAttribute
             if (this.AllAttributes.FirstOrDefault(x => x.FullName == IgnoreMemberAttributeMock.FullName) is { } ignoreMemberAttribute)
             {
@@ -521,6 +535,12 @@ namespace Tinyhand.Generator
                 }
             }
 
+            if (this.ObjectAttribute?.ImplicitKeyAsName == true && this.ObjectAttribute?.ExplicitKeyOnly == true)
+            {
+                this.Body.ReportDiagnostic(TinyhandBody.Error_ImplicitExplicitKey, this.Location, this.FullName);
+
+            }
+
             // Union
             this.Union?.CheckAndPrepare();
 
@@ -620,8 +640,8 @@ namespace Tinyhand.Generator
                 {
                     if (x.KeyAttribute == null)
                     {// No KeyAttribute
-                        if (this.ObjectAttribute!.KeyAsPropertyName)
-                        {// KeyAsPropertyName
+                        if (this.ObjectAttribute!.ImplicitKeyAsName)
+                        {// ImplicitKeyAsName
                             x.KeyAttribute = new KeyAttributeMock(x.SimpleName);
                             stringKeyExists = true;
                         }
@@ -636,7 +656,7 @@ namespace Tinyhand.Generator
                     }
                 }
 
-                if (stringKeyExists || (!intKeyExists && this.ObjectAttribute!.KeyAsPropertyName == true))
+                if (stringKeyExists || (!intKeyExists && this.ObjectAttribute!.ImplicitKeyAsName == true))
                 {// String key
                     this.ObjectFlag |= TinyhandObjectFlag.StringKeyObject;
                     this.CheckObject_StringKey();

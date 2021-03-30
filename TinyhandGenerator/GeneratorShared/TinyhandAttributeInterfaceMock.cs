@@ -39,32 +39,32 @@ namespace Tinyhand.Generator
         public static readonly string FullName = "Tinyhand." + Name;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to use property names as string keys. String key and Int key are exclusive [Default value is false].
-        /// </summary>
-        public bool KeyAsPropertyName { get; set; } = false;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether or not to include private members as serialization targets [Default value is false].
+        /// Gets or sets a value indicating whether or not to include private/protected members as serialization targets [the default is false].
         /// </summary>
         public bool IncludePrivateMembers { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [Default value is false].
+        /// Gets or sets a value indicating whether or not to use member names as string keys. String key and Int key are exclusive [the default is false].
+        /// </summary>
+        public bool ImplicitKeyAsName { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [the default is false].
         /// </summary>
         public bool ExplicitKeyOnly { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [Default value is true].
+        /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [the default is true].
         /// </summary>
         public bool ReconstructMember { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [Default value is true].
+        /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [the default is true].
         /// </summary>
         public bool ReuseMember { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [Default value is false].
+        /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [the default is false].
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
 
@@ -83,10 +83,10 @@ namespace Tinyhand.Generator
             var attribute = new TinyhandObjectAttributeMock();
 
             object? val;
-            val = AttributeHelper.GetValue(-1, nameof(KeyAsPropertyName), constructorArguments, namedArguments);
+            val = AttributeHelper.GetValue(-1, nameof(ImplicitKeyAsName), constructorArguments, namedArguments);
             if (val != null)
             {
-                attribute.KeyAsPropertyName = (bool)val;
+                attribute.ImplicitKeyAsName = (bool)val;
             }
 
             val = AttributeHelper.GetValue(-1, nameof(IncludePrivateMembers), constructorArguments, namedArguments);
@@ -172,6 +172,20 @@ namespace Tinyhand.Generator
         {
             this.IntKey = null;
             this.StringKey = x;
+        }
+    }
+
+    public class KeyAsNameAttributeMock
+    {
+        public static readonly string SimpleName = "KeyAsName";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
+        public static KeyAsNameAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+        {
+            var attribute = new KeyAsNameAttributeMock();
+
+            return attribute;
         }
     }
 

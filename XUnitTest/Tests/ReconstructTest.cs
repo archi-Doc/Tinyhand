@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class ReconstructTestClass
     {
         [DefaultValue(12)]

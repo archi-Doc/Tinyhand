@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class DefaultTestClass
     {
         [DefaultValue(true)]
@@ -119,7 +119,7 @@ namespace Tinyhand.Tests
         C,
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial struct DefaultTestStruct
     {
         [DefaultValue(true)]

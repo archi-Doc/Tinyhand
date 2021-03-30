@@ -109,7 +109,7 @@ namespace Tinyhand.Tests
 #endif
 
         [DataContract]
-        [TinyhandObject(KeyAsPropertyName = true)]
+        [TinyhandObject(ImplicitKeyAsName = true)]
         public partial class CustomObject
         {
             [DataMember]

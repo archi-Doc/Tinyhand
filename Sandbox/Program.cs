@@ -6,7 +6,7 @@ using Tinyhand;
 
 namespace Sandbox
 {
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class TextSerializeClass1
     {
         [Key("2int-string")]

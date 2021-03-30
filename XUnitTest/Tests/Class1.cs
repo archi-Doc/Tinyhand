@@ -34,7 +34,7 @@ namespace Tinyhand.Tests
 
     public enum ULongEnum : ulong { A, B, C, D, E }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class FormatterResolverClass
     {
@@ -161,7 +161,7 @@ namespace Tinyhand.Tests
         ////public int Prop7 { get; set; }
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class SimpleStringKeyData
     {
         public int Prop1 { get; set; }
@@ -215,7 +215,7 @@ namespace Tinyhand.Tests
     {
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class EmptyClass2
     {
@@ -227,7 +227,7 @@ namespace Tinyhand.Tests
     {
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial struct EmptyStruct2
     {
@@ -364,7 +364,7 @@ namespace Tinyhand.Tests
         }
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial struct Callback2 : ITinyhandSerializationCallback
     {
         public static bool CalledAfter = false;
@@ -397,7 +397,7 @@ namespace Tinyhand.Tests
         }
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial struct Callback2_2 : ITinyhandSerializationCallback
     {
         public int X { get; set; }
@@ -448,7 +448,7 @@ namespace Tinyhand.Tests
     {
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class Empty2
     {
     }
@@ -460,7 +460,7 @@ namespace Tinyhand.Tests
         public int MyProperty { get; set; }
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class NonEmpty2
     {
         public int MyProperty { get; set; }
@@ -674,7 +674,7 @@ namespace Tinyhand.Tests
         public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class PrimitiveStringKeyClass
     {
@@ -739,7 +739,7 @@ namespace Tinyhand.Tests
         public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class PrimitiveArrayClass
     {
@@ -774,7 +774,7 @@ namespace Tinyhand.Tests
         public DateTime[] DateTimeArray { get; set; } = { DateTime.UtcNow, DateTime.UtcNow, };
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class PrimitiveNullableArrayClass
     {
@@ -809,7 +809,7 @@ namespace Tinyhand.Tests
         public DateTime?[] DateTimeArray { get; set; } = { DateTime.UtcNow, null, DateTime.UtcNow, };
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class PrimitiveNullableArrayClass2
     {

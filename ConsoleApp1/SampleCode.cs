@@ -22,7 +22,7 @@ namespace ConsoleApp1
         private int Z; // By adding the Key attribute, You can add a private member to the serialization target.
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class KeyAsNameClass
     {
         public int X; // Serialized with the key "X"
@@ -82,7 +82,7 @@ namespace ConsoleApp1
         }
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class NullableTestClass
     {
         public int Int { get; set; } = default!;// 0
@@ -126,7 +126,7 @@ namespace ConsoleApp1
         }
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class DefaultTestClass
     {
         [DefaultValue(true)]
@@ -139,7 +139,7 @@ namespace ConsoleApp1
         public string String { get; set; } = default!;
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class StringEmptyClass
     {
     }
@@ -167,7 +167,7 @@ namespace ConsoleApp1
         public bool Flag { get; set; } = false;
     }
 
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class ReuseObject
     {
         public ReuseObject()
@@ -299,7 +299,7 @@ namespace ConsoleApp1
 
             var v12 = TinyhandSerializer.Deserialize<VersioningClass2>(TinyhandSerializer.Serialize(v1))!;
             Console.WriteLine("Serialize v1 and deserialize as v2:");
-            Console.WriteLine(v12.ToString());// Version 2, ID: 1 Name: John (Default value is set)
+            Console.WriteLine(v12.ToString());// Version 2, ID: 1 Name: John (the default value is set)
 
             Console.WriteLine();
 

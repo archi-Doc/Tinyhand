@@ -5,36 +5,39 @@ using Tinyhand.IO;
 
 namespace Tinyhand
 {
+    /// <summary>
+    /// Annotate TinyhandObjectAttribute to enable serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
     public sealed class TinyhandObjectAttribute : Attribute
     {
         /// <summary>
-        /// Gets or sets a value indicating whether or not to use property names as string keys. String key and Int key are exclusive [Default value is false].
-        /// </summary>
-        public bool KeyAsPropertyName { get; set; } = false;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether or not to include private members as serialization targets [Default value is false].
+        /// Gets or sets a value indicating whether or not to include private/protected members as serialization targets [the default is false].
         /// </summary>
         public bool IncludePrivateMembers { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [Default value is false].
+        /// Gets or sets a value indicating whether or not to use member names as string keys. String key and Int key are exclusive [the default is false].
+        /// </summary>
+        public bool ImplicitKeyAsName { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [the default is false].
         /// </summary>
         public bool ExplicitKeyOnly { get; set; } = false;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [Default value is true].
+        /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [the default is true].
         /// </summary>
         public bool ReconstructMember { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [Default value is true].
+        /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [the default is true].
         /// </summary>
         public bool ReuseMember { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [Default value is false].
+        /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the the default value [the default is false].
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
 
@@ -43,6 +46,9 @@ namespace Tinyhand
         }
     }
 
+    /// <summary>
+    /// Adds the member to the serialization target and specify the Key (integer or string).
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
     public class KeyAttribute : Attribute
     {
@@ -61,11 +67,28 @@ namespace Tinyhand
         }
     }
 
+    /// <summary>
+    /// Adds the member to the serialization target and specify the Key as the member's name.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    public class KeyAsNameAttribute : Attribute
+    {
+        public KeyAsNameAttribute()
+        {
+        }
+    }
+
+    /// <summary>
+    /// Removes the member from the serialization target.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
     public class IgnoreMemberAttribute : Attribute
     {
     }
 
+    /// <summary>
+    /// Adds the member to the reconstruct target if reconstruct is true.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ReconstructAttribute : Attribute
     {
@@ -77,6 +100,9 @@ namespace Tinyhand
         }
     }
 
+    /// <summary>
+    /// Reuse the member instance when deserializing. The member must have TinyhandObject attribute.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ReuseAttribute : Attribute
     {

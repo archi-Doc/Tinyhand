@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    [TinyhandObject(KeyAsPropertyName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class LargeDataClass
     {

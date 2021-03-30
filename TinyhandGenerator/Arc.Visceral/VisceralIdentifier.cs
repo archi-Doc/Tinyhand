@@ -24,6 +24,11 @@ namespace Arc.Visceral
         {
         }
 
+        public VisceralIdentifier(string identifierFormat)
+        {
+            this.identifierFormat = identifierFormat;
+        }
+
         public bool Add(string identifier) => this.identifier.Add(identifier);
 
         public string GetIdentifier()

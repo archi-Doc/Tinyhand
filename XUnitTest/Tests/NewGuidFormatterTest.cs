@@ -32,7 +32,7 @@ namespace Tinyhand.Tests
         ////    new MessagePack.Internal.GuidBits(new ArraySegment<byte>(patternD, 0, patternD.Length)).Value.Is(original);
         ////}
 
-        [TinyhandObject(KeyAsPropertyName = true)]
+        [TinyhandObject(ImplicitKeyAsName = true)]
         public partial class InClass
         {
             public int MyProperty { get; set; }
