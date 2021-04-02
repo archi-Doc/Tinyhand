@@ -6,7 +6,7 @@ using Tinyhand.IO;
 namespace Tinyhand
 {
     /// <summary>
-    /// Annotate TinyhandObjectAttribute to enable serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
+    /// Enables serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
     public sealed class TinyhandObjectAttribute : Attribute
