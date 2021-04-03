@@ -83,7 +83,7 @@ namespace Tinyhand.Generator
 
         public ReuseAttributeMock? ReuseAttribute { get; private set; }
 
-        public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members have valid TypeObject && not static && property or field
+        public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members is not static && property or field
 
         public IEnumerable<TinyhandObject> MembersWithFlag(TinyhandObjectFlag flag) => this.Members.Where(x => x.ObjectFlag.HasFlag(flag));
 
@@ -404,8 +404,8 @@ namespace Tinyhand.Generator
             var list = new List<TinyhandObject>();
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Property))
             {
-                if (!x.IsStatic) // x.TypeObject != null
-                { // not static
+                if (!x.IsStatic)
+                {// not static
                     x.Configure();
                     list.Add(x);
                 }
@@ -414,7 +414,7 @@ namespace Tinyhand.Generator
             // Members: Field
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Field))
             {
-                if (!x.IsStatic) // x.TypeObject != null
+                if (!x.IsStatic)
                 { // not static
                     x.Configure();
                     list.Add(x);
@@ -776,12 +776,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            if (this.TypeObject == null)
-            {// Error type (source generator etc...)
-                return;
-            }
-
-            if (this.DefaultValue != null)
+            if (this.DefaultValue != null && this.TypeObject != null)
             {
                 if (VisceralDefaultValue.IsDefaultableType(this.TypeObject.SimpleName))
                 {// Memeber is defaultable
@@ -841,20 +836,30 @@ namespace Tinyhand.Generator
                 }
             }
 
-            // ReconstructTarget
-            if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
-            {// ITinyhandSerialize is implemented.
-                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) && this.TypeObject.Kind.IsReferenceType() == true)
-                { // Target && Reference type
-                    this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
+            if (this.TypeObject != null)
+            {
+                // ReconstructTarget
+                if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
+                {// ITinyhandSerialize is implemented.
+                    if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) && this.TypeObject.Kind.IsReferenceType() == true)
+                    { // Target && Reference type
+                        this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
+                    }
+                }
+                else
+                {
+                    if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget) &&
+                        (this.TypeObject.Kind.IsReferenceType() ||
+                        this.TypeObject.ObjectAttribute != null))
+                    { // SerializeTarget && (Reference type || TinyhandObject)
+                        this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
+                    }
                 }
             }
             else
-            {
-                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget) &&
-                    (this.TypeObject.Kind.IsReferenceType() ||
-                    this.TypeObject.ObjectAttribute != null))
-                { // SerializeTarget && (Reference type || TinyhandObject)
+            {// Error type (source generator etc...)
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget))
+                {
                     this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
                 }
             }
@@ -890,26 +895,29 @@ namespace Tinyhand.Generator
             }
 
             // ReuseInstanceTarget
-            var reuseInstanceFlag = parent.ObjectAttribute?.ReuseMember == true;
-            if (this.ReuseAttribute?.ReuseInstance == true)
+            if (this.TypeObject != null)
             {
-                if (this.TypeObject.ObjectAttribute != null)
-                {// Has TinyhandObject attribute
-                    reuseInstanceFlag = true;
-                }
-                else
+                var reuseInstanceFlag = parent.ObjectAttribute?.ReuseMember == true;
+                if (this.ReuseAttribute?.ReuseInstance == true)
                 {
-                    this.Body.ReportDiagnostic(TinyhandBody.Warning_TinyhandObjectRequiredToReuse, this.Location);
+                    if (this.TypeObject.ObjectAttribute != null)
+                    {// Has TinyhandObject attribute
+                        reuseInstanceFlag = true;
+                    }
+                    else
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_TinyhandObjectRequiredToReuse, this.Location);
+                    }
                 }
-            }
-            else if (this.ReuseAttribute?.ReuseInstance == false)
-            {
-                reuseInstanceFlag = false;
-            }
+                else if (this.ReuseAttribute?.ReuseInstance == false)
+                {
+                    reuseInstanceFlag = false;
+                }
 
-            if (reuseInstanceFlag && this.TypeObject.ObjectAttribute != null)
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.ReuseInstanceTarget;
+                if (reuseInstanceFlag && this.TypeObject.ObjectAttribute != null)
+                {
+                    this.ObjectFlag |= TinyhandObjectFlag.ReuseInstanceTarget;
+                }
             }
         }
 
@@ -1667,14 +1675,8 @@ namespace Tinyhand.Generator
             }
         }
 
-        internal void GenerateReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
+        internal void GenerateReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x)
         {// Called by GenerateReconstruct()
-            var withNullable = x?.TypeObjectWithNullable;
-            if (x == null || withNullable == null)
-            {// no object
-                return;
-            }
-
             if (x.IsDefaultable)
             {// Default
                 ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
@@ -1683,6 +1685,17 @@ namespace Tinyhand.Generator
 
             if (x.ReconstructState != ReconstructState.Do)
             {
+                return;
+            }
+
+            var withNullable = x.TypeObjectWithNullable;
+            if (withNullable == null)
+            {// Error type (source generator etc...)
+                if (x?.GetTypeFullName() is string typeName)
+                {
+                    ssb.AppendLine($"{ssb.FullObject} = new {typeName}();");
+                }
+
                 return;
             }
 
@@ -1709,14 +1722,8 @@ namespace Tinyhand.Generator
             }
         }
 
-        internal void GenerateReconstructCore2(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, int reconstructIndex)
+        internal void GenerateReconstructCore2(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, int reconstructIndex)
         {// Called by Automata
-            var withNullable = x?.TypeObjectWithNullable;
-            if (x == null || withNullable == null)
-            {// no object
-                return;
-            }
-
             if (x.IsDefaultable)
             {// Default
                 using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
@@ -1729,6 +1736,17 @@ namespace Tinyhand.Generator
 
             // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if (!deserializedFlag[{reconstructIndex}] && {ssb.FullObject} == null)" : $"if (!deserializedFlag[{reconstructIndex}])";
             var nullCheckCode = $"if (!deserializedFlag[{reconstructIndex}])";
+
+            var withNullable = x.TypeObjectWithNullable;
+            if (withNullable == null)
+            {// Error type (source generator etc...)
+                if (x?.GetTypeFullName() is string typeName)
+                {
+                    ssb.AppendLine($"{nullCheckCode} {ssb.FullObject} = new {typeName}();");
+                }
+
+                return;
+            }
 
             using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
             {
