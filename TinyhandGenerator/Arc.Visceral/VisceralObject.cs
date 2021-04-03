@@ -1243,6 +1243,52 @@ namespace Arc.Visceral
             }
         }
 
+        public string? GetTypeFullName()
+        {
+            ISymbol? s = this.symbol;
+            Type? t = this.type;
+
+            if (this.symbol is IFieldSymbol fs)
+            {// Field symbol
+                s = fs.Type;
+            }
+            else if (this.symbol is IPropertySymbol ps)
+            {// Property symbol
+                s = ps.Type;
+            }
+            else if (this.symbol is IMethodSymbol ms)
+            {// Method symbol
+                s = ms.ReturnType;
+            }
+            else if (this.symbol is IEventSymbol es)
+            {// Event symbol
+                s = es.Type;
+            }
+            else if (this.memberInfo is FieldInfo fi)
+            {// Field
+                t = fi.FieldType;
+            }
+            else if (this.memberInfo is PropertyInfo pi)
+            {// Property
+                t = pi.PropertyType;
+            }
+            else if (this.memberInfo is EventInfo ei)
+            {// Event
+                t = ei.EventHandlerType;
+            }
+
+            if (s != null)
+            {
+                return this.Body.SymbolToFullName(s);
+            }
+            else if (t != null)
+            {
+                return VisceralHelper.TypeToFullName(t);
+            }
+
+            return null;
+        }
+
         private bool typeObjectWithNullableFlag;
         private WithNullable<T>? typeObjectWithNullable;
 
