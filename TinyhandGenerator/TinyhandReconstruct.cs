@@ -29,6 +29,10 @@ namespace Tinyhand.Generator
             {
                 return ReconstructCondition.NotReferenceType;
             }
+            else if (typeObject.Kind == VisceralObjectKind.Error)
+            {// Error type
+                return ReconstructCondition.Can;
+            }
 
             if (typeObject.Kind == VisceralObjectKind.Interface && typeObject.ObjectAttribute != null)
             {
