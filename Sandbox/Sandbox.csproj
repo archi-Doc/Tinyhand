@@ -14,4 +14,8 @@
     <Compile Remove="Generated\*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CrossLink" Version="0.7.1" />
+  </ItemGroup>
+
 </Project>

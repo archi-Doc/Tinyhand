@@ -404,8 +404,8 @@ namespace Tinyhand.Generator
             var list = new List<TinyhandObject>();
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Property))
             {
-                if (x.TypeObject != null && !x.IsStatic)
-                { // Valid TypeObject && not static
+                if (!x.IsStatic) // x.TypeObject != null
+                { // not static
                     x.Configure();
                     list.Add(x);
                 }
@@ -414,8 +414,8 @@ namespace Tinyhand.Generator
             // Members: Field
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Field))
             {
-                if (x.TypeObject != null && !x.IsStatic)
-                { // Valid TypeObject && not static
+                if (!x.IsStatic) // x.TypeObject != null
+                { // not static
                     x.Configure();
                     list.Add(x);
                 }
@@ -538,7 +538,6 @@ namespace Tinyhand.Generator
             if (this.ObjectAttribute?.ImplicitKeyAsName == true && this.ObjectAttribute?.ExplicitKeyOnly == true)
             {
                 this.Body.ReportDiagnostic(TinyhandBody.Error_ImplicitExplicitKey, this.Location, this.FullName);
-
             }
 
             // Union
@@ -752,12 +751,6 @@ namespace Tinyhand.Generator
 
         public void CheckMember(TinyhandObject parent)
         {
-            // Avoid this.TypeObject!
-            if (this.TypeObject == null)
-            {
-                return;
-            }
-
             if (!this.IsSerializable || this.IsReadOnly)
             {// Not serializable
                 if (this.KeyAttribute != null || this.ReconstructAttribute != null)
@@ -781,6 +774,11 @@ namespace Tinyhand.Generator
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_KeyAttributeRequired, this.Location);
                 }
+            }
+
+            if (this.TypeObject == null)
+            {// Error type (source generator etc...)
+                return;
             }
 
             if (this.DefaultValue != null)
@@ -1521,8 +1519,19 @@ namespace Tinyhand.Generator
         {// Integer key
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
-            {// no object
-                ssb.AppendLine("if (numberOfData-- > 0) reader.Skip();");
+            {// Error type (source generator etc...)
+                if (x?.GetTypeFullName() is string typeName)
+                {
+                    using (var m = ssb.ScopeObject(x.SimpleName))
+                    {
+                        ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{typeName}>().Deserialize(ref reader, options)!;");
+                    }
+                }
+                else
+                {
+                    ssb.AppendLine("if (numberOfData-- > 0) reader.Skip();");
+                }
+
                 return;
             }
 
@@ -1586,8 +1595,19 @@ namespace Tinyhand.Generator
         {// String key
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
-            {// no object
-                ssb.GotoSkipLabel();
+            {// Error type (source generator etc...)
+                if (x?.GetTypeFullName() is string typeName)
+                {
+                    using (var m = ssb.ScopeObject(x.SimpleName))
+                    {
+                        ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{typeName}>().Deserialize(ref reader, options)!;");
+                    }
+                }
+                else
+                {
+                    ssb.AppendLine("if (numberOfData-- > 0) reader.Skip();");
+                }
+
                 return;
             }
 
@@ -1812,8 +1832,19 @@ namespace Tinyhand.Generator
         {
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
-            {// no object
-                ssb.AppendLine("writer.WriteNil();");
+            {// Error type (source generator etc...)
+                if (x?.GetTypeFullName() is string typeName)
+                {
+                    using (var v2 = ssb.ScopeObject(x.SimpleName))
+                    {
+                        ssb.AppendLine($"options.Resolver.GetFormatter<{typeName}>().Serialize(ref writer, {ssb.FullObject}, options);");
+                    }
+                }
+                else
+                {
+                    ssb.AppendLine("writer.WriteNil();");
+                }
+
                 return;
             }
 
@@ -1845,11 +1876,11 @@ namespace Tinyhand.Generator
                     if (x.HasNullableAnnotation)
                     {
                         ssb.AppendLine($"if ({v2.FullObject} == null) writer.WriteNil();");
-                        ssb.AppendLine($"else options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {v2.FullObject},options);");
+                        ssb.AppendLine($"else options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {v2.FullObject}, options);");
                     }
                     else
                     {
-                        ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {v2.FullObject},options);");
+                        ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {v2.FullObject}, options);");
                     }
                 }
 

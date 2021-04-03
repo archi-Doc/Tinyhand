@@ -2,51 +2,86 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using CrossLink;
 using Tinyhand;
 
 namespace Sandbox
 {
-    [TinyhandObject(ImplicitKeyAsName = true)]
-    public partial class TextSerializeClass1
+    [CrossLinkObject]
+    [TinyhandObject]
+    public partial class TestClass1
     {
-        [Key("2int-string")]
-        public Dictionary<int, string> DictionaryIntString { get; set; } = default!;
+        [Link(Type = LinkType.Ordered)]
+        [KeyAsName]
+        private int id;
 
-        [Key(" st d ")]
-        public IDictionary<string, double> IDictionaryStringDouble { get; set; } = default!;
+        [Link(Type = LinkType.Ordered)]
+        [Key("NM")]
+        private string name = default!;
 
-        [Key("double")]
-        [DefaultValue(true)]
-        public bool Bool { get; set; }
+        [Link(Type = LinkType.Ordered)]
+        [KeyAsName]
+        private byte age;
 
-        public byte Byte { get; set; }
+        [Link(Type = LinkType.StackList, Primary = true, Name = "Stack")]
+        public TestClass1()
+        {
+        }
 
-        [Key("2")]
-        [DefaultValue(77)]
-        public int Int { get; set; }
+        public TestClass1(int id, string name, byte age)
+        {
+            this.id = id;
+            this.name = name;
+            this.age = age;
+        }
 
-        public MyClass MyClass0 { get; set; } = default!;
+        public override bool Equals(object? obj)
+        {
+            var t = obj as TestClass1;
+            if (t == null)
+            {
+                return false;
+            }
 
-        [Key("St{")]
-        [DefaultValue("test\"\"\"e")]
-        public string String { get; set; } = default!;
+            return this.id == t.id && this.name == t.name && this.age == t.age;
+        }
 
-        [Key("3 2")]
-        public float Float { get; set; }
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(this.id, this.name, this.age);
+        }
+    }
 
-        [DefaultValue(1d)]
-        public double Double { get; set; }
+    [TinyhandObject(ImplicitKeyAsName = true)]
+    public partial class TestClass2
+    {
+        public int N { get; set; }
 
-        public DateTime Date { get; set; } = DateTime.UtcNow;
-
-        public MyClass MyClass { get; set; } = default!;
+        [KeyAsName]
+        public TestClass1.GoshujinClass G { get; set; } = default!;
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            var classB = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
+            var g = new TestClass1.GoshujinClass();
+
+            new TestClass1(0, "A", 100).Goshujin = g;
+            new TestClass1(1, "Z", 12).Goshujin = g;
+            new TestClass1(2, "1", 15).Goshujin = g;
+
+            var st = TinyhandSerializer.SerializeToString(g);
+            var g2 = TinyhandSerializer.Deserialize<TestClass1.GoshujinClass>(TinyhandSerializer.Serialize(g));
+
+            var tc2 = new TestClass2();
+            tc2.N = 100;
+            tc2.G = g;
+            st = TinyhandSerializer.SerializeToString(tc2);
+            var tc2a = TinyhandSerializer.Deserialize<TestClass2>(TinyhandSerializer.Serialize(tc2));
+            var tc2b = TinyhandSerializer.Reconstruct<TestClass2>();
+
+            /*var classB = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
             classB.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
             classB.IDictionaryStringDouble = new Dictionary<string, double>(new KeyValuePair<string, double>[] { new KeyValuePair<string, double>("test", 33d) });
 
@@ -56,7 +91,7 @@ namespace Sandbox
             st = TinyhandSerializer.SerializeToString(classB, TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple));
             st = "{\"2int-string\" = {33 = \"rr\"}, \" st d \" = {test = 33}, \"double\" = false, Byte = 0, \"2\" = 77, MyClass0 = {99, \"\", \"Doe\", {}, null}, \"St{\" = \"test\", \"3 2\" = 0, Double = 1, Date = \"2021-02-09T10:20:29.7825986Z\", MyClass = {99, \"\", \"Doe\", {}, null}";
             Console.WriteLine(st);
-            classA2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
+            classA2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);*/
         }
     }
 }
