@@ -404,8 +404,8 @@ namespace Tinyhand.Generator
             var list = new List<TinyhandObject>();
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Property))
             {
-                if (!x.IsStatic)
-                {// not static
+                if (x.TypeObject != null && !x.IsStatic)
+                {// Valid TypeObject && not static
                     x.Configure();
                     list.Add(x);
                 }
@@ -414,8 +414,8 @@ namespace Tinyhand.Generator
             // Members: Field
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Field))
             {
-                if (!x.IsStatic)
-                { // not static
+                if (x.TypeObject != null && !x.IsStatic)
+                {// Valid TypeObject && not static
                     x.Configure();
                     list.Add(x);
                 }
@@ -1525,7 +1525,7 @@ namespace Tinyhand.Generator
         {// Integer key
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
-            {// Error type (source generator etc...)
+            {// no object
                 ssb.AppendLine("if (numberOfData-- > 0) reader.Skip();");
                 return;
             }
@@ -1594,8 +1594,8 @@ namespace Tinyhand.Generator
         {// String key
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
-            {// Error type (source generator etc...)
-                ssb.AppendLine("if (numberOfData-- > 0) reader.Skip();");
+            {// no object
+                ssb.GotoSkipLabel();
                 return;
             }
 
@@ -1823,7 +1823,7 @@ namespace Tinyhand.Generator
         {
             var withNullable = x?.TypeObjectWithNullable;
             if (x == null || withNullable == null)
-            {
+            {// no object
                 ssb.AppendLine("writer.WriteNil();");
                 return;
             }
