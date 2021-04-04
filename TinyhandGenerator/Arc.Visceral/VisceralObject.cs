@@ -28,6 +28,7 @@ namespace Arc.Visceral
         Property, // Value (IPropertySymbol)
         Method, // Method (IMethodSymbol)
         Event, // Event (IEventSymbol)
+        Error, // Error (Source generator...)
     }
 
     [Flags]
@@ -2415,6 +2416,7 @@ namespace Arc.Visceral
             TypeKind.TypeParameter => VisceralObjectKind.TypeParameter,
             TypeKind.Array => VisceralObjectKind.Class,
             TypeKind.Enum => VisceralObjectKind.Enum,
+            TypeKind.Error => VisceralObjectKind.Error,
             _ => VisceralObjectKind.None,
         };
     }
