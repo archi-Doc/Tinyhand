@@ -36,9 +36,9 @@ namespace Arc.Visceral
             string identifier;
             while (true)
             {
-                if (this.identifierSerial++ < 10_000)
+                if (this.identifierSerial++ < 1_000)
                 {// this.identifierSerial
-                    identifier = this.identifierFormat + this.identifierSerial.ToString("D4");
+                    identifier = this.identifierFormat + this.identifierSerial.ToString("D3");
                 }
                 else
                 {
