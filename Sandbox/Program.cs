@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Linq.Expressions;
 using CrossLink;
 using Tinyhand;
 
@@ -116,7 +117,21 @@ namespace Sandbox
             }
 
             var mi = ty.GetMethod("set_Y");
-            mi!.Invoke(r, new object?[] { 32});
+            mi!.Invoke(r, new object?[] { 32 });
+
+            var targetObject = Expression.Parameter(typeof(TestRecord));
+            var tagetMember = Expression.Parameter(typeof(int));
+            var d = Expression.Lambda<Action<TestRecord, int>>(
+                Expression.Call(
+                    targetObject,
+                    mi!,
+                    tagetMember),
+                targetObject,
+                tagetMember)
+                .Compile();
+            d(r, 33);
+
+            var d2 = Expression.Lambda<Action<TestRecord, int>>(Expression.Call(targetObject, mi!, tagetMember), targetObject, tagetMember).Compile();
 
             /*var classB = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
             classB.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
