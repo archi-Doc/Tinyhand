@@ -99,6 +99,11 @@ namespace Tinyhand.Coders
 
         public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
         {
+            if (withNullable.Object.Kind == VisceralObjectKind.Error)
+            {// Error type is tentatively treated as serializable.
+                return true;
+            }
+
             if (this.stringToCoder.ContainsKey(withNullable.FullNameWithNullable))
             {// Found
                 return true;
@@ -133,6 +138,11 @@ namespace Tinyhand.Coders
                 return false;
 
 Check_GenericsArguments:
+                if (arguments.Length == 0)
+                {// Unknown error.
+                    return false;
+                }
+
                 foreach (var x in arguments)
                 {// Check all the arguments.
                     if (!CoderResolver.Instance.IsCoderOrFormatterAvailable(x))
