@@ -546,7 +546,7 @@ namespace Tinyhand.Generator
             // Target
             foreach (var x in this.Members)
             {
-                if (!x.IsSerializable || x.IsReadOnly)
+                if (!x.IsSerializable || x.IsReadOnly || x.IsInitOnly)
                 {// Not serializable
                     continue;
                 }
@@ -757,7 +757,7 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            if (!this.IsSerializable || this.IsReadOnly)
+            if (!this.IsSerializable || this.IsReadOnly || this.IsInitOnly)
             {// Not serializable
                 if (this.KeyAttribute != null || this.ReconstructAttribute != null)
                 {
@@ -937,7 +937,7 @@ namespace Tinyhand.Generator
             }
             else if (this.ReconstructState == ReconstructState.Do)
             {
-                if (this.IsReadOnly)
+                if (this.IsReadOnly || this.IsInitOnly)
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_ReadonlyMember, this.Location, this.SimpleName);
                     this.ReconstructState = ReconstructState.Dont;

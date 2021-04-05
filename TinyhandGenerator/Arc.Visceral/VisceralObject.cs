@@ -1445,6 +1445,23 @@ namespace Arc.Visceral
             }
         }
 
+        public bool IsRecord
+        {
+            get
+            {
+                if (this.symbol is ITypeSymbol ts)
+                {
+                    return ts.IsRecord;
+                }
+                else if (this.type != null)
+                {
+                    return this.type.GetMethods().Any(m => m.Name == "<Clone>$");
+                }
+
+                return false;
+            }
+        }
+
         private bool? isPartial;
 
         public bool IsPartial
@@ -1639,6 +1656,27 @@ namespace Arc.Visceral
             }
         }
 
+        public bool IsInitOnly
+        {// Indicating that the property has init-only setter.
+            get
+            {
+                if (this.symbol is IPropertySymbol ps)
+                {
+                    if (ps.SetMethod is { } setMethod)
+                    {
+                        return setMethod.IsInitOnly;
+                    }
+                }
+
+                return false;
+            }
+
+            protected set
+            {
+                this.isReadOnly = value;
+            }
+        }
+
         private bool? isReadable;
 
         public bool IsReadable
@@ -1766,18 +1804,45 @@ namespace Arc.Visceral
             }
         }
 
-        public string KindName => this.Kind switch
+        public string KindName
         {
-            VisceralObjectKind.Class => "class",
-            VisceralObjectKind.Interface => "interface",
-            VisceralObjectKind.Struct => "struct",
-            VisceralObjectKind.Record => "record",
-            VisceralObjectKind.Field => "field",
-            VisceralObjectKind.Property => "property",
-            VisceralObjectKind.Method => "method",
-            VisceralObjectKind.Event => "event",
-            _ => string.Empty,
-        };
+            get
+            {
+                if (this.Kind == VisceralObjectKind.Class)
+                {
+                    if (!this.IsRecord)
+                    {
+                        return "class";
+                    }
+                    else
+                    {
+                        return "record";
+                    }
+                }
+                else if (this.Kind == VisceralObjectKind.Struct)
+                {
+                    if (!this.IsRecord)
+                    {
+                        return "struct";
+                    }
+                    else
+                    {
+                        return "record struct";
+                    }
+                }
+
+                return this.Kind switch
+                {
+                    VisceralObjectKind.Interface => "interface",
+                    VisceralObjectKind.Record => "record",
+                    VisceralObjectKind.Field => "field",
+                    VisceralObjectKind.Property => "property",
+                    VisceralObjectKind.Method => "method",
+                    VisceralObjectKind.Event => "event",
+                    _ => string.Empty,
+                };
+            }
+        }
 
         public string AccessibilityName
         {
