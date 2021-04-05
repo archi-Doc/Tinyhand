@@ -61,6 +61,32 @@ namespace Sandbox
         public TestClass1.GoshujinClass G { get; set; } = default!;
     }
 
+    [TinyhandObject(ImplicitKeyAsName = true, IncludePrivateMembers = true)]
+    public partial record TestRecord
+    {
+        public int X { get; set; }
+
+        public int Y { get; init; }
+
+        private string A { get; set; } = string.Empty;
+
+        private string B = string.Empty;
+
+        public TestRecord(int x, int y, string a, string b)
+        {
+            this.X = x;
+            this.Y = y;
+            this.A = a;
+            this.B = b;
+        }
+
+        public TestRecord()
+        {
+        }
+
+        public void SetA(string a) => this.A = a;
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -80,6 +106,11 @@ namespace Sandbox
             st = TinyhandSerializer.SerializeToString(tc2);
             var tc2a = TinyhandSerializer.Deserialize<TestClass2>(TinyhandSerializer.Serialize(tc2));
             var tc2b = TinyhandSerializer.Reconstruct<TestClass2>();
+
+            var r = new TestRecord(1, 2, "a", "b");
+            var r2 = r with { X = 3, };
+            st = TinyhandSerializer.SerializeToString(r);
+            var r3 = TinyhandSerializer.Deserialize<TestRecord>(TinyhandSerializer.Serialize(r));
 
             /*var classB = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
             classB.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
