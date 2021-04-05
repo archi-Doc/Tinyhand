@@ -1445,6 +1445,23 @@ namespace Arc.Visceral
             }
         }
 
+        public bool IsRecord
+        {
+            get
+            {
+                if (this.symbol is ITypeSymbol ts)
+                {
+                    return ts.IsRecord;
+                }
+                else if (this.type?.IsTuple() == true)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
         private bool? isPartial;
 
         public bool IsPartial
