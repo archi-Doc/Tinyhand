@@ -83,8 +83,6 @@ namespace Sandbox
         public TestRecord()
         {
         }
-
-        public void SetA(string a) => this.A = a;
     }
 
     class Program
@@ -111,6 +109,14 @@ namespace Sandbox
             var r2 = r with { X = 3, };
             st = TinyhandSerializer.SerializeToString(r);
             var r3 = TinyhandSerializer.Deserialize<TestRecord>(TinyhandSerializer.Serialize(r));
+
+            var ty = r.GetType();
+            foreach (var x in ty.GetMethods())
+            {
+            }
+
+            var mi = ty.GetMethod("set_Y");
+            mi!.Invoke(r, new object?[] { 32});
 
             /*var classB = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
             classB.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });

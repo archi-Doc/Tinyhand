@@ -1656,6 +1656,27 @@ namespace Arc.Visceral
             }
         }
 
+        public bool IsInitOnly
+        {// Indicating that the property has init-only setter.
+            get
+            {
+                if (this.symbol is IPropertySymbol ps)
+                {
+                    if (ps.SetMethod is { } setMethod)
+                    {
+                        return setMethod.IsInitOnly;
+                    }
+                }
+
+                return false;
+            }
+
+            protected set
+            {
+                this.isReadOnly = value;
+            }
+        }
+
         private bool? isReadable;
 
         public bool IsReadable
