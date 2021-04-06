@@ -183,6 +183,11 @@ namespace Benchmark.Generics
         {
             if (v == null) { writer.WriteNil(); return; }
             // v.Serialize(ref writer, options);
+
+            writer.WriteArrayHeader(3);
+            options.Resolver.GetFormatter<T>().Serialize(ref writer, v.X, options);
+            options.Resolver.GetFormatter<T>().Serialize(ref writer, v.Y, options);
+            options.Resolver.GetFormatter<T[]>().Serialize(ref writer, v.A, options);
         }
         public GenericsIntClass<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
         {
@@ -244,7 +249,18 @@ namespace Benchmark.Generics
             this.stringByteMp = MessagePack.MessagePackSerializer.Serialize(new GenericsStringClass<int>(10, 200, this.intArray));
 
             // this.intByte = TinyhandSerializer.Serialize(new GenericsIntClass<NonSerializeClass>());
+            var c = (GenericsIntClass<double>)Activator.CreateInstance(typeof(GenericsIntClass<>).MakeGenericType(new Type[] { typeof(double), }));
+            Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatterGenerator(typeof(GenericsIntClass<>), x =>
+            {
+                if (x.Length != 1)
+                {
+                    return (null!, null!);
+                }
 
+                var formatter = Activator.CreateInstance(typeof(__gen__tf__0000<>).MakeGenericType(x));
+                return ((ITinyhandFormatter)formatter!, (ITinyhandFormatterExtra)formatter!);
+            });
+            var st = TinyhandSerializer.SerializeToString(c);
         }
 
         [Benchmark]
