@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using Tinyhand;
+using Tinyhand.IO;
 
 namespace Benchmark.Generics
 {
@@ -69,6 +70,63 @@ namespace Benchmark.Generics
         }
     }
 
+    [TinyhandObject]
+    public partial class CustomIntClass : ITinyhandSerialize
+    {
+        public int X { get; set; }
+
+        public int Y { get; set; }
+
+        public int[] A { get; set; } = default!;
+
+
+        public CustomIntClass(int x, int y, int[] a)
+        {
+            this.X = x;
+            this.Y = y;
+            this.A = a;
+        }
+
+        public CustomIntClass()
+        {
+        }
+
+        public void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
+        {
+            writer.WriteArrayHeader(3);
+            options.Resolver.GetFormatter<int>().Serialize(ref writer, this.X, options);
+            options.Resolver.GetFormatter<int>().Serialize(ref writer, this.Y, options);
+            options.Resolver.GetFormatter<int[]>().Serialize(ref writer, this.A, options);
+        }
+
+        public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        {
+            var numberOfData = reader.ReadArrayHeader();
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                if (numberOfData-- > 0 && !reader.TryReadNil())
+                {
+                    this.X = options.Resolver.GetFormatter<int>().Deserialize(ref reader, options);
+                }
+                if (numberOfData-- > 0 && !reader.TryReadNil())
+                {
+                    this.Y = options.Resolver.GetFormatter<int>().Deserialize(ref reader, options);
+                }
+                if (numberOfData-- > 0 && !reader.TryReadNil())
+                {
+                    this.A = options.Resolver.GetFormatter<int[]>().Deserialize(ref reader, options)!;
+                }
+                else
+                {
+                    this.A = new int[0];
+                }
+                while (numberOfData-- > 0) reader.Skip();
+            }
+            finally { reader.Depth--; }
+        }
+    }
+
     [TinyhandObject(ImplicitKeyAsName = true)]
     [MessagePack.MessagePackObject(true)]
     public partial class GenericsStringClass<T>
@@ -115,6 +173,47 @@ namespace Benchmark.Generics
         }
     }
 
+    public class NonSerializeClass
+    {
+    }
+
+    class __gen__tf__0000<T> : ITinyhandFormatter<GenericsIntClass<T>>, ITinyhandFormatterExtra<GenericsIntClass<T>>
+    {
+        public void Serialize(ref TinyhandWriter writer, GenericsIntClass<T>? v, TinyhandSerializerOptions options)
+        {
+            if (v == null) { writer.WriteNil(); return; }
+            // v.Serialize(ref writer, options);
+        }
+        public GenericsIntClass<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        {
+            if (reader.TryReadNil()) return default;
+            // load data (complicated)
+            var v = new GenericsIntClass<T>(); // Constructor
+            // OnAfterDeserialize
+            // return v;
+
+            // v.Deserialize(ref reader, options);
+            return v;
+        }
+        public GenericsIntClass<T> Reconstruct(TinyhandSerializerOptions options)
+        {
+            var v = new GenericsIntClass<T>();
+            // v.Reconstruct(options);
+            return v;
+        }
+        public GenericsIntClass<T>? Deserialize(GenericsIntClass<T> reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)
+        {
+            if (reuse == null)
+            {
+                return this.Deserialize(ref reader, options);
+            }
+
+            // set data
+            // reuse.Deserialize(ref reader, options);
+            return reuse;
+        }
+    }
+
 
     // [TinyhandObject]
     public partial record NormalIntRecord(int X, int Y, string A, string B);
@@ -143,12 +242,21 @@ namespace Benchmark.Generics
             this.stringByte = TinyhandSerializer.Serialize(new GenericsStringClass<int>(10, 200, this.intArray));
             this.intByteMp = MessagePack.MessagePackSerializer.Serialize(new GenericsIntClass<int>(10, 200, this.intArray));
             this.stringByteMp = MessagePack.MessagePackSerializer.Serialize(new GenericsStringClass<int>(10, 200, this.intArray));
+
+            // this.intByte = TinyhandSerializer.Serialize(new GenericsIntClass<NonSerializeClass>());
+
         }
 
         [Benchmark]
         public byte[] Serialize_NormalInt_Tinyhand()
         {
             return TinyhandSerializer.Serialize(new NormalIntClass(10, 200, this.intArray));
+        }
+
+        [Benchmark]
+        public byte[] Serialize_CustomInt_Tinyhand()
+        {
+            return TinyhandSerializer.Serialize(new CustomIntClass(10, 200, this.intArray));
         }
 
         [Benchmark]
@@ -196,7 +304,13 @@ namespace Benchmark.Generics
         [Benchmark]
         public NormalIntClass? Deserialize_NormalInt_Tinyhand()
         {
-            return TinyhandSerializer.Deserialize< NormalIntClass>(this.intByte);
+            return TinyhandSerializer.Deserialize<NormalIntClass>(this.intByte);
+        }
+
+        [Benchmark]
+        public CustomIntClass? Deserialize_CustomInt_Tinyhand()
+        {
+            return TinyhandSerializer.Deserialize<CustomIntClass>(this.intByte);
         }
 
         [Benchmark]
