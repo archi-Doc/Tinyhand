@@ -18,7 +18,7 @@ namespace Tinyhand.Resolvers
         /// </summary>
         public static readonly GeneratedResolver Instance = new();
 
-        private Dictionary<Type, FormatterGeneratorInfo> formatterGenerator = new();
+        private Internal.ThreadsafeTypeKeyHashTable<FormatterGeneratorInfo> formatterGenerator = new();
 
         internal class FormatterGeneratorInfo
         {

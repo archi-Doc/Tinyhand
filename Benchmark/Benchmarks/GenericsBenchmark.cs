@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -54,6 +55,7 @@ namespace Benchmark.Generics
         public int Y { get; set; }
 
         [Key(2)]
+        [DefaultValue(22)]
         [MessagePack.Key(2)]
         public int[] A { get; set; } = default!;
 
@@ -189,17 +191,7 @@ namespace Benchmark.Generics
             options.Resolver.GetFormatter<T>().Serialize(ref writer, v.Y, options);
             options.Resolver.GetFormatter<T[]>().Serialize(ref writer, v.A, options);
         }
-        public GenericsIntClass<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-        {
-            if (reader.TryReadNil()) return default;
-            // load data (complicated)
-            var v = new GenericsIntClass<T>(); // Constructor
-            // OnAfterDeserialize
-            // return v;
-
-            // v.Deserialize(ref reader, options);
-            return v;
-        }
+        public GenericsIntClass<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => this.Deserialize(null!, ref reader, options);
         public GenericsIntClass<T> Reconstruct(TinyhandSerializerOptions options)
         {
             var v = new GenericsIntClass<T>();
@@ -213,8 +205,21 @@ namespace Benchmark.Generics
                 return this.Deserialize(ref reader, options);
             }
 
-            // set data
-            // reuse.Deserialize(ref reader, options);
+            if (reader.TryReadNil()) return default;
+
+            // load data (complicated)
+
+            if (reuse == null)
+            {
+                reuse = new GenericsIntClass<T>(); // Constructor
+            }
+            else
+            {
+                // reuse.Deserialize();
+            }
+
+            // OnAfterDeserialize
+
             return reuse;
         }
     }
