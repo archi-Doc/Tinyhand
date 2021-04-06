@@ -67,7 +67,7 @@ namespace Tinyhand.Resolvers
         public void SetFormatterGenerator(Type genericType, Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> generator)
         {
             var info = new FormatterGeneratorInfo(genericType, generator);
-            this.formatterGenerator[genericType] = info;
+            this.formatterGenerator.TryAdd(genericType, info);
         }
 
         public void SetFormatter<T>(ITinyhandFormatter<T> formatter)

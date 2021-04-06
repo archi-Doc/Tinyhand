@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Benchmark.H2HTest;
 using BenchmarkDotNet.Attributes;
@@ -31,6 +32,21 @@ namespace Benchmark
             Stopwatch.Lap("MessagePack startup");
 
             b = Tinyhand.TinyhandSerializer.Serialize(td);
+            for (var n = 0; n < 10; n++)
+            {
+                var type = typeof(Generics.NormalIntClass);
+                var mi = type.GetMethod("set_X");
+                var targetObject = Expression.Parameter(typeof(Generics.NormalIntClass));
+                var tagetMember = Expression.Parameter(typeof(int));
+                var d = Expression.Lambda<Action<Generics.NormalIntClass, int>>(
+                    Expression.Call(
+                        targetObject,
+                        mi!,
+                        tagetMember),
+                    targetObject,
+                    tagetMember)
+                    .Compile();
+            }
             Stopwatch.Lap("Tinyhand startup");
 
             b = MessagePack.MessagePackSerializer.Serialize(tc);

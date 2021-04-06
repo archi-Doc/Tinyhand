@@ -51,11 +51,11 @@ namespace Benchmark.Generics
         public int X { get; set; }
 
         [Key(1)]
+        [DefaultValue(22)]
         [MessagePack.Key(1)]
         public int Y { get; set; }
 
         [Key(2)]
-        [DefaultValue(22)]
         [MessagePack.Key(2)]
         public int[] A { get; set; } = default!;
 
@@ -158,6 +158,7 @@ namespace Benchmark.Generics
     {
         public int X { get; set; }
 
+        [DefaultValue(32)]
         public int Y { get; set; }
 
         public int[] A { get; set; } = default!;
