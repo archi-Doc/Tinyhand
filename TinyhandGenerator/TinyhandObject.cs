@@ -1506,12 +1506,102 @@ namespace Tinyhand.Generator
         {
             this.FormatterNumber = info.FormatterCount++;
 
+            // Constructor/SetMembers
+            this.GenerateConstructor_Method(ssb, info);
+            this.GenerateSetMembers_Method(ssb, info);
+
             // Serialize/Deserialize/Reconstruct
             this.GenerateSerialize_Method(ssb, info);
             this.GenerateDeserialize_Method(ssb, info);
             this.GenerateReconstruct_Method(ssb, info);
 
             return;
+        }
+
+        internal void GenerateConstructor_Method(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            // Array
+            var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).ToArray();
+
+            // Check
+            foreach (var x in this.GetMembers(VisceralTarget.Method).Where(x => x.Method_IsConstructor))
+            {
+                if (x.Method_Parameters.SequenceEqual(array.Select(y => y.TypeObject!.FullName)))
+                {// Constructor with the same parameters found.
+                    return;
+                }
+            }
+
+            //if (!this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0))
+            {// No default constructor
+                if (this.Kind == VisceralObjectKind.Class)
+                {
+                    using (var method = ssb.ScopeBrace($"public {this.SimpleName}()"))
+                    {
+                    }
+                }
+            }
+
+            this.GenerateConstructorCore(ssb, info, true, array);
+        }
+
+        internal void GenerateConstructorCore(ScopingStringBuilder ssb, GeneratorInformation info, bool isConstructor, TinyhandObject[] array)
+        {
+            // Name
+            var sb = new StringBuilder();
+            if (isConstructor)
+            {
+                sb.Append($"public {this.SimpleName}");
+            }
+            else
+            {
+                sb.Append($"public void {TinyhandBody.SetMembersMethod}");
+            }
+
+            sb.Append("(");
+            for (var n = 0; n < array.Length; n++)
+            {
+                var withNullable = array[n].TypeObjectWithNullable!;
+                sb.Append(withNullable.Object.FullName);
+                sb.Append(" v");
+                sb.Append(n.ToString());
+                if (n < array.Length - 1)
+                {
+                    sb.Append(", ");
+                }
+            }
+            sb.Append(")");
+
+            if (isConstructor)
+            {
+                // sb.Append("\r\n");
+            }
+
+            // Method
+            using (var method = ssb.ScopeBrace(sb.ToString()))
+            {
+                for (var n = 0; n < array.Length; n++)
+                {
+                    ssb.AppendLine($"this.{array[n].SimpleName} = v{n};");
+                }
+            }
+        }
+
+        internal void GenerateSetMembers_Method(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            // Array
+            var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => !x.IsInitOnly).ToArray();
+
+            // Check
+            foreach (var x in this.GetMembers(VisceralTarget.Method).Where(x => x.SimpleName == TinyhandBody.SetMembersMethod))
+            {
+                if (x.Method_Parameters.SequenceEqual(array.Select(y => y.FullName)))
+                {// SetMembers with the same parameters found.
+                    return;
+                }
+            }
+
+            this.GenerateConstructorCore(ssb, info, false, array);
         }
 
         internal void GenerateDeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
