@@ -192,20 +192,11 @@ namespace Benchmark.Generics
             options.Resolver.GetFormatter<T>().Serialize(ref writer, v.Y, options);
             options.Resolver.GetFormatter<T[]>().Serialize(ref writer, v.A, options);
         }
+
         public GenericsIntClass<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => this.Deserialize(null!, ref reader, options);
-        public GenericsIntClass<T> Reconstruct(TinyhandSerializerOptions options)
-        {
-            var v = new GenericsIntClass<T>();
-            // v.Reconstruct(options);
-            return v;
-        }
+
         public GenericsIntClass<T>? Deserialize(GenericsIntClass<T> reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)
         {
-            if (reuse == null)
-            {
-                return this.Deserialize(ref reader, options);
-            }
-
             if (reader.TryReadNil()) return default;
 
             // load data (complicated)
@@ -222,6 +213,13 @@ namespace Benchmark.Generics
             // OnAfterDeserialize
 
             return reuse;
+        }
+
+        public GenericsIntClass<T> Reconstruct(TinyhandSerializerOptions options)
+        {
+            var v = new GenericsIntClass<T>();
+            // v.Reconstruct(options);
+            return v;
         }
     }
 
