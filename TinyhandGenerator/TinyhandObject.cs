@@ -105,9 +105,7 @@ namespace Tinyhand.Generator
 
         public string GenericsNumberString => this.GenericsNumber > 1 ? this.GenericsNumber.ToString() : string.Empty;
 
-        public int FormatterNumber { get; private set; }
-
-        public int FormatterExtraNumber { get; private set; }
+        public int FormatterNumber { get; private set; } = -1;
 
         internal Automata? Automata { get; private set; }
 
@@ -1015,10 +1013,11 @@ namespace Tinyhand.Generator
             {
                 foreach (var x in list2)
                 {
-                    var name = string.Format(classFormat, x.FormatterNumber);
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
-                    name = string.Format(classFormat, x.FormatterExtraNumber);
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>(new {name}());");
+                    var formatterName = string.Format(classFormat, x.FormatterNumber);
+                    var formatterInstance = string.Format("fmt{0:D4}", x.FormatterNumber);
+                    ssb.AppendLine($"var {formatterInstance} = new {formatterName}();");
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>({formatterInstance});");
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>({formatterInstance});");
                 }
             }
 
@@ -1027,7 +1026,7 @@ namespace Tinyhand.Generator
             foreach (var x in list2)
             {
                 var name = string.Format(classFormat, x.FormatterNumber);
-                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{x.FullName}>"))
+                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{x.FullName}>, ITinyhandFormatterExtra<{x.FullName}>"))
                 {
                     // Serialize
                     using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"))
@@ -1056,24 +1055,7 @@ namespace Tinyhand.Generator
                         }
                     }
 
-                    // Reconstruct
-                    using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct(TinyhandSerializerOptions options)"))
-                    {
-                        if (x.Union != null)
-                        {// Union
-                            ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");");
-                        }
-                        else
-                        {
-                            x.GenerateFormatter_Reconstruct(ssb, info);
-                        }
-                    }
-                }
-
-                name = string.Format(classFormat, x.FormatterExtraNumber);
-                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatterExtra<{x.FullName}>"))
-                {
-                    // Deserialize
+                    // DeserializeWith
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
                         if (x.Union != null)
@@ -1091,6 +1073,19 @@ namespace Tinyhand.Generator
                             ssb.AppendLine("return reuse;");
                         }
                     }
+
+                    // Reconstruct
+                    using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct(TinyhandSerializerOptions options)"))
+                    {
+                        if (x.Union != null)
+                        {// Union
+                            ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");");
+                        }
+                        else
+                        {
+                            x.GenerateFormatter_Reconstruct(ssb, info);
+                        }
+                    }
                 }
             }
         }
@@ -1104,7 +1099,6 @@ namespace Tinyhand.Generator
             else if (this.IsAbstractOrInterface)
             {// Skip generating partial method.
                 this.FormatterNumber = info.FormatterCount++;
-                this.FormatterExtraNumber = info.FormatterCount++;
                 return;
             }
 
@@ -1511,7 +1505,6 @@ namespace Tinyhand.Generator
         internal void Generate2(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             this.FormatterNumber = info.FormatterCount++;
-            this.FormatterExtraNumber = info.FormatterCount++;
 
             // Serialize/Deserialize/Reconstruct
             this.GenerateSerialize_Method(ssb, info);
