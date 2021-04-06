@@ -42,10 +42,11 @@ namespace Benchmark
             Console.WriteLine(Stopwatch.ToSimpleString());
             Console.WriteLine();
 
-            DebugRun<InitOnly.InitOnlyBenchmark>();
+            DebugRun<Generics.GenericsBenchmark>();
 
             var switcher = new BenchmarkSwitcher(new[]
             {
+                typeof(Generics.GenericsBenchmark),
                 typeof(InitOnly.InitOnlyBenchmark),
                 typeof(H2HTest.H2HSandbox),
                 typeof(H2HTest.H2HBenchmark),

@@ -18,8 +18,4 @@
     <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="GenericsBenchmark\" />
-  </ItemGroup>
-
 </Project>
