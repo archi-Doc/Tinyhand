@@ -1125,6 +1125,12 @@ namespace Tinyhand.Generator
 
             using (var cls = ssb.ScopeBrace($"{this.AccessibilityName} partial {this.KindName} {this.LocalName}{interfaceString}"))
             {
+                if (this.ObjectAttribute != null)
+                {// Constructor/SetMembers
+                    this.GenerateConstructor_Method(ssb, info);
+                    this.GenerateSetMembers_Method(ssb, info);
+                }
+
                 foreach (var x in this.ConstructedObjects)
                 {
                     if (x.ObjectAttribute == null)
@@ -1506,10 +1512,6 @@ namespace Tinyhand.Generator
         {
             this.FormatterNumber = info.FormatterCount++;
 
-            // Constructor/SetMembers
-            this.GenerateConstructor_Method(ssb, info);
-            this.GenerateSetMembers_Method(ssb, info);
-
             // Serialize/Deserialize/Reconstruct
             this.GenerateSerialize_Method(ssb, info);
             this.GenerateDeserialize_Method(ssb, info);
@@ -1532,7 +1534,7 @@ namespace Tinyhand.Generator
                 }
             }
 
-            //if (!this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0))
+            if (!this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0))
             {// No default constructor
                 if (this.Kind == VisceralObjectKind.Class)
                 {
