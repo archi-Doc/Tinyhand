@@ -19,7 +19,6 @@ namespace Tinyhand.Generator
 {
     public class TinyhandBody : VisceralBody<TinyhandObject>
     {
-        public static readonly string StringKeyFieldFormat = "__gen_utf8_key_{0:D4}";
         public static readonly int MaxIntegerKey = 5_000;
         public static readonly int MaxStringKeySizeInBytes = 512;
         public static readonly string SetDefaultMethod = "SetDefault";

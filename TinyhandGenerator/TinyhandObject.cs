@@ -1525,6 +1525,7 @@ namespace Tinyhand.Generator
         internal void Generate2(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             this.FormatterNumber = info.FormatterCount++;
+            this.PrepareAutomata();
 
             // Serialize/Deserialize/Reconstruct
             this.GenerateSerialize_Method(ssb, info);
@@ -1532,6 +1533,35 @@ namespace Tinyhand.Generator
             this.GenerateReconstruct_Method(ssb, info);
 
             return;
+        }
+
+        internal void PrepareAutomata()
+        {
+            if (this.Automata == null)
+            {
+                return;
+            }
+
+            var count = 0;
+            foreach (var x in this.Automata.NodeList)
+            {
+                x.ReconstructIndex = -1;
+                if (x.Member == null)
+                {
+                    continue;
+                }
+
+                x.Identifier = this.Identifier.GetIdentifier();
+                if (x.Member.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated ||
+                    x.Member.Kind.IsValueType() ||
+                    x.Member.IsDefaultable ||
+                    x.Member.ReconstructState == ReconstructState.Do)
+                {
+                    x.ReconstructIndex = count++;
+                }
+            }
+
+            this.Automata.ReconstructCount = count;
         }
 
         internal void GenerateConstructor_Method(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1890,8 +1920,6 @@ namespace Tinyhand.Generator
                 ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
             }
 
-            this.Automata.PrepareReconstruct();
-
             ssb.AppendLine("ulong key;");
             if (this.Automata.ReconstructCount > 0)
             {
@@ -2008,7 +2036,7 @@ namespace Tinyhand.Generator
             var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
             foreach (var x in this.Automata.NodeList)
             {
-                ssb.AppendLine($"writer.WriteString({cf.LocalName}.{string.Format(TinyhandBody.StringKeyFieldFormat, x.Index)});");
+                ssb.AppendLine($"writer.WriteString({cf.LocalName}.{x.Identifier});");
                 this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
             }
         }
@@ -2028,7 +2056,7 @@ namespace Tinyhand.Generator
                     continue;
                 }
 
-                ssb.Append($"private static ReadOnlySpan<byte> {string.Format(TinyhandBody.StringKeyFieldFormat, x.Index)} => new byte[] {{ ");
+                ssb.Append($"private static ReadOnlySpan<byte> {x.Identifier} => new byte[] {{ ");
                 foreach (var y in x.Utf8Name)
                 {
                     ssb.Append($"{y}, ", false);

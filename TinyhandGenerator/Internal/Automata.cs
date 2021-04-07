@@ -22,30 +22,7 @@ namespace Tinyhand.Generator
 
         public TinyhandObject Object { get; }
 
-        public int ReconstructCount { get; private set; }
-
-        public void PrepareReconstruct()
-        {
-            var count = 0;
-            foreach (var x in this.NodeList)
-            {
-                x.ReconstructIndex = -1;
-                if (x.Member == null)
-                {
-                    continue;
-                }
-
-                if (x.Member.NullableAnnotationIfReferenceType == NullableAnnotation.NotAnnotated ||
-                    x.Member.Kind.IsValueType() ||
-                    x.Member.IsDefaultable ||
-                    x.Member.ReconstructState == ReconstructState.Do)
-                {
-                    x.ReconstructIndex = count++;
-                }
-            }
-
-            this.ReconstructCount = count;
-        }
+        public int ReconstructCount { get; set; }
 
         public void GenerateReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
@@ -277,6 +254,8 @@ namespace Tinyhand.Generator
             public TinyhandObject? Member { get; private set; }
 
             public byte[]? Utf8Name { get; private set; }
+
+            public string? Identifier { get; set; }
 
             public SortedDictionary<ulong, Node>? Nexts { get; private set; }
 
