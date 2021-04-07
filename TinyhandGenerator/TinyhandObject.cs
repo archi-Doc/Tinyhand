@@ -1043,7 +1043,8 @@ namespace Tinyhand.Generator
                     }
 
                     // Deserialize
-                    using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+                    ssb.AppendLine($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => this.Deserialize(default!, ref reader, options);");
+                    /*using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
                         if (x.Union != null)
                         {// Union
@@ -1053,7 +1054,7 @@ namespace Tinyhand.Generator
                         {
                             x.GenerateFormatter_Deserialize(ssb, info);
                         }
-                    }
+                    }*/
 
                     // DeserializeWith
                     using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
@@ -1064,9 +1065,13 @@ namespace Tinyhand.Generator
                         }
                         else
                         {
-                            if (x.Kind.IsReferenceType() && x.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
+                            if (x.Kind.IsReferenceType())
                             {// Reference type
-                                ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                                ssb.AppendLine("if (reader.TryReadNil()) return reuse;");
+                                if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
+                                {// Reference type
+                                    ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                                }
                             }
 
                             x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
@@ -1524,6 +1529,10 @@ namespace Tinyhand.Generator
         {
             // Array
             var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).ToArray();
+            if (array.Length == 0)
+            {
+                return;
+            }
 
             // Check
             foreach (var x in this.GetMembers(VisceralTarget.Method).Where(x => x.Method_IsConstructor))
@@ -1534,10 +1543,10 @@ namespace Tinyhand.Generator
                 }
             }
 
-            if (!this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0))
-            {// No default constructor
-                if (this.Kind == VisceralObjectKind.Class)
-                {
+            if (this.Kind == VisceralObjectKind.Class)
+            {
+                if (!this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0 && a.symbol?.IsImplicitlyDeclared != true))
+                {// No explicit default constructor
                     using (var method = ssb.ScopeBrace($"public {this.SimpleName}()"))
                     {
                     }
@@ -1572,11 +1581,12 @@ namespace Tinyhand.Generator
                     sb.Append(", ");
                 }
             }
+
             sb.Append(")");
 
             if (isConstructor)
             {
-                // sb.Append("\r\n");
+                sb.Append(" : this()");
             }
 
             // Method
@@ -1593,6 +1603,10 @@ namespace Tinyhand.Generator
         {
             // Array
             var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => !x.IsInitOnly).ToArray();
+            if (array.Length == 0)
+            {
+                return;
+            }
 
             // Check
             foreach (var x in this.GetMembers(VisceralTarget.Method).Where(x => x.SimpleName == TinyhandBody.SetMembersMethod))

@@ -253,7 +253,9 @@ namespace Benchmark.Generics
             this.stringByteMp = MessagePack.MessagePackSerializer.Serialize(new GenericsStringClass<int>(10, 200, this.intArray));
 
             // this.intByte = TinyhandSerializer.Serialize(new GenericsIntClass<NonSerializeClass>());
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
             var c = (GenericsIntClass<double>)Activator.CreateInstance(typeof(GenericsIntClass<>).MakeGenericType(new Type[] { typeof(double), }));
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
             Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatterGenerator(typeof(GenericsIntClass<>), x =>
             {
                 if (x.Length != 1)
