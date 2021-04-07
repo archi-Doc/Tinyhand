@@ -139,7 +139,22 @@ namespace Benchmark.Generics
 
         public T[] A { get; set; } = default!;
 
-        public Action<GenericsStringClass<T>, T>? SetX;
+        private static bool __initialized = __initialized ? __initialized : __initialize();
+        private static bool __initialize()
+        {
+            var type = typeof(GenericsStringClass<T>);
+            var expType = Expression.Parameter(type);
+
+            {
+                var mi = type.GetMethod("set_X");
+                var expMember = Expression.Parameter(typeof(T));
+                SetX = Expression.Lambda<Action<GenericsStringClass<T>, T>>(Expression.Call(expType, mi!, expMember), expType, expMember).Compile();
+            }
+
+            return true;
+        }
+
+        public static Action<GenericsStringClass<T>, T>? SetX;
 
         public GenericsStringClass(T x, T y, T[] a)
         {
@@ -150,6 +165,8 @@ namespace Benchmark.Generics
 
         public GenericsStringClass()
         {
+            var x = __initialized;
+            x = __initialized;
             /*var type = typeof(GenericsStringClass<T>);
             var mi = type.GetMethod("set_X");
             var targetObject = Expression.Parameter(type);
@@ -255,7 +272,7 @@ namespace Benchmark.Generics
         public GenericsBenchmark()
         {
             var ss = new GenericsStringClass<float>();
-            ss.SetX!(ss, 4);
+            GenericsStringClass<float>.SetX!(ss, 4);
         }
 
         [GlobalSetup]

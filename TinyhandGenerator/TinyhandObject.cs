@@ -101,6 +101,8 @@ namespace Tinyhand.Generator
 
         public List<TinyhandObject>? ConstructedObjects { get; private set; } // The opposite of ConstructedFrom
 
+        public VisceralIdentifier Identifier { get; private set; } = VisceralIdentifier.Default;
+
         public int GenericsNumber { get; private set; }
 
         public string GenericsNumberString => this.GenericsNumber > 1 ? this.GenericsNumber.ToString() : string.Empty;
@@ -498,6 +500,13 @@ namespace Tinyhand.Generator
 
         public void CheckObject()
         {
+            // Identifier
+            this.Identifier = new VisceralIdentifier("__gen_th_identifier_");
+            foreach (var x in this.AllMembers)
+            {
+                this.Identifier.Add(x.SimpleName);
+            }
+
             if (!this.IsAbstractOrInterface)
             {
                 this.ObjectFlag |= TinyhandObjectFlag.CanCreateInstance;
