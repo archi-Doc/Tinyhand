@@ -139,6 +139,7 @@ namespace Benchmark.Generics
 
         public T[] A { get; set; } = default!;
 
+        public Action<GenericsStringClass<T>, T>? SetX;
 
         public GenericsStringClass(T x, T y, T[] a)
         {
@@ -149,6 +150,18 @@ namespace Benchmark.Generics
 
         public GenericsStringClass()
         {
+            /*var type = typeof(GenericsStringClass<T>);
+            var mi = type.GetMethod("set_X");
+            var targetObject = Expression.Parameter(type);
+            var tagetMember = Expression.Parameter(typeof(T));
+            this.SetX = Expression.Lambda<Action<GenericsStringClass<T>, T>>(
+                Expression.Call(
+                    targetObject,
+                    mi!,
+                    tagetMember),
+                targetObject,
+                tagetMember)
+                .Compile();*/
         }
     }
 
@@ -241,6 +254,8 @@ namespace Benchmark.Generics
 
         public GenericsBenchmark()
         {
+            var ss = new GenericsStringClass<float>();
+            ss.SetX!(ss, 4);
         }
 
         [GlobalSetup]

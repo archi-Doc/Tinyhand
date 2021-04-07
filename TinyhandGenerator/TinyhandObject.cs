@@ -1132,8 +1132,8 @@ namespace Tinyhand.Generator
             {
                 if (this.ObjectAttribute != null)
                 {// Constructor/SetMembers
-                    this.GenerateConstructor_Method(ssb, info);
-                    this.GenerateSetMembers_Method(ssb, info);
+                    // this.GenerateConstructor_Method(ssb, info);
+                    // this.GenerateSetMembers_Method(ssb, info);
                 }
 
                 foreach (var x in this.ConstructedObjects)
