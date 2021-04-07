@@ -5,8 +5,7 @@ using Tinyhand.IO;
 namespace Tinyhand
 {
     /// <summary>
-    /// A base interface for <see cref="ITinyhandFormatter{T}"/> so that all generic implementations
-    /// can be detected by a common base type.
+    /// A base interface for <see cref="ITinyhandFormatter{T}"/> so that all generic implementations can be detected by a common base type.
     /// </summary>
     public interface ITinyhandFormatter
     {
@@ -43,8 +42,7 @@ namespace Tinyhand
     }
 
     /// <summary>
-    /// A base interface for <see cref="ITinyhandFormatterExtra{T}"/> so that all generic implementations
-    /// can be detected by a common base type.
+    /// A base interface for <see cref="ITinyhandFormatterExtra{T}"/> so that all generic implementations can be detected by a common base type.
     /// </summary>
     public interface ITinyhandFormatterExtra
     {

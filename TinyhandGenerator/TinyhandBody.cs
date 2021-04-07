@@ -23,6 +23,7 @@ namespace Tinyhand.Generator
         public static readonly int MaxIntegerKey = 5_000;
         public static readonly int MaxStringKeySizeInBytes = 512;
         public static readonly string SetDefaultMethod = "SetDefault";
+        public static readonly string SetMembersMethod = "SetMembers";
 
         public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
             id: "TG001", title: "Not a partial class/struct", messageFormat: "TinyhandObject '{0}' is not a partial class/struct",
@@ -275,6 +276,7 @@ namespace Tinyhand.Generator
             ssb.AppendLine("#pragma warning disable CS0108", false); // Hides inherited member
             ssb.AppendLine("#pragma warning disable CS0162", false); // Unreachable code detected
             ssb.AppendLine("#pragma warning disable CS1591", false);
+            ssb.AppendLine("#pragma warning disable CS8618", false);
             ssb.AppendLine("#pragma warning disable CS8774", false); // MemberNotNull
             ssb.AppendLine();
         }

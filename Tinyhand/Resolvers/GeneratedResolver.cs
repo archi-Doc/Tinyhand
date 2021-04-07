@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using Tinyhand;
 
@@ -17,13 +18,56 @@ namespace Tinyhand.Resolvers
         /// </summary>
         public static readonly GeneratedResolver Instance = new();
 
+        private Internal.ThreadsafeTypeKeyHashTable<FormatterGeneratorInfo> formatterGenerator = new();
+
+        internal class FormatterGeneratorInfo
+        {
+            public Type GenericType { get; }
+
+            public Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> Generator { get; set; }
+
+            public ITinyhandFormatter? Formatter { get; set; }
+
+            public ITinyhandFormatterExtra? FormatterExtra { get; set; }
+
+            public FormatterGeneratorInfo(Type genericType, Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> generator)
+            {
+                this.GenericType = genericType;
+                this.Generator = generator;
+            }
+        }
+
         private GeneratedResolver()
         {
         }
 
         public ITinyhandFormatter<T>? TryGetFormatter<T>()
         {
-            return FormatterCache<T>.Formatter;
+            var formatter = FormatterCache<T>.Formatter;
+            if (formatter != null)
+            {
+                return formatter;
+            }
+
+            var targetType = typeof(T);
+            var genericType = targetType.GetGenericTypeDefinition();
+            if (this.formatterGenerator.TryGetValue(genericType, out var info))
+            {
+                if (info.Formatter == null)
+                {
+                    (info.Formatter, info.FormatterExtra) = info.Generator(targetType.GetGenericArguments());
+                }
+
+                return (ITinyhandFormatter<T>)info.Formatter;
+            }
+
+            return null;
+        }
+
+        public void SetFormatterGenerator(Type genericType, Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> generator)
+        {
+            var info = new FormatterGeneratorInfo(genericType, generator);
+            this.formatterGenerator.TryAdd(genericType, info);
         }
 
         public void SetFormatter<T>(ITinyhandFormatter<T> formatter)
@@ -33,7 +77,25 @@ namespace Tinyhand.Resolvers
 
         public ITinyhandFormatterExtra<T>? TryGetFormatterExtra<T>()
         {
-            return FormatterCacheExtra<T>.Formatter;
+            var formatter = FormatterCacheExtra<T>.Formatter;
+            if (formatter != null)
+            {
+                return formatter;
+            }
+
+            var targetType = typeof(T);
+            var genericType = targetType.GetGenericTypeDefinition();
+            if (this.formatterGenerator.TryGetValue(genericType, out var info))
+            {
+                if (info.FormatterExtra == null)
+                {
+                    (info.Formatter, info.FormatterExtra) = info.Generator(targetType.GetGenericArguments());
+                }
+
+                return (ITinyhandFormatterExtra<T>)info.FormatterExtra;
+            }
+
+            return null;
         }
 
         public void SetFormatterExtra<T>(ITinyhandFormatterExtra<T> formatter)

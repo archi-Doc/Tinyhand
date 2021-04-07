@@ -18,7 +18,7 @@ namespace Tinyhand.Formatters
 
         private delegate void SerializeMethod(object dynamicFormatter, ref TinyhandWriter writer, object value, TinyhandSerializerOptions options);
 
-        private static readonly Internal.ThreadsafeTypeKeyHashTable<SerializeMethod> SerializerDelegates = new Internal.ThreadsafeTypeKeyHashTable<SerializeMethod>();
+        private static readonly Internal.ThreadsafeTypeKeyHashTable<SerializeMethod> SerializerDelegates = new();
 
         private DynamicObjectTypeFallbackFormatter()
         {
