@@ -74,6 +74,8 @@ namespace Arc.Visceral
 
         public IScope ScopeObject(string objectName, bool addPeriod = true) => new Scope(this, objectName, addPeriod);
 
+        public IScope ScopeFullObject(string fullObjectName) => new Scope(this, fullObjectName);
+
         public void Append(string text, bool indentFlag = true)
         {
             if (this.CurrentScope.IsDisposed)
@@ -243,6 +245,26 @@ namespace Arc.Visceral
                             this.FullObject = this.Parent.FullObject + this.CurrentObject;
                         }
                     }
+                }
+            }
+
+            public Scope(ScopingStringBuilder ssb, string fullObjectName)
+            { // FullObject scope
+                this.ssb = ssb;
+                this.Parent = this.ssb.CurrentScope;
+                this.ssb.CurrentScope = this;
+
+                this.HasBrace = false;
+                this.CurrentObject = fullObjectName;
+                if (this.Parent == null)
+                {
+                    this.CurrentIndent = 0;
+                    this.FullObject = this.CurrentObject;
+                }
+                else
+                {
+                    this.CurrentIndent = this.Parent.CurrentIndent;
+                    this.FullObject = this.CurrentObject;
                 }
             }
 

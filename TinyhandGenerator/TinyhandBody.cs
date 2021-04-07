@@ -267,6 +267,7 @@ namespace Tinyhand.Generator
             ssb.AddUsing("System");
             ssb.AddUsing("System.Collections.Generic");
             ssb.AddUsing("System.Diagnostics.CodeAnalysis");
+            ssb.AddUsing("System.Linq.Expressions");
             ssb.AddUsing("System.Runtime.CompilerServices");
             ssb.AddUsing("Tinyhand");
             ssb.AddUsing("Tinyhand.IO");

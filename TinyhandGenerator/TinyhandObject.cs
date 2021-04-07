@@ -109,6 +109,8 @@ namespace Tinyhand.Generator
 
         public int FormatterNumber { get; private set; } = -1;
 
+        public string? InitDelegateIdentifier { get; private set; }
+
         internal Automata? Automata { get; private set; }
 
         public TinyhandObject[]? IntKey_Array;
@@ -1175,6 +1177,9 @@ namespace Tinyhand.Generator
                 // StringKey fields
                 this.GenerateStringKeyFields(ssb, info);
 
+                // Init-only property delegates
+                this.GenerateInitSetters(ssb, info);
+
                 if (this.Children?.Count > 0)
                 {// Generate children and loader.
                     ssb.AppendLine();
@@ -1187,6 +1192,52 @@ namespace Tinyhand.Generator
                     GenerateLoader(ssb, info, this.Children);
                 }
             }
+        }
+
+        internal void GenerateInitSetters(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            // Array
+            var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.IsInitOnly).ToArray();
+            if (array.Length == 0)
+            {
+                return;
+            }
+
+            // Identifier
+            var initializeFlag = this.Identifier.GetIdentifier();
+            var initializeMethod = this.Identifier.GetIdentifier();
+            foreach (var x in array)
+            {
+                x.InitDelegateIdentifier = this.Identifier.GetIdentifier();
+            }
+
+            // initializeFlag / initializeMethod
+            ssb.AppendLine();
+            ssb.AppendLine($"private static bool {initializeFlag} = {initializeMethod}();");
+            using (var scopeMethod = ssb.ScopeBrace($"private static bool {initializeMethod}()"))
+            {
+                ssb.AppendLine($"var type = typeof({this.LocalName});");
+                ssb.AppendLine("var expType = Expression.Parameter(type);");
+                ssb.AppendLine("System.Reflection.MethodInfo mi;");
+                ssb.AppendLine("ParameterExpression exp;");
+                foreach (var x in array)
+                {
+                    ssb.AppendLine($"mi = type.GetMethod(\"set_{x.SimpleName}\")!;");
+                    ssb.AppendLine($"exp = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
+                    ssb.AppendLine($"{x.InitDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Call(expType, mi!, exp), expType, exp).Compile();");
+                }
+
+                ssb.AppendLine("return true;");
+            }
+
+            // Init setters
+            ssb.AppendLine();
+            foreach (var x in array)
+            {
+                ssb.AppendLine($"private static Action<{this.LocalName}, {x.TypeObject!.FullName}>? {x.InitDelegateIdentifier};");
+            }
+
+            ssb.AppendLine();
         }
 
         internal void Generate_OnBeforeSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1737,11 +1788,14 @@ namespace Tinyhand.Generator
                 return;
             }
 
+            ScopingStringBuilder.IScope? initSetter = null;
             using (var m = ssb.ScopeObject(x.SimpleName))
             {
                 var coder = CoderResolver.Instance.TryGetCoder(withNullable);
                 using (var valid = ssb.ScopeBrace($"if (!reader.TryReadNil())"))
                 {
+                    InitSetter_Start();
+
                     if (withNullable.Object.ObjectAttribute != null)
                     {
                         withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -1759,27 +1813,33 @@ namespace Tinyhand.Generator
 
                         if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
                         {// T?
-                            ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
                         }
                         else
                         {// T
                             ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
-                            ssb.AppendLine($"{m.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
+                            ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
                         }
                     }
+
+                    InitSetter_End();
                 }
 
                 if (x!.IsDefaultable)
                 {// Default
                     using (var invalid = ssb.ScopeBrace("else"))
                     {
-                        ssb.AppendLine($"{m.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                        InitSetter_Start();
+                        ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+
+                        InitSetter_End();
                     }
                 }
                 else if (x.ReconstructState == ReconstructState.Do)
                 {
                     using (var invalid = ssb.ScopeBrace("else"))
                     {
+                        InitSetter_Start();
                         if (withNullable.Object.ObjectAttribute != null)
                         {// TinyhandObject. For the purpose of default value and instance reuse.
                             withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -1790,9 +1850,30 @@ namespace Tinyhand.Generator
                         }
                         else
                         {
-                            ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
+                            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
                         }
+
+                        InitSetter_End();
                     }
+                }
+            }
+
+            void InitSetter_Start()
+            {
+                if (x!.InitDelegateIdentifier != null)
+                {
+                    initSetter = ssb.ScopeFullObject("vd");
+                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                }
+            }
+
+            void InitSetter_End()
+            {
+                if (initSetter != null)
+                {
+                    initSetter.Dispose();
+                    initSetter = null;
+                    ssb.AppendLine($"{x.InitDelegateIdentifier}!(vd);");
                 }
             }
         }
