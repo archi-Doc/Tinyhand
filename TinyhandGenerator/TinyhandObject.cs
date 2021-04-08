@@ -109,6 +109,8 @@ namespace Tinyhand.Generator
 
         public int FormatterNumber { get; private set; } = -1;
 
+        public int FormatterExtraNumber { get; private set; } = -1;
+
         public string? InitDelegateIdentifier { get; private set; }
 
         internal Automata? Automata { get; private set; }
@@ -1024,11 +1026,10 @@ namespace Tinyhand.Generator
             {
                 foreach (var x in list2)
                 {
-                    var formatterName = string.Format(classFormat, x.FormatterNumber);
-                    var formatterInstance = string.Format("fmt{0:D4}", x.FormatterNumber);
-                    ssb.AppendLine($"var {formatterInstance} = new {formatterName}();");
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>({formatterInstance});");
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>({formatterInstance});");
+                    var name = string.Format(classFormat, x.FormatterNumber);
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
+                    name = string.Format(classFormat, x.FormatterExtraNumber);
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>(new {name}());");
                 }
             }
 
@@ -1037,7 +1038,7 @@ namespace Tinyhand.Generator
             foreach (var x in list2)
             {
                 var name = string.Format(classFormat, x.FormatterNumber);
-                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{x.FullName}>, ITinyhandFormatterExtra<{x.FullName}>"))
+                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{x.FullName}>"))
                 {
                     // Serialize
                     using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"))
@@ -1054,8 +1055,7 @@ namespace Tinyhand.Generator
                     }
 
                     // Deserialize
-                    ssb.AppendLine($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => this.Deserialize(default!, ref reader, options);");
-                    /*using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+                    using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                     {
                         if (x.Union != null)
                         {// Union
@@ -1064,29 +1064,6 @@ namespace Tinyhand.Generator
                         else
                         {
                             x.GenerateFormatter_Deserialize(ssb, info);
-                        }
-                    }*/
-
-                    // DeserializeWith
-                    using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
-                    {
-                        if (x.Union != null)
-                        {// Union
-                            x.Union.GenerateFormatter_Deserialize(ssb, info, "reuse");
-                        }
-                        else
-                        {
-                            if (x.Kind.IsReferenceType())
-                            {// Reference type
-                                ssb.AppendLine("if (reader.TryReadNil()) return reuse;");
-                                if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
-                                {// Reference type
-                                    ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
-                                }
-                            }
-
-                            x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
-                            ssb.AppendLine("return reuse;");
                         }
                     }
 
@@ -1103,6 +1080,29 @@ namespace Tinyhand.Generator
                         }
                     }
                 }
+
+                name = string.Format(classFormat, x.FormatterExtraNumber);
+                using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatterExtra<{x.FullName}>"))
+                {
+                    // Deserialize
+                    using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
+                    {
+                        if (x.Union != null)
+                        {// Union
+                            x.Union.GenerateFormatter_Deserialize(ssb, info, "reuse");
+                        }
+                        else
+                        {
+                            if (x.Kind.IsReferenceType() && x.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
+                            {// Reference type
+                                ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                            }
+
+                            x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
+                            ssb.AppendLine("return reuse;");
+                        }
+                    }
+                }
             }
         }
 
@@ -1115,6 +1115,7 @@ namespace Tinyhand.Generator
             else if (this.IsAbstractOrInterface)
             {// Skip generating partial method.
                 this.FormatterNumber = info.FormatterCount++;
+                this.FormatterExtraNumber = info.FormatterCount++;
                 return;
             }
 
@@ -1576,6 +1577,7 @@ namespace Tinyhand.Generator
         internal void Generate2(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             this.FormatterNumber = info.FormatterCount++;
+            this.FormatterExtraNumber = info.FormatterCount++;
             this.PrepareAutomata();
 
             // Serialize/Deserialize/Reconstruct
