@@ -164,6 +164,8 @@ public partial class KeyAsNameClass
 }
 ```
 
+
+
 ### Readonly and Getter-only
 
 Readonly field and getter-only property are not serialization target. 
@@ -180,7 +182,30 @@ public partial class ReadonlyGetteronlyClass
 }
 ```
 
-Although it is not impossible to serialize read-only fields and getter-only properties, this feature is not supported because it requires dynamic code generation and read-only should be read-only.
+Although it is not impossible to serialize read-only fields and getter-only properties, this feature is not supported because it requires dynamic code generation and read-only data should not be targeted for serialization.
+
+
+
+### Init-only property and Record type
+
+Init-only property and ```record``` type are supported.
+
+```csharp
+[TinyhandObject]
+public partial record RecordClass // Partial class required.
+{// Default constructor is not required for record types.
+    [Key(0)]
+    public int X { get; init; }
+
+    [Key(1)]
+    public string A { get; init; } = default!;
+}
+
+[TinyhandObject(ImplicitKeyAsName = true)] // Short code, but string key is a bit slower then integer key.
+public partial record RecordClass2(int X, string A);
+```
+
+
 
 ### Include private members
 
@@ -200,6 +225,8 @@ public partial class IncludePrivateClass
     private int Z; // Add the IgnoreMember attribute to exclude from serialization targets.
 }
 ```
+
+
 
 ### Explicit key only
 

@@ -26,27 +26,13 @@ namespace Benchmark
         {
             var tc = new Benchmark.H2HTest.ObjectH2H();
             var td = 1;
+            var te = new InitOnly.InitIntClass();
 
             Stopwatch.Restart();
             var b = MessagePack.MessagePackSerializer.Serialize(td);
             Stopwatch.Lap("MessagePack startup");
 
             b = Tinyhand.TinyhandSerializer.Serialize(td);
-            for (var n = 0; n < 10; n++)
-            {
-                var type = typeof(Generics.NormalIntClass);
-                var mi = type.GetMethod("set_X");
-                var targetObject = Expression.Parameter(typeof(Generics.NormalIntClass));
-                var tagetMember = Expression.Parameter(typeof(int));
-                var d = Expression.Lambda<Action<Generics.NormalIntClass, int>>(
-                    Expression.Call(
-                        targetObject,
-                        mi!,
-                        tagetMember),
-                    targetObject,
-                    tagetMember)
-                    .Compile();
-            }
             Stopwatch.Lap("Tinyhand startup");
 
             b = MessagePack.MessagePackSerializer.Serialize(tc);
@@ -54,6 +40,12 @@ namespace Benchmark
 
             b = Tinyhand.TinyhandSerializer.Serialize(tc);
             Stopwatch.Lap("Tinyhand startup2");
+
+            b = MessagePack.MessagePackSerializer.Serialize(te);
+            Stopwatch.Lap("MessagePack startup3");
+
+            b = Tinyhand.TinyhandSerializer.Serialize(te);
+            Stopwatch.Lap("Tinyhand startup3");
 
             Console.WriteLine(Stopwatch.ToSimpleString());
             Console.WriteLine();

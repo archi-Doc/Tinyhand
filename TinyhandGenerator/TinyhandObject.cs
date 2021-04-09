@@ -83,6 +83,8 @@ namespace Tinyhand.Generator
 
         public ReuseAttributeMock? ReuseAttribute { get; private set; }
 
+        public int MinimumConstructor { get; private set; }
+
         public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members is not static && property or field
 
         public IEnumerable<TinyhandObject> MembersWithFlag(TinyhandObjectFlag flag) => this.Members.Where(x => x.ObjectFlag.HasFlag(flag));
@@ -527,7 +529,11 @@ namespace Tinyhand.Generator
                 // default constructor required.
                 if (this.Kind.IsReferenceType())
                 {
-                    if (this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
+                    if (this.IsRecord)
+                    {
+                        this.MinimumConstructor = this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).Min(a => a.Method_Parameters.Length);
+                    }
+                    else if (this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
                     {
                         this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
                     }
@@ -1105,7 +1111,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                         {
                             if (x.Kind.IsReferenceType() && x.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
                             {// Reference type
-                                ssb.AppendLine($"reuse = reuse ?? new {x.FullName}();");
+                                ssb.AppendLine($"reuse = reuse ?? {x.NewInstanceCode()};");
                             }
 
                             x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
@@ -1415,6 +1421,29 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             }
         }
 
+        internal string NewInstanceCode()
+        {
+            if (this.MinimumConstructor == 0)
+            {// Default constructor. new()
+                return "new " + this.FullName + "()";
+            }
+            else
+            {// new(default!, ..., default!)
+                var sb = new StringBuilder();
+                var n = this.MinimumConstructor;
+                sb.Append("new ");
+                sb.Append(this.FullName);
+                sb.Append("(default!");
+                while (--n > 0)
+                {
+                    sb.Append(", default!");
+                }
+
+                sb.Append(")");
+                return sb.ToString();
+            }
+        }
+
         internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             if (this.Kind.IsReferenceType())
@@ -1422,7 +1451,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 ssb.AppendLine("if (reader.TryReadNil()) return default;");
             }
 
-            ssb.AppendLine($"var v = new {this.FullName}();");
+            ssb.AppendLine($"var v = {this.NewInstanceCode()};");
             this.GenerateFormatter_DeserializeCore(ssb, info, "v");
             ssb.AppendLine("return v;");
         }
@@ -1445,13 +1474,13 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
             if (!reuseInstance)
             {// New Instance
-                ssb.AppendLine($"var v2 = new {this.FullName}();");
+                ssb.AppendLine($"var v2 = {this.NewInstanceCode()};");
             }
             else
             {// Reuse Instance
                 if (this.Kind.IsReferenceType())
                 {// Reference type
-                    ssb.AppendLine($"var v2 = {ssb.FullObject} ?? new {this.FullName}();");
+                    ssb.AppendLine($"var v2 = {ssb.FullObject} ?? {this.NewInstanceCode()};");
                 }
                 else
                 {// Value type
@@ -1486,7 +1515,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
         internal void GenerateFormatter_Reconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            ssb.AppendLine($"var v = new {this.FullName}();");
+            ssb.AppendLine($"var v = {this.NewInstanceCode()};");
             this.GenerateFormatter_ReconstructCore(ssb, info, "v");
             ssb.AppendLine("return v;");
         }
@@ -1495,13 +1524,13 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
             if (!reuseInstance)
             {// New Instance
-                ssb.AppendLine($"var v2 = new {this.FullName}();");
+                ssb.AppendLine($"var v2 = {this.NewInstanceCode()};");
             }
             else
             {// Reuse Instance
                 if (this.Kind.IsReferenceType())
                 {// Reference type
-                    ssb.AppendLine($"var v2 = {ssb.FullObject} ?? new {this.FullName}();");
+                    ssb.AppendLine($"var v2 = {ssb.FullObject} ?? {this.NewInstanceCode()};");
                 }
                 else
                 {// Value type
@@ -2024,7 +2053,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             else
             {// Default constructor
                 InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = new {withNullable.Object.FullName}();");
+                ssb.AppendLine($"{ssb.FullObject} = {withNullable.Object.NewInstanceCode()};");
                 InitSetter_End();
             }
 
@@ -2100,7 +2129,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                     }
                     else
                     {// Default constructor
-                        ssb.AppendLine($"{ssb.FullObject} = new {withNullable.Object.FullName}();");
+                        ssb.AppendLine($"{ssb.FullObject} = {withNullable.Object.NewInstanceCode()};");
                     }
                 }
 
