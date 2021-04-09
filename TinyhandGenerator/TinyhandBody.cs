@@ -190,13 +190,13 @@ namespace Tinyhand.Generator
             };
             List<TinyhandObject> rootObjects = new();
 
-            // Namespace
+            // Namespace - Primary TinyhandObjects
             foreach (var x in this.Namespaces)
             {
                 this.GenerateHeader(ssb);
                 var ns = ssb.ScopeNamespace(x.Key);
 
-                rootObjects.AddRange(x.Value);
+                rootObjects.AddRange(x.Value); // For loader generation
 
                 var firstFlag = true;
                 foreach (var y in x.Value)
@@ -208,7 +208,7 @@ namespace Tinyhand.Generator
 
                     firstFlag = false;
 
-                    y.Generate(ssb, info);
+                    y.Generate(ssb, info); // Primary TinyhandObject
                 }
 
                 var result = ssb.Finalize();

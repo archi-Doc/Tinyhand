@@ -215,11 +215,11 @@ namespace Tinyhand.Generator
             this.ObjectFlag |= TinyhandObjectFlag.Configured;
 
             // Open generic type is not supported.
-            var genericsType = this.Generics_Kind;
+            /* var genericsType = this.Generics_Kind;
             if (genericsType == VisceralGenericsKind.OpenGeneric)
             {
                 return;
-            }
+            }*/
 
             // ObjectAttribute
             if (this.AllAttributes.FirstOrDefault(x => x.FullName == TinyhandObjectAttributeMock.FullName) is { } objectAttribute)
@@ -488,17 +488,17 @@ namespace Tinyhand.Generator
                 {
                     FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
                 }
+            }
 
-                if (cf.ConstructedObjects == null)
-                {
-                    cf.ConstructedObjects = new();
-                }
+            if (cf.ConstructedObjects == null)
+            {
+                cf.ConstructedObjects = new();
+            }
 
-                if (!cf.ConstructedObjects.Contains(this))
-                {
-                    cf.ConstructedObjects.Add(this);
-                    this.GenericsNumber = cf.ConstructedObjects.Count;
-                }
+            if (!cf.ConstructedObjects.Contains(this))
+            {
+                cf.ConstructedObjects.Add(this);
+                this.GenericsNumber = cf.ConstructedObjects.Count;
             }
         }
 
@@ -780,7 +780,10 @@ namespace Tinyhand.Generator
             {// Has KeyAttribute
                 this.Body.DebugAssert(this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget), $"{this.FullName}: KeyAttribute and SerializeTarget are inconsistent.");
 
-                if (this.TypeObjectWithNullable != null && this.TypeObjectWithNullable.Object.ObjectAttribute == null && CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
+                if (parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&
+                    this.TypeObjectWithNullable != null &&
+                    this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
+CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                 {// No Coder or Formatter
                     this.Body.ReportDiagnostic(TinyhandBody.Error_ObjectAttributeRequired, this.Location);
                 }
@@ -1008,17 +1011,24 @@ namespace Tinyhand.Generator
         }
 
         public static void GenerateLoader(ScopingStringBuilder ssb, GeneratorInformation info, List<TinyhandObject> list)
-        {
+        {// list: Primary TinyhandObject
             var classFormat = "__gen__tf__{0:D4}";
-            var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null);
+            var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null && x.Generics_Kind != VisceralGenericsKind.OpenGeneric);
 
             if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
             {
                 // info.ModuleInitializerClass.Add(containingObject.FullName);
                 var constructedList = containingObject.ConstructedObjects;
-                if (constructedList != null && constructedList.Count > 0)
+                if (constructedList != null)
                 {
-                    info.ModuleInitializerClass.Add(constructedList[0].FullName);
+                    for (var n = 0; n < constructedList.Count; n++)
+                    {
+                        if (constructedList[n].Generics_Kind != VisceralGenericsKind.OpenGeneric)
+                        {
+                            info.ModuleInitializerClass.Add(constructedList[n].FullName);
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -1104,10 +1114,15 @@ namespace Tinyhand.Generator
                     }
                 }
             }
+
+            list2 = list.Where(x => x.ObjectAttribute != null && x.Generics_Kind == VisceralGenericsKind.OpenGeneric);
+            foreach (var x in list2)
+            {// Open generic formatter
+            }
         }
 
         internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
+        { // Primary TinyhandObject
             if (this.ConstructedObjects == null)
             {
                 return;
@@ -1142,10 +1157,13 @@ namespace Tinyhand.Generator
 
             using (var cls = ssb.ScopeBrace($"{this.AccessibilityName} partial {this.KindName} {this.LocalName}{interfaceString}"))
             {
+                // Prepare Primary
+                this.Generate_PreparePrimary();
+
                 if (this.ObjectAttribute != null)
                 {// Constructor/SetMembers
-                    // this.GenerateConstructor_Method(ssb, info);
-                    // this.GenerateSetMembers_Method(ssb, info);
+                 // this.GenerateConstructor_Method(ssb, info);
+                 // this.GenerateSetMembers_Method(ssb, info);
                 }
 
                 foreach (var x in this.ConstructedObjects)
@@ -1155,10 +1173,18 @@ namespace Tinyhand.Generator
                         continue;
                     }
 
+                    if (x.Generics_Kind == VisceralGenericsKind.OpenGeneric)
+                    {
+                        continue;
+                    }
+
                     if (x.GenericsNumber > 1)
                     {
                         ssb.AppendLine();
                     }
+
+                    // Prepare Secondary
+                    x.Generate_PrepareSecondary();
 
                     x.Generate2(ssb, info);
                 }
@@ -1191,6 +1217,38 @@ namespace Tinyhand.Generator
 
                     ssb.AppendLine();
                     GenerateLoader(ssb, info, this.Children);
+                }
+            }
+        }
+
+        internal void Generate_PreparePrimary()
+        {// Prepare Primary TinyhandObject
+            this.PrepareAutomata();
+
+            if (this.Automata != null)
+            {
+                foreach (var x in this.Automata.NodeList)
+                {
+                    x.Identifier = this.Identifier.GetIdentifier();
+                }
+            }
+        }
+
+        internal void Generate_PrepareSecondary()
+        {// Prepare Secondary TinyhandObject
+            this.PrepareAutomata();
+
+            var od = this.OriginalDefinition;
+            if (od == null)
+            {
+                return;
+            }
+
+            if (od.Automata != null && this.Automata != null)
+            {
+                for (var n = 0; n < this.Automata.NodeList.Count; n++)
+                {
+                    this.Automata.NodeList[n].Identifier = od.Automata.NodeList[n].Identifier;
                 }
             }
         }
@@ -1578,7 +1636,6 @@ namespace Tinyhand.Generator
         {
             this.FormatterNumber = info.FormatterCount++;
             this.FormatterExtraNumber = info.FormatterCount++;
-            this.PrepareAutomata();
 
             // Serialize/Deserialize/Reconstruct
             this.GenerateSerialize_Method(ssb, info);
@@ -1604,7 +1661,6 @@ namespace Tinyhand.Generator
                     continue;
                 }
 
-                x.Identifier = this.Identifier.GetIdentifier();
                 if (x.Member.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated ||
                     x.Member.Kind.IsValueType() ||
                     x.Member.IsDefaultable ||
