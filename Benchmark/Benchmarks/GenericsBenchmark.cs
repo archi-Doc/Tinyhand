@@ -139,7 +139,6 @@ namespace Benchmark.Generics
 
         public T[] A { get; set; } = default!;
 
-
         public GenericsStringClass(T x, T y, T[] a)
         {
             this.X = x;

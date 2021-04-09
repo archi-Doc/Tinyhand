@@ -19,7 +19,6 @@ namespace Tinyhand.Generator
 {
     public class TinyhandBody : VisceralBody<TinyhandObject>
     {
-        public static readonly string StringKeyFieldFormat = "__gen_utf8_key_{0:D4}";
         public static readonly int MaxIntegerKey = 5_000;
         public static readonly int MaxStringKeySizeInBytes = 512;
         public static readonly string SetDefaultMethod = "SetDefault";
@@ -191,13 +190,13 @@ namespace Tinyhand.Generator
             };
             List<TinyhandObject> rootObjects = new();
 
-            // Namespace
+            // Namespace - Primary TinyhandObjects
             foreach (var x in this.Namespaces)
             {
                 this.GenerateHeader(ssb);
                 var ns = ssb.ScopeNamespace(x.Key);
 
-                rootObjects.AddRange(x.Value);
+                rootObjects.AddRange(x.Value); // For loader generation
 
                 var firstFlag = true;
                 foreach (var y in x.Value)
@@ -209,7 +208,7 @@ namespace Tinyhand.Generator
 
                     firstFlag = false;
 
-                    y.Generate(ssb, info);
+                    y.Generate(ssb, info); // Primary TinyhandObject
                 }
 
                 var result = ssb.Finalize();
@@ -268,6 +267,7 @@ namespace Tinyhand.Generator
             ssb.AddUsing("System");
             ssb.AddUsing("System.Collections.Generic");
             ssb.AddUsing("System.Diagnostics.CodeAnalysis");
+            ssb.AddUsing("System.Linq.Expressions");
             ssb.AddUsing("System.Runtime.CompilerServices");
             ssb.AddUsing("Tinyhand");
             ssb.AddUsing("Tinyhand.IO");

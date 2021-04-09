@@ -39,16 +39,67 @@ namespace Benchmark.InitOnly
         }
     }
 
-    // [TinyhandObject]
-    public partial record NormalIntRecord(int X, int Y, string A, string B);
+    [TinyhandObject]
+    [MessagePack.MessagePackObject]
+    public partial class InitIntClass
+    {
+        [Key(0)]
+        [MessagePack.Key(0)]
+        public int X { get; init; }
+
+        [Key(1)]
+        [MessagePack.Key(1)]
+        public int Y { get; init; }
+
+        [Key(2)]
+        [MessagePack.Key(2)]
+        public string A { get; init; } = default!;
+
+        [Key(3)]
+        [MessagePack.Key(3)]
+        public string B { get; init; } = default!;
+
+        public InitIntClass(int x, int y, string a, string b)
+        {
+            this.X = x;
+            this.Y = y;
+            this.A = a;
+            this.B = b;
+        }
+
+        public InitIntClass()
+        {
+        }
+    }
+
+    [TinyhandObject(ImplicitKeyAsName = true)]
+    public partial record RecordClass(int X, int Y, string A, string B);
+
+    [TinyhandObject(ImplicitKeyAsName = true)]
+    public partial class RecordClass2
+    {
+        public int X { get; init; }
+
+        public int Y { get; init; }
+
+        public string A { get; init; } = default!;
+
+        public string B { get; init; } = default!;
+
+        public RecordClass2()
+        {
+        }
+    }
 
     [Config(typeof(BenchmarkConfig))]
     public class InitOnlyBenchmark
     {
-        private MethodInfo setY = default!;
-        private Action<NormalIntClass, int> setDelegate = default!;
         private NormalIntClass normalInt = default!;
         private byte[] normalIntByte = default!;
+        private InitIntClass initInt = default!;
+        private byte[] initIntByte = default!;
+        private RecordClass recordClass = default!;
+        private byte[] recordClassByte = default!;
 
         public InitOnlyBenchmark()
         {
@@ -59,42 +110,34 @@ namespace Benchmark.InitOnly
         {
             this.normalInt = new(1, 2, "A", "B");
             this.normalIntByte = TinyhandSerializer.Serialize(this.normalInt);
-
-            this.setY = typeof(NormalIntClass).GetMethod("set_Y")!;
-
-            var targetObject = Expression.Parameter(typeof(NormalIntClass));
-            var tagetMember = Expression.Parameter(typeof(int));
-            this.setDelegate = Expression.Lambda<Action<NormalIntClass, int>>(
-                Expression.Call(
-                    targetObject,
-                    this.setY!,
-                    tagetMember),
-                targetObject,
-                tagetMember)
-                .Compile();
+            this.initInt = new(1, 2, "A", "B");
+            this.initIntByte = TinyhandSerializer.Serialize(this.initInt);
+            this.recordClass = new RecordClass(1, 2, "A", "B");
+            this.recordClassByte = TinyhandSerializer.Serialize(this.recordClass);
         }
 
         [Benchmark]
-        public NormalIntClass? NormalInt()
+        public NormalIntClass? DeserializeNormalInt()
         {
             return TinyhandSerializer.Deserialize<NormalIntClass>(this.normalIntByte);
         }
 
         [Benchmark]
-        public NormalIntClass? NormalInt2()
+        public InitIntClass? DeserializeInitInt()
         {
-            this.setY.Invoke(this.normalInt, new object?[] { 2 });
-            return TinyhandSerializer.Deserialize<NormalIntClass>(this.normalIntByte);
+            return TinyhandSerializer.Deserialize<InitIntClass>(this.initIntByte);
         }
 
         [Benchmark]
-        public NormalIntClass? NormalInt3()
+        public RecordClass? DeserializeRecord()
         {
-            this.setDelegate(this.normalInt, 2);
-            this.setDelegate(this.normalInt, 3);
-            this.setDelegate(this.normalInt, 3);
-            this.setDelegate(this.normalInt, 2);
-            return TinyhandSerializer.Deserialize<NormalIntClass>(this.normalIntByte);
+            return TinyhandSerializer.Deserialize<RecordClass>(this.recordClassByte);
+        }
+
+        [Benchmark]
+        public RecordClass2? DeserializeRecord2()
+        {
+            return TinyhandSerializer.Deserialize<RecordClass2>(this.recordClassByte);
         }
     }
 }
