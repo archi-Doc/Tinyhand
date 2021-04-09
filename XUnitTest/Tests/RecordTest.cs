@@ -46,14 +46,6 @@ namespace Tinyhand.Tests
 
             var st = TinyhandSerializer.SerializeToString(r);
             var r3 = TinyhandSerializer.DeserializeFromString<TestRecord>(st);
-            r3.Equals(r).IsFalse();
-            r3 = TinyhandSerializer.Deserialize<TestRecord>(TinyhandSerializer.Serialize(r));
-            r.Equals(r3).IsFalse();
-
-            r = r with { Y = 0, };
-
-            st = TinyhandSerializer.SerializeToString(r);
-            r3 = TinyhandSerializer.DeserializeFromString<TestRecord>(st);
             r3.Equals(r).IsTrue();
             r3 = TinyhandSerializer.Deserialize<TestRecord>(TinyhandSerializer.Serialize(r));
             r.Equals(r3).IsTrue();

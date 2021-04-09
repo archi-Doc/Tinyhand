@@ -557,7 +557,7 @@ namespace Tinyhand.Generator
             // Target
             foreach (var x in this.Members)
             {
-                if (!x.IsSerializable || x.IsReadOnly || x.IsInitOnly)
+                if (!x.IsSerializable || x.IsReadOnly)
                 {// Not serializable
                     continue;
                 }
@@ -768,7 +768,7 @@ namespace Tinyhand.Generator
                 return;
             }
 
-            if (!this.IsSerializable || this.IsReadOnly || this.IsInitOnly)
+            if (!this.IsSerializable || this.IsReadOnly)
             {// Not serializable
                 if (this.KeyAttribute != null || this.ReconstructAttribute != null)
                 {
@@ -951,7 +951,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             }
             else if (this.ReconstructState == ReconstructState.Do)
             {
-                if (this.IsReadOnly || this.IsInitOnly)
+                if (this.IsReadOnly)
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_ReadonlyMember, this.Location, this.SimpleName);
                     this.ReconstructState = ReconstructState.Dont;
@@ -1224,12 +1224,21 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         internal void Generate_PreparePrimary()
         {// Prepare Primary TinyhandObject
             this.PrepareAutomata();
-
             if (this.Automata != null)
             {
                 foreach (var x in this.Automata.NodeList)
                 {
-                    x.Identifier = this.Identifier.GetIdentifier();
+                    x.Identifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
+                }
+            }
+
+            // Init setter delegates
+            var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.IsInitOnly).ToArray();
+            if (array.Length != 0)
+            {
+                foreach (var x in array)
+                {
+                    x.InitDelegateIdentifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
                 }
             }
         }
@@ -1244,12 +1253,19 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 return;
             }
 
+            // Automata
             if (od.Automata != null && this.Automata != null)
             {
                 for (var n = 0; n < this.Automata.NodeList.Count; n++)
                 {
                     this.Automata.NodeList[n].Identifier = od.Automata.NodeList[n].Identifier;
                 }
+            }
+
+            // Init setter delegates
+            for (var n = 0; n < this.Members.Length; n++)
+            {
+                this.Members[n].InitDelegateIdentifier = od.Members[n].InitDelegateIdentifier;
             }
         }
 
@@ -1263,12 +1279,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             }
 
             // Identifier
-            var initializeFlag = this.Identifier.GetIdentifier();
-            var initializeMethod = this.Identifier.GetIdentifier();
-            foreach (var x in array)
-            {
-                x.InitDelegateIdentifier = this.Identifier.GetIdentifier();
-            }
+            var initializeFlag = this.Identifier.GetIdentifier(); // Exclusive to Primary
+            var initializeMethod = this.Identifier.GetIdentifier(); // Exclusive to Primary
 
             // initializeFlag / initializeMethod
             ssb.AppendLine();
@@ -1777,11 +1789,14 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 return;
             }
 
+            ScopingStringBuilder.IScope? initSetter = null;
             using (var m = ssb.ScopeObject(x.SimpleName))
             {
                 var coder = CoderResolver.Instance.TryGetCoder(withNullable);
                 using (var valid = ssb.ScopeBrace($"if (numberOfData-- > 0 && !reader.TryReadNil())"))
                 {
+                    InitSetter_Start();
+
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -1807,19 +1822,24 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                             ssb.AppendLine($"{m.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
                         }
                     }
+
+                    InitSetter_End();
                 }
 
                 if (x!.IsDefaultable)
                 {// Default
                     using (var invalid = ssb.ScopeBrace("else"))
                     {
+                        InitSetter_Start();
                         ssb.AppendLine($"{m.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                        InitSetter_End();
                     }
                 }
                 else if (x.ReconstructState == ReconstructState.Do)
                 {
                     using (var invalid = ssb.ScopeBrace("else"))
                     {
+                        InitSetter_Start();
                         if (withNullable.Object.ObjectAttribute != null)
                         {// TinyhandObject. For the purpose of default value and instance reuse.
                             withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -1832,7 +1852,28 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                         {
                             ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
                         }
+
+                        InitSetter_End();
                     }
+                }
+            }
+
+            void InitSetter_Start()
+            {
+                if (x!.InitDelegateIdentifier != null)
+                {
+                    initSetter = ssb.ScopeFullObject("vd");
+                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                }
+            }
+
+            void InitSetter_End()
+            {
+                if (initSetter != null)
+                {
+                    initSetter.Dispose();
+                    initSetter = null;
+                    ssb.AppendLine($"{x.InitDelegateIdentifier}!(this, vd);");
                 }
             }
         }
@@ -1931,7 +1972,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.InitDelegateIdentifier}!(vd);");
+                    ssb.AppendLine($"{x.InitDelegateIdentifier}!(this, vd);");
                 }
             }
         }
@@ -1944,9 +1985,14 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 return;
             }
 
+            ScopingStringBuilder.IScope? initSetter = null;
+            ScopingStringBuilder.IScope? emptyBrace = null;
+
             if (x.IsDefaultable)
             {// Default
+                InitSetter_Start(true);
                 ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                InitSetter_End();
                 return;
             }
 
@@ -1961,19 +2007,55 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             {// TinyhandObject. For the purpose of default value and instance reuse.
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
+                    InitSetter_Start();
                     withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    InitSetter_End();
                 }
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
             {// Coder
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
+                    InitSetter_Start();
                     coder.CodeReconstruct(ssb, info);
+                    InitSetter_End();
                 }
             }
             else
             {// Default constructor
+                InitSetter_Start(true);
                 ssb.AppendLine($"{ssb.FullObject} = new {withNullable.Object.FullName}();");
+                InitSetter_End();
+            }
+
+            void InitSetter_Start(bool brace = false)
+            {
+                if (x!.InitDelegateIdentifier != null)
+                {
+                    if (brace)
+                    {
+                        emptyBrace = ssb.ScopeBrace(string.Empty);
+                    }
+
+                    initSetter = ssb.ScopeFullObject("vd");
+                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                }
+            }
+
+            void InitSetter_End()
+            {
+                if (initSetter != null)
+                {
+                    initSetter.Dispose();
+                    initSetter = null;
+                    ssb.AppendLine($"{x.InitDelegateIdentifier}!(this, vd);");
+
+                    if (emptyBrace != null)
+                    {
+                        emptyBrace.Dispose();
+                        emptyBrace = null;
+                    }
+                }
             }
         }
 
@@ -1985,11 +2067,15 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 return;
             }
 
+            ScopingStringBuilder.IScope? initSetter = null;
+
             if (x.IsDefaultable)
             {// Default
                 using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
                 {
+                    InitSetter_Start();
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                    InitSetter_End();
                 }
 
                 return;
@@ -2000,6 +2086,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
             using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
             {
+                InitSetter_Start();
+
                 if (x.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated || x.ReconstructState == ReconstructState.Do)
                 {// T
                     if (withNullable.Object.ObjectAttribute != null)
@@ -2014,6 +2102,27 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                     {// Default constructor
                         ssb.AppendLine($"{ssb.FullObject} = new {withNullable.Object.FullName}();");
                     }
+                }
+
+                InitSetter_End();
+            }
+
+            void InitSetter_Start()
+            {
+                if (x!.InitDelegateIdentifier != null)
+                {
+                    initSetter = ssb.ScopeFullObject("vd");
+                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                }
+            }
+
+            void InitSetter_End()
+            {
+                if (initSetter != null)
+                {
+                    initSetter.Dispose();
+                    initSetter = null;
+                    ssb.AppendLine($"{x.InitDelegateIdentifier}!(this, vd);");
                 }
             }
         }

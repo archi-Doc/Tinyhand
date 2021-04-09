@@ -58,7 +58,7 @@ namespace Benchmark
             Console.WriteLine(Stopwatch.ToSimpleString());
             Console.WriteLine();
 
-            DebugRun<Generics.GenericsBenchmark>();
+            DebugRun<InitOnly.InitOnlyBenchmark>();
 
             var switcher = new BenchmarkSwitcher(new[]
             {

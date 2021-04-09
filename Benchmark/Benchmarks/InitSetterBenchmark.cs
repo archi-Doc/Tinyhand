@@ -39,6 +39,34 @@ namespace Benchmark.InitOnly
         }
     }
 
+    [TinyhandObject]
+    public partial class InitIntClass
+    {
+        [Key(0)]
+        public int X { get; init; }
+
+        [Key(1)]
+        public int Y { get; init; }
+
+        [Key(2)]
+        public string A { get; init; } = default!;
+
+        [Key(3)]
+        public string B { get; init; } = default!;
+
+        public InitIntClass(int x, int y, string a, string b)
+        {
+            this.X = x;
+            this.Y = y;
+            this.A = a;
+            this.B = b;
+        }
+
+        public InitIntClass()
+        {
+        }
+    }
+
     // [TinyhandObject]
     public partial record NormalIntRecord(int X, int Y, string A, string B);
 
@@ -49,6 +77,8 @@ namespace Benchmark.InitOnly
         private Action<NormalIntClass, int> setDelegate = default!;
         private NormalIntClass normalInt = default!;
         private byte[] normalIntByte = default!;
+        private InitIntClass initInt = default!;
+        private byte[] initIntByte = default!;
 
         public InitOnlyBenchmark()
         {
@@ -59,6 +89,8 @@ namespace Benchmark.InitOnly
         {
             this.normalInt = new(1, 2, "A", "B");
             this.normalIntByte = TinyhandSerializer.Serialize(this.normalInt);
+            this.initInt = new(1, 2, "A", "B");
+            this.initIntByte = TinyhandSerializer.Serialize(this.initInt);
 
             this.setY = typeof(NormalIntClass).GetMethod("set_Y")!;
 
@@ -95,6 +127,12 @@ namespace Benchmark.InitOnly
             this.setDelegate(this.normalInt, 3);
             this.setDelegate(this.normalInt, 2);
             return TinyhandSerializer.Deserialize<NormalIntClass>(this.normalIntByte);
+        }
+
+        [Benchmark]
+        public InitIntClass? InitInt()
+        {
+            return TinyhandSerializer.Deserialize<InitIntClass>(this.initIntByte);
         }
     }
 }
