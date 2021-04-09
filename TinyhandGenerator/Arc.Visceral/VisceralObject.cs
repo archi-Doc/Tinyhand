@@ -1523,6 +1523,13 @@ namespace Arc.Visceral
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the type is primary (Not generic or open generic).<br/>
+        /// Primary: Class&lt;T&gt;, Class, string.<br/>
+        /// Not Primary: Class&lt;int&gt;.
+        /// </summary>
+        public bool IsPrimary => this.Generics_Kind == VisceralGenericsKind.NotGeneric || this.Generics_Kind == VisceralGenericsKind.OpenGeneric; // this.OriginalDefinition == this;
+
         private bool? isPublic;
 
         public bool IsPublic
