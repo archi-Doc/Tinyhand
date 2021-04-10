@@ -191,6 +191,32 @@ namespace Arc.Visceral
             type == VisceralObjectKind.Field ||
             type == VisceralObjectKind.Property;
 
+        public static string ToUnboundTypeName(this string typeName)
+        {
+            var s = typeName.AsSpan();
+            var length = s.Length;
+            Span<char> d = length <= 1024 ? stackalloc char[length] : new char[length];
+
+            var dp = 0;
+            for (var sp = 0; sp < length; sp++)
+            {
+                d[dp++] = s[sp];
+                if (s[sp] == '<')
+                {
+                    sp++;
+                    while (sp < length && s[sp] != '>')
+                    {
+                        sp++;
+                        continue;
+                    }
+
+                    d[dp++] = '>';
+                }
+            }
+
+            return d.Slice(0, dp).ToString();
+        }
+
         public static string ToPathSafeString(this string path)
         { // 0-31, 34 ", 42 *, 47 /, 58 :, 60 <, 62 >, 63 ?, 92 \, 124 |
             var length = path.Length;
