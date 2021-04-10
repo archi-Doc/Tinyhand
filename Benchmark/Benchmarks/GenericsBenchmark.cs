@@ -257,11 +257,7 @@ namespace Benchmark.Generics
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
             Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatterGenerator(typeof(GenericsIntClass<>), x =>
             {
-                if (x.Length != 1)
-                {
-                    return (null!, null!);
-                }
-
+                if (x.Length != 1) return (null!, null!);
                 var formatter = Activator.CreateInstance(typeof(__gen__tf__0000<>).MakeGenericType(x));
                 return ((ITinyhandFormatter)formatter!, (ITinyhandFormatterExtra)formatter!);
             });
