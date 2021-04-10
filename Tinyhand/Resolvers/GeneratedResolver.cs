@@ -26,9 +26,7 @@ namespace Tinyhand.Resolvers
 
             public Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> Generator { get; set; }
 
-            public ITinyhandFormatter? Formatter { get; set; }
-
-            public ITinyhandFormatterExtra? FormatterExtra { get; set; }
+            public Dictionary<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> FormatterCache { get; } = new();
 
             public FormatterGeneratorInfo(Type genericType, Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> generator)
             {
@@ -53,12 +51,15 @@ namespace Tinyhand.Resolvers
             var genericType = targetType.GetGenericTypeDefinition();
             if (this.formatterGenerator.TryGetValue(genericType, out var info))
             {
-                if (info.Formatter == null)
+                (ITinyhandFormatter, ITinyhandFormatterExtra) f;
+                var genericArguments = targetType.GetGenericArguments();
+                if (!info.FormatterCache.TryGetValue(genericArguments, out f))
                 {
-                    (info.Formatter, info.FormatterExtra) = info.Generator(targetType.GetGenericArguments());
+                    f = info.Generator(genericArguments);
+                    info.FormatterCache[genericArguments] = f;
                 }
 
-                return (ITinyhandFormatter<T>)info.Formatter;
+                return (ITinyhandFormatter<T>)f.Item1;
             }
 
             return null;
@@ -87,12 +88,15 @@ namespace Tinyhand.Resolvers
             var genericType = targetType.GetGenericTypeDefinition();
             if (this.formatterGenerator.TryGetValue(genericType, out var info))
             {
-                if (info.FormatterExtra == null)
+                (ITinyhandFormatter, ITinyhandFormatterExtra) f;
+                var genericArguments = targetType.GetGenericArguments();
+                if (!info.FormatterCache.TryGetValue(genericArguments, out f))
                 {
-                    (info.Formatter, info.FormatterExtra) = info.Generator(targetType.GetGenericArguments());
+                    f = info.Generator(genericArguments);
+                    info.FormatterCache[genericArguments] = f;
                 }
 
-                return (ITinyhandFormatterExtra<T>)info.FormatterExtra;
+                return (ITinyhandFormatterExtra<T>)f.Item2;
             }
 
             return null;

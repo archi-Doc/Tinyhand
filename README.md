@@ -13,6 +13,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
 - [Performance](#performance)
 - [Serialization Target](#Serialization-Target)
   - [Readonly and Getter-only](#Readonly-and-Getter-only)
+  - [Init-only property and Record type](#Init-only-property-and-Record-type)
   - [Include private members](#Include-private-members)
   - [Explicit key only](#Explicit-key-only)
 - [Features](#features)
@@ -52,8 +53,8 @@ using Tinyhand;
 
 namespace ConsoleApp1
 {
-    [TinyhandObject] // Annote a [TinyhandObject] attribute.
-    public partial class MyClass // partial class is required for source generator.
+    [TinyhandObject] // Annote a TinyhandObject attribute.
+    public partial class MyClass // Partial class is required for source generator.
     {
         // Key attributes take a serialization index (or string name)
         // The values must be unique and versioning has to be considered as well.
@@ -201,7 +202,7 @@ public partial record RecordClass // Partial class required.
     public string A { get; init; } = default!;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)] // Short code, but string key is a bit slower then integer key.
+[TinyhandObject(ImplicitKeyAsName = true)] // Short version, but string key is a bit slower then integer key.
 public partial record RecordClass2(int X, string A);
 ```
 
