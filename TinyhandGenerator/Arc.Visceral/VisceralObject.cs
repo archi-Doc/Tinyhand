@@ -666,8 +666,8 @@ namespace Arc.Visceral
             });
         }
 
-        public string GetClosedGenericName(string argumentName)
-        {
+        public (string name, int count) GetClosedGenericName(string? argumentName)
+        {// Namespace.Class<T, U>.Nested<X> -> Namespace.Class<argumentName, argumentName>.Nested<argumentName>
             // Count
             var n = 0;
             var c = this;
@@ -686,6 +686,7 @@ namespace Arc.Visceral
                 c = c.ContainingObject;
             }
 
+            var genericCount = 0;
             var sb = new StringBuilder(array[0].Namespace);
             for (var i = 0; i < array.Length; i++)
             {
@@ -695,21 +696,32 @@ namespace Arc.Visceral
                 {
                     var length = array[i].Generics_Arguments.Length;
                     sb.Append("<");
-                    for (n = 0; n < length; n++)
+                    if (argumentName != null)
                     {
-                        if (n != 0)
+                        for (n = 0; n < length; n++)
                         {
-                            sb.Append(", ");
-                        }
+                            if (n != 0)
+                            {
+                                sb.Append(", ");
+                            }
 
-                        sb.Append(argumentName);
+                            sb.Append(argumentName);
+                        }
+                    }
+                    else
+                    {
+                        for (n = 1; n < length; n++)
+                        {
+                            sb.Append(",");
+                        }
                     }
 
                     sb.Append(">");
+                    genericCount += length;
                 }
             }
 
-            return sb.ToString();
+            return (sb.ToString(), genericCount);
         }
 
         public int CountGenericsArguments()
