@@ -86,6 +86,54 @@ namespace Sandbox
         }
     }
 
+    [TinyhandObject]
+    public partial class GenericTestClass2<T>
+    {
+        [KeyAsName]
+        private int id;
+
+        [KeyAsName]
+        private T value = default!;
+
+        [KeyAsName]
+        private NestedClass<double, int> nested = default!;
+
+        public GenericTestClass2()
+        {
+        }
+
+        public GenericTestClass2(int id, T value, NestedClass<double, int> nested)
+        {
+            this.id = id;
+            this.value = value;
+            this.nested = nested;
+        }
+
+        [TinyhandObject]
+        public partial class NestedClass<X, Y>
+        {
+            [KeyAsName]
+            private string name = default!;
+
+            [KeyAsName]
+            private X xvalue = default!;
+
+            [KeyAsName]
+            private Y yvalue = default!;
+
+            public NestedClass()
+            {
+            }
+
+            public NestedClass(string name, X xvalue, Y yvalue)
+            {
+                this.name = name;
+                this.xvalue = xvalue;
+                this.yvalue = yvalue;
+            }
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -144,6 +192,9 @@ namespace Sandbox
             st = "{\"2int-string\" = {33 = \"rr\"}, \" st d \" = {test = 33}, \"double\" = false, Byte = 0, \"2\" = 77, MyClass0 = {99, \"\", \"Doe\", {}, null}, \"St{\" = \"test\", \"3 2\" = 0, Double = 1, Date = \"2021-02-09T10:20:29.7825986Z\", MyClass = {99, \"\", \"Doe\", {}, null}";
             Console.WriteLine(st);
             classA2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);*/
+
+            var gt = new GenericTestClass2<int>();
+            var gt2 = new GenericTestClass2<double>();
 
         }
     }

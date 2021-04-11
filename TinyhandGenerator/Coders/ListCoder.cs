@@ -26,6 +26,11 @@ namespace Tinyhand.Coders
                 {
                     if (arguments.Length == 1)
                     {
+                        if (arguments[0].Object.Kind == VisceralObjectKind.TypeParameter)
+                        {
+                            return null;
+                        }
+
                         var elementCoder = CoderResolver.Instance.TryGetCoder(arguments[0]);
                         return new ListCoder(arguments[0], elementCoder, withNullable.Nullable);
                     }
