@@ -1263,6 +1263,11 @@ ModuleInitializerClass_Added:
 
                     if (x.Generics_Kind == VisceralGenericsKind.CloseGeneric)
                     {// Use Class<T> for not optimized type.
+                        /* if (!x.Generics_Arguments.All(a => a.IsOptimizedType))
+                        {
+                            continue;
+                        }*/
+
                         var optimizedType = true;
                         var c = x;
                         while (c != null)
