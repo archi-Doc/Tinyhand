@@ -135,7 +135,7 @@ Tinyhand is quite fast and since it is based on Source Generator, it does not ta
 
 ## Serialization Target
 
-All public members are serialization targets by default. Unless `ImplicitKeyAsName` is set to true, you need to add `Key` attribute to public members.
+All public members are serialization targets by default. You need to add `Key` attributes to public members unless `ImplicitKeyAsName` is set to true.
 
 ```csharp
 [TinyhandObject]
@@ -155,7 +155,7 @@ public partial class KeyAsNameClass
 {
     public int X; // Serialized with the key "X"
 
-    public int Y { get; private set; } // Not a serialization target
+    public int Y { get; private set; } // Not a serialization target (due to the private setter)
 
     [Key("Z")]
     private int Z; // Serialized with the key "Z"
@@ -193,7 +193,7 @@ Init-only property and ```record``` type are supported.
 
 ```csharp
 [TinyhandObject]
-public partial record RecordClass // Partial class required.
+public partial record RecordClass // Partial record required.
 {// Default constructor is not required for record types.
     [Key(0)]
     public int X { get; init; }
