@@ -134,6 +134,26 @@ namespace Sandbox
         }
     }
 
+    public partial class NotSerializeClass
+    {
+    }
+
+    [TinyhandObject]
+    public partial class SerializeClass
+    {
+        [Key(0)]
+        public int Id { get; set; }
+
+        public SerializeClass()
+        {
+        }
+
+        public SerializeClass(int id)
+        {
+            this.Id = id;
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -159,28 +179,6 @@ namespace Sandbox
             st = TinyhandSerializer.SerializeToString(r);
             var r3 = TinyhandSerializer.Deserialize<TestRecord>(TinyhandSerializer.Serialize(r));
 
-            var ty = r.GetType();
-            foreach (var x in ty.GetMethods())
-            {
-            }
-
-            var mi = ty.GetMethod("set_Y");
-            mi!.Invoke(r, new object?[] { 32 });
-
-            var targetObject = Expression.Parameter(typeof(TestRecord));
-            var tagetMember = Expression.Parameter(typeof(int));
-            var d = Expression.Lambda<Action<TestRecord, int>>(
-                Expression.Call(
-                    targetObject,
-                    mi!,
-                    tagetMember),
-                targetObject,
-                tagetMember)
-                .Compile();
-            d(r, 33);
-
-            var d2 = Expression.Lambda<Action<TestRecord, int>>(Expression.Call(targetObject, mi!, tagetMember), targetObject, tagetMember).Compile();
-
             /*var classB = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
             classB.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
             classB.IDictionaryStringDouble = new Dictionary<string, double>(new KeyValuePair<string, double>[] { new KeyValuePair<string, double>("test", 33d) });
@@ -193,9 +191,21 @@ namespace Sandbox
             Console.WriteLine(st);
             classA2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);*/
 
-            var gt = new GenericTestClass2<int>();
-            var gt2 = new GenericTestClass2<double>();
+            var gt = new GenericTestClass2<int>(0, 1, new GenericTestClass2<int>.NestedClass<double, int>("0", 1.2, 3));
+            st = TinyhandSerializer.SerializeToString(gt);
+            gt = TinyhandSerializer.Deserialize<GenericTestClass2<int>>(TinyhandSerializer.Serialize(gt));
 
+            var gt2 = new GenericTestClass2<double>(2, 3.1, new GenericTestClass2<double>.NestedClass<double, int>("1", 1.2, 3));
+            st = TinyhandSerializer.SerializeToString(gt2);
+            gt2 = TinyhandSerializer.Deserialize<GenericTestClass2<double>>(TinyhandSerializer.Serialize(gt2));
+
+            /*var gt3 = new GenericTestClass2<NotSerializeClass>();
+            st = TinyhandSerializer.SerializeToString(gt3);
+            gt3 = TinyhandSerializer.Deserialize<GenericTestClass2<NotSerializeClass>>(TinyhandSerializer.Serialize(gt3));*/
+
+            var gt3 = new GenericTestClass2<SerializeClass>(2, new SerializeClass(11), new GenericTestClass2<SerializeClass>.NestedClass<double, int>("1", 1.2, 3));
+            st = TinyhandSerializer.SerializeToString(gt3);
+            gt3 = TinyhandSerializer.Deserialize<GenericTestClass2<SerializeClass>>(TinyhandSerializer.Serialize(gt3));
         }
     }
 }

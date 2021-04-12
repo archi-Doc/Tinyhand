@@ -240,6 +240,25 @@ Check_GenericsArguments:
             }
         }
 
+        public void AddFormatter(VisceralObjectKind kind, string typeName)
+        {
+            if (!kind.IsType())
+            {
+                return;
+            }
+
+            if (kind.IsReferenceType())
+            {// Reference type
+                var fullName = typeName.TrimEnd('?');
+                this.AddFormatter(fullName, true); // T (non-nullable)
+                this.AddFormatter(fullName + "?"); // T?
+            }
+            else
+            {// Value type
+                this.AddFormatter(typeName); // T
+            }
+        }
+
         private Dictionary<string, ITinyhandCoder> stringToCoder = new();
 
         private HashSet<string> genericsType = new();

@@ -153,6 +153,25 @@ namespace Tinyhand.Generator
             }
         }
 
+        public bool IsOptimizedType => this.FullName switch
+        {
+            "bool" => true,
+            "sbyte" => true,
+            "byte" => true,
+            "short" => true,
+            "ushort" => true,
+            "int" => true,
+            "uint" => true,
+            "long" => true,
+            "ulong" => true,
+            "float" => true,
+            "double" => true,
+            "decimal" => true,
+            "string" => true,
+            "char" => true,
+            _ => false,
+        };
+
         public bool HasNullableAnnotation
         {
             get
@@ -225,17 +244,11 @@ namespace Tinyhand.Generator
                 return;
             }*/
 
-            // Closed generic type with non-primitive type is not supported.
             if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric)
             {
                 if (this.OriginalDefinition != null && this.OriginalDefinition.ClosedGenericHint == null)
                 {
                     this.OriginalDefinition.ClosedGenericHint = this;
-                }
-
-                if (!this.Generics_Arguments.All(x => x.IsPrimitive))
-                {
-                    return;
                 }
             }
 
@@ -512,6 +525,13 @@ namespace Tinyhand.Generator
             if (this.TypeObjectWithNullable != null)
             {
                 FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+                if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric &&
+                    this.ContainingObject != null &&
+                    this.ContainingObject.OriginalDefinition is { } od)
+                {// Requires Class<T>.NestedClass<int> formatter.
+                    var typeName = od.FullName + "." + this.LocalName;
+                    FormatterResolver.Instance.AddFormatter(this.Kind, typeName);
+                }
             }
 
             if (cf.ConstructedObjects == null)
@@ -1033,20 +1053,20 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         public static void GenerateLoader(ScopingStringBuilder ssb, GeneratorInformation info, List<TinyhandObject> list)
         {// list: Primary TinyhandObject
             var classFormat = "__gen__tf__{0:D4}";
-            var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null);
+            var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null && x.FormatterNumber >= 0).ToArray();
 
-            if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
-            {// ClosedGenericHint
+            if (list2.Length > 0 && list2[0].ContainingObject is { } containingObject)
+            {// Add ModuleInitializerClass
                 string? initializerClassName = null;
                 if (containingObject.ClosedGenericHint != null)
-                {
+                {// ClosedGenericHint
                     initializerClassName = containingObject.ClosedGenericHint.FullName;
                     goto ModuleInitializerClass_Added;
                 }
 
                 var constructedList = containingObject.ConstructedObjects;
                 if (constructedList != null)
-                {
+                {// Closed generic
                     for (var n = 0; n < constructedList.Count; n++)
                     {
                         if (constructedList[n].Generics_Kind != VisceralGenericsKind.OpenGeneric)
@@ -1057,6 +1077,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                     }
                 }
 
+                // Open generic
                 (initializerClassName, _) = containingObject.GetClosedGenericName("object");
 
 ModuleInitializerClass_Added:
@@ -1238,6 +1259,27 @@ ModuleInitializerClass_Added:
                     if (x.ObjectAttribute == null)
                     {
                         continue;
+                    }
+
+                    if (x.Generics_Kind == VisceralGenericsKind.CloseGeneric)
+                    {// Use Class<T> for not optimized type.
+                        var optimizedType = true;
+                        var c = x;
+                        while (c != null)
+                        {
+                            if (!c.Generics_Arguments.All(a => a.IsOptimizedType))
+                            {
+                                optimizedType = false;
+                                break;
+                            }
+
+                            c = c.ContainingObject;
+                        }
+
+                        if (!optimizedType)
+                        {
+                            continue;
+                        }
                     }
 
                     if (x.GenericsNumber > 1)
