@@ -95,7 +95,7 @@ namespace Tinyhand.Generator
             }
 
             // IN: close generic (member, expression)
-            foreach (var ts in receiver.Generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.CloseGeneric).Select(a => a.TypeSymbol))
+            foreach (var ts in receiver.Generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric).Select(a => a.TypeSymbol))
             {
                 if (ts != null)
                 {
@@ -124,7 +124,7 @@ namespace Tinyhand.Generator
         private void SalvageCloseGeneric(VisceralGenerics generics)
         {
             var stack = new Stack<INamedTypeSymbol>();
-            foreach (var x in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.CloseGeneric))
+            foreach (var x in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric))
             {
                 SalvageCloseGenericCore(stack, x.TypeSymbol);
             }
@@ -139,7 +139,7 @@ namespace Tinyhand.Generator
                 {// Not type
                     return;
                 }
-                else if (VisceralHelper.TypeToGenericsKind(ts) != VisceralGenericsKind.CloseGeneric)
+                else if (VisceralHelper.TypeToGenericsKind(ts) != VisceralGenericsKind.ClosedGeneric)
                 {// Not close generic
                     return;
                 }

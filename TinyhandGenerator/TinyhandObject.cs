@@ -244,7 +244,7 @@ namespace Tinyhand.Generator
                 return;
             }*/
 
-            if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric)
+            if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
             {
                 if (this.OriginalDefinition != null && this.OriginalDefinition.ClosedGenericHint == null)
                 {
@@ -394,7 +394,7 @@ namespace Tinyhand.Generator
                     this.MethodCondition_Deserialize = MethodCondition.Declared;
                 }
             }
-            else if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric)
+            else if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
             {
                 this.MethodCondition_Serialize = MethodCondition.StaticMethod;
                 this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
@@ -420,7 +420,7 @@ namespace Tinyhand.Generator
                     this.MethodCondition_Reconstruct = MethodCondition.Declared;
                 }
             }
-            else if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric)
+            else if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
             {
                 this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
             }
@@ -525,7 +525,7 @@ namespace Tinyhand.Generator
             if (this.TypeObjectWithNullable != null)
             {
                 FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
-                if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric &&
+                if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
                     this.ContainingObject != null &&
                     this.ContainingObject.OriginalDefinition is { } od)
                 {// Requires Class<T>.NestedClass<int> formatter.
@@ -1261,7 +1261,7 @@ ModuleInitializerClass_Added:
                         continue;
                     }
 
-                    if (x.Generics_Kind == VisceralGenericsKind.CloseGeneric)
+                    if (x.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
                     {// Use Class<T> for not optimized type.
                         /* if (!x.Generics_Arguments.All(a => a.IsOptimizedType))
                         {

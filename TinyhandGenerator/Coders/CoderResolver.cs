@@ -60,7 +60,7 @@ namespace Tinyhand.Coders
                     return this.IsCoderOrFormatterAvailable(elementWithNullable);
                 }
             }
-            else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
+            else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.ClosedGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
             {// Generics (List, Nullable)
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
                 var ret = baseObject.FullName switch

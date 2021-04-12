@@ -132,7 +132,7 @@ namespace Arc.Visceral
                     }
                 }
 
-                return VisceralGenericsKind.CloseGeneric;
+                return VisceralGenericsKind.ClosedGeneric;
             }
         }
 

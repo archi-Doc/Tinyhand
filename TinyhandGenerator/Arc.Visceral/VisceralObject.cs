@@ -2149,7 +2149,7 @@ namespace Arc.Visceral
                     }
                     else
                     {
-                        this.generics_Kind = VisceralGenericsKind.CloseGeneric;
+                        this.generics_Kind = VisceralGenericsKind.ClosedGeneric;
                     }
                 }
                 else

@@ -16,7 +16,7 @@ namespace Arc.Visceral
         NotGeneric = 1,
         // UnboundGeneric = 2, // Currently not supported.
         OpenGeneric = 3,
-        CloseGeneric = 4,
+        ClosedGeneric = 4,
     }
 
     /// <summary>
