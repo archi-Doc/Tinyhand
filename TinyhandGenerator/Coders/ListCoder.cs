@@ -19,13 +19,18 @@ namespace Tinyhand.Coders
                 return null;
             }
 
-            if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
+            if (withNullable.Object.Generics_Kind == VisceralGenericsKind.ClosedGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
             {// Generics
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
                 if (baseObject.FullName == "System.Collections.Generic.List<T>")
                 {
                     if (arguments.Length == 1)
                     {
+                        if (arguments[0].Object.Kind == VisceralObjectKind.TypeParameter)
+                        {
+                            return null;
+                        }
+
                         var elementCoder = CoderResolver.Instance.TryGetCoder(arguments[0]);
                         return new ListCoder(arguments[0], elementCoder, withNullable.Nullable);
                     }

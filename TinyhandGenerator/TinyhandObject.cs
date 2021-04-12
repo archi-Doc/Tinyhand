@@ -113,6 +113,8 @@ namespace Tinyhand.Generator
 
         public int FormatterExtraNumber { get; private set; } = -1;
 
+        public TinyhandObject? ClosedGenericHint { get; private set; }
+
         public string? InitDelegateIdentifier { get; private set; }
 
         internal Automata? Automata { get; private set; }
@@ -150,6 +152,25 @@ namespace Tinyhand.Generator
                 this.reconstructCondition = value;
             }
         }
+
+        public bool IsOptimizedType => this.FullName switch
+        {
+            "bool" => true,
+            "sbyte" => true,
+            "byte" => true,
+            "short" => true,
+            "ushort" => true,
+            "int" => true,
+            "uint" => true,
+            "long" => true,
+            "ulong" => true,
+            "float" => true,
+            "double" => true,
+            "decimal" => true,
+            "string" => true,
+            "char" => true,
+            _ => false,
+        };
 
         public bool HasNullableAnnotation
         {
@@ -222,6 +243,14 @@ namespace Tinyhand.Generator
             {
                 return;
             }*/
+
+            if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
+            {
+                if (this.OriginalDefinition != null && this.OriginalDefinition.ClosedGenericHint == null)
+                {
+                    this.OriginalDefinition.ClosedGenericHint = this;
+                }
+            }
 
             // ObjectAttribute
             if (this.AllAttributes.FirstOrDefault(x => x.FullName == TinyhandObjectAttributeMock.FullName) is { } objectAttribute)
@@ -365,10 +394,15 @@ namespace Tinyhand.Generator
                     this.MethodCondition_Deserialize = MethodCondition.Declared;
                 }
             }
-            else if (this.Generics_IsGeneric)
+            else if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
             {
                 this.MethodCondition_Serialize = MethodCondition.StaticMethod;
                 this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
+            }
+            else if (this.Generics_Kind == VisceralGenericsKind.OpenGeneric)
+            {
+                this.MethodCondition_Serialize = MethodCondition.MemberMethod;
+                this.MethodCondition_Deserialize = MethodCondition.MemberMethod;
             }
 
             // Method condition (Reconstruct)
@@ -386,9 +420,13 @@ namespace Tinyhand.Generator
                     this.MethodCondition_Reconstruct = MethodCondition.Declared;
                 }
             }
-            else if (this.Generics_IsGeneric)
+            else if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
             {
                 this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
+            }
+            else if (this.Generics_Kind == VisceralGenericsKind.OpenGeneric)
+            {
+                this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
             }
 
             // ITinyhandSerializationCallback
@@ -483,12 +521,16 @@ namespace Tinyhand.Generator
                 }
             }
 
-            if (this.Generics_Kind != VisceralGenericsKind.OpenGeneric)
+            // Add default coder (options.Resolver.GetFormatter<T>()...)
+            if (this.TypeObjectWithNullable != null)
             {
-                // Add default coder (options.Resolver.GetFormatter<T>()...)
-                if (this.TypeObjectWithNullable != null)
-                {
-                    FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+                FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+                if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
+                    this.ContainingObject != null &&
+                    this.ContainingObject.OriginalDefinition is { } od)
+                {// Requires Class<T>.NestedClass<int> formatter.
+                    var typeName = od.FullName + "." + this.LocalName;
+                    FormatterResolver.Instance.AddFormatter(this.Kind, typeName);
                 }
             }
 
@@ -703,14 +745,6 @@ namespace Tinyhand.Generator
                     }
 
                     this.Automata.AddNode(s, x);
-                }
-            }
-
-            if (this.Generics_Kind == VisceralGenericsKind.CloseGeneric)
-            {
-                if (this.OriginalDefinition is { } cf && cf.Automata == null)
-                {
-                    cf.Automata = this.Automata; // Open generic class<T> requires string key information.
                 }
             }
         }
@@ -1019,22 +1053,37 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         public static void GenerateLoader(ScopingStringBuilder ssb, GeneratorInformation info, List<TinyhandObject> list)
         {// list: Primary TinyhandObject
             var classFormat = "__gen__tf__{0:D4}";
-            var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null && x.Generics_Kind != VisceralGenericsKind.OpenGeneric);
+            var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null && x.FormatterNumber >= 0).ToArray();
 
-            if (list.Count > 0 && list[0].ContainingObject is { } containingObject)
-            {
-                // info.ModuleInitializerClass.Add(containingObject.FullName);
+            if (list2.Length > 0 && list2[0].ContainingObject is { } containingObject)
+            {// Add ModuleInitializerClass
+                string? initializerClassName = null;
+                if (containingObject.ClosedGenericHint != null)
+                {// ClosedGenericHint
+                    initializerClassName = containingObject.ClosedGenericHint.FullName;
+                    goto ModuleInitializerClass_Added;
+                }
+
                 var constructedList = containingObject.ConstructedObjects;
                 if (constructedList != null)
-                {
+                {// Closed generic
                     for (var n = 0; n < constructedList.Count; n++)
                     {
                         if (constructedList[n].Generics_Kind != VisceralGenericsKind.OpenGeneric)
                         {
-                            info.ModuleInitializerClass.Add(constructedList[n].FullName);
-                            break;
+                            initializerClassName = constructedList[n].FullName;
+                            goto ModuleInitializerClass_Added;
                         }
                     }
+                }
+
+                // Open generic
+                (initializerClassName, _) = containingObject.GetClosedGenericName("object");
+
+ModuleInitializerClass_Added:
+                if (initializerClassName != null)
+                {
+                    info.ModuleInitializerClass.Add(initializerClassName);
                 }
             }
 
@@ -1042,10 +1091,30 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             {
                 foreach (var x in list2)
                 {
-                    var name = string.Format(classFormat, x.FormatterNumber);
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
-                    name = string.Format(classFormat, x.FormatterExtraNumber);
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>(new {name}());");
+                    if (x.Generics_Kind != VisceralGenericsKind.OpenGeneric || x.Generics_Arguments.Length == 0)
+                    {// Formatter
+                        var name = string.Format(classFormat, x.FormatterNumber);
+                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
+                        name = string.Format(classFormat, x.FormatterExtraNumber);
+                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>(new {name}());");
+                    }
+                    else
+                    {// Formatter generator
+                        var generic = x.GetClosedGenericName(null);
+                        generic.count = x.Generics_Arguments.Length;
+                        var genericComma = generic.count <= 1 ? string.Empty : new string(',', generic.count - 1);
+                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(typeof({generic.name}), x =>");
+                        ssb.AppendLine("{");
+                        ssb.IncrementIndent();
+                        // ssb.AppendLine($"if (x.Length != {x.CountGenericsArguments()}) return (null!, null!);");
+                        var name = string.Format(classFormat, x.FormatterNumber);
+                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof({name}<{genericComma}>).MakeGenericType(x));");
+                        name = string.Format(classFormat, x.FormatterExtraNumber);
+                        ssb.AppendLine($"var formatterExtra = Activator.CreateInstance(typeof({name}<{genericComma}>).MakeGenericType(x));");
+                        ssb.AppendLine($"return ((ITinyhandFormatter)formatter!, (ITinyhandFormatterExtra)formatterExtra!);");
+                        ssb.DecrementIndent();
+                        ssb.AppendLine("});");
+                    }
                 }
             }
 
@@ -1053,7 +1122,25 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
             foreach (var x in list2)
             {
-                var name = string.Format(classFormat, x.FormatterNumber);
+                var genericArguments = string.Empty;
+                if (x.Generics_Kind == VisceralGenericsKind.OpenGeneric && x.Generics_Arguments.Length != 0)
+                {
+                    var sb = new StringBuilder("<");
+                    for (var n = 0; n < x.Generics_Arguments.Length; n++)
+                    {
+                        if (n > 0)
+                        {
+                            sb.Append(", ");
+                        }
+
+                        sb.Append(x.Generics_Arguments[n]);
+                    }
+
+                    sb.Append(">");
+                    genericArguments = sb.ToString();
+                }
+
+                var name = string.Format(classFormat, x.FormatterNumber) + genericArguments;
                 using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatter<{x.FullName}>"))
                 {
                     // Serialize
@@ -1097,7 +1184,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                     }
                 }
 
-                name = string.Format(classFormat, x.FormatterExtraNumber);
+                name = string.Format(classFormat, x.FormatterExtraNumber) + genericArguments;
                 using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatterExtra<{x.FullName}>"))
                 {
                     // Deserialize
@@ -1119,11 +1206,6 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                         }
                     }
                 }
-            }
-
-            list2 = list.Where(x => x.ObjectAttribute != null && x.Generics_Kind == VisceralGenericsKind.OpenGeneric);
-            foreach (var x in list2)
-            {// Open generic formatter
             }
         }
 
@@ -1179,9 +1261,30 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                         continue;
                     }
 
-                    if (x.Generics_Kind == VisceralGenericsKind.OpenGeneric)
-                    {
-                        continue;
+                    if (x.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
+                    {// Use Class<T> for not optimized type.
+                        /* if (!x.Generics_Arguments.All(a => a.IsOptimizedType))
+                        {
+                            continue;
+                        }*/
+
+                        var optimizedType = true;
+                        var c = x;
+                        while (c != null)
+                        {
+                            if (!c.Generics_Arguments.All(a => a.IsOptimizedType))
+                            {
+                                optimizedType = false;
+                                break;
+                            }
+
+                            c = c.ContainingObject;
+                        }
+
+                        if (!optimizedType)
+                        {
+                            continue;
+                        }
                     }
 
                     if (x.GenericsNumber > 1)
@@ -1836,7 +1939,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                     }
                     else
                     {
-                        if (x.TypeObject?.Kind != VisceralObjectKind.Error)
+                        if (x.TypeObject != null && (x.TypeObject.Kind != VisceralObjectKind.Error && x.TypeObject.Kind != VisceralObjectKind.TypeParameter))
                         {
                             this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                         }
@@ -1934,7 +2037,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                     }
                     else
                     {
-                        if (x.TypeObject?.Kind != VisceralObjectKind.Error)
+                        if (x.TypeObject != null && (x.TypeObject.Kind != VisceralObjectKind.Error && x.TypeObject.Kind != VisceralObjectKind.TypeParameter))
                         {
                             this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                         }

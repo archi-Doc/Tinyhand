@@ -21,6 +21,10 @@ namespace Tinyhand.Coders
                 {
                     return null;
                 }
+                else if (element.Object.Kind == VisceralObjectKind.TypeParameter)
+                {
+                    return new GenericArrayCoder(element, withNullable.Nullable);
+                }
 
                 var elementCoder = CoderResolver.Instance.TryGetCoder(element);
                 return new ArrayCoder(element, elementCoder, withNullable.Nullable);
@@ -223,6 +227,40 @@ namespace Tinyhand.Coders
         private GeneratorBlock? block;
         private WithNullable<TinyhandObject> element;
         private ITinyhandCoder? elementCoder;
+        private NullableAnnotation nullableAnnotation;
+    }
+
+    public class GenericArrayCoder : ITinyhandCoder
+    {
+        public GenericArrayCoder(WithNullable<TinyhandObject> element, NullableAnnotation nullableAnnotation)
+        {
+            this.element = element;
+            this.nullableAnnotation = nullableAnnotation;
+        }
+
+        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked = false)
+        {
+            if (this.nullableAnnotation != NullableAnnotation.NotAnnotated)
+            {// Nullable
+                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullName}[]>().Deserialize(ref reader, options);");
+            }
+            else
+            {// Non-nullable
+                ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.element.FullName}[]>(ref reader);");
+            }
+        }
+
+        public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = System.Array.Empty<{this.element.FullName}>();");
+        }
+
+        public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            ssb.AppendLine($"options.Resolver.GetFormatter<{this.element.FullName}[]>().Serialize(ref writer, {ssb.FullObject}, options);");
+        }
+
+        private WithNullable<TinyhandObject> element;
         private NullableAnnotation nullableAnnotation;
     }
 }

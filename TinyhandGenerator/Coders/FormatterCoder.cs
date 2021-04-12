@@ -118,7 +118,7 @@ namespace Tinyhand.Coders
                     return CoderResolver.Instance.IsCoderOrFormatterAvailable(elementWithNullable);
                 }
             }
-            else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.CloseGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
+            else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.ClosedGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
             {// Generics
                 var arguments = withNullable.Generics_ArgumentsWithNullable;
                 if (this.genericsType.Contains(baseObject.FullName))
@@ -237,6 +237,25 @@ Check_GenericsArguments:
             else
             {// Value type
                 return this.AddFormatter(withNullable.FullNameWithNullable); // T
+            }
+        }
+
+        public void AddFormatter(VisceralObjectKind kind, string typeName)
+        {
+            if (!kind.IsType())
+            {
+                return;
+            }
+
+            if (kind.IsReferenceType())
+            {// Reference type
+                var fullName = typeName.TrimEnd('?');
+                this.AddFormatter(fullName, true); // T (non-nullable)
+                this.AddFormatter(fullName + "?"); // T?
+            }
+            else
+            {// Value type
+                this.AddFormatter(typeName); // T
             }
         }
 

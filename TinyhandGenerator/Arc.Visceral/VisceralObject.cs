@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -663,6 +664,77 @@ namespace Arc.Visceral
 
                 return true;
             });
+        }
+
+        public (string name, int count) GetClosedGenericName(string? argumentName)
+        {// Namespace.Class<T, U>.Nested<X> -> Namespace.Class<argumentName, argumentName>.Nested<argumentName>
+            // Count
+            var n = 0;
+            var c = this;
+            while (c != null)
+            {
+                n++;
+                c = c.ContainingObject;
+            }
+
+            // Array
+            var array = new T[n];
+            c = this;
+            while (c != null)
+            {
+                array[--n] = (T)c;
+                c = c.ContainingObject;
+            }
+
+            var genericCount = 0;
+            var sb = new StringBuilder(array[0].Namespace);
+            for (var i = 0; i < array.Length; i++)
+            {
+                sb.Append(".");
+                sb.Append(array[i].SimpleName);
+                if (array[i].Generics_IsGeneric)
+                {
+                    var length = array[i].Generics_Arguments.Length;
+                    sb.Append("<");
+                    if (argumentName != null)
+                    {
+                        for (n = 0; n < length; n++)
+                        {
+                            if (n != 0)
+                            {
+                                sb.Append(", ");
+                            }
+
+                            sb.Append(argumentName);
+                        }
+                    }
+                    else
+                    {
+                        for (n = 1; n < length; n++)
+                        {
+                            sb.Append(",");
+                        }
+                    }
+
+                    sb.Append(">");
+                    genericCount += length;
+                }
+            }
+
+            return (sb.ToString(), genericCount);
+        }
+
+        public int CountGenericsArguments()
+        {
+            var count = 0;
+            var c = this;
+            while (c != null)
+            {
+                count += c.Generics_Arguments.Length;
+                c = c.ContainingObject;
+            }
+
+            return count;
         }
 
         public VisceralBody<T> Body { get; private set; } = default!;
@@ -2077,7 +2149,7 @@ namespace Arc.Visceral
                     }
                     else
                     {
-                        this.generics_Kind = VisceralGenericsKind.CloseGeneric;
+                        this.generics_Kind = VisceralGenericsKind.ClosedGeneric;
                     }
                 }
                 else
