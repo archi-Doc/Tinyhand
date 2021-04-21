@@ -248,7 +248,8 @@ namespace Tinyhand
             private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
             {
                 var addBrace = true;
-                if (this.option == TinyhandComposeOption.Simple && element.Parent == null)
+                if (element.Parent == null &&
+                    (this.option == TinyhandComposeOption.Simple || this.option == TinyhandComposeOption.UseContextualInformation))
                 {
                     addBrace = false;
                 }
