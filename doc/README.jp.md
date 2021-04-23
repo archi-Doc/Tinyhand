@@ -37,7 +37,6 @@
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#LZ4-Compression)
   - [Non-Generic API](#Non-Generic-API)
-- [External assembly](#External-assembly)
 
 
 
