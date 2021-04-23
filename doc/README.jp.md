@@ -158,7 +158,7 @@ public partial class DefaultBehaviourClass
     [Key(0)]
     public int X; // Key属性が必要
 
-    public int Y { get; private set; } // private setterなのでKeyは不要（シリアライズ対象外）
+    public int Y { get; private set; } // private setterでシリアライズ対象外なのでKeyは不要
 
     [Key(1)]
     private int Z; // プライベートメンバーでも、明示的にシリアライズ対象にすることが出来ます
@@ -224,7 +224,7 @@ public partial record RecordClass2(int X, string A);
 
 ### Include private members
 
-`IncludePrivateMembers` を true にすると、private/protectedもまとめてシリアライズ対象にすることが出来ます。
+`IncludePrivateMembers` を `true` にすると、private/protectedもまとめてシリアライズ対象にすることが出来ます。
 
 ```csharp
 [TinyhandObject(IncludePrivateMembers = true)]
@@ -245,7 +245,7 @@ public partial class IncludePrivateClass
 
 ### Explicit key only
 
-`ExplicitKeyOnly` を true にすると、`Key` 属性か `KeyAsName` 属性が付いたメンバーのみシリアライズ対象になります。
+`ExplicitKeyOnly` を `true` にすると、`Key` 属性か `KeyAsName` 属性が付いたメンバーのみシリアライズ対象になります。
 
 ```csharp
 [TinyhandObject(ExplicitKeyOnly = true)]
@@ -275,7 +275,7 @@ public partial class NullableTestClass
     public int? NullableInt { get; set; } = default!; // null
 
     public string String { get; set; } = default!;
-    // データがない場合は自動で string.Empty が入ります。
+    // データがない場合は自動でstring.Emptyが入ります。
 
     public string? NullableString { get; set; } = default!;
     // null許容型なので、そのままnullが入ります
@@ -316,7 +316,7 @@ public class NullableTest
 
 ### Default value
 
-`DefaultValueAttribute  `(`System.ComponentModel`) 属性を付加することで、デフォルト値を設定できます。
+`DefaultValueAttribute  ` (`System.ComponentModel`) 属性を付加することで、デフォルト値を設定できます。
 
 クラス再構成の場合や、デシリアライズ時に該当するデータがない場合は、デフォルト値が使用されます。
 
@@ -365,7 +365,7 @@ public class DefaultTest
     public void Test()
     {
         var t = new StringEmptyClass();
-        var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
+        var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t)); // 空データからのデシリアライズのため、それぞれのデフォルト値が入ります
     }
 }
 ```
@@ -506,7 +506,7 @@ public class ReuseTest
 }
 ```
 
-If you don't want to reuse an instance with default behavior, set `ReuseMember` of `TinyhandObject` to false ` [TinyhandObject(ReuseMember = false)]`.
+同じくReuseの挙動をまとめて変更したい場合は、`TinyhandObject` の `ReuseMember` を変更してください（` [TinyhandObject(ReuseMember = false)]`）。
 
 
 
