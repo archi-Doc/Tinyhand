@@ -5,7 +5,7 @@ Tinyhand is a tiny and simple data format/serializer largely based on [MessagePa
 
 This document may be inaccurate. It would be greatly appreciated if anyone could make additions and corrections.
 
-日本語ドキュメントは[こちら](https://github.com/archi-Doc/Tinyhand/doc/README.jp.md)
+日本語ドキュメントは[こちら](/doc/README.jp.md)
 
 
 
