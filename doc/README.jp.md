@@ -1,9 +1,18 @@
 ## Tinyhand
 ![Nuget](https://img.shields.io/nuget/v/Tinyhand) ![Build and Test](https://github.com/archi-Doc/Tinyhand/workflows/Build%20and%20Test/badge.svg)
 
-Tinyhand is a tiny and simple data format/serializer largely based on [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) by neuecc, AArnott.
+[Tinyhand](https://github.com/archi-Doc/Tinyhand)というソースジェネレーターを使用したシリアライザを作りました。といっても、neueccさんとAArnottさんの[MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp)を99％ベースに、ソースジェネレーター対応にして少し機能を追加しただけの代物です。
 
-This document may be inaccurate. It would be greatly appreciated if anyone could make additions and corrections.
+本家はGitHub [archi-Doc/Tinyhand](https://github.com/archi-Doc/Tinyhand)にあります。
+
+[MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp)からの変更点としては、
+
+- ソースジェネレーターなので、動的コード生成のコスト少ない。
+- デシリアライズ時のデフォルト値の指定が可能。
+- null許容・非許容の取り扱いを改善（非許容の場合は自動でインスタンス生成）。
+- インスタンスの再利用可能。
+
+といったところです。
 
 
 
@@ -35,15 +44,15 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
 
 ## Quick Start
 
-Tinyhand uses Source Generator, so the Target Framework should be .NET 5 or later.
+ソースジェネレーターなので、ターゲットフレームワークは .NET 5 以降です。
 
-Install Tinyhand using Package Manager Console.
+まずはPackage Manager Consoleでインストール。
 
 ```
 Install-Package Tinyhand
 ```
 
-This is a small sample code to use Tinyhand.
+サンプルコードです。
 
 ```csharp
 using System;
@@ -53,11 +62,11 @@ using Tinyhand;
 
 namespace ConsoleApp1
 {
-    [TinyhandObject] // Annote a TinyhandObject attribute.
-    public partial class MyClass // Partial class is required for source generator.
+    [TinyhandObject] // シリアライズ対象のクラスにTinyhandObject属性を追加します
+    public partial class MyClass // ソースジェネレーターでコード追加するので、partial classが必須
     {
-        // Key attributes take a serialization index (or string name)
-        // The values must be unique and versioning has to be considered as well.
+        // シリアライズ対象のメンバーにKey属性（シリアライズ時の識別子）を追加します。intとstringが指定できますが、クラス毎に統一する必要があります
+        // もちろんユニークな識別子が必要で、バージョニングの際には重要です
         [Key(0)]
         public int Age { get; set; }
 
@@ -65,23 +74,21 @@ namespace ConsoleApp1
         public string FirstName { get; set; } = string.Empty;
 
         [Key(2)]
-        [DefaultValue("Doe")] // If there is no corresponding data, the default value is set.
+        [DefaultValue("Doe")] // デフォルト値。デシリアライズ時に対応するデータがない場合、この値が代入されます
         public string LastName { get; set; } = string.Empty;
 
-        // All fields or properties that should not be serialized must be annotated with [IgnoreMember].
+        // IgnoreMember属性を付けると、シリアライズ対象から外れます
         [IgnoreMember]
         public string FullName { get { return FirstName + LastName; } }
 
         [Key(3)]
-        public List<string> Friends { get; set; } = default!; // Non-null value will be set by TinyhandSerializer.
+        public List<string> Friends { get; set; } = default!; // null非許容参照型。自動で新しいインスタンスが生成されます
 
         [Key(4)]
-        public int[]? Ids { get; set; } // Nullable value will be set null.
+        public int[]? Ids { get; set; } // null許容の場合は、nullが代入
 
         public MyClass()
-        {// Tinyhand requires default constructor for deserialization process.
-            this.MemberNotNull(); // optional (.NET 5): Informs the compiler that field or property members are set non-null values by TinyhandSerializer.
-            // this.Reconstruct(TinyhandSerializerOptions.Standard); // optional: Call Reconstruct() to actually create instances of members.
+        {// デシリアライズのため、デフォルトコンストラクタ（引数のないコンストラクタ）が必須です
         }
     }
 
@@ -94,17 +101,14 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            // TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
-            // ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
-
             var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
-            var b = TinyhandSerializer.Serialize(myClass);
-            var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b);
+            var b = TinyhandSerializer.Serialize(myClass);// 普通にシリアライズ
+            var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b);// 普通にデシリアライズ
 
-            b = TinyhandSerializer.Serialize(new EmptyClass()); // Empty data
-            var myClass3 = TinyhandSerializer.Deserialize<MyClass>(b); // Create an instance and set non-null values of the members.
+            b = TinyhandSerializer.Serialize(new EmptyClass()); // 空のデータ
+            var myClass3 = TinyhandSerializer.Deserialize<MyClass>(b); // 対応するデータがないので、デフォルト値が使用されます。
             
-            var myClassRecon = TinyhandSerializer.Reconstruct<MyClass>(); // Create a new instance whose members have default values.
+            var myClassRecon = TinyhandSerializer.Reconstruct<MyClass>(); // インスタンス生成。それぞれのメンバーには、デフォルト値諸々が入ります。
         }
     }
 }
@@ -114,9 +118,9 @@ namespace ConsoleApp1
 
 ## Performance
 
-Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-net) and [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp).
+[protobuf-net](https://github.com/protobuf-net/protobuf-net) と [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) 相手のベンチマークです。
 
-Tinyhand is quite fast and since it is based on Source Generator, it does not take time for dynamic code generation.
+protobuf-netはもちろん、本家よりも速いです。
 
 | Method                       |     Mean |   Error |  StdDev |   Median |  Gen 0 | Gen 1 | Gen 2 | Allocated |
 | ---------------------------- | -------: | ------: | ------: | -------: | -----: | ----: | ----: | --------: |
@@ -135,33 +139,43 @@ Tinyhand is quite fast and since it is based on Source Generator, it does not ta
 
 ## Serialization Target
 
-All public members are serialization targets by default. You need to add `Key` attributes to public members unless `ImplicitKeyAsName` is set to true.
+シリアライズ対象のお話。
+
+publicメンバーはデフォルトでシリアライズ対象で、`Key` または `KeyAsName` または `IgnoreMember`属性 のいずれかを指定する必要があります。
+
+protected/privateメンバーはシリアライズ対象外のため、属性を付ける必要はありません。`Key`または`KeyAsName` 属性を付けると、明示的にシリアライズ対象に追加することが出来ます。
+
+
+
+- `Key` または `KeyAsName `属性（メンバー名がそのまま`Key`になる）でシリアライズ時の識別子を指定します。
+- `IgnoreMember` 属性を付けると対象から外れます。
+- `ImplicitKeyAsName` 属性をクラスに付けると、シリアライズ対象のメンバーにすべて自動で `KeyAsName`属性が付きます。
 
 ```csharp
 [TinyhandObject]
 public partial class DefaultBehaviourClass
 {
     [Key(0)]
-    public int X; // Key required
+    public int X; // Key属性が必要
 
-    public int Y { get; private set; } // Not required since it's private setter.
+    public int Y { get; private set; } // private setterなのでKeyは不要（シリアライズ対象外）
 
     [Key(1)]
-    private int Z; // By adding the Key attribute, You can add a private member to the serialization target.
+    private int Z; // プライベートメンバーでも、明示的にシリアライズ対象にすることが出来ます
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitKeyAsName = true)] // すべてのメンバーにKeyAsName属性を付ける
 public partial class KeyAsNameClass
 {
-    public int X; // Serialized with the key "X"
+    public int X; // key "X"
 
-    public int Y { get; private set; } // Not a serialization target (due to the private setter)
+    public int Y { get; private set; } // シリアライズ対象外
 
     [Key("Z")]
-    private int Z; // Serialized with the key "Z"
+    private int Z; // key "Z"
     
     [KeyAsName]
-    public int A; // Use the member name as the key "A".
+    public int A; // key "A".
 }
 ```
 
@@ -169,7 +183,7 @@ public partial class KeyAsNameClass
 
 ### Readonly and Getter-only
 
-Readonly field and getter-only property are not serialization target. 
+readonly と getter-only property はサポートされません（シリアライズ対象外）。 
 
 ```csharp
 [TinyhandObject]
@@ -183,26 +197,26 @@ public partial class ReadonlyGetteronlyClass
 }
 ```
 
-Although it is not impossible to serialize read-only fields and getter-only properties, this feature is not supported because it requires dynamic code generation and read-only data should not be targeted for serialization.
+技術的には可能ですが、アンセーフコードと動的コード生成が必要で、信条的にも readonly / getter-only をシリアライズする必要はなかろうと考えています。ご意見お待ちしています。
 
 
 
 ### Init-only property and Record type
 
-Init-only property and ```record``` type are supported.
+Init-only property と```record``` 型はサポートされます。
 
 ```csharp
 [TinyhandObject]
-public partial record RecordClass // Partial record required.
-{// Default constructor is not required for record types.
+public partial record RecordClass // もちろんpartial
+{// record型の場合は、デフォルトコンストラクタ不要です
     [Key(0)]
-    public int X { get; init; }
+    public int X { get; init; } // initプロパティーも無理矢理デシリアライズします
 
     [Key(1)]
     public string A { get; init; } = default!;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)] // Short version, but string key is a bit slower then integer key.
+[TinyhandObject(ImplicitKeyAsName = true)] // こんな感じで記述できます。string keyになるので、int keyより多少パフォーマンス落ちます。
 public partial record RecordClass2(int X, string A);
 ```
 
@@ -210,20 +224,20 @@ public partial record RecordClass2(int X, string A);
 
 ### Include private members
 
-By setting `IncludePrivateMembers` to true, you can add private and protected members to the serialization target.
+`IncludePrivateMembers` を true にすると、private/protectedもまとめてシリアライズ対象にすることが出来ます。
 
 ```csharp
 [TinyhandObject(IncludePrivateMembers = true)]
 public partial class IncludePrivateClass
 {
     [Key(0)]
-    public int X; // Key required
+    public int X; // Key必須
 
     [Key(1)]
-    public int Y { get; private set; } // Key required
+    public int Y { get; private set; } // Key必須になる
 
     [IgnoreMember]
-    private int Z; // Add the IgnoreMember attribute to exclude from serialization targets.
+    private int Z; // シリアライズ対象外にする
 }
 ```
 
@@ -231,16 +245,16 @@ public partial class IncludePrivateClass
 
 ### Explicit key only
 
-By setting `ExplicitKeyOnly` to true, only members with the Key attribute will be serialized.
+`ExplicitKeyOnly` を true にすると、`Key` 属性か `KeyAsName` 属性が付いたメンバーのみシリアライズ対象になります。
 
 ```csharp
 [TinyhandObject(ExplicitKeyOnly = true)]
 public partial class ExplicitKeyClass
 {
-    public int X; // Not serialized (no error message).
+    public int X; // シリアライズ対象外
 
     [Key(0)]
-    public int Y; // Serialized
+    public int Y; // シリアライズ対象
 }
 ```
 
@@ -250,7 +264,7 @@ public partial class ExplicitKeyClass
 
 ### Handling nullable reference types
 
-Tinyhand tries to handle nullable/non-nullable reference types properly.
+Tinyhandは null許容参照型・非許容参照型を適切にデシリアライズします。つまり、空のデータや、バージョニングで対応するメンバーがないデータが来ても、null非許容参照型のインスタンスを自動で補完します。
 
 ```csharp
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -261,10 +275,10 @@ public partial class NullableTestClass
     public int? NullableInt { get; set; } = default!; // null
 
     public string String { get; set; } = default!;
-    // If this value is null, Tinyhand will automatically change the value to string.Empty.
+    // データがない場合は自動で string.Empty が入ります。
 
     public string? NullableString { get; set; } = default!;
-    // This is nullable type, so the value remains null.
+    // null許容型なので、そのままnullが入ります
 
     public NullableSimpleClass SimpleClass { get; set; } = default!; // new SimpleClass()
 
@@ -275,10 +289,10 @@ public partial class NullableTestClass
     public NullableSimpleClass[]? NullableArray { get; set; } = default!; // null
 
     public NullableSimpleClass[] Array2 { get; set; } = new NullableSimpleClass[] { new NullableSimpleClass(), null! };
-    // null! will be change to a new instance.
+    // null! は新しいインスタンスで置換されます
 
     public Queue<NullableSimpleClass> Queue { get; set; } = new(new NullableSimpleClass[] { null!, null!, });
-    // null! remains null because it loses information whether it is nullable or non-nullable in C# generic methods.
+    // null! は null のままになります。これはC#のジェネリック関数を介すると、参照型がnull非許容か許容かの情報が失われるためです。仕方ない。
 }
 
 [TinyhandObject]
@@ -302,11 +316,11 @@ public class NullableTest
 
 ### Default value
 
-You can specify the default value for a member using `DefaultValueAttribute `(System.ComponentModel).
+`DefaultValueAttribute  `(`System.ComponentModel`) 属性を付加することで、デフォルト値を設定できます。
 
-If the serialized data does not have a matching data for a member, Tinyhand will set the default value for that member.
+クラス再構成の場合や、デシリアライズ時に該当するデータがない場合は、デフォルト値が使用されます。
 
-Primitive types (`bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `decimal`, `string`, `char`, `enum`) are supported.
+対象の型は、プリミティブ（`bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `decimal`, `string`, `char`, `enum`）です。
 
 ```csharp
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -321,7 +335,7 @@ public partial class DefaultTestClass
     [DefaultValue("test")]
     public string String { get; set; }
     
-    [DefaultValue("Test")] // Default value for TinyhandObject is supported.
+    [DefaultValue("Test")] // TinyhandObject属性を持つクラスに限りますが、クラスにデフォルト値を指定することが出来ます
     public DefaultTestClassName NameClass { get; set; }
 }
 
@@ -335,12 +349,11 @@ public partial class DefaultTestClassName
 {
     public DefaultTestClassName()
     {
-        
     }
 
     public void SetDefault(string name)
-    {// To receive the default value, SetDefault() is required.
-        // Constructor -> SetDefault -> Deserialize or Reconstruct
+    {// デフォルト値を設定する場合は、SetDefault() が呼ばれます
+        // 順番は Constructor -> SetDefault -> Deserialize or Reconstruct
         this.Name = name;
     }
 
@@ -357,32 +370,34 @@ public class DefaultTest
 }
 ```
 
-You can skip serializing values if the value is identical to the default value, by using `[TinyhandObject(SkipSerializingDefaultValue = true)]`.
+メンバーがデフォルト値の場合、シリアライズをスキップすることが可能です。クラス宣言の際に、`[TinyhandObject(SkipSerializingDefaultValue = true)]` と指定してください。
 
 
 
 ### Reconstruct
 
-Tinyhand creates an instance of a member variable even if there is no matching data. By adding `[Reconstruct(false)]` or `[Reconstruct(true)]` to member attributes, you can change the behavior of whether an instance is created or not. 
+デシリアライズ時にメンバーを再構築（自動でインスタンス補完）します。
+
+基本はOnですが、メンバーに `[Reconstruct(false)]` や `[Reconstruct(true)]` 属性を追加することで、挙動を変更できます。
 
 ```csharp
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class ReconstructTestClass
 {
     [DefaultValue(12)]
-    public int Int { get; set; } // 12
+    public int Int { get; set; } // 12（デフォルト値）が入ります
 
     public EmptyClass EmptyClass { get; set; } = default!; // new()
 
     [Reconstruct(false)]
-    public EmptyClass EmptyClassOff { get; set; } = default!; // null
+    public EmptyClass EmptyClassOff { get; set; } = default!; // null：補完されません
 
     public EmptyClass? EmptyClass2 { get; set; } // null
 
     [Reconstruct(true)]
-    public EmptyClass? EmptyClassOn { get; set; } // new()
+    public EmptyClass? EmptyClassOn { get; set; } // new()：補完されます
 
-    /* Error. A class to be reconstructed must have a default constructor.
+    /* 補完対象のクラスにはデフォルトコンストラクタが必要になるため、これはエラー
     [IgnoreMember]
     [Reconstruct(true)]
     public ClassWithoutDefaultConstructor WithoutClass { get; set; }*/
@@ -418,15 +433,17 @@ public class ClassWithDefaultConstructor
 }
 ```
 
-If you don't want to create an instance with default behavior, set `ReconstructMember` of `TinyhandObject` to false ` [TinyhandObject(ReconstructMember = false)]`.
+メンバー再構築の挙動をまとめて変更したい場合は、`TinyhandObject` の `ReconstructMember` を変更してください（` [TinyhandObject(ReconstructMember = false)]`）。
 
 
 
 ### Reuse Instance
 
-Tinyhand will reuse an instance if its members have valid values. The type of the instance to be reused must have a `TinyhandObject` attribute.
+デシリアライズ時に、新しいインスタンスを作成せずに、既存のインスタンスを使い回すことが出来ます。
 
-By adding `[Reuse(true)]` or `[Reuse(false)]` to member attributes, you can change the behavior of whether an instance is reused or not.
+ただし、`TinyhandObject` 属性を持つクラスに限ります（プリミティブ型や配列型に適用すると、取り扱いが訳分からなくなるため）。
+
+メンバーに `[Reuse(true)]` や `[Reuse(false)]` 属性を追加することで、それぞれの挙動を変えることが出来ます。
 
 ```csharp
 [TinyhandObject(ReuseMember = true)]
@@ -495,12 +512,14 @@ If you don't want to reuse an instance with default behavior, set `ReuseMember` 
 
 ### Union
 
-Tinyhand supports serializing interface-typed and abstract class-typed objects. It behaves like `XmlInclude` or `ProtoInclude`. In Tinyhand these are called `Union`. Only interfaces and abstracts classes are allowed to be annotated with `TinyhandUnion` attributes. Unique union keys (`int`) are required.
+インターフェースや抽象クラスから派生したクラスを、インターフェースや抽象クラス経由でシリアライズ・デシリアライズします。[MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) や Tinyhandでは `Union` と呼んでいます。
+
+使い方は、まずインターフェース・抽象クラスを定義します。次に、`TinyhandUnion` 属性をそれぞれの派生クラス分だけ追加します。属性は、`[TinyhandUnion(0, typeof(DerivedClassA))]` という感じで、識別子（int）と派生クラスの型を指定します。
 
 ```csharp
-// Annotate inheritance types
-[TinyhandUnion(0, typeof(UnionTestClassA))]
-[TinyhandUnion(1, typeof(UnionTestClassB))]
+// インターフェースの宣言
+[TinyhandUnion(0, typeof(UnionTestClassA))] // それぞれのTinyhandUnionを登録
+[TinyhandUnion(1, typeof(UnionTestClassB))] // Key(int)と派生クラスを指定します
 public interface IUnionTestInterface
 {
     void Print();
@@ -542,22 +561,20 @@ public static class UnionTest
 }
 ```
 
-Please be mindful that you cannot reuse the same keys in derived types that are already present in the parent type, as internally a single flat array or map will be used and thus cannot have duplicate indexes/keys.
-
 
 
 ### Text Serialization
 
-Tinyhand can serialize an object to Tinyhand text format .
+バイナリではなく、テキスト形式でシリアライズすることも可能です。
 
 ```csharp
-// Serialize an object to string (UTF-16 text) and deserialize from it.
+// string (UTF-16 text) 形式にシリアライズ
 var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
 var st = TinyhandSerializer.SerializeToString(myClass);
 var myClass2 = TinyhandSerializer.DeserializeFromString<MyClass>(st);
 ```
 
-The result is
+結果はこちら。JSONに似たノリです。もちろんテキストからデシリアライズも可能です。
 
 ```
 {
@@ -565,20 +582,24 @@ The result is
 }
 ```
 
-UTF-8 version is available.
+UTF-8版はこちら。
 
 ```csharp
 var utf8 = TinyhandSerializer.SerializeToUtf8(myClass);
 var myClass3 = TinyhandSerializer.DeserializeFromUtf8<MyClass>(utf8);
 ```
 
-Text Serialization is optional because it is 5 to 8 times slower than binary serialization.
+結構頑張ったんですが、ObjectをBinaryにしてから（通常はここまで）、Binaryを解釈してTextに変換する、という余計な処理が多いので、遅いです。だいたい5-8倍。
+
+全然使えないほどではないですが、基本はバイナリを勧めます。
 
 
 
 ### Versioning
 
-Tinyhand serializer is version tolerant. If you serialize a version 1 object and deserialize it as version 2, the new members will be set to their default values. In the opposite direction, if you serialize a version 2 object and deserialize it as version 1, the new members will just be ignored.
+バージョニング耐性は結構考慮しています。つまり、メンバー（Key）を追加しても削除しても、可能な限りシリアライズ/デシリアライズするような設計です。
+
+メンバーが追加されて、デシリアライズ時にデータがない場合は、初期値・デフォルト値が使用されます。逆にメンバーが削除されて、デシリアライズ時に余分なデータがある場合は、余分なデータは無視されます。例外は発生しません。
 
 ```csharp
 [TinyhandObject]
@@ -632,7 +653,9 @@ public static class VersioningTest
 
 ### Serialization Callback
 
-Objects implementing the `ITinyhandSerializationCallback` interface will receive `OnBeforeSerialize` and `OnAfterDeserialize` calls during serialization/deserialization.
+シリアライズの前と、デシリアライズの後に処理を挟みたい場合は、 `ITinyhandSerializationCallback` interface を追加してください。
+
+シリアライズ直前に `OnBeforeSerialize`、デシリアライズ直後に `OnAfterDeserialize` が呼ばれます。
 
 ```csharp
 [TinyhandObject]
@@ -657,7 +680,7 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 ### Built-in supported types
 
-These types can serialize by default:
+サポートしている型の一覧：
 
 * Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
 
@@ -695,7 +718,7 @@ These types can serialize by default:
 
 ### LZ4 Compression
 
-Tinyhand has LZ4 compression support.
+LZ4による圧縮も可能です（[MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp)丸パクリだから・・・）
 
 ```csharp
 var b = TinyhandSerializer.Serialize(myClass, TinyhandSerializerOptions.Lz4);
@@ -713,18 +736,4 @@ var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
 var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
 ```
 
-
-
-
-## External assembly
-
-If you add a reference to a class library which uses Tinyhand, additional initialization code is required.
-
-The namespace of `TinyhandModule` is set to the name of assembly, in order to avoid namespace conflicts.
-
-```csharp
-ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
-```
-
-This code will no longer be needed if .NET Standard supports `ModuleInitializerAttribute` in the future.
 
