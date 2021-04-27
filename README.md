@@ -11,6 +11,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
 
 ## Table of Contents
 
+- [Requirements](#requirements)
 - [Quick Start](#quick-start)
 - [Performance](#performance)
 - [Serialization Target](#serialization-target)
@@ -34,10 +35,18 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
 
 
 
+## Requirements
+
+**C# 9.0** or later for generated codes.
+
+Source generators need **.NET 5** generation or later **compiler**.
+
+.NET Core 3 targeted projects can use this library, but **.NET 5 or later** is preferred because this library will use ModuleInitializerAttribute if available.
+
+
+
 
 ## Quick Start
-
-Tinyhand uses Source Generator, so the Target Framework should be .NET 5 or later.
 
 Install Tinyhand using Package Manager Console.
 
