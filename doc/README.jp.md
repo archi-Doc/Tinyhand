@@ -18,6 +18,7 @@
 
 ## Table of Contents
 
+- [Requirements](#requirements)
 - [Quick Start](#quick-start)
 - [Performance](#performance)
 - [Serialization Target](#serialization-target)
@@ -40,10 +41,17 @@
 
 
 
+## Requirements
+
+**C# 9.0** 以降：生成コードが使用
+
+**.NET 5** 世代以降のコンパイラ：ソースジェネレーターが使用
+
+.NET Core 3 プロジェクトでも使用可能ですが、`ModuleInitializerAttribute`を使用するため、**.NET 5** 以降を推奨します
+
+
 
 ## Quick Start
-
-ソースジェネレーターなので、ターゲットフレームワークは .NET 5 以降です。
 
 まずはPackage Manager Consoleでインストール。
 
@@ -734,5 +742,4 @@ var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
 var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
 var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
 ```
-
 
