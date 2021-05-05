@@ -16,6 +16,7 @@ namespace Tinyhand.Resolvers
 
         private static readonly IFormatterResolver[] Resolvers = new IFormatterResolver[]
         {
+            // NativeGuidResolver.Instance,
             BuiltinResolver.Instance,
             CompositeResolver.Create(ExpandoObjectFormatter.Instance),
             GenericsResolver.Instance,
