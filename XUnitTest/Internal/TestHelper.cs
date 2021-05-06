@@ -21,12 +21,12 @@ namespace Tinyhand.Tests
 
         public static T? TestWithMessagePack<T>(T obj)
         {
-            var b = TinyhandSerializer.Serialize<T>(obj);
+            var b = TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Compatible);
             var b2 = MessagePack.MessagePackSerializer.Serialize<T>(obj);
             // var json = MessagePack.MessagePackSerializer.ConvertToJson(b2);
             b.IsStructuralEqual(b2);
 
-            var t = TinyhandSerializer.Deserialize<T>(b);
+            var t = TinyhandSerializer.Deserialize<T>(b, TinyhandSerializerOptions.Compatible);
             obj.IsStructuralEqual(t);
 
             t = TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Lz4), TinyhandSerializerOptions.Lz4);
@@ -44,11 +44,11 @@ namespace Tinyhand.Tests
 
         public static T? TestWithMessagePackWithoutCompareObject<T>(T obj)
         {
-            var b = TinyhandSerializer.Serialize<T>(obj);
+            var b = TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Compatible);
             var b2 = MessagePack.MessagePackSerializer.Serialize<T>(obj);
             b.IsStructuralEqual(b2);
 
-            var t = TinyhandSerializer.Deserialize<T>(b)!;
+            var t = TinyhandSerializer.Deserialize<T>(b, TinyhandSerializerOptions.Compatible)!;
             var b3 = MessagePack.MessagePackSerializer.Serialize<T>(t);
             b.IsStructuralEqual(b3);
 

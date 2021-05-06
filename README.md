@@ -39,9 +39,9 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
 
 **C# 9.0** or later for generated codes.
 
-Source generators need **.NET 5** generation or later **compiler**.
+**.NET 5** or later **compiler** for source generators.
 
-.NET Core 3 targeted projects can use this library, but **.NET 5 or later** is preferred because this library will use ModuleInitializerAttribute if available.
+.NET Core 3 targeted projects can use this library, but **.NET 5 or later** is preferred because this library will use `ModuleInitializerAttribute` if available.
 
 
 
