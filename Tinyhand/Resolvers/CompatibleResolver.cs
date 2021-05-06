@@ -5,26 +5,24 @@ using Tinyhand.Formatters;
 namespace Tinyhand.Resolvers
 {
     /// <summary>
-    /// Default composited resolver.
+    /// Compatible composited resolver.
     /// </summary>
-    public sealed class StandardResolver : IFormatterResolver
+    public sealed class CompatibleResolver : IFormatterResolver
     {
         /// <summary>
         /// The singleton instance that can be used.
         /// </summary>
-        public static readonly StandardResolver Instance = new();
+        public static readonly CompatibleResolver Instance = new();
 
         private static readonly IFormatterResolver[] Resolvers = new IFormatterResolver[]
-        {// NativeResolver + CompatibleResolver
-            NativeGuidResolver.Instance,
-            NativeDecimalResolver.Instance,
+        {
             BuiltinResolver.Instance,
             CompositeResolver.Create(ExpandoObjectFormatter.Instance),
             GenericsResolver.Instance,
             GeneratedResolver.Instance,
         };
 
-        private StandardResolver()
+        private CompatibleResolver()
         {
         }
 

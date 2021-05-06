@@ -155,6 +155,9 @@ namespace Benchmark.NativeFormatter
         }
 
         [Benchmark]
+        public byte[] SerializeGuid_TinyhandSerializer() => TinyhandSerializer.Serialize(this.Guid);
+
+        [Benchmark]
         public Guid DeserializeGuid()
         {
             var r = new TinyhandReader(this.GuidByte);
@@ -167,6 +170,9 @@ namespace Benchmark.NativeFormatter
             var r = new TinyhandReader(this.NativeGuidByte);
             return NativeGuidFormatter.Instance.Deserialize(ref r, null!);
         }
+
+        [Benchmark]
+        public Guid DeserializeGuid_TinyhandSerializer() => TinyhandSerializer.Deserialize<Guid>(this.NativeGuidByte);
 
         [Benchmark]
         public ReadOnlySequence<byte> SerializeDecimal()
@@ -199,6 +205,9 @@ namespace Benchmark.NativeFormatter
         }
 
         [Benchmark]
+        public byte[] SerializeDecimal_TinyhandSerializer() => TinyhandSerializer.Serialize(this.Decimal);
+
+        [Benchmark]
         public Decimal DeserializeDecimal()
         {
             var r = new TinyhandReader(this.DecimalByte);
@@ -211,5 +220,8 @@ namespace Benchmark.NativeFormatter
             var r = new TinyhandReader(this.NativeDecimalByte);
             return NativeDecimalFormatter.Instance.Deserialize(ref r, null!);
         }
+
+        [Benchmark]
+        public Decimal DeserializeDecimal_TinyhandSerializer() => TinyhandSerializer.Deserialize<Decimal>(this.NativeDecimalByte);
     }
 }

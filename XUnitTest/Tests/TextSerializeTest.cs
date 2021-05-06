@@ -98,7 +98,7 @@ namespace Tinyhand.Tests
             c5.ObjectArray = c4.ObjectArray; // avoid int != byte issue
             c5.ObjectList = c4.ObjectList; // avoid int != byte issue
             var b = MessagePack.MessagePackSerializer.Serialize<FormatterResolverClass>(c4);
-            var b2 = TinyhandSerializer.Serialize<FormatterResolverClass>(c5);
+            var b2 = TinyhandSerializer.Serialize<FormatterResolverClass>(c5, TinyhandSerializerOptions.Compatible);
             b.IsStructuralEqual(b2);
 
             st = TinyhandSerializer.SerializeToString(c4, simple);
@@ -108,7 +108,7 @@ namespace Tinyhand.Tests
             c5.ObjectArray = c4.ObjectArray; // avoid int != byte issue
             c5.ObjectList = c4.ObjectList; // avoid int != byte issue
             b = MessagePack.MessagePackSerializer.Serialize<FormatterResolverClass>(c4);
-            b2 = TinyhandSerializer.Serialize<FormatterResolverClass>(c5);
+            b2 = TinyhandSerializer.Serialize<FormatterResolverClass>(c5, TinyhandSerializerOptions.Compatible);
             b.IsStructuralEqual(b2);
         }
     }
