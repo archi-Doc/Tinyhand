@@ -80,7 +80,9 @@ namespace Tinyhand.Coders
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            ssb.AppendLine(string.Format(this.SerializeFormat, ssb.FullObject));
+            ssb.Append("{ ");
+            ssb.Append(string.Format(this.SerializeFormat, ssb.FullObject), false);
+            ssb.AppendLine(" }", false);
         }
 
         public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
