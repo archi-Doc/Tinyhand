@@ -23,7 +23,6 @@ namespace Tinyhand.Tests
 
         [Key(3)]
         public MyEnum Item3 { get; set; }
-
     }
 
     public class EnumTest

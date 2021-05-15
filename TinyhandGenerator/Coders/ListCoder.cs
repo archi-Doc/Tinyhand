@@ -182,21 +182,26 @@ namespace Tinyhand.Coders
                 ssb.AppendLine("var len = reader.ReadArrayHeader();");
                 ssb.AppendLine($"var list = new System.Collections.Generic.List<{this.element.FullNameWithNullable}>(len);");
                 ssb.AppendLine("options.Security.DepthStep(ref reader);");
-                using (var v = ssb.ScopeObject("list"))
                 using (var scopeSecurityTry = ssb.ScopeBrace("try"))
                 {
+                    if (this.elementCoder != null)
+                    {// {this.element.FullNameWithNullable} lv;
+                        ssb.AppendLine($"{this.element.FullNameWithNullable} lv;");
+                    }
+
                     using (var c2 = ssb.ScopeBrace("for (int i = 0; i < len; i++)"))
-                    {
-                        using (var element = ssb.ScopeObject("[i]", false))
-                        {
-                            ssb.AppendLine("reader.CancellationToken.ThrowIfCancellationRequested();");
-                            if (this.elementCoder == null)
-                            {// use option.Resolver.GetFormatter<T>()
-                                ssb.AppendLine($"list.Add(formatter.Deserialize(ref reader, options)!);");
-                            }
-                            else
-                            {// use coder
+                    {// list[i]
+                        ssb.AppendLine("reader.CancellationToken.ThrowIfCancellationRequested();");
+                        if (this.elementCoder == null)
+                        {// use option.Resolver.GetFormatter<T>()
+                            ssb.AppendLine("list.Add(formatter.Deserialize(ref reader, options)!);");
+                        }
+                        else
+                        {// use coder
+                            using (var listValue = ssb.ScopeObject("lv"))
+                            {
                                 this.elementCoder.CodeDeserializer(ssb, info);
+                                ssb.AppendLine("list.Add(lv);");
                             }
                         }
                     }
