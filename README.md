@@ -25,7 +25,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Reconstruct](#reconstruct)
   - [Reuse Instance](#reuse-instance)
   - [Union](#union)
-  - [Text Serializaiton](#text-serialization)
+  - [Text Serialization](#text-serialization)
   - [Versioning](#versioning)
   - [Serialization Callback](#serialization-callback)
   - [Built-in supported types](#built-in-supported-types)
