@@ -25,7 +25,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Reconstruct](#reconstruct)
   - [Reuse Instance](#reuse-instance)
   - [Union](#union)
-  - [Text Serializaiton](#text-serialization)
+  - [Text Serialization](#text-serialization)
   - [Versioning](#versioning)
   - [Serialization Callback](#serialization-callback)
   - [Built-in supported types](#built-in-supported-types)
@@ -213,7 +213,7 @@ public partial record RecordClass // Partial record required.
     public string A { get; init; } = default!;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)] // Short version, but string key is a bit slower then integer key.
+[TinyhandObject(ImplicitKeyAsName = true)] // Short version, but string key is a bit slower than integer key.
 public partial record RecordClass2(int X, string A);
 ```
 
