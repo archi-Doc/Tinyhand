@@ -1404,7 +1404,8 @@ ModuleInitializerClass_Added:
                 {
                     ssb.AppendLine($"mi = type.GetMethod(\"set_{x.SimpleName}\")!;");
                     ssb.AppendLine($"exp = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
-                    ssb.AppendLine($"{x.InitDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Call(expType, mi!, exp), expType, exp).Compile();");
+                    // ssb.AppendLine($"{x.InitDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Call(expType, mi!, exp), expType, exp).Compile();");
+                    ssb.AppendLine($"{x.InitDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Call(expType, mi!, exp), expType, exp).CompileFast();");
                 }
 
                 ssb.AppendLine("return true;");

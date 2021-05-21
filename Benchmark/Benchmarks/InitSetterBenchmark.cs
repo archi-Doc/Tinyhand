@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
+using FastExpressionCompiler;
 using Tinyhand;
 
 namespace Benchmark.InitOnly
@@ -114,6 +115,26 @@ namespace Benchmark.InitOnly
             this.initIntByte = TinyhandSerializer.Serialize(this.initInt);
             this.recordClass = new RecordClass(1, 2, "A", "B");
             this.recordClassByte = TinyhandSerializer.Serialize(this.recordClass);
+        }
+
+        [Benchmark]
+        public Action<InitIntClass, int> CreateDelegate()
+        {
+            var type = typeof(InitIntClass);
+            var expType = Expression.Parameter(type);
+            var mi = type.GetMethod("set_X")!;
+            var exp = Expression.Parameter(typeof(int));
+            return Expression.Lambda<Action<InitIntClass, int>>(Expression.Call(expType, mi!, exp), expType, exp).Compile();
+        }
+
+        [Benchmark]
+        public Action<InitIntClass, int> CreateDelegateFast()
+        {
+            var type = typeof(InitIntClass);
+            var expType = Expression.Parameter(type);
+            var mi = type.GetMethod("set_X")!;
+            var exp = Expression.Parameter(typeof(int));
+            return Expression.Lambda<Action<InitIntClass, int>>(Expression.Call(expType, mi!, exp), expType, exp).CompileFast();
         }
 
         [Benchmark]

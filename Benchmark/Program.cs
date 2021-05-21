@@ -54,9 +54,9 @@ namespace Benchmark
 
             var switcher = new BenchmarkSwitcher(new[]
             {
+                typeof(InitOnly.InitOnlyBenchmark),
                 typeof(NativeFormatter.NativeFormatterBenchmark),
                 typeof(Generics.GenericsBenchmark),
-                typeof(InitOnly.InitOnlyBenchmark),
                 typeof(H2HTest.H2HSandbox),
                 typeof(H2HTest.H2HBenchmark),
                 typeof(H2HTest.H2HLarge),
