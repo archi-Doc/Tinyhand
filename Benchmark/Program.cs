@@ -50,10 +50,11 @@ namespace Benchmark
             Console.WriteLine(Stopwatch.ToSimpleString());
             Console.WriteLine();
 
-            DebugRun<NativeFormatter.NativeFormatterBenchmark>();
+            DebugRun<Clone.CloneBenchmark>();
 
             var switcher = new BenchmarkSwitcher(new[]
             {
+                typeof(Clone.CloneBenchmark),
                 typeof(InitOnly.InitOnlyBenchmark),
                 typeof(NativeFormatter.NativeFormatterBenchmark),
                 typeof(Generics.GenericsBenchmark),
