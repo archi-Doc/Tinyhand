@@ -73,6 +73,26 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public ImmutableArray<T> Clone(ImmutableArray<T> value, TinyhandSerializerOptions options)
+        {
+            var len = value.Length;
+            if (len == 0)
+            {
+                return ImmutableArray<T>.Empty;
+            }
+            else
+            {
+                var formatter = options.Resolver.GetFormatter<T>();
+                var builder = ImmutableArray.CreateBuilder<T>(len);
+                for (int i = 0; i < len; i++)
+                {
+                    builder.Add(formatter.Clone(value[i], options)!);
+                }
+
+                return builder.MoveToImmutable();
+            }
+        }
     }
 
     public class ImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, ImmutableList<T>.Enumerator, ImmutableList<T>>

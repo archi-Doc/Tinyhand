@@ -54,10 +54,9 @@ namespace Tinyhand.Formatters
             return reader.Read<#= t.Name #>();
         }
 
-        public <#= t.Simple #> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public <#= t.Simple #> Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public <#= t.Simple #> Clone(<#= t.Simple #> value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class Nullable<#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>?>
@@ -92,10 +91,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public <#= t.Simple #>? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(<#= t.Simple #>);
-        }
+        public <#= t.Simple #>? Reconstruct(TinyhandSerializerOptions options) => default(<#= t.Simple #>);
+
+        public <#= t.Simple #>? Clone(<#= t.Simple #>? value, TinyhandSerializerOptions options) => value;
     }
 <# if(t.Name != "UInt8") { #>
 
@@ -111,10 +109,9 @@ namespace Tinyhand.Formatters
 
         public <#= t.Simple #>[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader);
 
-        public <#= t.Simple #>[] Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new <#= t.Simple #>[0];
-        }
+        public <#= t.Simple #>[] Reconstruct(TinyhandSerializerOptions options) => new <#= t.Simple #>[0];
+
+        public <#= t.Simple #>[]? Clone(<#= t.Simple #>[]? value, TinyhandSerializerOptions options) => (<#= t.Simple #>[]?)value?.Clone();
     }
 
     public sealed class <#= t.Name #>ListFormatter : ITinyhandFormatter<List<<#= t.Simple #>>>
@@ -129,10 +126,9 @@ namespace Tinyhand.Formatters
 
         public List<<#= t.Simple #>>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader);
 
-        public List<<#= t.Simple #>> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<<#= t.Simple #>>();
-        }
+        public List<<#= t.Simple #>> Reconstruct(TinyhandSerializerOptions options) => new List<<#= t.Simple #>>();
+
+        public List<<#= t.Simple #>>? Clone(List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => value == null ? null : new List<<#= t.Simple #>>(value);
     }
 <# } #>
 <# } #>

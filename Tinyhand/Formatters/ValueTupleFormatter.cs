@@ -54,6 +54,13 @@ namespace Tinyhand.Formatters
         {
             return new ValueTuple<T1>(default!);
         }
+
+        public ValueTuple<T1> Clone(ValueTuple<T1> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            var item1 = resolver.GetFormatter<T1>().Clone(value.Item1, options);
+            return new ValueTuple<T1>(item1!);
+        }
     }
 
     public sealed class ValueTupleFormatter<T1, T2> : ITinyhandFormatter<ValueTuple<T1, T2>>
@@ -100,6 +107,14 @@ namespace Tinyhand.Formatters
         public ValueTuple<T1, T2> Reconstruct(TinyhandSerializerOptions options)
         {
             return new ValueTuple<T1, T2>(default!, default!);
+        }
+
+        public ValueTuple<T1, T2> Clone(ValueTuple<T1, T2> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            var item1 = resolver.GetFormatter<T1>().Clone(value.Item1, options);
+            var item2 = resolver.GetFormatter<T2>().Clone(value.Item2, options);
+            return new ValueTuple<T1, T2>(item1!, item2!);
         }
     }
 
@@ -149,6 +164,15 @@ namespace Tinyhand.Formatters
         public ValueTuple<T1, T2, T3> Reconstruct(TinyhandSerializerOptions options)
         {
             return new ValueTuple<T1, T2, T3>(default!, default!, default!);
+        }
+
+        public ValueTuple<T1, T2, T3> Clone(ValueTuple<T1, T2, T3> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            var item1 = resolver.GetFormatter<T1>().Clone(value.Item1, options);
+            var item2 = resolver.GetFormatter<T2>().Clone(value.Item2, options);
+            var item3 = resolver.GetFormatter<T3>().Clone(value.Item3, options);
+            return new ValueTuple<T1, T2, T3>(item1!, item2!, item3!);
         }
     }
 
@@ -200,6 +224,16 @@ namespace Tinyhand.Formatters
         public ValueTuple<T1, T2, T3, T4> Reconstruct(TinyhandSerializerOptions options)
         {
             return new ValueTuple<T1, T2, T3, T4>(default!, default!, default!, default!);
+        }
+
+        public ValueTuple<T1, T2, T3, T4> Clone(ValueTuple<T1, T2, T3, T4> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            var item1 = resolver.GetFormatter<T1>().Clone(value.Item1, options);
+            var item2 = resolver.GetFormatter<T2>().Clone(value.Item2, options);
+            var item3 = resolver.GetFormatter<T3>().Clone(value.Item3, options);
+            var item4 = resolver.GetFormatter<T4>().Clone(value.Item4, options);
+            return new ValueTuple<T1, T2, T3, T4>(item1!, item2!, item3!, item4!);
         }
     }
 
@@ -253,6 +287,17 @@ namespace Tinyhand.Formatters
         public ValueTuple<T1, T2, T3, T4, T5> Reconstruct(TinyhandSerializerOptions options)
         {
             return new ValueTuple<T1, T2, T3, T4, T5>(default!, default!, default!, default!, default!);
+        }
+
+        public ValueTuple<T1, T2, T3, T4, T5> Clone(ValueTuple<T1, T2, T3, T4, T5> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            var item1 = resolver.GetFormatter<T1>().Clone(value.Item1, options);
+            var item2 = resolver.GetFormatter<T2>().Clone(value.Item2, options);
+            var item3 = resolver.GetFormatter<T3>().Clone(value.Item3, options);
+            var item4 = resolver.GetFormatter<T4>().Clone(value.Item4, options);
+            var item5 = resolver.GetFormatter<T5>().Clone(value.Item5, options);
+            return new ValueTuple<T1, T2, T3, T4, T5>(item1!, item2!, item3!, item4!, item5!);
         }
     }
 
@@ -308,6 +353,18 @@ namespace Tinyhand.Formatters
         public ValueTuple<T1, T2, T3, T4, T5, T6> Reconstruct(TinyhandSerializerOptions options)
         {
             return new ValueTuple<T1, T2, T3, T4, T5, T6>(default!, default!, default!, default!, default!, default!);
+        }
+
+        public ValueTuple<T1, T2, T3, T4, T5, T6> Clone(ValueTuple<T1, T2, T3, T4, T5, T6> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            var item1 = resolver.GetFormatter<T1>().Clone(value.Item1, options);
+            var item2 = resolver.GetFormatter<T2>().Clone(value.Item2, options);
+            var item3 = resolver.GetFormatter<T3>().Clone(value.Item3, options);
+            var item4 = resolver.GetFormatter<T4>().Clone(value.Item4, options);
+            var item5 = resolver.GetFormatter<T5>().Clone(value.Item5, options);
+            var item6 = resolver.GetFormatter<T6>().Clone(value.Item6, options);
+            return new ValueTuple<T1, T2, T3, T4, T5, T6>(item1!, item2!, item3!, item4!, item5!, item6!);
         }
     }
 
@@ -365,6 +422,19 @@ namespace Tinyhand.Formatters
         public ValueTuple<T1, T2, T3, T4, T5, T6, T7> Reconstruct(TinyhandSerializerOptions options)
         {
             return new ValueTuple<T1, T2, T3, T4, T5, T6, T7>(default!, default!, default!, default!, default!, default!, default!);
+        }
+
+        public ValueTuple<T1, T2, T3, T4, T5, T6, T7> Clone(ValueTuple<T1, T2, T3, T4, T5, T6, T7> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            var item1 = resolver.GetFormatter<T1>().Clone(value.Item1, options);
+            var item2 = resolver.GetFormatter<T2>().Clone(value.Item2, options);
+            var item3 = resolver.GetFormatter<T3>().Clone(value.Item3, options);
+            var item4 = resolver.GetFormatter<T4>().Clone(value.Item4, options);
+            var item5 = resolver.GetFormatter<T5>().Clone(value.Item5, options);
+            var item6 = resolver.GetFormatter<T6>().Clone(value.Item6, options);
+            var item7 = resolver.GetFormatter<T7>().Clone(value.Item7, options);
+            return new ValueTuple<T1, T2, T3, T4, T5, T6, T7>(item1!, item2!, item3!, item4!, item5!, item6!, item7!);
         }
     }
 
@@ -425,6 +495,20 @@ namespace Tinyhand.Formatters
         public ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> Reconstruct(TinyhandSerializerOptions options)
         {
             return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>(default!, default!, default!, default!, default!, default!, default!, default!);
+        }
+
+        public ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> Clone(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            var item1 = resolver.GetFormatter<T1>().Clone(value.Item1, options);
+            var item2 = resolver.GetFormatter<T2>().Clone(value.Item2, options);
+            var item3 = resolver.GetFormatter<T3>().Clone(value.Item3, options);
+            var item4 = resolver.GetFormatter<T4>().Clone(value.Item4, options);
+            var item5 = resolver.GetFormatter<T5>().Clone(value.Item5, options);
+            var item6 = resolver.GetFormatter<T6>().Clone(value.Item6, options);
+            var item7 = resolver.GetFormatter<T7>().Clone(value.Item7, options);
+            var item8 = resolver.GetFormatter<TRest>().Clone(value.Rest, options);
+            return new ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>(item1!, item2!, item3!, item4!, item5!, item6!, item7!, item8!);
         }
     }
 }

@@ -20,9 +20,8 @@ namespace Tinyhand.Formatters
             return default(T);
         }
 
-        public T Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(T)!;
-        }
+        public T Reconstruct(TinyhandSerializerOptions options) => default(T)!;
+
+        public T? Clone(T? value, TinyhandSerializerOptions options) => default(T)!;
     }
 }

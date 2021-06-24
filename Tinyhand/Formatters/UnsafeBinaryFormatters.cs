@@ -58,6 +58,8 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public Guid Clone(Guid value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
@@ -109,5 +111,7 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public Decimal Clone(Decimal value, TinyhandSerializerOptions options) => value;
     }
 }

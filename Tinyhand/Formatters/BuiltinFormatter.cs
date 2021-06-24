@@ -36,6 +36,11 @@ namespace Tinyhand.Formatters
         {
             return string.Empty;
         }
+
+        public string? Clone(string? value, TinyhandSerializerOptions options)
+        {
+            return value;
+        }
     }
 
     public sealed class StringArrayFormatter : ITinyhandFormatter<string[]>
@@ -54,6 +59,8 @@ namespace Tinyhand.Formatters
         {
             return new string[0];
         }
+
+        public string[]? Clone(string[]? value, TinyhandSerializerOptions options) => (string[]?)value?.Clone();
     }
 
     public sealed class StringListFormatter : ITinyhandFormatter<List<string>>
@@ -72,6 +79,8 @@ namespace Tinyhand.Formatters
         {
             return new List<string>();
         }
+
+        public List<string>? Clone(List<string>? value, TinyhandSerializerOptions options) => value == null ? null : new List<string>(value);
     }
 
     public sealed class ByteArrayFormatter : ITinyhandFormatter<byte[]>
@@ -96,6 +105,8 @@ namespace Tinyhand.Formatters
         {
             return new byte[0];
         }
+
+        public byte[]? Clone(byte[]? value, TinyhandSerializerOptions options) => (byte[]?)value?.Clone();
     }
 
     public sealed class ByteListFormatter : ITinyhandFormatter<List<byte>>
@@ -128,6 +139,8 @@ namespace Tinyhand.Formatters
         {
             return new List<byte>();
         }
+
+        public List<byte>? Clone(List<byte>? value, TinyhandSerializerOptions options) => value == null ? null : new List<byte>(value);
     }
 
     public static partial class Builtin

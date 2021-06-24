@@ -70,6 +70,27 @@ namespace Tinyhand.Formatters
         {
             return new T[0];
         }
+
+        public T[]? Clone(T[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default;
+            }
+            else
+            {
+                var formatter = options.Resolver.GetFormatter<T>();
+
+                var len = value.Length;
+                var array = new T[len];
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = formatter.Clone(value[i], options)!;
+                }
+
+                return array;
+            }
+        }
     }
 
     public sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
@@ -94,6 +115,8 @@ namespace Tinyhand.Formatters
         {
             return Memory<byte>.Empty;
         }
+
+        public Memory<byte> Clone(Memory<byte> value, TinyhandSerializerOptions options) => new Memory<byte>(value.ToArray());
     }
 
     public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMemory<byte>>
@@ -118,6 +141,8 @@ namespace Tinyhand.Formatters
         {
             return ReadOnlyMemory<byte>.Empty;
         }
+
+        public ReadOnlyMemory<byte> Clone(ReadOnlyMemory<byte> value, TinyhandSerializerOptions options) => new ReadOnlyMemory<byte>(value.ToArray());
     }
 
     public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlySequence<byte>>
@@ -146,6 +171,8 @@ namespace Tinyhand.Formatters
         {
             return ReadOnlySequence<byte>.Empty;
         }
+
+        public ReadOnlySequence<byte> Clone(ReadOnlySequence<byte> value, TinyhandSerializerOptions options) => new ReadOnlySequence<byte>(value.ToArray());
     }
 
     public sealed class ByteArraySegmentFormatter : ITinyhandFormatter<ArraySegment<byte>>
@@ -177,6 +204,8 @@ namespace Tinyhand.Formatters
         {
             return ArraySegment<byte>.Empty;
         }
+
+        public ArraySegment<byte> Clone(ArraySegment<byte> value, TinyhandSerializerOptions options) => new ArraySegment<byte>(value.ToArray());
     }
 
     public sealed class MemoryFormatter<T> : ITinyhandFormatter<Memory<T>>
@@ -196,6 +225,8 @@ namespace Tinyhand.Formatters
         {
             return Memory<T>.Empty;
         }
+
+        public Memory<T> Clone(Memory<T> value, TinyhandSerializerOptions options) => options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
     }
 
     public sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemory<T>>
@@ -223,6 +254,8 @@ namespace Tinyhand.Formatters
         {
             return ReadOnlyMemory<T>.Empty;
         }
+
+        public ReadOnlyMemory<T> Clone(ReadOnlyMemory<T> value, TinyhandSerializerOptions options) => options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
     }
 
     public sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnlySequence<T>>
@@ -252,6 +285,8 @@ namespace Tinyhand.Formatters
         {
             return ReadOnlySequence<T>.Empty;
         }
+
+        public ReadOnlySequence<T> Clone(ReadOnlySequence<T> value, TinyhandSerializerOptions options) => new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options));
     }
 
     public sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment<T>>
@@ -285,6 +320,12 @@ namespace Tinyhand.Formatters
         public ArraySegment<T> Reconstruct(TinyhandSerializerOptions options)
         {
             return ArraySegment<T>.Empty;
+        }
+
+        public ArraySegment<T> Clone(ArraySegment<T> value, TinyhandSerializerOptions options)
+        {
+            var array = options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
+            return array == null ? ArraySegment<T>.Empty : new ArraySegment<T>(array);
         }
     }
 
@@ -345,6 +386,27 @@ namespace Tinyhand.Formatters
         public List<T> Reconstruct(TinyhandSerializerOptions options)
         {
             return new List<T>();
+        }
+
+        public List<T>? Clone(List<T>? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default;
+            }
+            else
+            {
+                var formatter = options.Resolver.GetFormatter<T>();
+
+                var len = value.Count;
+                var list = new List<T>(len);
+                for (int i = 0; i < len; i++)
+                {
+                    list.Add(formatter.Clone(value[i], options)!);
+                }
+
+                return list;
+            }
         }
     }
 
@@ -453,6 +515,39 @@ namespace Tinyhand.Formatters
         public TCollection Reconstruct(TinyhandSerializerOptions options)
         {
             return this.Complete(this.Create(0, options));
+        }
+
+        public TCollection? Clone(TCollection? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(TCollection);
+            }
+
+            var formatter = options.Resolver.GetFormatter<TElement>();
+
+            TIntermediate list = this.Create(len, options);
+            if (value is TElement[] array)
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    this.Add(list, i, formatter.Clone(array[i], options)!, options);
+                }
+            }
+            else
+            {
+                // Unity's foreach struct enumerator causes boxing so iterate manually.
+                var count = 0;
+                using (var e = this.GetSourceEnumerator(value))
+                {
+                    while (e.MoveNext())
+                    {
+                        this.Add(list, count, formatter.Clone(e.Current, options)!, options);
+                    }
+                }
+            }
+
+            return this.Complete(list);
         }
 
         // abstraction for serialize
