@@ -526,23 +526,44 @@ namespace Tinyhand.Formatters
 
             var formatter = options.Resolver.GetFormatter<TElement>();
 
-            TIntermediate list = this.Create(len, options);
+            TIntermediate list;
+            int length;
             if (value is TElement[] array)
             {
-                for (int i = 0; i < array.Length; i++)
+                length = array.Length;
+                list = this.Create(length, options);
+                for (int i = 0; i < length; i++)
                 {
                     this.Add(list, i, formatter.Clone(array[i], options)!, options);
                 }
             }
             else
             {
+                var seqCount = this.GetCount(value);
+                if (seqCount != null)
+                {
+                    length = seqCount.Value;
+                }
+                else
+                {
+                    length = 0;
+                    using (var e = this.GetSourceEnumerator(value))
+                    {
+                        while (e.MoveNext())
+                        {
+                            length++;
+                        }
+                    }
+                }
+
                 // Unity's foreach struct enumerator causes boxing so iterate manually.
-                var count = 0;
+                list = this.Create(length, options);
+                var i = 0;
                 using (var e = this.GetSourceEnumerator(value))
                 {
                     while (e.MoveNext())
                     {
-                        this.Add(list, count, formatter.Clone(e.Current, options)!, options);
+                        this.Add(list, i++, formatter.Clone(e.Current, options)!, options);
                     }
                 }
             }
@@ -882,6 +903,18 @@ namespace Tinyhand.Formatters
         {
             return new Grouping<TKey, TElement>(default!, Enumerable.Empty<TElement>());
         }
+
+        public IGrouping<TKey, TElement>? Clone(IGrouping<TKey, TElement>? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var k = options.Resolver.GetFormatter<TKey>().Clone(value.Key, options);
+            var v = options.Resolver.GetFormatter<IEnumerable<TElement>>().Clone(value, options);
+            return new Grouping<TKey, TElement>(k!, v!);
+        }
     }
 
     public sealed class InterfaceLookupFormatter<TKey, TElement> : CollectionFormatterBase<IGrouping<TKey, TElement>, Dictionary<TKey, IGrouping<TKey, TElement>>, ILookup<TKey, TElement>>
@@ -1029,6 +1062,25 @@ namespace Tinyhand.Formatters
         {
             return new T();
         }
+
+        public T? Clone(T? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(T);
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+
+            var count = value.Count;
+            var list = new T();
+            foreach (var item in value)
+            {
+                list.Add(formatter.Clone(item, options));
+            }
+
+            return list;
+        }
     }
 
     public sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<ICollection>
@@ -1093,6 +1145,26 @@ namespace Tinyhand.Formatters
         public ICollection Reconstruct(TinyhandSerializerOptions options)
         {
             return Array.Empty<object>();
+        }
+
+        public ICollection? Clone(ICollection? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(ICollection);
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+
+            var count = value.Count;
+            var list = new object[count];
+            var i = 0;
+            foreach (var item in value)
+            {
+                list[i] = formatter.Clone(item, options)!;
+            }
+
+            return list;
         }
     }
 
@@ -1182,6 +1254,23 @@ namespace Tinyhand.Formatters
         {
             return Array.Empty<object>();
         }
+
+        public IEnumerable? Clone(IEnumerable? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(IEnumerable);
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+            var list = new List<object>();
+            foreach (var item in value)
+            {
+                list.Add(formatter.Clone(item, options)!);
+            }
+
+            return list.ToArray();
+        }
     }
 
     public sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
@@ -1247,6 +1336,26 @@ namespace Tinyhand.Formatters
         {
             return new object[0];
         }
+
+        public IList? Clone(IList? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(IList);
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+
+            var count = value.Count;
+            var list = new object[count];
+            var i = 0;
+            foreach (var item in value)
+            {
+                list[i++] = formatter.Clone(item, options)!;
+            }
+
+            return list;
+        }
     }
 
     public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
@@ -1305,6 +1414,25 @@ namespace Tinyhand.Formatters
         public T Reconstruct(TinyhandSerializerOptions options)
         {
             return CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(0, options.Security.GetEqualityComparer());
+        }
+
+        public T? Clone(T? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+            var count = value.Count;
+
+            var dict = CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(count, options.Security.GetEqualityComparer());
+            foreach (DictionaryEntry item in value)
+            {
+                dict.Add(formatter.Clone(item.Key, options), formatter.Clone(item.Value, options));
+            }
+
+            return dict;
         }
     }
 
@@ -1369,6 +1497,25 @@ namespace Tinyhand.Formatters
         public IDictionary Reconstruct(TinyhandSerializerOptions options)
         {
             return new Dictionary<object, object>(options.Security.GetEqualityComparer<object>());
+        }
+
+        public IDictionary? Clone(IDictionary? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+            var count = value.Count;
+
+            var dict = new Dictionary<object, object>(count, options.Security.GetEqualityComparer<object>());
+            foreach (DictionaryEntry item in value)
+            {
+                dict.Add(formatter.Clone(item.Key, options)!, formatter.Clone(item.Value, options)!);
+            }
+
+            return dict;
         }
     }
 
