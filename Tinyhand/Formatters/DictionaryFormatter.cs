@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using Tinyhand.IO;
 
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 #pragma warning disable SA1649 // File name should match first type name
 
 namespace Tinyhand.Formatters
@@ -77,9 +78,9 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                IFormatterResolver resolver = options.Resolver;
-                ITinyhandFormatter<TKey> keyFormatter = resolver.GetFormatter<TKey>();
-                ITinyhandFormatter<TValue> valueFormatter = resolver.GetFormatter<TValue>();
+                var resolver = options.Resolver;
+                var keyFormatter = resolver.GetFormatter<TKey>();
+                var valueFormatter = resolver.GetFormatter<TValue>();
 
                 var len = reader.ReadMapHeader2();
 
@@ -91,9 +92,7 @@ namespace Tinyhand.Formatters
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
                         var key = keyFormatter.Deserialize(ref reader, options);
-
                         var value = valueFormatter.Deserialize(ref reader, options);
-
                         this.Add(dict, i, key!, value!, options);
                     }
                 }
@@ -109,6 +108,57 @@ namespace Tinyhand.Formatters
         public TDictionary Reconstruct(TinyhandSerializerOptions options)
         {
             return this.Complete(this.Create(0, options));
+        }
+
+        public TDictionary? Clone(TDictionary? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(TDictionary);
+            }
+
+            var resolver = options.Resolver;
+            var keyFormatter = resolver.GetFormatter<TKey>();
+            var valueFormatter = resolver.GetFormatter<TValue>();
+
+            int count;
+            {
+                var col = value as ICollection<KeyValuePair<TKey, TValue>>;
+                if (col != null)
+                {
+                    count = col.Count;
+                }
+                else
+                {
+                    var col2 = value as IReadOnlyCollection<KeyValuePair<TKey, TValue>>;
+                    if (col2 != null)
+                    {
+                        count = col2.Count;
+                    }
+                    else
+                    {
+                        throw new TinyhandException("DictionaryFormatterBase's TDictionary supports only ICollection<KVP> or IReadOnlyCollection<KVP>");
+                    }
+                }
+            }
+
+            var dict = this.Create(count, options);
+            var e = this.GetSourceEnumerator(value);
+            try
+            {
+                var i = 0;
+                while (e.MoveNext())
+                {
+                    var item = e.Current;
+                    this.Add(dict, i++, keyFormatter.Clone(item.Key, options)!, valueFormatter.Clone(item.Value, options)!, options);
+                }
+            }
+            finally
+            {
+                e.Dispose();
+            }
+
+            return this.Complete(dict);
         }
 
         // abstraction for serialize
