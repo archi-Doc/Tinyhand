@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -23,6 +24,14 @@ namespace Sandbox
         public KeyValuePair<int?, double>? X5 = default!;
         public KeyValuePair<int?, double?>? X6 = default!;
         public KeyValuePair<int?, KeyValuePair<int?, double?>?>? X7 = default!;
+    }
+
+    [TinyhandObject(ImplicitKeyAsName = true)]
+    public partial class CloneTestClass1
+    {
+        public Memory<byte> MemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
+        public ReadOnlyMemory<byte> ReadOnlyMemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
+        public ReadOnlySequence<byte> ReadOnlySequenceByte { get; set; } = new(new byte[] { 1, 10, 20, });
 
     }
 

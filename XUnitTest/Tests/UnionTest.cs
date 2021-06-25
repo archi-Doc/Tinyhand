@@ -105,8 +105,8 @@ namespace Tinyhand.Tests
             TestHelper.TestWithMessagePack(classA);
             TestHelper.TestWithMessagePack(classB);
 
-            TestHelper.TestWithMessagePack((IUnionTestInterface)classA);
-            TestHelper.TestWithMessagePack((IUnionTestInterface)classB);
+            TestHelper.TestWithMessagePack((IUnionTestInterface)classA, false);
+            TestHelper.TestWithMessagePack((IUnionTestInterface)classB, false);
         }
 
         [Fact]
@@ -118,8 +118,8 @@ namespace Tinyhand.Tests
             TestHelper.TestWithMessagePack(classA);
             TestHelper.TestWithMessagePack(classB);
 
-            TestHelper.TestWithMessagePack((UnionTestBase)classA);
-            TestHelper.TestWithMessagePack((UnionTestBase)classB);
+            TestHelper.TestWithMessagePack((UnionTestBase)classA, false);
+            TestHelper.TestWithMessagePack((UnionTestBase)classB, false);
         }
 
         [Fact]

@@ -42,6 +42,21 @@ namespace Tinyhand
         public static TinyhandSerializerOptions DefaultOptions { get; set; } = TinyhandSerializerOptions.Standard;
 
         /// <summary>
+        /// Creates a deep copy of the object.
+        /// </summary>
+        /// <param name="obj">The object to clone.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <returns>The new object.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+        public static T Clone<T>(T obj, TinyhandSerializerOptions? options = null)
+        {
+            options = options ?? DefaultOptions;
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
+            return options.Resolver.GetFormatter<T>().Clone(obj, options)!;
+#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+        }
+
+        /// <summary>
         /// Serializes a given value with the specified buffer writer.
         /// </summary>
         /// <param name="writer">The buffer writer to serialize with.</param>
@@ -392,7 +407,7 @@ namespace Tinyhand
         }
 
         /// <summary>
-        /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
+        /// Reuses the existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>

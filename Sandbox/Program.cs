@@ -158,6 +158,9 @@ namespace Sandbox
     {
         static void Main(string[] args)
         {
+            var mt = new CloneTestClass1();
+            var mt2 = TinyhandSerializer.Clone(mt);
+
             var g = new TestClass1.GoshujinClass();
 
             new TestClass1(0, "A", 100).Goshujin = g;

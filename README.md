@@ -28,6 +28,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Text Serialization](#text-serialization)
   - [Versioning](#versioning)
   - [Serialization Callback](#serialization-callback)
+  - [Deep copy](#deep-copy)
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#lz4-Compression)
   - [Non-Generic API](#non-generic-API)
@@ -663,6 +664,55 @@ public partial class SampleCallback : ITinyhandSerializationCallback
     }
 }
 ```
+
+
+
+### Deep copy
+
+You can easily create a deep copy of the object by simply writing this code `TinyhandSerializer.Clone(obj)`.
+
+```csharp
+[TinyhandObject(ExplicitKeyOnly = true)]
+public partial class DeepCopyClass
+{
+    public int Id { get; set; }
+
+    public string[] Name { get; set; } = new string[] { "A", "B", };
+
+    public UnknownClass? UnknownClass { get; set; }
+
+    public KnownClass? KnownClass { get; set; }
+}
+
+public class UnknownClass
+{
+}
+
+[TinyhandObject]
+public partial class KnownClass
+{
+    [Key(0)]
+    public float?[] Single { get; init; } = new float?[] { 0, 1, null, };
+}
+
+public static class DeepCopyTest
+{
+    public static void Test()
+    {
+        var c = new DeepCopyClass();
+        c.UnknownClass = new();
+        c.KnownClass = new();
+
+        var d = TinyhandSerializer.Clone(c);
+        c.Name[1] = "C";
+        Debug.Assert(c.Name[1] != d.Name[1]); // c.Name and d.Name are different since d is a deep copy.
+        Debug.Assert(d.UnknownClass == null); // UnknownClass is ignored since Tinyhand doesn't know how to create a deep copy of UnknownClass.
+        Debug.Assert(d.KnownClass != null); // Tinyhand can handle a class with TinyhandObjectAttribute.
+    }
+}
+```
+
+
 
 
 

@@ -16,7 +16,7 @@ namespace Tinyhand.Tests
         public void Test1()
         {
             var t = new FormatterResolverClass();
-            var t2 = TestHelper.TestWithMessagePackWithoutCompareObject(t);
+            var t2 = TestHelper.TestWithMessagePackWithoutCompareObject(t, false);
         }
     }
 }

@@ -139,5 +139,11 @@ namespace Benchmark.Clone
         {
             return this.testClass.DeepClone(TinyhandSerializerOptions.Standard);
         }
+
+        [Benchmark]
+        public CloneTestClass Clone_Generated2()
+        {
+            return TinyhandSerializer.Clone(this.testClass);
+        }
     }
 }
