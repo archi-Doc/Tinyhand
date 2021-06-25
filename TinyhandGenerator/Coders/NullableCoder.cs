@@ -99,6 +99,11 @@ namespace Tinyhand.Coders
             // ssb.AppendLine($"{ssb.FullObject} = new System.Nullable<{this.element.FullName}>();");
         }
 
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullName}>().Clone({sourceObject}, options)!;");
+        }
+
         private WithNullable<TinyhandObject> element;
         private ITinyhandCoder? elementCoder;
     }

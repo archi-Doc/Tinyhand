@@ -48,13 +48,15 @@ namespace Tinyhand.Generator
         SerializeTarget = 1 << 6,
         ReconstructTarget = 1 << 7,
         ReuseInstanceTarget = 1 << 8,
+        CloneTarget = 1 << 9,
 
-        HasITinyhandSerializationCallback = 1 << 9, // Has ITinyhandSerializationCallback interface
-        HasExplicitOnBeforeSerialize = 1 << 10, // ITinyhandSerializationCallback.OnBeforeSerialize()
-        HasExplicitOnAfterDeserialize = 1 << 11, // ITinyhandSerializationCallback.OnAfterDeserialize()
-        HasITinyhandSerialize = 1 << 12, // Has ITinyhandSerialize interface
-        HasITinyhandReconstruct = 1 << 13, // Has ITinyhandReconstruct interface
-        CanCreateInstance = 1 << 14, // Can create an instance
+        HasITinyhandSerializationCallback = 1 << 20, // Has ITinyhandSerializationCallback interface
+        HasExplicitOnBeforeSerialize = 1 << 21, // ITinyhandSerializationCallback.OnBeforeSerialize()
+        HasExplicitOnAfterDeserialize = 1 << 22, // ITinyhandSerializationCallback.OnAfterDeserialize()
+        HasITinyhandSerialize = 1 << 23, // Has ITinyhandSerialize interface
+        HasITinyhandReconstruct = 1 << 24, // Has ITinyhandReconstruct interface
+        HasITinyhandClone = 1 << 25, // Has ITinyhandClone interface
+        CanCreateInstance = 1 << 26, // Can create an instance
     }
 
     public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -132,6 +134,8 @@ namespace Tinyhand.Generator
         public MethodCondition MethodCondition_Deserialize { get; private set; }
 
         public MethodCondition MethodCondition_Reconstruct { get; private set; }
+
+        public MethodCondition MethodCondition_Clone { get; private set; }
 
         private ReconstructCondition reconstructCondition;
 
@@ -429,6 +433,30 @@ namespace Tinyhand.Generator
                 this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
             }
 
+            // Method condition (Clone)
+            this.MethodCondition_Clone = MethodCondition.MemberMethod;
+            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandClone"))
+            {// ITinyhandClone implemented
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandClone;
+
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandClone.Clone"))
+                {
+                    this.MethodCondition_Clone = MethodCondition.ExplicitlyDeclared;
+                }
+                else
+                {
+                    this.MethodCondition_Clone = MethodCondition.Declared;
+                }
+            }
+            else if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
+            {
+                this.MethodCondition_Clone = MethodCondition.StaticMethod;
+            }
+            else if (this.Generics_Kind == VisceralGenericsKind.OpenGeneric)
+            {
+                this.MethodCondition_Clone = MethodCondition.MemberMethod;
+            }
+
             // ITinyhandSerializationCallback
             if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerializationCallback"))
             {
@@ -609,7 +637,9 @@ namespace Tinyhand.Generator
                 {// Not serializable
                     continue;
                 }
-                else if (this.ObjectAttribute?.ExplicitKeyOnly == true)
+
+                x.ObjectFlag |= TinyhandObjectFlag.CloneTarget;
+                if (this.ObjectAttribute?.ExplicitKeyOnly == true)
                 {// Explicit key only
                     if (x.KeyAttribute == null)
                     {
@@ -1182,6 +1212,19 @@ ModuleInitializerClass_Added:
                             x.GenerateFormatter_Reconstruct(ssb, info);
                         }
                     }
+
+                    // Clone
+                    using (var r = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Clone({x.FullName + x.QuestionMarkIfReferenceType} value, TinyhandSerializerOptions options)"))
+                    {
+                        if (x.Union != null)
+                        {// Union
+                            ssb.AppendLine("throw new TinyhandException(\"Clone() is not supported in abstract class or interface.\");");
+                        }
+                        else
+                        {
+                            x.GenerateFormatter_Clone(ssb, info);
+                        }
+                    }
                 }
 
                 name = string.Format(classFormat, x.FormatterExtraNumber) + genericArguments;
@@ -1239,6 +1282,18 @@ ModuleInitializerClass_Added:
                     else
                     {
                         interfaceString += ", ITinyhandReconstruct";
+                    }
+                }
+
+                if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
+                {
+                    if (interfaceString == string.Empty)
+                    {
+                        interfaceString = " : ITinyhandClone";
+                    }
+                    else
+                    {
+                        interfaceString += ", ITinyhandClone";
                     }
                 }
             }
@@ -1651,6 +1706,22 @@ ModuleInitializerClass_Added:
             ssb.AppendLine($"{ssb.FullObject} = v2;");
         }
 
+        internal void GenerateFormatter_Clone(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
+            {// Static method
+                ssb.AppendLine($"return {this.FullName}.DeepClone{this.GenericsNumberString}(ref value, options);");
+            }
+            else if (this.MethodCondition_Clone == MethodCondition.ExplicitlyDeclared)
+            {// Explicitly declared (Interface.Method())
+                ssb.AppendLine($"return (value as ITinyhandClone)?.DeepClone(options);");
+            }
+            else
+            {// Member method
+                ssb.AppendLine($"return value{this.QuestionMarkIfReferenceType}.DeepClone(options);");
+            }
+        }
+
         internal void GenerateDeserialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             string methodCode;
@@ -1732,6 +1803,47 @@ ModuleInitializerClass_Added:
             }
         }
 
+        internal void GenerateClone_Method(ScopingStringBuilder ssb, GeneratorInformation info)
+        {
+            string methodCode;
+            string objectCode;
+
+            if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
+            {
+                methodCode = $"public {this.FullName + this.QuestionMarkIfReferenceType} DeepClone(TinyhandSerializerOptions options)";
+                objectCode = "this";
+            }
+            else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
+            {
+                methodCode = $"public static {this.FullName + this.QuestionMarkIfReferenceType} DeepClone{this.GenericsNumberString}(ref {this.RegionalName} v, TinyhandSerializerOptions options)";
+                objectCode = "v";
+            }
+            else
+            {
+                return;
+            }
+
+            using (var m = ssb.ScopeBrace(methodCode))
+            using (var v = ssb.ScopeObject(objectCode))
+            {// this.x = value.x;
+                if (this.MethodCondition_Clone == MethodCondition.StaticMethod && this.Kind.IsReferenceType())
+                {
+                    ssb.AppendLine($"if ({ssb.FullObject} == null) return null;");
+                }
+
+                ssb.AppendLine($"{this.FullName} value = {this.NewInstanceCode()};");
+                foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
+                {
+                    using (var c = ssb.ScopeObject(x.SimpleName))
+                    {
+                        this.GenerateCloneCore(ssb, info, x, "value." + x.SimpleName);
+                    }
+                }
+
+                ssb.AppendLine($"return {ssb.FullObject};");
+            }
+        }
+
         internal void GenerateMemberNotNull_Attribute(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             var firstFlag = true;
@@ -1782,10 +1894,11 @@ ModuleInitializerClass_Added:
             this.FormatterNumber = info.FormatterCount++;
             this.FormatterExtraNumber = info.FormatterCount++;
 
-            // Serialize/Deserialize/Reconstruct
+            // Serialize/Deserialize/Reconstruct/Clone
             this.GenerateSerialize_Method(ssb, info);
             this.GenerateDeserialize_Method(ssb, info);
             this.GenerateReconstruct_Method(ssb, info);
+            this.GenerateClone_Method(ssb, info);
 
             return;
         }
@@ -2256,6 +2369,68 @@ ModuleInitializerClass_Added:
                     initSetter.Dispose();
                     initSetter = null;
                     ssb.AppendLine($"{x.InitDelegateIdentifier}!(this, vd);");
+                }
+            }
+        }
+
+        internal void GenerateCloneCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, string sourceObject)
+        {// Called by GenerateClone()
+            var withNullable = x?.TypeObjectWithNullable;
+            if (x == null || withNullable == null)
+            {// no object
+                return;
+            }
+
+            ScopingStringBuilder.IScope? initSetter = null;
+            ScopingStringBuilder.IScope? emptyBrace = null;
+
+            if (withNullable.Object.ObjectAttribute != null)
+            {// TinyhandObject.
+                InitSetter_Start(true);
+                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Clone({sourceObject}, options)!;");
+                InitSetter_End();
+            }
+            else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
+            {// Coder
+                using (var c = ssb.ScopeBrace(string.Empty))
+                {
+                    InitSetter_Start();
+                    coder.CodeClone(ssb, info, sourceObject);
+                    InitSetter_End();
+                }
+            }
+            else
+            {// Other
+                return;
+            }
+
+            void InitSetter_Start(bool brace = false)
+            {
+                if (x!.InitDelegateIdentifier != null)
+                {
+                    if (brace)
+                    {
+                        emptyBrace = ssb.ScopeBrace(string.Empty);
+                    }
+
+                    initSetter = ssb.ScopeFullObject("vd");
+                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                }
+            }
+
+            void InitSetter_End()
+            {
+                if (initSetter != null)
+                {
+                    initSetter.Dispose();
+                    initSetter = null;
+                    ssb.AppendLine($"{x.InitDelegateIdentifier}!(this, vd);");
+
+                    if (emptyBrace != null)
+                    {
+                        emptyBrace.Dispose();
+                        emptyBrace = null;
+                    }
                 }
             }
         }

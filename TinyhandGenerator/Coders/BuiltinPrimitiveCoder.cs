@@ -33,6 +33,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+        }
     }
 
     public sealed class NullableUInt8Coder : ITinyhandCoder
@@ -80,6 +85,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class Int8Coder : ITinyhandCoder
@@ -103,6 +113,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -151,6 +166,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class Int8ArrayCoder : ITinyhandCoder
@@ -174,6 +194,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new sbyte[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (sbyte[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -199,6 +224,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new sbyte[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (sbyte[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class Int8ListCoder : ITinyhandCoder
@@ -222,6 +252,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<sbyte>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<sbyte>({sourceObject});");
         }
     }
 
@@ -247,6 +282,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<sbyte>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<sbyte>({sourceObject});");
+        }
     }
 
     public sealed class UInt16Coder : ITinyhandCoder
@@ -270,6 +310,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -318,6 +363,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class UInt16ArrayCoder : ITinyhandCoder
@@ -341,6 +391,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new ushort[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (ushort[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -366,6 +421,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new ushort[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (ushort[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class UInt16ListCoder : ITinyhandCoder
@@ -389,6 +449,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<ushort>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<ushort>({sourceObject});");
         }
     }
 
@@ -414,6 +479,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<ushort>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<ushort>({sourceObject});");
+        }
     }
 
     public sealed class Int16Coder : ITinyhandCoder
@@ -437,6 +507,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -485,6 +560,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class Int16ArrayCoder : ITinyhandCoder
@@ -508,6 +588,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new short[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (short[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -533,6 +618,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new short[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (short[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class Int16ListCoder : ITinyhandCoder
@@ -556,6 +646,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<short>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<short>({sourceObject});");
         }
     }
 
@@ -581,6 +676,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<short>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<short>({sourceObject});");
+        }
     }
 
     public sealed class UInt32Coder : ITinyhandCoder
@@ -604,6 +704,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -652,6 +757,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class UInt32ArrayCoder : ITinyhandCoder
@@ -675,6 +785,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new uint[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (uint[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -700,6 +815,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new uint[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (uint[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class UInt32ListCoder : ITinyhandCoder
@@ -723,6 +843,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<uint>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<uint>({sourceObject});");
         }
     }
 
@@ -748,6 +873,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<uint>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<uint>({sourceObject});");
+        }
     }
 
     public sealed class Int32Coder : ITinyhandCoder
@@ -771,6 +901,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -819,6 +954,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class Int32ArrayCoder : ITinyhandCoder
@@ -842,6 +982,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new int[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (int[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -867,6 +1012,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new int[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (int[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class Int32ListCoder : ITinyhandCoder
@@ -890,6 +1040,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<int>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<int>({sourceObject});");
         }
     }
 
@@ -915,6 +1070,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<int>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<int>({sourceObject});");
+        }
     }
 
     public sealed class UInt64Coder : ITinyhandCoder
@@ -938,6 +1098,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -986,6 +1151,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class UInt64ArrayCoder : ITinyhandCoder
@@ -1009,6 +1179,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new ulong[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (ulong[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -1034,6 +1209,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new ulong[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (ulong[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class UInt64ListCoder : ITinyhandCoder
@@ -1057,6 +1237,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<ulong>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<ulong>({sourceObject});");
         }
     }
 
@@ -1082,6 +1267,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<ulong>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<ulong>({sourceObject});");
+        }
     }
 
     public sealed class Int64Coder : ITinyhandCoder
@@ -1105,6 +1295,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -1153,6 +1348,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class Int64ArrayCoder : ITinyhandCoder
@@ -1176,6 +1376,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new long[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (long[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -1201,6 +1406,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new long[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (long[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class Int64ListCoder : ITinyhandCoder
@@ -1224,6 +1434,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<long>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<long>({sourceObject});");
         }
     }
 
@@ -1249,6 +1464,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<long>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<long>({sourceObject});");
+        }
     }
 
     public sealed class SingleCoder : ITinyhandCoder
@@ -1272,6 +1492,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -1320,6 +1545,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class SingleArrayCoder : ITinyhandCoder
@@ -1343,6 +1573,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new float[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (float[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -1368,6 +1603,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new float[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (float[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class SingleListCoder : ITinyhandCoder
@@ -1391,6 +1631,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<float>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<float>({sourceObject});");
         }
     }
 
@@ -1416,6 +1661,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<float>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<float>({sourceObject});");
+        }
     }
 
     public sealed class DoubleCoder : ITinyhandCoder
@@ -1439,6 +1689,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -1487,6 +1742,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = 0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class DoubleArrayCoder : ITinyhandCoder
@@ -1510,6 +1770,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new double[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (double[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -1535,6 +1800,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new double[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (double[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class DoubleListCoder : ITinyhandCoder
@@ -1558,6 +1828,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<double>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<double>({sourceObject});");
         }
     }
 
@@ -1583,6 +1858,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<double>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<double>({sourceObject});");
+        }
     }
 
     public sealed class BooleanCoder : ITinyhandCoder
@@ -1606,6 +1886,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = false;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -1654,6 +1939,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = false;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class BooleanArrayCoder : ITinyhandCoder
@@ -1677,6 +1967,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new bool[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (bool[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -1702,6 +1997,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new bool[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (bool[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class BooleanListCoder : ITinyhandCoder
@@ -1725,6 +2025,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<bool>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<bool>({sourceObject});");
         }
     }
 
@@ -1750,6 +2055,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<bool>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<bool>({sourceObject});");
+        }
     }
 
     public sealed class CharCoder : ITinyhandCoder
@@ -1773,6 +2083,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = (char)0;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -1821,6 +2136,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = (char)0;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class CharArrayCoder : ITinyhandCoder
@@ -1844,6 +2164,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new char[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (char[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -1869,6 +2194,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new char[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (char[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class CharListCoder : ITinyhandCoder
@@ -1892,6 +2222,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<char>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<char>({sourceObject});");
         }
     }
 
@@ -1917,6 +2252,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<char>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<char>({sourceObject});");
+        }
     }
 
     public sealed class DateTimeCoder : ITinyhandCoder
@@ -1940,6 +2280,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = default(DateTime);");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
         }
     }
 
@@ -1988,6 +2333,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = default(DateTime);");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 
     public sealed class DateTimeArrayCoder : ITinyhandCoder
@@ -2011,6 +2361,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new DateTime[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (DateTime[]?){sourceObject}?.Clone()!;");
         }
     }
 
@@ -2036,6 +2391,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new DateTime[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (DateTime[]?){sourceObject}?.Clone();");
+        }
     }
 
     public sealed class DateTimeListCoder : ITinyhandCoder
@@ -2060,6 +2420,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<DateTime>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<DateTime>({sourceObject});");
+        }
     }
 
     public sealed class NullableDateTimeListCoder : ITinyhandCoder
@@ -2083,6 +2448,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<DateTime>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<DateTime>({sourceObject});");
         }
     }
 }
