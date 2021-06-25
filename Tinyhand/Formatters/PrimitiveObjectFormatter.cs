@@ -342,9 +342,11 @@ namespace Tinyhand.Formatters
             int code;
             if (TypeToJumpCode.TryGetValue(t, out code))
             {
-                if (code == 14)
+                if (code == 14 && value is byte[] byteArray)
                 {
-                    return ((byte[])value).Clone();
+                    var array = new byte[byteArray.Length];
+                    Array.Copy(byteArray, array, byteArray.Length);
+                    return array;
                 }
                 else
                 {

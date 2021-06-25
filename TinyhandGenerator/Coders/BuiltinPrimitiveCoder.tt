@@ -145,7 +145,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = (<#= t.Simple #>[]?){sourceObject}?.Clone()!;");
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Clone<#= t.Name #>Array({sourceObject})!;");
         }
     }
 
@@ -174,7 +174,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = (<#= t.Simple #>[]?){sourceObject}?.Clone();");
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Clone<#= t.Name #>Array({sourceObject});");
         }
     }
 

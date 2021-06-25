@@ -7,6 +7,7 @@
 <#
 var allTypes = new (string Simple, string Name)[]
 {
+    ("byte", "UInt8"),
     ("sbyte", "Int8"),
     ("ushort", "UInt16"),
     ("short", "Int16"),
@@ -109,6 +110,21 @@ namespace Tinyhand.Formatters
                 }
 
                 return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static <#= t.Simple #>[]? Clone<#= t.Name #>Array(<#= t.Simple #>[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new <#= t.Simple #>[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
             }
         }
 <# } #>

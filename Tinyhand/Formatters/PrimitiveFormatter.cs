@@ -145,7 +145,19 @@ namespace Tinyhand.Formatters
 
         public sbyte[] Reconstruct(TinyhandSerializerOptions options) => new sbyte[0];
 
-        public sbyte[]? Clone(sbyte[]? value, TinyhandSerializerOptions options) => (sbyte[]?)value?.Clone();
+        public sbyte[]? Clone(sbyte[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new sbyte[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class Int8ListFormatter : ITinyhandFormatter<List<sbyte>>
@@ -239,7 +251,19 @@ namespace Tinyhand.Formatters
 
         public ushort[] Reconstruct(TinyhandSerializerOptions options) => new ushort[0];
 
-        public ushort[]? Clone(ushort[]? value, TinyhandSerializerOptions options) => (ushort[]?)value?.Clone();
+        public ushort[]? Clone(ushort[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new ushort[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class UInt16ListFormatter : ITinyhandFormatter<List<ushort>>
@@ -333,7 +357,19 @@ namespace Tinyhand.Formatters
 
         public short[] Reconstruct(TinyhandSerializerOptions options) => new short[0];
 
-        public short[]? Clone(short[]? value, TinyhandSerializerOptions options) => (short[]?)value?.Clone();
+        public short[]? Clone(short[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new short[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class Int16ListFormatter : ITinyhandFormatter<List<short>>
@@ -427,7 +463,19 @@ namespace Tinyhand.Formatters
 
         public uint[] Reconstruct(TinyhandSerializerOptions options) => new uint[0];
 
-        public uint[]? Clone(uint[]? value, TinyhandSerializerOptions options) => (uint[]?)value?.Clone();
+        public uint[]? Clone(uint[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new uint[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class UInt32ListFormatter : ITinyhandFormatter<List<uint>>
@@ -521,7 +569,19 @@ namespace Tinyhand.Formatters
 
         public int[] Reconstruct(TinyhandSerializerOptions options) => new int[0];
 
-        public int[]? Clone(int[]? value, TinyhandSerializerOptions options) => (int[]?)value?.Clone();
+        public int[]? Clone(int[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new int[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class Int32ListFormatter : ITinyhandFormatter<List<int>>
@@ -615,7 +675,19 @@ namespace Tinyhand.Formatters
 
         public ulong[] Reconstruct(TinyhandSerializerOptions options) => new ulong[0];
 
-        public ulong[]? Clone(ulong[]? value, TinyhandSerializerOptions options) => (ulong[]?)value?.Clone();
+        public ulong[]? Clone(ulong[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new ulong[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class UInt64ListFormatter : ITinyhandFormatter<List<ulong>>
@@ -709,7 +781,19 @@ namespace Tinyhand.Formatters
 
         public long[] Reconstruct(TinyhandSerializerOptions options) => new long[0];
 
-        public long[]? Clone(long[]? value, TinyhandSerializerOptions options) => (long[]?)value?.Clone();
+        public long[]? Clone(long[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new long[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class Int64ListFormatter : ITinyhandFormatter<List<long>>
@@ -803,7 +887,19 @@ namespace Tinyhand.Formatters
 
         public float[] Reconstruct(TinyhandSerializerOptions options) => new float[0];
 
-        public float[]? Clone(float[]? value, TinyhandSerializerOptions options) => (float[]?)value?.Clone();
+        public float[]? Clone(float[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new float[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class SingleListFormatter : ITinyhandFormatter<List<float>>
@@ -897,7 +993,19 @@ namespace Tinyhand.Formatters
 
         public double[] Reconstruct(TinyhandSerializerOptions options) => new double[0];
 
-        public double[]? Clone(double[]? value, TinyhandSerializerOptions options) => (double[]?)value?.Clone();
+        public double[]? Clone(double[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new double[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class DoubleListFormatter : ITinyhandFormatter<List<double>>
@@ -991,7 +1099,19 @@ namespace Tinyhand.Formatters
 
         public bool[] Reconstruct(TinyhandSerializerOptions options) => new bool[0];
 
-        public bool[]? Clone(bool[]? value, TinyhandSerializerOptions options) => (bool[]?)value?.Clone();
+        public bool[]? Clone(bool[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new bool[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class BooleanListFormatter : ITinyhandFormatter<List<bool>>
@@ -1085,7 +1205,19 @@ namespace Tinyhand.Formatters
 
         public char[] Reconstruct(TinyhandSerializerOptions options) => new char[0];
 
-        public char[]? Clone(char[]? value, TinyhandSerializerOptions options) => (char[]?)value?.Clone();
+        public char[]? Clone(char[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new char[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class CharListFormatter : ITinyhandFormatter<List<char>>
@@ -1179,7 +1311,19 @@ namespace Tinyhand.Formatters
 
         public DateTime[] Reconstruct(TinyhandSerializerOptions options) => new DateTime[0];
 
-        public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options) => (DateTime[]?)value?.Clone();
+        public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new DateTime[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class DateTimeListFormatter : ITinyhandFormatter<List<DateTime>>

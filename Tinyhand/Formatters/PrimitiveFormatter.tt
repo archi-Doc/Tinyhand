@@ -111,7 +111,19 @@ namespace Tinyhand.Formatters
 
         public <#= t.Simple #>[] Reconstruct(TinyhandSerializerOptions options) => new <#= t.Simple #>[0];
 
-        public <#= t.Simple #>[]? Clone(<#= t.Simple #>[]? value, TinyhandSerializerOptions options) => (<#= t.Simple #>[]?)value?.Clone();
+        public <#= t.Simple #>[]? Clone(<#= t.Simple #>[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new <#= t.Simple #>[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 
     public sealed class <#= t.Name #>ListFormatter : ITinyhandFormatter<List<<#= t.Simple #>>>

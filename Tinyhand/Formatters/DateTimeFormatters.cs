@@ -82,6 +82,18 @@ namespace Tinyhand.Formatters
             return new DateTime[0];
         }
 
-        public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options) => (DateTime[]?)value?.Clone();
+        public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new DateTime[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
     }
 }

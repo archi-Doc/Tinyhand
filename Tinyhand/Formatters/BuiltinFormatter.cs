@@ -60,7 +60,7 @@ namespace Tinyhand.Formatters
             return new string[0];
         }
 
-        public string[]? Clone(string[]? value, TinyhandSerializerOptions options) => (string[]?)value?.Clone();
+        public string[]? Clone(string[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.CloneStringArray(value);
     }
 
     public sealed class StringListFormatter : ITinyhandFormatter<List<string>>
@@ -106,7 +106,7 @@ namespace Tinyhand.Formatters
             return new byte[0];
         }
 
-        public byte[]? Clone(byte[]? value, TinyhandSerializerOptions options) => (byte[]?)value?.Clone();
+        public byte[]? Clone(byte[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.CloneUInt8Array(value);
     }
 
     public sealed class ByteListFormatter : ITinyhandFormatter<List<byte>>
@@ -178,6 +178,21 @@ namespace Tinyhand.Formatters
                     array[i] = reader.ReadString() ?? string.Empty;
                 }
 
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static string[]? CloneStringArray(string[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new string[value.Length];
+                Array.Copy(value, array, value.Length);
                 return array;
             }
         }

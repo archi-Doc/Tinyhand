@@ -59,12 +59,63 @@ namespace Benchmark.Clone
             var t = new CloneTestClass();
             t.X = this.testClass.X;
             t.Y = this.testClass.Y;
-            t.Array = (int[])this.testClass.Array.Clone();
-            /*t.Array = new int[this.testClass.Array.Length];
-            for (var n = 0; n < this.testClass.Array.Length; n++)
+            // t.Array = (int[])this.testClass.Array.Clone();
+            // this.testClass.Array.CopyTo(t.Array, 0);
+            t.Array = new int[this.testClass.Array.Length];
+            Array.Copy(this.testClass.Array, t.Array, this.testClass.Array.Length);
+            /*for (var n = 0; n < this.testClass.Array.Length; n++)
             {
                 t.Array[n] = this.testClass.Array[n];
             }*/
+
+            if (this.testClass.List == null)
+            {
+                t.List = null!;
+            }
+            else
+            {
+                t.List = new(this.testClass.List);
+            }
+
+            return t;
+        }
+
+        [Benchmark]
+        public CloneTestClass Clone_Raw2()
+        {
+            var t = new CloneTestClass();
+            t.X = this.testClass.X;
+            t.Y = this.testClass.Y;
+            t.Array = new int[this.testClass.Array.Length];
+            Array.Copy(this.testClass.Array, t.Array, this.testClass.Array.Length);
+            /*for (var n = 0; n < this.testClass.Array.Length; n++)
+            {
+                t.Array[n] = this.testClass.Array[n];
+            }*/
+
+            if (this.testClass.List == null)
+            {
+                t.List = null!;
+            }
+            else
+            {
+                t.List = new(this.testClass.List);
+            }
+
+            return t;
+        }
+
+        [Benchmark]
+        public CloneTestClass Clone_Raw3()
+        {
+            var t = new CloneTestClass();
+            t.X = this.testClass.X;
+            t.Y = this.testClass.Y;
+            t.Array = new int[this.testClass.Array.Length];
+            for (var n = 0; n < this.testClass.Array.Length; n++)
+            {
+                t.Array[n] = this.testClass.Array[n];
+            }
 
             if (this.testClass.List == null)
             {

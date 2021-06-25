@@ -215,7 +215,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = (string[]?){sourceObject}?.Clone()!;");
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneStringArray({sourceObject})!;");
         }
     }
 
@@ -244,7 +244,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = (string[]?){sourceObject}?.Clone();");
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneStringArray({sourceObject});");
         }
     }
 
@@ -331,7 +331,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = (byte[]?){sourceObject}?.Clone()!;");
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneUInt8Array({sourceObject})!;");
         }
     }
 
@@ -360,7 +360,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = (byte[]?){sourceObject}?.Clone();");
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneUInt8Array({sourceObject});");
         }
     }
 

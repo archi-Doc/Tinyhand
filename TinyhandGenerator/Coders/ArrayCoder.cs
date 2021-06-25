@@ -117,7 +117,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = ({this.element.FullNameWithNullable}[]?){sourceObject}?.Clone()!;");
+            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullName}[]>().Clone({sourceObject}, options)!;");
         }
 
         // [MemberNotNull(nameof(block))]
