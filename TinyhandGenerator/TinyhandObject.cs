@@ -1810,12 +1810,12 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
             {
-                methodCode = "public void DeepClone(TinyhandSerializerOptions options)";
+                methodCode = $"public {this.FullName + this.QuestionMarkIfReferenceType} DeepClone(TinyhandSerializerOptions options)";
                 objectCode = "this";
             }
             else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
             {
-                methodCode = $"public static void DeepClone{this.GenericsNumberString}(ref {this.RegionalName} v, TinyhandSerializerOptions options)";
+                methodCode = $"public static {this.FullName + this.QuestionMarkIfReferenceType} DeepClone{this.GenericsNumberString}(ref {this.RegionalName} v, TinyhandSerializerOptions options)";
                 objectCode = "v";
             }
             else
@@ -1826,6 +1826,11 @@ ModuleInitializerClass_Added:
             using (var m = ssb.ScopeBrace(methodCode))
             using (var v = ssb.ScopeObject(objectCode))
             {// this.x = value.x;
+                if (this.MethodCondition_Clone == MethodCondition.StaticMethod && this.Kind.IsReferenceType())
+                {
+                    ssb.AppendLine($"if ({ssb.FullObject} == null) return null;");
+                }
+
                 ssb.AppendLine($"{this.FullName} value = {this.NewInstanceCode()};");
                 foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
                 {
@@ -1834,6 +1839,8 @@ ModuleInitializerClass_Added:
                         this.GenerateCloneCore(ssb, info, x, "value." + x.SimpleName);
                     }
                 }
+
+                ssb.AppendLine($"return {ssb.FullObject};");
             }
         }
 
