@@ -116,6 +116,11 @@ namespace Tinyhand.Coders
             ssb.AppendLine($"{ssb.FullObject} = new System.Collections.Generic.List<{this.element.FullNameWithNullable}>();");
         }
 
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<System.Collections.Generic.List<{this.element.FullNameWithNullable}>>().Clone({sourceObject}, options)!;");
+        }
+
         private void GenerateMethod(GeneratorInformation info)
         {
             var key = this.element.FullNameWithNullable;

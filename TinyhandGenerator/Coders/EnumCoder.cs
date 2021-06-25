@@ -95,6 +95,11 @@ namespace Tinyhand.Coders
             ssb.AppendLine($"{ssb.FullObject} = default;");
         }
 
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
+
         public string SerializeFormat { get; }
 
         public string DeserializeFormat { get; }

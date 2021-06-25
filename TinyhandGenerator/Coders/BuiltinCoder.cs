@@ -154,6 +154,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = string.Empty;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+        }
     }
 
     public sealed class NullableStringCoder : ITinyhandCoder
@@ -177,6 +182,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = string.Empty;");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -202,6 +212,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new string[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (string[]?){sourceObject}?.Clone()!;");
+        }
     }
 
     public sealed class NullableStringArrayCoder : ITinyhandCoder
@@ -225,6 +240,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new string[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (string[]?){sourceObject}?.Clone();");
         }
     }
 
@@ -250,6 +270,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<string>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<string>({sourceObject});");
+        }
     }
 
     public sealed class NullableStringListCoder : ITinyhandCoder
@@ -273,6 +298,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<string>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<string>({sourceObject});");
         }
     }
 
@@ -298,6 +328,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = Array.Empty<byte>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (byte[]?){sourceObject}?.Clone()!;");
+        }
     }
 
     public sealed class NullableUInt8ArrayCoder : ITinyhandCoder
@@ -321,6 +356,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = Array.Empty<byte>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = (byte[]?){sourceObject}?.Clone();");
         }
     }
 
@@ -369,6 +409,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<byte>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<byte>({sourceObject});");
+        }
     }
 
     public sealed class NullableUInt8ListCoder : ITinyhandCoder
@@ -415,6 +460,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<byte>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<byte>({sourceObject});");
         }
     }
 }

@@ -1710,15 +1710,15 @@ ModuleInitializerClass_Added:
         {
             if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
             {// Static method
-                ssb.AppendLine($"return {this.FullName}.Clone{this.GenericsNumberString}(ref value, options);");
+                ssb.AppendLine($"return {this.FullName}.DeepClone{this.GenericsNumberString}(ref value, options);");
             }
             else if (this.MethodCondition_Clone == MethodCondition.ExplicitlyDeclared)
             {// Explicitly declared (Interface.Method())
-                ssb.AppendLine($"return (value as ITinyhandClone)?.Clone(options);");
+                ssb.AppendLine($"return (value as ITinyhandClone)?.DeepClone(options);");
             }
             else
             {// Member method
-                ssb.AppendLine($"return value{this.QuestionMarkIfReferenceType}.Clone(options);");
+                ssb.AppendLine($"return value{this.QuestionMarkIfReferenceType}.DeepClone(options);");
             }
         }
 
@@ -1810,12 +1810,12 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
             {
-                methodCode = "public void Clone(TinyhandSerializerOptions options)";
+                methodCode = "public void DeepClone(TinyhandSerializerOptions options)";
                 objectCode = "this";
             }
             else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
             {
-                methodCode = $"public static void Clone{this.GenericsNumberString}(ref {this.RegionalName} v, TinyhandSerializerOptions options)";
+                methodCode = $"public static void DeepClone{this.GenericsNumberString}(ref {this.RegionalName} v, TinyhandSerializerOptions options)";
                 objectCode = "v";
             }
             else

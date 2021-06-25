@@ -161,7 +161,7 @@ namespace Tinyhand
     /// </summary>
     public interface ITinyhandClone
     {
-        void Clone(TinyhandSerializerOptions options);
+        void DeepClone(TinyhandSerializerOptions options);
     }
 
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
