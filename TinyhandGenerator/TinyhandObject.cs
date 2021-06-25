@@ -434,12 +434,14 @@ namespace Tinyhand.Generator
             }
 
             // Method condition (Clone)
+            var cloneInterface = $"Tinyhand.ITinyhandClone<{this.FullName}>";
             this.MethodCondition_Clone = MethodCondition.MemberMethod;
-            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandClone"))
+            if (this.AllInterfaces.Any(x => x == cloneInterface))
             {// ITinyhandClone implemented
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandClone;
 
-                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandClone.Clone"))
+                cloneInterface += ".DeepClone";
+                if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == cloneInterface))
                 {
                     this.MethodCondition_Clone = MethodCondition.ExplicitlyDeclared;
                 }
@@ -2401,8 +2403,14 @@ ModuleInitializerClass_Added:
             }
             else
             {// Other
-                this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
-                return;
+                if (x.TypeObject != null && (x.TypeObject.Kind != VisceralObjectKind.Error && x.TypeObject.Kind != VisceralObjectKind.TypeParameter))
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
+                }
+
+                InitSetter_Start(true);
+                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Clone({sourceObject}, options)!;");
+                InitSetter_End();
             }
 
             void InitSetter_Start(bool brace = false)
