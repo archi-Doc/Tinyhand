@@ -866,6 +866,17 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_KeyAttributeRequired, this.Location);
                 }
+
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.CloneTarget))
+                {
+                    if (parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&
+                    this.TypeObjectWithNullable != null &&
+                    this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
+CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
+                    {// No Coder or Formatter
+                        this.ObjectFlag &= ~TinyhandObjectFlag.CloneTarget;
+                    }
+                }
             }
 
             if (this.DefaultValue != null)
@@ -2388,7 +2399,7 @@ ModuleInitializerClass_Added:
                 if (withNullable.Object.ObjectAttribute != null)
                 {// TinyhandObject.
                     InitSetter_Start(true);
-                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Clone({sourceObject}, options)!;");
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
                     InitSetter_End();
                 }
                 else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
@@ -2408,7 +2419,7 @@ ModuleInitializerClass_Added:
                     }
 
                     InitSetter_Start(true);
-                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Clone({sourceObject}, options)!;");
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
                     InitSetter_End();
                 }
 

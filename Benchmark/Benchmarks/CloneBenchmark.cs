@@ -41,9 +41,8 @@ namespace Benchmark.Clone
 
         public CloneBenchmark()
         {
-            this.testClass = new();
+            this.testClass = new() { Y = 2 };
             this.testClass.X = 1;
-            this.testClass.Y = 2;
             this.testClass.Array = new int[] { 3, 4, 5, 6, 7, 8, 9, 10, };
             this.testClass.List = new() { 11, 12, 13, 14, 15, 16 };
         }

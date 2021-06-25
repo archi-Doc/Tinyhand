@@ -107,7 +107,7 @@ namespace Tinyhand.Coders
             { "string", StringCoder.Instance },
             { "string?", NullableStringCoder.Instance },
             { "string[]", StringArrayCoder.Instance },
-            { "string?[]", NullableStringArrayCoder.Instance },
+            { "string[]?", NullableStringArrayCoder.Instance },
             { "System.Collections.Generic.List<string>", StringListCoder.Instance },
             { "System.Collections.Generic.List<string>?", NullableStringListCoder.Instance },
 

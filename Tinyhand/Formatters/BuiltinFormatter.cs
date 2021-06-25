@@ -183,7 +183,7 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static string[]? CloneStringArray(string[]? value)
+        public static string[]? CloneStringArray(string?[]? value)
         {
             if (value == null)
             {
@@ -215,7 +215,7 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static string?[]? DeserializeNullableStringArray(ref TinyhandReader reader)
+        public static string[]? DeserializeNullableStringArray(ref TinyhandReader reader)
         {
             if (reader.TryReadNil())
             {
@@ -224,10 +224,10 @@ namespace Tinyhand.Formatters
             else
             {
                 var len = reader.ReadArrayHeader();
-                var array = new string?[len];
+                var array = new string[len];
                 for (int i = 0; i < array.Length; i++)
                 {
-                    array[i] = reader.ReadString();
+                    array[i] = reader.ReadString() ?? string.Empty;
                 }
 
                 return array;
