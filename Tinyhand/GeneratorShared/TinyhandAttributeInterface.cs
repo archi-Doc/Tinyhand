@@ -155,6 +155,15 @@ namespace Tinyhand
         void Reconstruct(TinyhandSerializerOptions options);
     }
 
+    /// <summary>
+    /// Interface for custom clone methods.
+    /// If this interface is implemented, Tinyhand use it instead of the generated code.
+    /// </summary>
+    public interface ITinyhandClone
+    {
+        void Clone(TinyhandSerializerOptions options);
+    }
+
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
     public class TinyhandUnionAttribute : Attribute
     {

@@ -28,5 +28,13 @@ namespace Tinyhand.Coders
         /// <param name="ssb">The scoping string builder to output code.</param>
         /// <param name="info">The generator information.</param>
         void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info);
+
+        /// <summary>
+        /// Outputs the code to clone an object (create a new instance).
+        /// </summary>
+        /// <param name="ssb">The scoping string builder to output code.</param>
+        /// <param name="info">The generator information.</param>
+        /// <param name="sourceObject">The name of the source object.</param>
+        void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject);
     }
 }
