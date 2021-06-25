@@ -52,7 +52,7 @@ namespace Tinyhand.Coders
             {
                 if (this.elementCoder == null)
                 {// use option.Resolver.GetFormatter<T>()
-                    ssb.AppendLine($"options.Resolver.GetFormatter<{this.element.FullName}>().Serialize(ref writer, {ssb.FullObject}, options);");
+                    ssb.AppendLine($"options.Resolver.GetFormatter<{this.element.FullNameWithNullable}>().Serialize(ref writer, {ssb.FullObject}, options);");
                 }
                 else
                 {// use Coder
@@ -84,7 +84,7 @@ namespace Tinyhand.Coders
             {
                 if (this.elementCoder == null)
                 {// use option.Resolver.GetFormatter<T>()
-                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullName}>().Deserialize(ref reader, options)!;");
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullNameWithNullable}>().Deserialize(ref reader, options)!;");
                 }
                 else
                 {// use Coder
@@ -97,6 +97,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = default;");
             // ssb.AppendLine($"{ssb.FullObject} = new System.Nullable<{this.element.FullName}>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullNameWithNullable}?>().Clone({sourceObject}, options)!;");
         }
 
         private WithNullable<TinyhandObject> element;

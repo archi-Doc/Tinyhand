@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -310,6 +311,45 @@ namespace ConsoleApp1
             var v21 = TinyhandSerializer.Deserialize<VersioningClass1>(TinyhandSerializer.Serialize(v2))!;
             Console.WriteLine("Serialize v2 and deserialize as v1:");
             Console.WriteLine(v21.ToString());// Version 1, ID: 2 (Name ignored)
+        }
+    }
+
+    [TinyhandObject(ExplicitKeyOnly = true)]
+    public partial class DeepCopyClass
+    {
+        public int Id { get; set; }
+
+        public string[] Name { get; set; } = new string[] { "A", "B", };
+
+        public UnknownClass? UnknownClass { get; set; }
+
+        public KnownClass? KnownClass { get; set; }
+    }
+
+    public class UnknownClass
+    {
+    }
+
+    [TinyhandObject]
+    public partial class KnownClass
+    {
+        [Key(0)]
+        public float?[] Single { get; init; } = new float?[] { 0, 1, null, };
+    }
+
+    public static class DeepCopyTest
+    {
+        public static void Test()
+        {
+            var c = new DeepCopyClass();
+            c.UnknownClass = new();
+            c.KnownClass = new();
+
+            var d = TinyhandSerializer.Clone(c);
+            c.Name[1] = "C";
+            Debug.Assert(c.Name[1] != d.Name[1]); // c.Name and d.Name are different since d is a deep copy.
+            Debug.Assert(d.UnknownClass == null); // UnknownClass is ignored since Tinyhand doesn't know how to create a deep copy of UnknownClass.
+            Debug.Assert(d.KnownClass != null); // Tinyhand can handle a class with TinyhandObjectAttribute.
         }
     }
 }

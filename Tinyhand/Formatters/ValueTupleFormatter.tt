@@ -71,6 +71,15 @@ namespace Tinyhand.Formatters
         {
             return new ValueTuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "default!")) #>);
         }
+
+        public <#= t #> Clone(<#= t #> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+<# for(var j = 1; j <= i; j++) { #>
+            var item<#= j #> = resolver.GetFormatter<<#= toT(j) #>>().Clone(value.<#= toItem(j) #>, options);
+<# } #>
+            return new ValueTuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "item" + x + "!")) #>);
+        }
     }
 <# } #>
 }

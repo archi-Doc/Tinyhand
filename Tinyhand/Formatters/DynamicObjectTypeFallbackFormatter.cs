@@ -92,5 +92,13 @@ namespace Tinyhand.Formatters
         {
             return default!;
         }
+
+        public object? Clone(object? value, TinyhandSerializerOptions options)
+        {
+            var w = default(TinyhandWriter);
+            this.Serialize(ref w, value, options);
+            var r = new TinyhandReader(w.FlushAndGetReadOnlySequence());
+            return this.Deserialize(ref r, options);
+        }
     }
 }

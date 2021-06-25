@@ -27,6 +27,8 @@ namespace Tinyhand.Formatters
         {
             return Nil.Default;
         }
+
+        public Nil Clone(Nil value, TinyhandSerializerOptions options) => value;
     }
 
     // NullableNil is same as Nil.
@@ -52,5 +54,7 @@ namespace Tinyhand.Formatters
         {
             return Nil.Default;
         }
+
+        public Nil? Clone(Nil? value, TinyhandSerializerOptions options) => value;
     }
 }

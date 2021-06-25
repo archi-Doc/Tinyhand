@@ -29,8 +29,6 @@ namespace Benchmark.Clone
         [Key(3)]
         public List<int> List { get; set; } = default!;
 
-
-
         public CloneTestClass()
         {
         }
@@ -43,9 +41,8 @@ namespace Benchmark.Clone
 
         public CloneBenchmark()
         {
-            this.testClass = new();
+            this.testClass = new() { Y = 2 };
             this.testClass.X = 1;
-            this.testClass.Y = 2;
             this.testClass.Array = new int[] { 3, 4, 5, 6, 7, 8, 9, 10, };
             this.testClass.List = new() { 11, 12, 13, 14, 15, 16 };
         }
@@ -57,6 +54,58 @@ namespace Benchmark.Clone
 
         [Benchmark]
         public CloneTestClass Clone_Raw()
+        {
+            var t = new CloneTestClass();
+            t.X = this.testClass.X;
+            t.Y = this.testClass.Y;
+            // t.Array = (int[])this.testClass.Array.Clone();
+            // this.testClass.Array.CopyTo(t.Array, 0);
+            t.Array = new int[this.testClass.Array.Length];
+            Array.Copy(this.testClass.Array, t.Array, this.testClass.Array.Length);
+            /*for (var n = 0; n < this.testClass.Array.Length; n++)
+            {
+                t.Array[n] = this.testClass.Array[n];
+            }*/
+
+            if (this.testClass.List == null)
+            {
+                t.List = null!;
+            }
+            else
+            {
+                t.List = new(this.testClass.List);
+            }
+
+            return t;
+        }
+
+        [Benchmark]
+        public CloneTestClass Clone_Raw2()
+        {
+            var t = new CloneTestClass();
+            t.X = this.testClass.X;
+            t.Y = this.testClass.Y;
+            t.Array = new int[this.testClass.Array.Length];
+            Array.Copy(this.testClass.Array, t.Array, this.testClass.Array.Length);
+            /*for (var n = 0; n < this.testClass.Array.Length; n++)
+            {
+                t.Array[n] = this.testClass.Array[n];
+            }*/
+
+            if (this.testClass.List == null)
+            {
+                t.List = null!;
+            }
+            else
+            {
+                t.List = new(this.testClass.List);
+            }
+
+            return t;
+        }
+
+        [Benchmark]
+        public CloneTestClass Clone_Raw3()
         {
             var t = new CloneTestClass();
             t.X = this.testClass.X;
@@ -83,6 +132,18 @@ namespace Benchmark.Clone
         public CloneTestClass Clone_SerializeDeserialize()
         {
             return TinyhandSerializer.Deserialize<CloneTestClass>(TinyhandSerializer.Serialize(this.testClass))!;
+        }
+
+        [Benchmark]
+        public CloneTestClass Clone_Generated()
+        {
+            return this.testClass.DeepClone(TinyhandSerializerOptions.Standard);
+        }
+
+        [Benchmark]
+        public CloneTestClass Clone_Generated2()
+        {
+            return TinyhandSerializer.Clone(this.testClass);
         }
     }
 }

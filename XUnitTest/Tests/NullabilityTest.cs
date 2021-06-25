@@ -41,6 +41,23 @@ namespace Tinyhand.Tests
         public double Double { get; set; }
     }
 
+    [TinyhandObject(ImplicitKeyAsName = true)]
+    public partial class NullableTestClass1
+    {
+        public string[] A = default!;
+        public string[]? B = default!;
+        public string?[] C = default!;
+        public string?[]? D = default!;
+
+        public KeyValuePair<int, double> X1 = default!;
+        public KeyValuePair<int?, double> X2 = default!;
+        public KeyValuePair<int?, double?> X3 = default!;
+        public KeyValuePair<int, double>? X4 = default!;
+        public KeyValuePair<int?, double>? X5 = default!;
+        public KeyValuePair<int?, double?>? X6 = default!;
+        public KeyValuePair<int?, KeyValuePair<int?, double?>?>? X7 = default!;
+    }
+
     public class NullabilityTest
     {
         [Fact]

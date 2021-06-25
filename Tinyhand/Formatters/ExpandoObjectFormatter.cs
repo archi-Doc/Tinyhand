@@ -76,5 +76,31 @@ namespace Tinyhand.Formatters
         {
             return new ExpandoObject();
         }
+
+        public ExpandoObject? Clone(ExpandoObject? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var result = new ExpandoObject();
+            var dict = (IDictionary<string, object>)value;
+
+            if (dict.Count > 0)
+            {
+                var keyFormatter = options.Resolver.GetFormatter<string>();
+                var valueFormatter = options.Resolver.GetFormatter<object>();
+
+                foreach (var item in dict)
+                {
+                    string k = keyFormatter.Clone(item.Key, options) ?? string.Empty;
+                    object v = valueFormatter.Clone(item.Value, options)!;
+                    dict.Add(k, v);
+                }
+            }
+
+            return result;
+        }
     }
 }

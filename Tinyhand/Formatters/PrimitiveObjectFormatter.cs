@@ -330,6 +330,67 @@ namespace Tinyhand.Formatters
             return default!;
         }
 
+        public object? Clone(object? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            Type t = value.GetType();
+
+            int code;
+            if (TypeToJumpCode.TryGetValue(t, out code))
+            {
+                if (code == 14 && value is byte[] byteArray)
+                {
+                    var array = new byte[byteArray.Length];
+                    Array.Copy(byteArray, array, byteArray.Length);
+                    return array;
+                }
+                else
+                {
+                    return value;
+                }
+            }
+#if UNITY_2018_3_OR_NEWER && !NETFX_CORE
+            else if (t.IsEnum)
+#else
+            else if (t.GetTypeInfo().IsEnum)
+#endif
+            {
+                return value;
+            }
+            else if (value is System.Collections.IDictionary d)
+            {
+                var objectFormatter = options.Resolver.GetFormatter<object>();
+                var dictionary = new Dictionary<object, object>(d.Count, options.Security.GetEqualityComparer<object>());
+                foreach (System.Collections.DictionaryEntry item in d)
+                {
+                    var k = objectFormatter.Clone(item.Key, options);
+                    var v = objectFormatter.Clone(item.Value, options);
+                    dictionary.Add(k!, v!);
+                }
+
+                return dictionary;
+            }
+            else if (value is System.Collections.ICollection c)
+            {
+                var len = c.Count;
+                var count = 0;
+                var objectFormatter = options.Resolver.GetFormatter<object>();
+                var array = new object[len];
+                foreach (var item in c)
+                {
+                    array[count++] = objectFormatter.Clone(item, options)!;
+                }
+
+                return array;
+            }
+
+            throw new TinyhandException("Not supported primitive object resolver. type:" + t.Name);
+        }
+
         protected virtual object DeserializeMap(ref TinyhandReader reader, int length, TinyhandSerializerOptions options)
         {
             ITinyhandFormatter<object> objectFormatter = options.Resolver.GetFormatter<object>();

@@ -30,6 +30,8 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public DateTime Clone(DateTime value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NativeDateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
@@ -78,6 +80,20 @@ namespace Tinyhand.Formatters
         public DateTime[] Reconstruct(TinyhandSerializerOptions options)
         {
             return new DateTime[0];
+        }
+
+        public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new DateTime[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 }

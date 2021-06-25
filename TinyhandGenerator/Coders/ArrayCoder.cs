@@ -115,6 +115,11 @@ namespace Tinyhand.Coders
             ssb.AppendLine($"{ssb.FullObject} = System.Array.Empty<{this.element.FullName}>();");
         }
 
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullNameWithNullable}[]>().Clone({sourceObject}, options)!;");
+        }
+
         // [MemberNotNull(nameof(block))]
         private void GenerateMethod(GeneratorInformation info)
         {
@@ -258,6 +263,11 @@ namespace Tinyhand.Coders
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"options.Resolver.GetFormatter<{this.element.FullName}[]>().Serialize(ref writer, {ssb.FullObject}, options);");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullName}[]>().Clone({sourceObject}, options)!;");
         }
 
         private WithNullable<TinyhandObject> element;

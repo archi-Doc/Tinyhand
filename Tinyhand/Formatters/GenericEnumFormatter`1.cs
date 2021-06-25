@@ -73,9 +73,8 @@ namespace Tinyhand.Formatters
             return this.deserializer(ref reader);
         }
 
-        public T Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default!;
-        }
+        public T Reconstruct(TinyhandSerializerOptions options) => default!;
+
+        public T? Clone(T? value, TinyhandSerializerOptions options) => value;
     }
 }

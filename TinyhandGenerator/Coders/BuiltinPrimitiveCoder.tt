@@ -59,6 +59,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = <#= t.Reconstruct #>;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 <# } #>
 
@@ -107,6 +112,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = <#= t.Reconstruct #>;");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+        }
     }
 <# if(t.Name != "UInt8") { #>
 
@@ -132,6 +142,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new <#= t.Simple #>[0];");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Clone<#= t.Name #>Array({sourceObject})!;");
+        }
     }
 
     public sealed class Nullable<#= t.Name #>ArrayCoder : ITinyhandCoder
@@ -155,6 +170,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new <#= t.Simple #>[0];");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Clone<#= t.Name #>Array({sourceObject});");
         }
     }
 
@@ -180,6 +200,11 @@ namespace Tinyhand.Coders
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<<#= t.Simple #>>();");
         }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<<#= t.Simple #>>({sourceObject});");
+        }
     }
 
     public sealed class Nullable<#= t.Name #>ListCoder : ITinyhandCoder
@@ -203,6 +228,11 @@ namespace Tinyhand.Coders
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             ssb.AppendLine($"{ssb.FullObject} = new List<<#= t.Simple #>>();");
+        }
+
+        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<<#= t.Simple #>>({sourceObject});");
         }
     }
 <# } #>

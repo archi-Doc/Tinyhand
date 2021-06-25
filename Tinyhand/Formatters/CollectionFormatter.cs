@@ -70,6 +70,27 @@ namespace Tinyhand.Formatters
         {
             return new T[0];
         }
+
+        public T[]? Clone(T[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default;
+            }
+            else
+            {
+                var formatter = options.Resolver.GetFormatter<T>();
+
+                var len = value.Length;
+                var array = new T[len];
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = formatter.Clone(value[i], options)!;
+                }
+
+                return array;
+            }
+        }
     }
 
     public sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
@@ -94,6 +115,8 @@ namespace Tinyhand.Formatters
         {
             return Memory<byte>.Empty;
         }
+
+        public Memory<byte> Clone(Memory<byte> value, TinyhandSerializerOptions options) => new Memory<byte>(value.ToArray());
     }
 
     public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMemory<byte>>
@@ -118,6 +141,8 @@ namespace Tinyhand.Formatters
         {
             return ReadOnlyMemory<byte>.Empty;
         }
+
+        public ReadOnlyMemory<byte> Clone(ReadOnlyMemory<byte> value, TinyhandSerializerOptions options) => new ReadOnlyMemory<byte>(value.ToArray());
     }
 
     public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlySequence<byte>>
@@ -146,6 +171,8 @@ namespace Tinyhand.Formatters
         {
             return ReadOnlySequence<byte>.Empty;
         }
+
+        public ReadOnlySequence<byte> Clone(ReadOnlySequence<byte> value, TinyhandSerializerOptions options) => new ReadOnlySequence<byte>(value.ToArray());
     }
 
     public sealed class ByteArraySegmentFormatter : ITinyhandFormatter<ArraySegment<byte>>
@@ -177,6 +204,8 @@ namespace Tinyhand.Formatters
         {
             return ArraySegment<byte>.Empty;
         }
+
+        public ArraySegment<byte> Clone(ArraySegment<byte> value, TinyhandSerializerOptions options) => new ArraySegment<byte>(value.ToArray());
     }
 
     public sealed class MemoryFormatter<T> : ITinyhandFormatter<Memory<T>>
@@ -196,6 +225,8 @@ namespace Tinyhand.Formatters
         {
             return Memory<T>.Empty;
         }
+
+        public Memory<T> Clone(Memory<T> value, TinyhandSerializerOptions options) => options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
     }
 
     public sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemory<T>>
@@ -223,6 +254,8 @@ namespace Tinyhand.Formatters
         {
             return ReadOnlyMemory<T>.Empty;
         }
+
+        public ReadOnlyMemory<T> Clone(ReadOnlyMemory<T> value, TinyhandSerializerOptions options) => options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
     }
 
     public sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnlySequence<T>>
@@ -252,6 +285,8 @@ namespace Tinyhand.Formatters
         {
             return ReadOnlySequence<T>.Empty;
         }
+
+        public ReadOnlySequence<T> Clone(ReadOnlySequence<T> value, TinyhandSerializerOptions options) => new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options));
     }
 
     public sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment<T>>
@@ -285,6 +320,12 @@ namespace Tinyhand.Formatters
         public ArraySegment<T> Reconstruct(TinyhandSerializerOptions options)
         {
             return ArraySegment<T>.Empty;
+        }
+
+        public ArraySegment<T> Clone(ArraySegment<T> value, TinyhandSerializerOptions options)
+        {
+            var array = options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
+            return array == null ? ArraySegment<T>.Empty : new ArraySegment<T>(array);
         }
     }
 
@@ -345,6 +386,27 @@ namespace Tinyhand.Formatters
         public List<T> Reconstruct(TinyhandSerializerOptions options)
         {
             return new List<T>();
+        }
+
+        public List<T>? Clone(List<T>? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default;
+            }
+            else
+            {
+                var formatter = options.Resolver.GetFormatter<T>();
+
+                var len = value.Count;
+                var list = new List<T>(len);
+                for (int i = 0; i < len; i++)
+                {
+                    list.Add(formatter.Clone(value[i], options)!);
+                }
+
+                return list;
+            }
         }
     }
 
@@ -453,6 +515,60 @@ namespace Tinyhand.Formatters
         public TCollection Reconstruct(TinyhandSerializerOptions options)
         {
             return this.Complete(this.Create(0, options));
+        }
+
+        public TCollection? Clone(TCollection? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(TCollection);
+            }
+
+            var formatter = options.Resolver.GetFormatter<TElement>();
+
+            TIntermediate list;
+            int length;
+            if (value is TElement[] array)
+            {
+                length = array.Length;
+                list = this.Create(length, options);
+                for (int i = 0; i < length; i++)
+                {
+                    this.Add(list, i, formatter.Clone(array[i], options)!, options);
+                }
+            }
+            else
+            {
+                var seqCount = this.GetCount(value);
+                if (seqCount != null)
+                {
+                    length = seqCount.Value;
+                }
+                else
+                {
+                    length = 0;
+                    using (var e = this.GetSourceEnumerator(value))
+                    {
+                        while (e.MoveNext())
+                        {
+                            length++;
+                        }
+                    }
+                }
+
+                // Unity's foreach struct enumerator causes boxing so iterate manually.
+                list = this.Create(length, options);
+                var i = 0;
+                using (var e = this.GetSourceEnumerator(value))
+                {
+                    while (e.MoveNext())
+                    {
+                        this.Add(list, i++, formatter.Clone(e.Current, options)!, options);
+                    }
+                }
+            }
+
+            return this.Complete(list);
         }
 
         // abstraction for serialize
@@ -787,6 +903,18 @@ namespace Tinyhand.Formatters
         {
             return new Grouping<TKey, TElement>(default!, Enumerable.Empty<TElement>());
         }
+
+        public IGrouping<TKey, TElement>? Clone(IGrouping<TKey, TElement>? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var k = options.Resolver.GetFormatter<TKey>().Clone(value.Key, options);
+            var v = options.Resolver.GetFormatter<IEnumerable<TElement>>().Clone(value, options);
+            return new Grouping<TKey, TElement>(k!, v!);
+        }
     }
 
     public sealed class InterfaceLookupFormatter<TKey, TElement> : CollectionFormatterBase<IGrouping<TKey, TElement>, Dictionary<TKey, IGrouping<TKey, TElement>>, ILookup<TKey, TElement>>
@@ -934,6 +1062,25 @@ namespace Tinyhand.Formatters
         {
             return new T();
         }
+
+        public T? Clone(T? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(T);
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+
+            var count = value.Count;
+            var list = new T();
+            foreach (var item in value)
+            {
+                list.Add(formatter.Clone(item, options));
+            }
+
+            return list;
+        }
     }
 
     public sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<ICollection>
@@ -998,6 +1145,26 @@ namespace Tinyhand.Formatters
         public ICollection Reconstruct(TinyhandSerializerOptions options)
         {
             return Array.Empty<object>();
+        }
+
+        public ICollection? Clone(ICollection? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(ICollection);
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+
+            var count = value.Count;
+            var list = new object[count];
+            var i = 0;
+            foreach (var item in value)
+            {
+                list[i] = formatter.Clone(item, options)!;
+            }
+
+            return list;
         }
     }
 
@@ -1087,6 +1254,23 @@ namespace Tinyhand.Formatters
         {
             return Array.Empty<object>();
         }
+
+        public IEnumerable? Clone(IEnumerable? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(IEnumerable);
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+            var list = new List<object>();
+            foreach (var item in value)
+            {
+                list.Add(formatter.Clone(item, options)!);
+            }
+
+            return list.ToArray();
+        }
     }
 
     public sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
@@ -1152,6 +1336,26 @@ namespace Tinyhand.Formatters
         {
             return new object[0];
         }
+
+        public IList? Clone(IList? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return default(IList);
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+
+            var count = value.Count;
+            var list = new object[count];
+            var i = 0;
+            foreach (var item in value)
+            {
+                list[i++] = formatter.Clone(item, options)!;
+            }
+
+            return list;
+        }
     }
 
     public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
@@ -1210,6 +1414,25 @@ namespace Tinyhand.Formatters
         public T Reconstruct(TinyhandSerializerOptions options)
         {
             return CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(0, options.Security.GetEqualityComparer());
+        }
+
+        public T? Clone(T? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+            var count = value.Count;
+
+            var dict = CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(count, options.Security.GetEqualityComparer());
+            foreach (DictionaryEntry item in value)
+            {
+                dict.Add(formatter.Clone(item.Key, options), formatter.Clone(item.Value, options));
+            }
+
+            return dict;
         }
     }
 
@@ -1274,6 +1497,25 @@ namespace Tinyhand.Formatters
         public IDictionary Reconstruct(TinyhandSerializerOptions options)
         {
             return new Dictionary<object, object>(options.Security.GetEqualityComparer<object>());
+        }
+
+        public IDictionary? Clone(IDictionary? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var formatter = options.Resolver.GetFormatter<object>();
+            var count = value.Count;
+
+            var dict = new Dictionary<object, object>(count, options.Security.GetEqualityComparer<object>());
+            foreach (DictionaryEntry item in value)
+            {
+                dict.Add(formatter.Clone(item.Key, options)!, formatter.Clone(item.Value, options)!);
+            }
+
+            return dict;
         }
     }
 

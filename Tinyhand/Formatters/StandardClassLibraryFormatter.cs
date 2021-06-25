@@ -9,6 +9,7 @@ using System.Text;
 using Tinyhand.Internal;
 using Tinyhand.IO;
 
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 #pragma warning disable SA1649 // File name should match first type name
 
 namespace Tinyhand.Formatters
@@ -106,6 +107,8 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public decimal Clone(decimal value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class TimeSpanFormatter : ITinyhandFormatter<TimeSpan>
@@ -131,6 +134,8 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public TimeSpan Clone(TimeSpan value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffset>
@@ -169,6 +174,8 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public DateTimeOffset Clone(DateTimeOffset value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class GuidFormatter : ITinyhandFormatter<Guid>
@@ -215,6 +222,8 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public Guid Clone(Guid value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class UriFormatter : ITinyhandFormatter<Uri>
@@ -253,6 +262,8 @@ namespace Tinyhand.Formatters
         {
             return new Uri("about:blank");
         }
+
+        public Uri? Clone(Uri? value, TinyhandSerializerOptions options) => value == null ? null : new Uri(value.OriginalString);
     }
 
     public sealed class VersionFormatter : ITinyhandFormatter<Version>
@@ -291,6 +302,8 @@ namespace Tinyhand.Formatters
         {
             return new Version();
         }
+
+        public Version? Clone(Version? value, TinyhandSerializerOptions options) => value == null ? null : new Version(value.ToString());
     }
 
     public sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<KeyValuePair<TKey, TValue>>
@@ -331,6 +344,12 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public KeyValuePair<TKey, TValue> Clone(KeyValuePair<TKey, TValue> value, TinyhandSerializerOptions options)
+        {
+            var resolver = options.Resolver;
+            return new KeyValuePair<TKey, TValue>(resolver.GetFormatter<TKey>().Clone(value.Key, options)!, resolver.GetFormatter<TValue>().Clone(value.Value, options)!);
+        }
     }
 
     public sealed class StringBuilderFormatter : ITinyhandFormatter<StringBuilder>
@@ -369,6 +388,8 @@ namespace Tinyhand.Formatters
         {
             return new StringBuilder();
         }
+
+        public StringBuilder? Clone(StringBuilder? value, TinyhandSerializerOptions options) => value == null ? null : new StringBuilder(value.ToString());
     }
 
     public sealed class BitArrayFormatter : ITinyhandFormatter<BitArray>
@@ -422,6 +443,8 @@ namespace Tinyhand.Formatters
         {
             return new BitArray(0);
         }
+
+        public BitArray? Clone(BitArray? value, TinyhandSerializerOptions options) => value == null ? null : new BitArray(value);
     }
 
     public sealed class BigIntegerFormatter : ITinyhandFormatter<System.Numerics.BigInteger>
@@ -449,6 +472,8 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public System.Numerics.BigInteger Clone(System.Numerics.BigInteger value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class ComplexFormatter : ITinyhandFormatter<System.Numerics.Complex>
@@ -487,6 +512,8 @@ namespace Tinyhand.Formatters
         {
             return default;
         }
+
+        public System.Numerics.Complex Clone(System.Numerics.Complex value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class LazyFormatter<T> : ITinyhandFormatter<Lazy<T>>
@@ -538,6 +565,8 @@ namespace Tinyhand.Formatters
         {
             return new Lazy<T>(() => options.Resolver.GetFormatter<T>().Reconstruct(options));
         }
+
+        public Lazy<T>? Clone(Lazy<T>? value, TinyhandSerializerOptions options) => value == null ? null : new Lazy<T>(() => options.Resolver.GetFormatter<T>().Clone(value.Value, options)!);
     }
 
     /// <summary>
@@ -579,5 +608,7 @@ namespace Tinyhand.Formatters
         {
             return (T)typeof(object);
         }
+
+        public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : (T)Type.GetType(value.AssemblyQualifiedName, throwOnError: true);
     }
 }

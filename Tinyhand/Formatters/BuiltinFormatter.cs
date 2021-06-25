@@ -36,6 +36,11 @@ namespace Tinyhand.Formatters
         {
             return string.Empty;
         }
+
+        public string? Clone(string? value, TinyhandSerializerOptions options)
+        {
+            return value;
+        }
     }
 
     public sealed class StringArrayFormatter : ITinyhandFormatter<string[]>
@@ -54,6 +59,8 @@ namespace Tinyhand.Formatters
         {
             return new string[0];
         }
+
+        public string[]? Clone(string[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.CloneStringArray(value);
     }
 
     public sealed class StringListFormatter : ITinyhandFormatter<List<string>>
@@ -72,6 +79,8 @@ namespace Tinyhand.Formatters
         {
             return new List<string>();
         }
+
+        public List<string>? Clone(List<string>? value, TinyhandSerializerOptions options) => value == null ? null : new List<string>(value);
     }
 
     public sealed class ByteArrayFormatter : ITinyhandFormatter<byte[]>
@@ -96,6 +105,8 @@ namespace Tinyhand.Formatters
         {
             return new byte[0];
         }
+
+        public byte[]? Clone(byte[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.CloneUInt8Array(value);
     }
 
     public sealed class ByteListFormatter : ITinyhandFormatter<List<byte>>
@@ -128,6 +139,8 @@ namespace Tinyhand.Formatters
         {
             return new List<byte>();
         }
+
+        public List<byte>? Clone(List<byte>? value, TinyhandSerializerOptions options) => value == null ? null : new List<byte>(value);
     }
 
     public static partial class Builtin
@@ -170,6 +183,21 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static string[]? CloneStringArray(string?[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new string[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeNullableStringArray(ref TinyhandWriter writer, string?[]? value)
         {
             if (value == null)
@@ -187,7 +215,7 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static string?[]? DeserializeNullableStringArray(ref TinyhandReader reader)
+        public static string[]? DeserializeNullableStringArray(ref TinyhandReader reader)
         {
             if (reader.TryReadNil())
             {
@@ -196,10 +224,10 @@ namespace Tinyhand.Formatters
             else
             {
                 var len = reader.ReadArrayHeader();
-                var array = new string?[len];
+                var array = new string[len];
                 for (int i = 0; i < array.Length; i++)
                 {
-                    array[i] = reader.ReadString();
+                    array[i] = reader.ReadString() ?? string.Empty;
                 }
 
                 return array;

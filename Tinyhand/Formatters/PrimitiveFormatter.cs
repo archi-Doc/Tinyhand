@@ -29,10 +29,9 @@ namespace Tinyhand.Formatters
             return reader.ReadUInt8();
         }
 
-        public byte Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public byte Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public byte Clone(byte value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableUInt8Formatter : ITinyhandFormatter<byte?>
@@ -67,10 +66,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public byte? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(byte);
-        }
+        public byte? Reconstruct(TinyhandSerializerOptions options) => default(byte);
+
+        public byte? Clone(byte? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class Int8Formatter : ITinyhandFormatter<sbyte>
@@ -91,10 +89,9 @@ namespace Tinyhand.Formatters
             return reader.ReadInt8();
         }
 
-        public sbyte Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public sbyte Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public sbyte Clone(sbyte value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableInt8Formatter : ITinyhandFormatter<sbyte?>
@@ -129,10 +126,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public sbyte? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(sbyte);
-        }
+        public sbyte? Reconstruct(TinyhandSerializerOptions options) => default(sbyte);
+
+        public sbyte? Clone(sbyte? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class Int8ArrayFormatter : ITinyhandFormatter<sbyte[]>
@@ -147,9 +143,20 @@ namespace Tinyhand.Formatters
 
         public sbyte[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt8Array(ref reader);
 
-        public sbyte[] Reconstruct(TinyhandSerializerOptions options)
+        public sbyte[] Reconstruct(TinyhandSerializerOptions options) => new sbyte[0];
+
+        public sbyte[]? Clone(sbyte[]? value, TinyhandSerializerOptions options)
         {
-            return new sbyte[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new sbyte[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -165,10 +172,9 @@ namespace Tinyhand.Formatters
 
         public List<sbyte>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt8List(ref reader);
 
-        public List<sbyte> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<sbyte>();
-        }
+        public List<sbyte> Reconstruct(TinyhandSerializerOptions options) => new List<sbyte>();
+
+        public List<sbyte>? Clone(List<sbyte>? value, TinyhandSerializerOptions options) => value == null ? null : new List<sbyte>(value);
     }
 
     public sealed class UInt16Formatter : ITinyhandFormatter<ushort>
@@ -189,10 +195,9 @@ namespace Tinyhand.Formatters
             return reader.ReadUInt16();
         }
 
-        public ushort Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public ushort Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public ushort Clone(ushort value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableUInt16Formatter : ITinyhandFormatter<ushort?>
@@ -227,10 +232,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ushort? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(ushort);
-        }
+        public ushort? Reconstruct(TinyhandSerializerOptions options) => default(ushort);
+
+        public ushort? Clone(ushort? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class UInt16ArrayFormatter : ITinyhandFormatter<ushort[]>
@@ -245,9 +249,20 @@ namespace Tinyhand.Formatters
 
         public ushort[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt16Array(ref reader);
 
-        public ushort[] Reconstruct(TinyhandSerializerOptions options)
+        public ushort[] Reconstruct(TinyhandSerializerOptions options) => new ushort[0];
+
+        public ushort[]? Clone(ushort[]? value, TinyhandSerializerOptions options)
         {
-            return new ushort[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new ushort[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -263,10 +278,9 @@ namespace Tinyhand.Formatters
 
         public List<ushort>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt16List(ref reader);
 
-        public List<ushort> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<ushort>();
-        }
+        public List<ushort> Reconstruct(TinyhandSerializerOptions options) => new List<ushort>();
+
+        public List<ushort>? Clone(List<ushort>? value, TinyhandSerializerOptions options) => value == null ? null : new List<ushort>(value);
     }
 
     public sealed class Int16Formatter : ITinyhandFormatter<short>
@@ -287,10 +301,9 @@ namespace Tinyhand.Formatters
             return reader.ReadInt16();
         }
 
-        public short Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public short Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public short Clone(short value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableInt16Formatter : ITinyhandFormatter<short?>
@@ -325,10 +338,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public short? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(short);
-        }
+        public short? Reconstruct(TinyhandSerializerOptions options) => default(short);
+
+        public short? Clone(short? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class Int16ArrayFormatter : ITinyhandFormatter<short[]>
@@ -343,9 +355,20 @@ namespace Tinyhand.Formatters
 
         public short[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt16Array(ref reader);
 
-        public short[] Reconstruct(TinyhandSerializerOptions options)
+        public short[] Reconstruct(TinyhandSerializerOptions options) => new short[0];
+
+        public short[]? Clone(short[]? value, TinyhandSerializerOptions options)
         {
-            return new short[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new short[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -361,10 +384,9 @@ namespace Tinyhand.Formatters
 
         public List<short>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt16List(ref reader);
 
-        public List<short> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<short>();
-        }
+        public List<short> Reconstruct(TinyhandSerializerOptions options) => new List<short>();
+
+        public List<short>? Clone(List<short>? value, TinyhandSerializerOptions options) => value == null ? null : new List<short>(value);
     }
 
     public sealed class UInt32Formatter : ITinyhandFormatter<uint>
@@ -385,10 +407,9 @@ namespace Tinyhand.Formatters
             return reader.ReadUInt32();
         }
 
-        public uint Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public uint Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public uint Clone(uint value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableUInt32Formatter : ITinyhandFormatter<uint?>
@@ -423,10 +444,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public uint? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(uint);
-        }
+        public uint? Reconstruct(TinyhandSerializerOptions options) => default(uint);
+
+        public uint? Clone(uint? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class UInt32ArrayFormatter : ITinyhandFormatter<uint[]>
@@ -441,9 +461,20 @@ namespace Tinyhand.Formatters
 
         public uint[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt32Array(ref reader);
 
-        public uint[] Reconstruct(TinyhandSerializerOptions options)
+        public uint[] Reconstruct(TinyhandSerializerOptions options) => new uint[0];
+
+        public uint[]? Clone(uint[]? value, TinyhandSerializerOptions options)
         {
-            return new uint[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new uint[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -459,10 +490,9 @@ namespace Tinyhand.Formatters
 
         public List<uint>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt32List(ref reader);
 
-        public List<uint> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<uint>();
-        }
+        public List<uint> Reconstruct(TinyhandSerializerOptions options) => new List<uint>();
+
+        public List<uint>? Clone(List<uint>? value, TinyhandSerializerOptions options) => value == null ? null : new List<uint>(value);
     }
 
     public sealed class Int32Formatter : ITinyhandFormatter<int>
@@ -483,10 +513,9 @@ namespace Tinyhand.Formatters
             return reader.ReadInt32();
         }
 
-        public int Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public int Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public int Clone(int value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableInt32Formatter : ITinyhandFormatter<int?>
@@ -521,10 +550,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public int? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(int);
-        }
+        public int? Reconstruct(TinyhandSerializerOptions options) => default(int);
+
+        public int? Clone(int? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class Int32ArrayFormatter : ITinyhandFormatter<int[]>
@@ -539,9 +567,20 @@ namespace Tinyhand.Formatters
 
         public int[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader);
 
-        public int[] Reconstruct(TinyhandSerializerOptions options)
+        public int[] Reconstruct(TinyhandSerializerOptions options) => new int[0];
+
+        public int[]? Clone(int[]? value, TinyhandSerializerOptions options)
         {
-            return new int[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new int[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -557,10 +596,9 @@ namespace Tinyhand.Formatters
 
         public List<int>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt32List(ref reader);
 
-        public List<int> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<int>();
-        }
+        public List<int> Reconstruct(TinyhandSerializerOptions options) => new List<int>();
+
+        public List<int>? Clone(List<int>? value, TinyhandSerializerOptions options) => value == null ? null : new List<int>(value);
     }
 
     public sealed class UInt64Formatter : ITinyhandFormatter<ulong>
@@ -581,10 +619,9 @@ namespace Tinyhand.Formatters
             return reader.ReadUInt64();
         }
 
-        public ulong Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public ulong Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public ulong Clone(ulong value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableUInt64Formatter : ITinyhandFormatter<ulong?>
@@ -619,10 +656,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public ulong? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(ulong);
-        }
+        public ulong? Reconstruct(TinyhandSerializerOptions options) => default(ulong);
+
+        public ulong? Clone(ulong? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class UInt64ArrayFormatter : ITinyhandFormatter<ulong[]>
@@ -637,9 +673,20 @@ namespace Tinyhand.Formatters
 
         public ulong[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt64Array(ref reader);
 
-        public ulong[] Reconstruct(TinyhandSerializerOptions options)
+        public ulong[] Reconstruct(TinyhandSerializerOptions options) => new ulong[0];
+
+        public ulong[]? Clone(ulong[]? value, TinyhandSerializerOptions options)
         {
-            return new ulong[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new ulong[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -655,10 +702,9 @@ namespace Tinyhand.Formatters
 
         public List<ulong>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt64List(ref reader);
 
-        public List<ulong> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<ulong>();
-        }
+        public List<ulong> Reconstruct(TinyhandSerializerOptions options) => new List<ulong>();
+
+        public List<ulong>? Clone(List<ulong>? value, TinyhandSerializerOptions options) => value == null ? null : new List<ulong>(value);
     }
 
     public sealed class Int64Formatter : ITinyhandFormatter<long>
@@ -679,10 +725,9 @@ namespace Tinyhand.Formatters
             return reader.ReadInt64();
         }
 
-        public long Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public long Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public long Clone(long value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableInt64Formatter : ITinyhandFormatter<long?>
@@ -717,10 +762,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public long? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(long);
-        }
+        public long? Reconstruct(TinyhandSerializerOptions options) => default(long);
+
+        public long? Clone(long? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class Int64ArrayFormatter : ITinyhandFormatter<long[]>
@@ -735,9 +779,20 @@ namespace Tinyhand.Formatters
 
         public long[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt64Array(ref reader);
 
-        public long[] Reconstruct(TinyhandSerializerOptions options)
+        public long[] Reconstruct(TinyhandSerializerOptions options) => new long[0];
+
+        public long[]? Clone(long[]? value, TinyhandSerializerOptions options)
         {
-            return new long[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new long[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -753,10 +808,9 @@ namespace Tinyhand.Formatters
 
         public List<long>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeInt64List(ref reader);
 
-        public List<long> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<long>();
-        }
+        public List<long> Reconstruct(TinyhandSerializerOptions options) => new List<long>();
+
+        public List<long>? Clone(List<long>? value, TinyhandSerializerOptions options) => value == null ? null : new List<long>(value);
     }
 
     public sealed class SingleFormatter : ITinyhandFormatter<float>
@@ -777,10 +831,9 @@ namespace Tinyhand.Formatters
             return reader.ReadSingle();
         }
 
-        public float Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public float Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public float Clone(float value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableSingleFormatter : ITinyhandFormatter<float?>
@@ -815,10 +868,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public float? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(float);
-        }
+        public float? Reconstruct(TinyhandSerializerOptions options) => default(float);
+
+        public float? Clone(float? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class SingleArrayFormatter : ITinyhandFormatter<float[]>
@@ -833,9 +885,20 @@ namespace Tinyhand.Formatters
 
         public float[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeSingleArray(ref reader);
 
-        public float[] Reconstruct(TinyhandSerializerOptions options)
+        public float[] Reconstruct(TinyhandSerializerOptions options) => new float[0];
+
+        public float[]? Clone(float[]? value, TinyhandSerializerOptions options)
         {
-            return new float[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new float[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -851,10 +914,9 @@ namespace Tinyhand.Formatters
 
         public List<float>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeSingleList(ref reader);
 
-        public List<float> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<float>();
-        }
+        public List<float> Reconstruct(TinyhandSerializerOptions options) => new List<float>();
+
+        public List<float>? Clone(List<float>? value, TinyhandSerializerOptions options) => value == null ? null : new List<float>(value);
     }
 
     public sealed class DoubleFormatter : ITinyhandFormatter<double>
@@ -875,10 +937,9 @@ namespace Tinyhand.Formatters
             return reader.ReadDouble();
         }
 
-        public double Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public double Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public double Clone(double value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableDoubleFormatter : ITinyhandFormatter<double?>
@@ -913,10 +974,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public double? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(double);
-        }
+        public double? Reconstruct(TinyhandSerializerOptions options) => default(double);
+
+        public double? Clone(double? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class DoubleArrayFormatter : ITinyhandFormatter<double[]>
@@ -931,9 +991,20 @@ namespace Tinyhand.Formatters
 
         public double[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeDoubleArray(ref reader);
 
-        public double[] Reconstruct(TinyhandSerializerOptions options)
+        public double[] Reconstruct(TinyhandSerializerOptions options) => new double[0];
+
+        public double[]? Clone(double[]? value, TinyhandSerializerOptions options)
         {
-            return new double[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new double[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -949,10 +1020,9 @@ namespace Tinyhand.Formatters
 
         public List<double>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeDoubleList(ref reader);
 
-        public List<double> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<double>();
-        }
+        public List<double> Reconstruct(TinyhandSerializerOptions options) => new List<double>();
+
+        public List<double>? Clone(List<double>? value, TinyhandSerializerOptions options) => value == null ? null : new List<double>(value);
     }
 
     public sealed class BooleanFormatter : ITinyhandFormatter<bool>
@@ -973,10 +1043,9 @@ namespace Tinyhand.Formatters
             return reader.ReadBoolean();
         }
 
-        public bool Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public bool Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public bool Clone(bool value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableBooleanFormatter : ITinyhandFormatter<bool?>
@@ -1011,10 +1080,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public bool? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(bool);
-        }
+        public bool? Reconstruct(TinyhandSerializerOptions options) => default(bool);
+
+        public bool? Clone(bool? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class BooleanArrayFormatter : ITinyhandFormatter<bool[]>
@@ -1029,9 +1097,20 @@ namespace Tinyhand.Formatters
 
         public bool[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeBooleanArray(ref reader);
 
-        public bool[] Reconstruct(TinyhandSerializerOptions options)
+        public bool[] Reconstruct(TinyhandSerializerOptions options) => new bool[0];
+
+        public bool[]? Clone(bool[]? value, TinyhandSerializerOptions options)
         {
-            return new bool[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new bool[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -1047,10 +1126,9 @@ namespace Tinyhand.Formatters
 
         public List<bool>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeBooleanList(ref reader);
 
-        public List<bool> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<bool>();
-        }
+        public List<bool> Reconstruct(TinyhandSerializerOptions options) => new List<bool>();
+
+        public List<bool>? Clone(List<bool>? value, TinyhandSerializerOptions options) => value == null ? null : new List<bool>(value);
     }
 
     public sealed class CharFormatter : ITinyhandFormatter<char>
@@ -1071,10 +1149,9 @@ namespace Tinyhand.Formatters
             return reader.ReadChar();
         }
 
-        public char Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public char Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public char Clone(char value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableCharFormatter : ITinyhandFormatter<char?>
@@ -1109,10 +1186,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public char? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(char);
-        }
+        public char? Reconstruct(TinyhandSerializerOptions options) => default(char);
+
+        public char? Clone(char? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class CharArrayFormatter : ITinyhandFormatter<char[]>
@@ -1127,9 +1203,20 @@ namespace Tinyhand.Formatters
 
         public char[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeCharArray(ref reader);
 
-        public char[] Reconstruct(TinyhandSerializerOptions options)
+        public char[] Reconstruct(TinyhandSerializerOptions options) => new char[0];
+
+        public char[]? Clone(char[]? value, TinyhandSerializerOptions options)
         {
-            return new char[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new char[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -1145,10 +1232,9 @@ namespace Tinyhand.Formatters
 
         public List<char>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeCharList(ref reader);
 
-        public List<char> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<char>();
-        }
+        public List<char> Reconstruct(TinyhandSerializerOptions options) => new List<char>();
+
+        public List<char>? Clone(List<char>? value, TinyhandSerializerOptions options) => value == null ? null : new List<char>(value);
     }
 
     public sealed class DateTimeFormatter : ITinyhandFormatter<DateTime>
@@ -1169,10 +1255,9 @@ namespace Tinyhand.Formatters
             return reader.ReadDateTime();
         }
 
-        public DateTime Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default;
-        }
+        public DateTime Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public DateTime Clone(DateTime value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class NullableDateTimeFormatter : ITinyhandFormatter<DateTime?>
@@ -1207,10 +1292,9 @@ namespace Tinyhand.Formatters
             }
         }
 
-        public DateTime? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(DateTime);
-        }
+        public DateTime? Reconstruct(TinyhandSerializerOptions options) => default(DateTime);
+
+        public DateTime? Clone(DateTime? value, TinyhandSerializerOptions options) => value;
     }
 
     public sealed class DateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
@@ -1225,9 +1309,20 @@ namespace Tinyhand.Formatters
 
         public DateTime[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeDateTimeArray(ref reader);
 
-        public DateTime[] Reconstruct(TinyhandSerializerOptions options)
+        public DateTime[] Reconstruct(TinyhandSerializerOptions options) => new DateTime[0];
+
+        public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options)
         {
-            return new DateTime[0];
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new DateTime[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
         }
     }
 
@@ -1243,9 +1338,8 @@ namespace Tinyhand.Formatters
 
         public List<DateTime>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeDateTimeList(ref reader);
 
-        public List<DateTime> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new List<DateTime>();
-        }
+        public List<DateTime> Reconstruct(TinyhandSerializerOptions options) => new List<DateTime>();
+
+        public List<DateTime>? Clone(List<DateTime>? value, TinyhandSerializerOptions options) => value == null ? null : new List<DateTime>(value);
     }
 }

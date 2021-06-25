@@ -39,6 +39,14 @@ namespace Tinyhand
         /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
         /// <returns>The new object.</returns>
         T Reconstruct(TinyhandSerializerOptions options);
+
+        /// <summary>
+        /// Creates a deep copy of the object.
+        /// </summary>
+        /// <param name="value">The value to be cloned.</param>
+        /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
+        /// <returns>The new object.</returns>
+        T? Clone(T? value, TinyhandSerializerOptions options);
     }
 
     /// <summary>

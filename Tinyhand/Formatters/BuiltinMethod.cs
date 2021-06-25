@@ -15,6 +15,95 @@ namespace Tinyhand.Formatters
     public static partial class Builtin
     {
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void SerializeUInt8Array(ref TinyhandWriter writer, byte[]? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNil();
+            }
+            else
+            {
+                writer.WriteArrayHeader(value.Length);
+                for (int i = 0; i < value.Length; i++)
+                {
+                    writer.Write(value[i]);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static byte[]? DeserializeUInt8Array(ref TinyhandReader reader)
+        {
+            if (reader.TryReadNil())
+            {
+                return null; // new byte[0];
+            }
+            else
+            {
+                var len = reader.ReadArrayHeader();
+                var array = new byte[len];
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = reader.ReadUInt8();
+                }
+
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void SerializeUInt8List(ref TinyhandWriter writer, List<byte>? value)
+        {
+            if (value == null)
+            {
+                writer.WriteNil();
+            }
+            else
+            {
+                writer.WriteArrayHeader(value.Count);
+                for (int i = 0; i < value.Count; i++)
+                {
+                    writer.Write(value[i]);
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static List<byte>? DeserializeUInt8List(ref TinyhandReader reader)
+        {
+            if (reader.TryReadNil())
+            {
+                return null; // new List<byte>();
+            }
+            else
+            {
+                var len = reader.ReadArrayHeader();
+                var list = new List<byte>(len);
+                for (int i = 0; i < len; i++)
+                {
+                    list.Add(reader.ReadUInt8());
+                }
+
+                return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static byte[]? CloneUInt8Array(byte[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new byte[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeInt8Array(ref TinyhandWriter writer, sbyte[]? value)
         {
             if (value == null)
@@ -85,6 +174,21 @@ namespace Tinyhand.Formatters
                 }
 
                 return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static sbyte[]? CloneInt8Array(sbyte[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new sbyte[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
             }
         }
 
@@ -163,6 +267,21 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static ushort[]? CloneUInt16Array(ushort[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new ushort[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeInt16Array(ref TinyhandWriter writer, short[]? value)
         {
             if (value == null)
@@ -233,6 +352,21 @@ namespace Tinyhand.Formatters
                 }
 
                 return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static short[]? CloneInt16Array(short[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new short[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
             }
         }
 
@@ -311,6 +445,21 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static uint[]? CloneUInt32Array(uint[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new uint[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeInt32Array(ref TinyhandWriter writer, int[]? value)
         {
             if (value == null)
@@ -381,6 +530,21 @@ namespace Tinyhand.Formatters
                 }
 
                 return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int[]? CloneInt32Array(int[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new int[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
             }
         }
 
@@ -459,6 +623,21 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static ulong[]? CloneUInt64Array(ulong[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new ulong[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeInt64Array(ref TinyhandWriter writer, long[]? value)
         {
             if (value == null)
@@ -529,6 +708,21 @@ namespace Tinyhand.Formatters
                 }
 
                 return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static long[]? CloneInt64Array(long[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new long[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
             }
         }
 
@@ -607,6 +801,21 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static float[]? CloneSingleArray(float[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new float[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeDoubleArray(ref TinyhandWriter writer, double[]? value)
         {
             if (value == null)
@@ -677,6 +886,21 @@ namespace Tinyhand.Formatters
                 }
 
                 return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static double[]? CloneDoubleArray(double[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new double[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
             }
         }
 
@@ -755,6 +979,21 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool[]? CloneBooleanArray(bool[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new bool[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeCharArray(ref TinyhandWriter writer, char[]? value)
         {
             if (value == null)
@@ -829,6 +1068,21 @@ namespace Tinyhand.Formatters
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static char[]? CloneCharArray(char[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new char[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SerializeDateTimeArray(ref TinyhandWriter writer, DateTime[]? value)
         {
             if (value == null)
@@ -899,6 +1153,21 @@ namespace Tinyhand.Formatters
                 }
 
                 return list;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static DateTime[]? CloneDateTimeArray(DateTime[]? value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new DateTime[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
             }
         }
     }
