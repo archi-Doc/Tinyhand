@@ -1289,11 +1289,11 @@ ModuleInitializerClass_Added:
                 {
                     if (interfaceString == string.Empty)
                     {
-                        interfaceString = " : ITinyhandClone";
+                        interfaceString = $" : ITinyhandClone<{this.RegionalName}>";
                     }
                     else
                     {
-                        interfaceString += ", ITinyhandClone";
+                        interfaceString += $", ITinyhandClone<{this.RegionalName}>";
                     }
                 }
             }
@@ -1810,12 +1810,12 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
             {
-                methodCode = $"public {this.FullName + this.QuestionMarkIfReferenceType} DeepClone(TinyhandSerializerOptions options)";
+                methodCode = $"public {this.FullName} DeepClone(TinyhandSerializerOptions options)";
                 objectCode = "this";
             }
             else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
             {
-                methodCode = $"public static {this.FullName + this.QuestionMarkIfReferenceType} DeepClone{this.GenericsNumberString}(ref {this.RegionalName} v, TinyhandSerializerOptions options)";
+                methodCode = $"public static {this.FullName + this.QuestionMarkIfReferenceType} DeepClone{this.GenericsNumberString}(ref {this.RegionalName + this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
                 objectCode = "v";
             }
             else
@@ -1831,7 +1831,7 @@ ModuleInitializerClass_Added:
                     ssb.AppendLine($"if ({ssb.FullObject} == null) return null;");
                 }
 
-                ssb.AppendLine($"{this.FullName} value = {this.NewInstanceCode()};");
+                ssb.AppendLine($"var value = {this.NewInstanceCode()};");
                 foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
                 {
                     using (var c = ssb.ScopeObject(x.SimpleName))
@@ -1840,7 +1840,7 @@ ModuleInitializerClass_Added:
                     }
                 }
 
-                ssb.AppendLine($"return {ssb.FullObject};");
+                ssb.AppendLine($"return value;");
             }
         }
 
@@ -2387,7 +2387,7 @@ ModuleInitializerClass_Added:
             if (withNullable.Object.ObjectAttribute != null)
             {// TinyhandObject.
                 InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Clone({sourceObject}, options)!;");
+                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Clone({sourceObject}, options)!;");
                 InitSetter_End();
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
@@ -2401,6 +2401,7 @@ ModuleInitializerClass_Added:
             }
             else
             {// Other
+                this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                 return;
             }
 

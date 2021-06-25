@@ -36,7 +36,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -117,7 +117,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -314,7 +314,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -511,7 +511,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -708,7 +708,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -905,7 +905,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -1102,7 +1102,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -1299,7 +1299,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -1496,7 +1496,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -1693,7 +1693,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -1890,7 +1890,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -2087,7 +2087,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 
@@ -2284,7 +2284,7 @@ namespace Tinyhand.Coders
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
         {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
+            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
 

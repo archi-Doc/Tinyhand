@@ -159,9 +159,10 @@ namespace Tinyhand
     /// Interface for custom clone methods.
     /// If this interface is implemented, Tinyhand use it instead of the generated code.
     /// </summary>
-    public interface ITinyhandClone
+    /// <typeparam name="T">The type to be cloned.</typeparam>
+    public interface ITinyhandClone<T>
     {
-        void DeepClone(TinyhandSerializerOptions options);
+        T DeepClone(TinyhandSerializerOptions options);
     }
 
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
