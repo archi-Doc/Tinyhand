@@ -220,6 +220,11 @@ namespace Benchmark.Generics
             // v.Reconstruct(options);
             return v;
         }
+
+        public GenericsIntClass<T>? Clone(GenericsIntClass<T>? value, TinyhandSerializerOptions options)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 

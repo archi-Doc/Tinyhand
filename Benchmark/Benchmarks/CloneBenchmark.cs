@@ -29,8 +29,6 @@ namespace Benchmark.Clone
         [Key(3)]
         public List<int> List { get; set; } = default!;
 
-
-
         public CloneTestClass()
         {
         }
@@ -61,11 +59,12 @@ namespace Benchmark.Clone
             var t = new CloneTestClass();
             t.X = this.testClass.X;
             t.Y = this.testClass.Y;
-            t.Array = new int[this.testClass.Array.Length];
+            t.Array = (int[])this.testClass.Array.Clone();
+            /*t.Array = new int[this.testClass.Array.Length];
             for (var n = 0; n < this.testClass.Array.Length; n++)
             {
                 t.Array[n] = this.testClass.Array[n];
-            }
+            }*/
 
             if (this.testClass.List == null)
             {
@@ -83,6 +82,12 @@ namespace Benchmark.Clone
         public CloneTestClass Clone_SerializeDeserialize()
         {
             return TinyhandSerializer.Deserialize<CloneTestClass>(TinyhandSerializer.Serialize(this.testClass))!;
+        }
+
+        [Benchmark]
+        public CloneTestClass Clone_Generated()
+        {
+            return this.testClass.DeepClone(TinyhandSerializerOptions.Standard);
         }
     }
 }

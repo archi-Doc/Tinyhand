@@ -1808,17 +1808,17 @@ ModuleInitializerClass_Added:
         internal void GenerateClone_Method(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             string methodCode;
-            string objectCode;
+            string sourceObject;
 
             if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
             {
                 methodCode = $"public {this.FullName} DeepClone(TinyhandSerializerOptions options)";
-                objectCode = "this";
+                sourceObject = "this.";
             }
             else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
             {
                 methodCode = $"public static {this.FullName + this.QuestionMarkIfReferenceType} DeepClone{this.GenericsNumberString}(ref {this.RegionalName + this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
-                objectCode = "v";
+                sourceObject = "v.";
             }
             else
             {
@@ -1826,20 +1826,17 @@ ModuleInitializerClass_Added:
             }
 
             using (var m = ssb.ScopeBrace(methodCode))
-            using (var v = ssb.ScopeObject(objectCode))
+            using (var v = ssb.ScopeObject("value"))
             {// this.x = value.x;
                 if (this.MethodCondition_Clone == MethodCondition.StaticMethod && this.Kind.IsReferenceType())
                 {
-                    ssb.AppendLine($"if ({ssb.FullObject} == null) return null;");
+                    ssb.AppendLine($"if (v == null) return null;");
                 }
 
                 ssb.AppendLine($"var value = {this.NewInstanceCode()};");
                 foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
                 {
-                    using (var c = ssb.ScopeObject(x.SimpleName))
-                    {
-                        this.GenerateCloneCore(ssb, info, x, "value." + x.SimpleName);
-                    }
+                    this.GenerateCloneCore(ssb, info, x, sourceObject + x.SimpleName);
                 }
 
                 ssb.AppendLine($"return value;");
@@ -2385,60 +2382,63 @@ ModuleInitializerClass_Added:
 
             ScopingStringBuilder.IScope? initSetter = null;
             ScopingStringBuilder.IScope? emptyBrace = null;
-
-            if (withNullable.Object.ObjectAttribute != null)
-            {// TinyhandObject.
-                InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Clone({sourceObject}, options)!;");
-                InitSetter_End();
-            }
-            else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
-            {// Coder
-                using (var c = ssb.ScopeBrace(string.Empty))
-                {
-                    InitSetter_Start();
-                    coder.CodeClone(ssb, info, sourceObject);
+            var destObject = ssb.FullObject;
+            using (var d = ssb.ScopeObject(x.SimpleName))
+            {
+                if (withNullable.Object.ObjectAttribute != null)
+                {// TinyhandObject.
+                    InitSetter_Start(true);
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Clone({sourceObject}, options)!;");
                     InitSetter_End();
                 }
-            }
-            else
-            {// Other
-                if (x.TypeObject != null && (x.TypeObject.Kind != VisceralObjectKind.Error && x.TypeObject.Kind != VisceralObjectKind.TypeParameter))
-                {
-                    this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
-                }
-
-                InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Clone({sourceObject}, options)!;");
-                InitSetter_End();
-            }
-
-            void InitSetter_Start(bool brace = false)
-            {
-                if (x!.InitDelegateIdentifier != null)
-                {
-                    if (brace)
+                else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
+                {// Coder
+                    using (var c = ssb.ScopeBrace(string.Empty))
                     {
-                        emptyBrace = ssb.ScopeBrace(string.Empty);
+                        InitSetter_Start();
+                        coder.CodeClone(ssb, info, sourceObject);
+                        InitSetter_End();
+                    }
+                }
+                else
+                {// Other
+                    if (x.TypeObject != null && (x.TypeObject.Kind != VisceralObjectKind.Error && x.TypeObject.Kind != VisceralObjectKind.TypeParameter))
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                     }
 
-                    initSetter = ssb.ScopeFullObject("vd");
-                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                    InitSetter_Start(true);
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Clone({sourceObject}, options)!;");
+                    InitSetter_End();
                 }
-            }
 
-            void InitSetter_End()
-            {
-                if (initSetter != null)
+                void InitSetter_Start(bool brace = false)
                 {
-                    initSetter.Dispose();
-                    initSetter = null;
-                    ssb.AppendLine($"{x.InitDelegateIdentifier}!(this, vd);");
-
-                    if (emptyBrace != null)
+                    if (x!.InitDelegateIdentifier != null)
                     {
-                        emptyBrace.Dispose();
-                        emptyBrace = null;
+                        if (brace)
+                        {
+                            emptyBrace = ssb.ScopeBrace(string.Empty);
+                        }
+
+                        initSetter = ssb.ScopeFullObject("vd");
+                        ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                    }
+                }
+
+                void InitSetter_End()
+                {
+                    if (initSetter != null)
+                    {
+                        initSetter.Dispose();
+                        initSetter = null;
+                        ssb.AppendLine($"{x.InitDelegateIdentifier}!({destObject}, vd);"); // reverse
+
+                        if (emptyBrace != null)
+                        {
+                            emptyBrace.Dispose();
+                            emptyBrace = null;
+                        }
                     }
                 }
             }
