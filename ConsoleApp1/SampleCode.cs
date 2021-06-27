@@ -350,6 +350,8 @@ namespace ConsoleApp1
             Debug.Assert(c.Name[1] != d.Name[1]); // c.Name and d.Name are different since d is a deep copy.
             Debug.Assert(d.UnknownClass == null); // UnknownClass is ignored since Tinyhand doesn't know how to create a deep copy of UnknownClass.
             Debug.Assert(d.KnownClass != null); // Tinyhand can handle a class with TinyhandObjectAttribute.
+
+            var e = TinyhandSerializer.Deserialize<DeepCopyClass>(TinyhandSerializer.Serialize(c)); // Almost the same as above, but Clone() is much faster.
         }
     }
 }

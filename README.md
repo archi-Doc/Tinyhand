@@ -708,11 +708,19 @@ public static class DeepCopyTest
         Debug.Assert(c.Name[1] != d.Name[1]); // c.Name and d.Name are different since d is a deep copy.
         Debug.Assert(d.UnknownClass == null); // UnknownClass is ignored since Tinyhand doesn't know how to create a deep copy of UnknownClass.
         Debug.Assert(d.KnownClass != null); // Tinyhand can handle a class with TinyhandObjectAttribute.
+        
+        var e = TinyhandSerializer.Deserialize<DeepCopyClass>(TinyhandSerializer.Serialize(c)); // Almost the same as above, but Clone() is much faster.
     }
 }
 ```
 
+ `TinyhandSerializer.Clone(obj)` is almost the same as `TinyhandSerializer.Deserialize<Class>(TinyhandSerializer.Serialize(obj))`, but `Clone()` is much faster.
 
+| Method                     |      Mean |    Error |   StdDev |    Median |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+| -------------------------- | --------: | -------: | -------: | --------: | -----: | ----: | ----: | --------: |
+| Clone_Raw                  |  38.74 ns | 0.312 ns | 0.448 ns |  38.66 ns | 0.0421 |     - |     - |     176 B |
+| Clone_SerializeDeserialize | 282.87 ns | 3.473 ns | 4.636 ns | 278.95 ns | 0.0534 |     - |     - |     224 B |
+| Clone_Clone                |  48.72 ns | 1.020 ns | 1.397 ns |  48.86 ns | 0.0421 |     - |     - |     176 B |
 
 
 

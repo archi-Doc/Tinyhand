@@ -1727,7 +1727,7 @@ ModuleInitializerClass_Added:
             }
             else if (this.MethodCondition_Clone == MethodCondition.ExplicitlyDeclared)
             {// Explicitly declared (Interface.Method())
-                ssb.AppendLine($"return (value as ITinyhandClone)?.DeepClone(options);");
+                ssb.AppendLine($"return (value as ITinyhandClone<{this.FullName}>)?.DeepClone(options);");
             }
             else
             {// Member method
