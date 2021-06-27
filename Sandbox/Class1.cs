@@ -32,7 +32,6 @@ namespace Sandbox
         public Memory<byte> MemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
         public ReadOnlyMemory<byte> ReadOnlyMemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
         public ReadOnlySequence<byte> ReadOnlySequenceByte { get; set; } = new(new byte[] { 1, 10, 20, });
-
     }
 
     /*[TinyhandObject(ImplicitKeyAsName = true)]
