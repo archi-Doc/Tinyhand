@@ -41,6 +41,13 @@ namespace Sandbox
         public U ClassU { get; set; } = default!;
     }
 
+    [TinyhandObject(ImplicitKeyAsName = true)]
+    [TinyhandUnionTo(4, typeof(ComplexTestBase<>), typeof(ComplexTestClass4))]
+    public partial class ComplexTestClass4 : ComplexTestClass
+    {
+        public double Age { get; set; }
+    }
+
     class Program
     {
         static void Main(string[] args)
