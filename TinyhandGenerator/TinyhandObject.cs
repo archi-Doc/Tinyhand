@@ -1896,7 +1896,7 @@ ModuleInitializerClass_Added:
         internal void GenerateMemberNotNull_Attribute(ScopingStringBuilder ssb, GeneratorInformation info)
         {
             var firstFlag = true;
-            foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do))
+            foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do && x.ContainingObject == this))
             {// [MemberNotNull(nameof(A), nameof(B)]
                 if (firstFlag)
                 {

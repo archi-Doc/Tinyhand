@@ -233,7 +233,16 @@ namespace ConsoleApp1
         [Key(0)]
         public string Name { get; set; } = default!;
 
-        public void Print() => Console.WriteLine($"B: {this.Name}");
+        public virtual void Print() => Console.WriteLine($"B: {this.Name}");
+    }
+
+    [TinyhandObject]
+    public partial class UnionTestClassC : UnionTestClassB
+    {
+        [Key(1)]
+        public double Age { get; set; }
+
+        public override void Print() => Console.WriteLine($"C: {this.Name}, {this.Age}");
     }
 
     public static class UnionTest
@@ -242,6 +251,7 @@ namespace ConsoleApp1
         {
             var classA = new UnionTestClassA() { X = 10, };
             var classB = new UnionTestClassB() { Name = "test", };
+            var classC = new UnionTestClassC() { Name = "Fuga", Age = 99.99 };
 
             var b = TinyhandSerializer.Serialize((IUnionTestInterface)classA);
             var i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
@@ -250,6 +260,10 @@ namespace ConsoleApp1
             b = TinyhandSerializer.Serialize((IUnionTestInterface)classB);
             i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
             i?.Print(); // B: test
+
+            b = TinyhandSerializer.Serialize((IUnionTestInterface)classC);
+            i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
+            i?.Print(); // C: Fuga
         }
     }
 
