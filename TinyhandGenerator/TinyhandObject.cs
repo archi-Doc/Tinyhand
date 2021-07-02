@@ -71,7 +71,7 @@ namespace Tinyhand.Generator
 
         public TinyhandObjectAttributeMock? ObjectAttribute { get; private set; }
 
-        public TinyhandUnion? Union { get; private set; }
+        public TinyhandUnion? Union { get; set; }
 
         public KeyAttributeMock? KeyAttribute { get; private set; }
 
@@ -274,6 +274,41 @@ namespace Tinyhand.Generator
             if (this.Union != null && this.ObjectAttribute == null)
             {// Add ObjectAttribute
                 this.ObjectAttribute = new TinyhandObjectAttributeMock();
+            }
+
+            // UnionToAttribute
+            if (this.Generics_Kind != VisceralGenericsKind.ClosedGeneric)
+            {// Avoid duplication
+                foreach (var x in this.AllAttributes.Where(a => a.FullName == TinyhandUnionToAttributeMock.FullName))
+                {
+                    TinyhandUnionToAttributeMock unionTo;
+                    try
+                    {
+                        unionTo = TinyhandUnionToAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments, x.Location);
+                        if (unionTo.BaseType == null)
+                        {
+                            continue;
+                        }
+                    }
+                    catch (InvalidCastException)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                        continue;
+                    }
+
+                    var originalBaseType = unionTo.BaseType.OriginalDefinition;
+                    if (!this.Body.TryGet(originalBaseType, out var baseObj))
+                    { // no base type
+                        this.Body.AddDiagnostic(TinyhandBody.Error_UnionToError, x.Location);
+                        continue;
+                    }
+                    else if (baseObj.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
+                    {
+                        continue;
+                    }
+
+                    this.Body.UnionToList.Add(new UnionToItem(unionTo, baseObj));
+                }
             }
 
             // KeyAttribute
@@ -1273,8 +1308,12 @@ ModuleInitializerClass_Added:
             }
             else if (this.IsAbstractOrInterface)
             {// Skip generating partial method.
-                this.FormatterNumber = info.FormatterCount++;
-                this.FormatterExtraNumber = info.FormatterCount++;
+                if (this.Union != null)
+                {
+                    this.FormatterNumber = info.FormatterCount++;
+                    this.FormatterExtraNumber = info.FormatterCount++;
+                }
+
                 return;
             }
 

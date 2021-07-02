@@ -321,6 +321,13 @@ namespace Tinyhand.Generator
             this.Location = location;
         }
 
+        public TinyhandUnionAttributeMock(int key, ISymbol subType, Microsoft.CodeAnalysis.Location location)
+        {
+            this.Key = key;
+            this.SubType = subType;
+            this.Location = location;
+        }
+
         public static TinyhandUnionAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments, Microsoft.CodeAnalysis.Location location)
         {
             var attribute = new TinyhandUnionAttributeMock(location);
@@ -337,6 +344,63 @@ namespace Tinyhand.Generator
             if (constructorArguments.Length > 1)
             {
                 var val = constructorArguments[1];
+                if (val is ISymbol subType)
+                {
+                    attribute.SubType = subType;
+                }
+            }
+
+            return attribute;
+        }
+    }
+
+    public class TinyhandUnionToAttributeMock
+    {
+        public static readonly string SimpleName = "TinyhandUnionTo";
+        public static readonly string Name = SimpleName + "Attribute";
+        public static readonly string FullName = "Tinyhand." + Name;
+
+        public Location Location { get; }
+
+        /// <summary>
+        /// Gets the distinguishing value that identifies a particular subtype.
+        /// </summary>
+        public int Key { get; private set; }
+
+        /// <summary>
+        /// Gets the base type.
+        /// </summary>
+        public ISymbol? BaseType { get; private set; }
+
+        /// <summary>
+        /// Gets the derived or implementing type.
+        /// </summary>
+        public ISymbol? SubType { get; private set; }
+
+        public TinyhandUnionToAttributeMock(Microsoft.CodeAnalysis.Location location)
+        {
+            this.Location = location;
+        }
+
+        public static TinyhandUnionToAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments, Microsoft.CodeAnalysis.Location location)
+        {
+            var attribute = new TinyhandUnionToAttributeMock(location);
+
+            if (constructorArguments.Length > 2)
+            {
+                var val = constructorArguments[0];
+                if (val is int intKey)
+                {
+                    attribute.Key = intKey;
+                }
+
+                val = constructorArguments[1];
+                if (val is ISymbol baseType)
+                {
+                    attribute.BaseType = baseType;
+                }
+
+                val = constructorArguments[2];
                 if (val is ISymbol subType)
                 {
                     attribute.SubType = subType;
