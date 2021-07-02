@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq.Expressions;
-using CrossLink;
 using Tinyhand;
+using Xunit;
 
-namespace Sandbox
+namespace Tinyhand.Tests
 {
     [TinyhandObject(ImplicitKeyAsName = true)]
     [TinyhandUnion(0, typeof(ComplexTestClass))]
@@ -48,23 +48,23 @@ namespace Sandbox
         public double Age { get; set; }
     }
 
-    class Program
+    public class ComplexTest
     {
-        static void Main(string[] args)
+        [Fact]
+        public void Test1()
         {
-            Console.WriteLine("Sandbox");
-            Console.WriteLine();
-
             // Normal class derived from generic class.
             var c = new ComplexTestClass();
             c.BaseT = 1;
             c.String = "test";
             var b = TinyhandSerializer.Serialize(c);
             var c2 = TinyhandSerializer.Deserialize<ComplexTestClass>(b);
+            c.IsStructuralEqual(c2);
 
             var c3 = (ComplexTestBase<int>)c;
             b = TinyhandSerializer.Serialize(c3);
             var c4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
+            c.IsStructuralEqual(c4);
 
             // Generic class derived from generic class.
             var d = new ComplexTestClass2<int, string>();
@@ -72,10 +72,12 @@ namespace Sandbox
             d.ClassU = "test";
             b = TinyhandSerializer.Serialize(d);
             var d2 = TinyhandSerializer.Deserialize<ComplexTestClass2<int, string>>(b);
+            d.IsStructuralEqual(d2);
 
             var d3 = (ComplexTestBase<int>)d;
             b = TinyhandSerializer.Serialize(d3);
             var d4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
+            d.IsStructuralEqual(d4);
 
             // Generic class derived from generic class.
             var e = new ComplexTestClass3<double>();
@@ -83,10 +85,12 @@ namespace Sandbox
             e.ClassU = 12;
             b = TinyhandSerializer.Serialize(e);
             var e2 = TinyhandSerializer.Deserialize<ComplexTestClass3<double>>(b);
+            e.IsStructuralEqual(e2);
 
             var e3 = (ComplexTestBase<int>)e;
             b = TinyhandSerializer.Serialize(e3);
             var e4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
+            e.IsStructuralEqual(e4);
         }
     }
 }

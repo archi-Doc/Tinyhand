@@ -224,7 +224,7 @@ namespace Tinyhand.Generator
         }
 
         internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
+        {// switch
             if (this.UnionDictionary == null)
             {
                 return;
@@ -253,6 +253,45 @@ namespace Tinyhand.Generator
                 ssb.AppendLine("writer.WriteNil();");
                 ssb.AppendLine("break;");
                 ssb.DecrementIndent();
+            }
+        }
+
+        internal void GenerateFormatter_Serialize2(ScopingStringBuilder ssb, GeneratorInformation info)
+        {// if
+            if (this.UnionDictionary == null)
+            {
+                return;
+            }
+
+            ssb.AppendLine($"if ({ssb.FullObject} == null) {{ writer.WriteNil(); return; }}");
+            ssb.AppendLine("writer.WriteArrayHeader(2);");
+            ssb.AppendLine($"var type = {ssb.FullObject}.GetType();");
+
+            var firstFlag = true;
+            foreach (var x in this.UnionDictionary)
+            {
+                string t;
+                if (firstFlag)
+                {
+                    firstFlag = false;
+                    t = $"if (type == typeof({x.Value.FullName}))";
+                }
+                else
+                {
+                    t = $"else if (type == typeof({x.Value.FullName}))";
+                }
+
+                using (ssb.ScopeBrace(t))
+                {
+                    ssb.AppendLine("writer.Write(" + x.Key.ToString() + ");");
+                    ssb.AppendLine($"options.Resolver.GetFormatter<{x.Value.FullName}>().Serialize(ref writer, Unsafe.As<{x.Value.FullName}>({ssb.FullObject}), options);");
+                }
+            }
+
+            using (ssb.ScopeBrace("else"))
+            {
+                ssb.AppendLine("writer.WriteNil();");
+                ssb.AppendLine("writer.WriteNil();");
             }
         }
 
