@@ -1227,7 +1227,7 @@ ModuleInitializerClass_Added:
                     {
                         if (x.Union != null)
                         {// Union
-                            x.Union.GenerateFormatter_Serialize(ssb, info);
+                            x.Union.GenerateFormatter_Serialize2(ssb, info);
                         }
                         else
                         {
