@@ -10,6 +10,7 @@ namespace Sandbox
 {
     [TinyhandObject(ImplicitKeyAsName = true)]
     [TinyhandUnion(0, typeof(ComplexTestClass))]
+    [TinyhandUnion(1, typeof(ComplexTestClass2<int, string>))]
     public abstract partial class ComplexTestBase<T>
     {
         public T BaseT { get; set; } = default!;
@@ -21,11 +22,11 @@ namespace Sandbox
         public string String { get; set; } = default!;
     }
 
-    /*[TinyhandObject(ImplicitKeyAsName = true)]
+    [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class ComplexTestClass2<T, U> : ComplexTestBase<T>
     {
         public U ClassU { get; set; } = default!;
-    }*/
+    }
 
     class Program
     {
@@ -43,6 +44,16 @@ namespace Sandbox
             var c3 = (ComplexTestBase<int>)c;
             b = TinyhandSerializer.Serialize(c3);
             var c4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
+
+            var d = new ComplexTestClass2<int, string>();
+            d.BaseT = 1;
+            d.ClassU = "test";
+            b = TinyhandSerializer.Serialize(d);
+            var d2 = TinyhandSerializer.Deserialize<ComplexTestClass2<int, string>>(b);
+
+            var d3 = (ComplexTestBase<int>)d;
+            b = TinyhandSerializer.Serialize(d3);
+            var d4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
         }
     }
 }
