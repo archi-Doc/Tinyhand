@@ -30,7 +30,36 @@ namespace Tinyhand
         /// <summary>
         /// Gets or sets <see cref="IServiceProvider"/> that is used to create an instance with  <see cref="TinyhandObjectAttribute.UseServiceProvider"/> set to true.
         /// </summary>
-        public static IServiceProvider ServiceProvider { get; set; } = default!;
+        public static IServiceProvider ServiceProvider
+        {
+            get
+            {
+                if (serviceProvider == null)
+                {
+                    throw new TinyhandException("Set TinyhandSerializer.ServiceProvider behore use.");
+                }
+
+                return serviceProvider;
+            }
+
+            set
+            {
+                serviceProvider = value;
+            }
+        }
+
+        private static IServiceProvider? serviceProvider;
+
+        public static object GetService(Type type)
+        {
+            var instance = ServiceProvider.GetService(type);
+            if (instance == null)
+            {
+                throw new TinyhandException($"There is no service of type: {type.FullName}");
+            }
+
+            return instance;
+        }
 
         /// <summary>
         /// Gets or sets the default set of options to use when not explicitly specified for a method call.

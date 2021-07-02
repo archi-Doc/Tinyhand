@@ -640,7 +640,8 @@ namespace Tinyhand.Generator
                     {
                         this.MinimumConstructor = this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).Min(a => a.Method_Parameters.Length);
                     }
-                    else if (this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
+                    else if (this.ObjectAttribute?.UseServiceProvider == false &&
+                        this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
                     {
                         this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
                     }
@@ -1635,8 +1636,15 @@ ModuleInitializerClass_Added:
         internal string NewInstanceCode()
         {
             if (this.MinimumConstructor == 0)
-            {// Default constructor. new()
-                return "new " + this.FullName + "()";
+            {
+                if (this.ObjectAttribute?.UseServiceProvider == true)
+                {// Service Provider
+                    return $"({this.FullName})TinyhandSerializer.GetService(typeof({this.FullName}))";
+                }
+                else
+                {// Default constructor. new()
+                    return "new " + this.FullName + "()";
+                }
             }
             else
             {// new(default!, ..., default!)

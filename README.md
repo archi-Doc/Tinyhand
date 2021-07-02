@@ -24,6 +24,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Default value](#default-value)
   - [Reconstruct](#reconstruct)
   - [Reuse Instance](#reuse-instance)
+  - [Use Service Provider](#use-service-provider)
   - [Union](#union)
   - [Text Serialization](#text-serialization)
   - [Versioning](#versioning)
@@ -502,6 +503,41 @@ public class ReuseTest
 ```
 
 If you don't want to reuse an instance with default behavior, set `ReuseMember` of `TinyhandObject` to false ` [TinyhandObject(ReuseMember = false)]`.
+
+
+
+### Use Service Provider
+
+By default, Tinyhand requires default constructor for deserialization.
+
+```csharp
+[TinyhandObject]
+public partial class SomeClass
+{
+    public SomeClass(ISomeService service)
+    {
+    }
+}
+```
+
+Above code causes an exception during source code generation since Tinyhand doesn't know how to create an instance.
+
+But by setting `TinyhandSerializer.ServiceProvider`and  `UseServiceProvider` to true, Tinyhand can create an instance without default constructor.
+
+```csharp
+[TinyhandObject(UseServiceProvider = true)]
+public partial class SomeClass
+{
+    public SomeClass(ISomeService service)
+    {
+    }
+}
+```
+
+ ```csharp
+ TinyhandSerializer.ServiceProvider = container;
+ var c = TinyhandSerializer.Deserialize<SomeClass>(b);
+ ```
 
 
 

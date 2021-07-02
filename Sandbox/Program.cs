@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Linq.Expressions;
 using CrossLink;
+using DryIoc;
 using Tinyhand;
 
 namespace Sandbox
@@ -101,8 +101,13 @@ namespace Sandbox
             var e4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
 
             // Service Provider
+            var container = new Container();
+            container.Register<ComplexTestClass>();
+            container.Register<ServiceProviderTest>();
+            TinyhandSerializer.ServiceProvider = container;
+
             var sp = new ServiceProviderTest(new ComplexTestClass());
-            b = TinyhandSerializer.Serialize(e3);
+            b = TinyhandSerializer.Serialize(sp);
             var sp2 = TinyhandSerializer.Deserialize<ServiceProviderTest>(b);
         }
     }
