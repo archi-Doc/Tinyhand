@@ -2398,7 +2398,8 @@ namespace Arc.Visceral
             }
             else
             {// Other
-                T? t = (T)this;
+                var t = (T?)this.OriginalDefinition;
+                target = target.OriginalDefinition ?? target;
                 while (t != null)
                 {
                     if (t == target)
@@ -2406,7 +2407,7 @@ namespace Arc.Visceral
                         return true;
                     }
 
-                    t = t.BaseObject;
+                    t = t.BaseObject?.OriginalDefinition;
                 }
 
                 return false;

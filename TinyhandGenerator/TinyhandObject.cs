@@ -1273,8 +1273,12 @@ ModuleInitializerClass_Added:
             }
             else if (this.IsAbstractOrInterface)
             {// Skip generating partial method.
-                this.FormatterNumber = info.FormatterCount++;
-                this.FormatterExtraNumber = info.FormatterCount++;
+                if (this.Union != null)
+                {
+                    this.FormatterNumber = info.FormatterCount++;
+                    this.FormatterExtraNumber = info.FormatterCount++;
+                }
+
                 return;
             }
 

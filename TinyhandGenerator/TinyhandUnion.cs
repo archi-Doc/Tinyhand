@@ -204,17 +204,17 @@ namespace Tinyhand.Generator
                     {
                         using (var reuseIf = ssb.ScopeBrace($"if ({reuseName} is {x.Value.FullName} {name})"))
                         {
-                            ssb.AppendLine($"return options.Resolver.GetFormatterExtra<{x.Value.FullName}>().Deserialize({name}, ref reader, options);");
+                            ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatterExtra<{x.Value.FullName}>().Deserialize({name}, ref reader, options));");
                         }
 
                         using (var reuseElse = ssb.ScopeBrace("else"))
                         {
-                            ssb.AppendLine($"return options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options);");
+                            ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options));");
                         }
                     }
                     else
                     {
-                        ssb.AppendLine($"return options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options);");
+                        ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options));");
                     }
 
                     ssb.DecrementIndent();

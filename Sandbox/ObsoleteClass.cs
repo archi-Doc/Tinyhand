@@ -9,7 +9,99 @@ using Tinyhand;
 
 namespace Sandbox
 {
-    [TinyhandObject(ImplicitKeyAsName = true)]
+    /*[TinyhandObject(ImplicitKeyAsName = true, IncludePrivateMembers = true)]
+    public partial record TestRecord
+    {
+        public int X { get; set; }
+
+        public int Y { get; init; }
+
+        private string A { get; set; } = string.Empty;
+
+        private string B = string.Empty;
+
+        public TestRecord(int x, int y, string a, string b)
+        {
+            this.X = x;
+            this.Y = y;
+            this.A = a;
+            this.B = b;
+        }
+
+        public TestRecord()
+        {
+        }
+    }
+
+    [TinyhandObject]
+    public partial class GenericTestClass2<T>
+    {
+        [KeyAsName]
+        private int id;
+
+        [KeyAsName]
+        private T value = default!;
+
+        [KeyAsName]
+        private NestedClass<double, int> nested = default!;
+
+        public GenericTestClass2()
+        {
+        }
+
+        public GenericTestClass2(int id, T value, NestedClass<double, int> nested)
+        {
+            this.id = id;
+            this.value = value;
+            this.nested = nested;
+        }
+
+        [TinyhandObject]
+        public partial class NestedClass<X, Y>
+        {
+            [KeyAsName]
+            private string name = default!;
+
+            [KeyAsName]
+            private X xvalue = default!;
+
+            [KeyAsName]
+            private Y yvalue = default!;
+
+            public NestedClass()
+            {
+            }
+
+            public NestedClass(string name, X xvalue, Y yvalue)
+            {
+                this.name = name;
+                this.xvalue = xvalue;
+                this.yvalue = yvalue;
+            }
+        }
+    }
+
+    public partial class NotSerializeClass
+    {
+    }
+
+    [TinyhandObject]
+    public partial class SerializeClass
+    {
+        [Key(0)]
+        public int Id { get; set; }
+
+        public SerializeClass()
+        {
+        }
+
+        public SerializeClass(int id)
+        {
+            this.Id = id;
+        }
+    }*/
+
+    /* [TinyhandObject(ImplicitKeyAsName = true)]
     public partial class NullableTestClass1
     {
         public string[] A = default!;
@@ -32,7 +124,7 @@ namespace Sandbox
         public Memory<byte> MemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
         public ReadOnlyMemory<byte> ReadOnlyMemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
         public ReadOnlySequence<byte> ReadOnlySequenceByte { get; set; } = new(new byte[] { 1, 10, 20, });
-    }
+    }*/
 
     /*[TinyhandObject(ImplicitKeyAsName = true)]
     public partial class TextSerializeClass1
