@@ -8,7 +8,7 @@ namespace Tinyhand
     /// <summary>
     /// Enables serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = true)]
     public sealed class TinyhandObjectAttribute : Attribute
     {
         /// <summary>
@@ -166,8 +166,8 @@ namespace Tinyhand
     }
 
     /// <summary>
-    /// You can serialize/deserialize derived classes via the base class by adding TinyhandUnionAttribute to the base class.<br/>
-    /// The base class must be abstract class or interface.<br/>
+    /// You can serialize/deserialize derived types via the base type by adding TinyhandUnionAttribute to the base type.<br/>
+    /// The base type must be an abstract class or interface.<br/>
     /// Specify Key (an identifier of the subtype) and SubType (the derived or implementing type).
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
@@ -197,9 +197,9 @@ namespace Tinyhand
 
     /// <summary>
     /// TinyhandUnionToAttribute is derived-side version of TinyhandUnionAttribute.
-    /// You can serialize/deserialize derived classes via the base class by adding TinyhandUnionAttribute to the derived class.<br/>
-    /// The base class must be abstract class or interface.<br/>
-    /// Specify Key (an identifier of the subtype) and BaseType.
+    /// You can serialize/deserialize derived types via the base type by adding TinyhandUnionAttribute to the derived type.<br/>
+    /// The base type must be an abstract class or interface.<br/>
+    /// Specify Key (an identifier of the subtype) and BaseType/SubType.
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
     public class TinyhandUnionToAttribute : Attribute
@@ -215,14 +215,21 @@ namespace Tinyhand
         public Type BaseType { get; private set; }
 
         /// <summary>
+        /// Gets the derived or implementing type.
+        /// </summary>
+        public Type SubType { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TinyhandUnionToAttribute"/> class.
         /// </summary>
         /// <param name="key">The distinguishing value that identifies a particular subtype.</param>
         /// <param name="baseType">The base type.</param>
-        public TinyhandUnionToAttribute(int key, Type baseType)
+        /// <param name="subType">The derived or implementing type.</param>
+        public TinyhandUnionToAttribute(int key, Type baseType, Type subType)
         {
             this.Key = key;
             this.BaseType = baseType;
+            this.SubType = subType;
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Sandbox
     [TinyhandObject(ImplicitKeyAsName = true)]
     [TinyhandUnion(0, typeof(ComplexTestClass))]
     [TinyhandUnion(1, typeof(ComplexTestClass2<int, string>))]
+    // [TinyhandUnion(3, typeof(ComplexTestClass3<double>))]
     public abstract partial class ComplexTestBase<T>
     {
         public T BaseT { get; set; } = default!;
@@ -29,7 +30,12 @@ namespace Sandbox
     }
 
     [TinyhandObject(ImplicitKeyAsName = true)]
-    [TinyhandUnionTo(2, typeof(ComplexTestBase<int>))]
+    public abstract class ComplexTestAbstract
+    {
+    }
+
+    [TinyhandObject(ImplicitKeyAsName = true)]
+    [TinyhandUnionTo(2, typeof(ComplexTestBase<>), typeof(ComplexTestClass3<double>))]
     public partial class ComplexTestClass3<U> : ComplexTestBase<int>
     {
         public U ClassU { get; set; } = default!;

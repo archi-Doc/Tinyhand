@@ -172,12 +172,18 @@ namespace Tinyhand.Generator
             id: "TG037", title: "Implicit Explicit conflict", messageFormat: "ImplicitKeyAsName and ExplicitKeyOnly are exclusive",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Error_UnionToError = new DiagnosticDescriptor(
+            id: "TG038", title: "UnionTo error", messageFormat: "The base type of TinyhandUnionToAttribute must be annotated with TinyhandObjectAttribute and must be an abstract class or interface",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {
         }
 
         internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
+
+        internal List<UnionToItem> UnionToList = new();
 
         // public void Generate(bool generateToFile, bool useModuleInitializer, string? targetFolder)
         public void Generate(TinyhandGenerator generator)
@@ -234,6 +240,11 @@ namespace Tinyhand.Generator
             foreach (var x in array)
             {
                 x.Value.Configure();
+            }
+
+            foreach (var x in this.UnionToList)
+            {
+                TinyhandUnion.ProcessUnionTo(x);
             }
 
             this.FlushDiagnostic();

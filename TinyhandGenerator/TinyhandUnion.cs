@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
@@ -10,6 +11,19 @@ using Microsoft.CodeAnalysis;
 
 namespace Tinyhand.Generator
 {
+    public class UnionToItem
+    {
+        public UnionToItem(TinyhandUnionToAttributeMock unionTo, TinyhandObject baseObject)
+        {
+            this.UnionTo = unionTo;
+            this.BaseObject = baseObject;
+        }
+
+        public TinyhandUnionToAttributeMock UnionTo { get; set; }
+
+        public TinyhandObject BaseObject { get; set; }
+    }
+
     public class TinyhandUnion
     {
         public static TinyhandUnion? CreateFromObject(TinyhandObject obj)
@@ -88,6 +102,69 @@ namespace Tinyhand.Generator
             }
 
             return new TinyhandUnion(obj, unionList);
+        }
+
+        public static void ProcessUnionTo(UnionToItem item)
+        {
+            var body = item.BaseObject.Body;
+            if (item.UnionTo.SubType == null || !body.TryGet(item.UnionTo.SubType, out var subObject))
+            {
+                return;
+            }
+
+            if (item.BaseObject.ObjectAttribute == null || !item.BaseObject.IsAbstractOrInterface)
+            {
+                body.AddDiagnostic(TinyhandBody.Error_UnionToError, item.UnionTo.Location);
+                return;
+            }
+
+            if (!subObject.IsDerivedOrImplementing(item.BaseObject))
+            {
+                if (item.BaseObject.Kind == Arc.Visceral.VisceralObjectKind.Interface)
+                {
+                    body.ReportDiagnostic(TinyhandBody.Error_UnionNotImplementing, item.UnionTo.Location, subObject.FullName, item.BaseObject.FullName);
+                    return;
+                }
+                else
+                {
+                    body.ReportDiagnostic(TinyhandBody.Error_UnionNotDerived, item.UnionTo.Location, subObject.FullName, item.BaseObject.FullName);
+                    return;
+                }
+            }
+
+            List<TinyhandUnionAttributeMock> list;
+            if (item.BaseObject.Union == null)
+            {
+                list = new();
+                item.BaseObject.Union = new(item.BaseObject, list);
+            }
+            else
+            {
+                list = item.BaseObject.Union.UnionList;
+            }
+
+            subObject.GetRawInformation(out var symbol, out _, out _);
+            if (symbol == null)
+            {
+                return;
+            }
+
+            foreach (var x in list)
+            {
+                if (x.Key == item.UnionTo.Key)
+                {
+                    body.AddDiagnostic(TinyhandBody.Error_IntKeyConflicted, item.UnionTo.Location);
+                    return;
+                }
+                else if (x.SubType == symbol)
+                {
+                    body.AddDiagnostic(TinyhandBody.Error_SubtypeConflicted, item.UnionTo.Location);
+                    return;
+                }
+            }
+
+            var atr = new TinyhandUnionAttributeMock(item.UnionTo.Key, symbol, item.UnionTo.Location);
+            list.Add(atr);
         }
 
         public TinyhandUnion(TinyhandObject obj, List<TinyhandUnionAttributeMock> unionList)
