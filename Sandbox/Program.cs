@@ -29,6 +29,7 @@ namespace Sandbox
     }
 
     [TinyhandObject(ImplicitKeyAsName = true)]
+    [TinyhandUnionTo(2, typeof(ComplexTestBase<int>))]
     public partial class ComplexTestClass3<U> : ComplexTestBase<int>
     {
         public U ClassU { get; set; } = default!;
@@ -41,7 +42,7 @@ namespace Sandbox
             Console.WriteLine("Sandbox");
             Console.WriteLine();
 
-            // Normal class inherited from generic class.
+            // Normal class derived from generic class.
             var c = new ComplexTestClass();
             c.BaseT = 1;
             c.String = "test";
@@ -52,7 +53,7 @@ namespace Sandbox
             b = TinyhandSerializer.Serialize(c3);
             var c4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
 
-            // Generic class inherited from generic class.
+            // Generic class derived from generic class.
             var d = new ComplexTestClass2<int, string>();
             d.BaseT = 1;
             d.ClassU = "test";
@@ -63,7 +64,7 @@ namespace Sandbox
             b = TinyhandSerializer.Serialize(d3);
             var d4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
 
-            // Generic class inherited from generic class.
+            // Generic class derived from generic class.
             var e = new ComplexTestClass3<double>();
             e.BaseT = 1;
             e.ClassU = 12;

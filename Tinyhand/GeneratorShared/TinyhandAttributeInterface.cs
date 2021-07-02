@@ -165,6 +165,11 @@ namespace Tinyhand
         T DeepClone(TinyhandSerializerOptions options);
     }
 
+    /// <summary>
+    /// You can serialize/deserialize derived classes via the base class by adding TinyhandUnionAttribute to the base class.<br/>
+    /// The base class must be abstract class or interface.<br/>
+    /// Specify Key (an identifier of the subtype) and SubType (the derived or implementing type).
+    /// </summary>
     [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
     public class TinyhandUnionAttribute : Attribute
     {
@@ -187,6 +192,37 @@ namespace Tinyhand
         {
             this.Key = key;
             this.SubType = subType;
+        }
+    }
+
+    /// <summary>
+    /// TinyhandUnionToAttribute is derived-side version of TinyhandUnionAttribute.
+    /// You can serialize/deserialize derived classes via the base class by adding TinyhandUnionAttribute to the derived class.<br/>
+    /// The base class must be abstract class or interface.<br/>
+    /// Specify Key (an identifier of the subtype) and BaseType.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    public class TinyhandUnionToAttribute : Attribute
+    {
+        /// <summary>
+        /// Gets the distinguishing value that identifies a particular subtype.
+        /// </summary>
+        public int Key { get; private set; }
+
+        /// <summary>
+        /// Gets the base type.
+        /// </summary>
+        public Type BaseType { get; private set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TinyhandUnionToAttribute"/> class.
+        /// </summary>
+        /// <param name="key">The distinguishing value that identifies a particular subtype.</param>
+        /// <param name="baseType">The base type.</param>
+        public TinyhandUnionToAttribute(int key, Type baseType)
+        {
+            this.Key = key;
+            this.BaseType = baseType;
         }
     }
 }
