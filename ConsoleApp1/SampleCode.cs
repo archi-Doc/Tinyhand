@@ -213,7 +213,6 @@ namespace ConsoleApp1
     // Annotate inheritance types
     [TinyhandUnion(0, typeof(UnionTestClassA))]
     [TinyhandUnion(1, typeof(UnionTestClassB))]
-    
     public interface IUnionTestInterface
     {
         void Print();
@@ -238,7 +237,7 @@ namespace ConsoleApp1
     }
 
     [TinyhandObject]
-    [TinyhandUnionTo(2, typeof(IUnionTestInterface), typeof(UnionTestClassC))]
+    [TinyhandUnionTo(2, typeof(IUnionTestInterface), typeof(UnionTestClassC))] // You can add TinyhandUnion from derived class side using TinyhandUnionToAttribute.
     public partial class UnionTestClassC : UnionTestClassB
     {
         [Key(1)]
