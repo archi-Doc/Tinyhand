@@ -41,6 +41,11 @@ namespace Tinyhand
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to use <seealso cref="IServiceProvider"/> to create an instance [the default is false]. Set <see cref="TinyhandSerializer.ServiceProvider"/>.
+        /// </summary>
+        public bool UseServiceProvider { get; set; } = false;
+
         public TinyhandObjectAttribute()
         {
         }

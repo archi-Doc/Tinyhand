@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Linq.Expressions;
 using CrossLink;
+using DryIoc;
 using Tinyhand;
 
 namespace Sandbox
@@ -48,12 +48,24 @@ namespace Sandbox
         public double Age { get; set; }
     }
 
+    [TinyhandObject(ImplicitKeyAsName = true, UseServiceProvider = true)]
+    public partial class ServiceProviderTest
+    {
+        public ServiceProviderTest(ComplexTestClass testClass)
+        {
+            this.TestClass = testClass;
+        }
+
+        public ComplexTestClass TestClass { get; }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
             Console.WriteLine("Sandbox");
             Console.WriteLine();
+
 
             // Normal class derived from generic class.
             var c = new ComplexTestClass();
@@ -87,6 +99,16 @@ namespace Sandbox
             var e3 = (ComplexTestBase<int>)e;
             b = TinyhandSerializer.Serialize(e3);
             var e4 = TinyhandSerializer.Deserialize<ComplexTestBase<int>>(b);
+
+            // Service Provider
+            var container = new Container();
+            container.Register<ComplexTestClass>();
+            container.Register<ServiceProviderTest>();
+            TinyhandSerializer.ServiceProvider = container;
+
+            var sp = new ServiceProviderTest(new ComplexTestClass());
+            b = TinyhandSerializer.Serialize(sp);
+            var sp2 = TinyhandSerializer.Deserialize<ServiceProviderTest>(b);
         }
     }
 }

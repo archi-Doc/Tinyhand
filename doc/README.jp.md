@@ -547,7 +547,17 @@ public partial class UnionTestClassB : IUnionTestInterface
     [Key(0)]
     public string Name { get; set; } = default!;
 
-    public void Print() => Console.WriteLine($"B: {this.Name}");
+    public virtual void Print() => Console.WriteLine($"B: {this.Name}");
+}
+
+[TinyhandObject]
+[TinyhandUnionTo(2, typeof(IUnionTestInterface), typeof(UnionTestClassC))] // TinyhandUnionToAttributeを追加して、派生クラス側から登録することも出来ます
+public partial class UnionTestClassC : UnionTestClassB
+{
+    [Key(1)]
+    public double Age { get; set; }
+
+    public override void Print() => Console.WriteLine($"C: {this.Name}, {this.Age}");
 }
 
 public static class UnionTest
@@ -555,7 +565,8 @@ public static class UnionTest
     public static void Test()
     {
         var classA = new UnionTestClassA() { X = 10, };
-        var classB = new UnionTestClassB() { Name = "test" , };
+        var classB = new UnionTestClassB() { Name = "test", };
+        var classC = new UnionTestClassC() { Name = "Fuga", Age = 99.99 };
 
         var b = TinyhandSerializer.Serialize((IUnionTestInterface)classA);
         var i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
@@ -564,6 +575,10 @@ public static class UnionTest
         b = TinyhandSerializer.Serialize((IUnionTestInterface)classB);
         i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
         i?.Print(); // B: test
+
+        b = TinyhandSerializer.Serialize((IUnionTestInterface)classC);
+        i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
+        i?.Print(); // C: Fuga
     }
 }
 ```

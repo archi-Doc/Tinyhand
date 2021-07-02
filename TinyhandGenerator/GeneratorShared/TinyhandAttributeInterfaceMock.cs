@@ -68,6 +68,11 @@ namespace Tinyhand.Generator
         /// </summary>
         public bool SkipSerializingDefaultValue { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to use <seealso cref="IServiceProvider"/> to create an instance [the default is false].
+        /// </summary>
+        public bool UseServiceProvider { get; set; } = false;
+
         public TinyhandObjectAttributeMock()
         {
         }
@@ -117,6 +122,12 @@ namespace Tinyhand.Generator
             if (val != null)
             {
                 attribute.SkipSerializingDefaultValue = (bool)val;
+            }
+
+            val = AttributeHelper.GetValue(-1, nameof(UseServiceProvider), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.UseServiceProvider = (bool)val;
             }
 
             return attribute;
