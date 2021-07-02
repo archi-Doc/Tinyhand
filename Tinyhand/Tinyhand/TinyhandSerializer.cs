@@ -28,6 +28,11 @@ namespace Tinyhand
         private static byte[]? initialBuffer2;
 
         /// <summary>
+        /// Gets or sets <see cref="IServiceProvider"/> that is used to create an instance with  <see cref="TinyhandObjectAttribute.UseServiceProvider"/> set to true.
+        /// </summary>
+        public static IServiceProvider ServiceProvider { get; set; } = default!;
+
+        /// <summary>
         /// Gets or sets the default set of options to use when not explicitly specified for a method call.
         /// </summary>
         /// <value>The default value is <see cref="TinyhandSerializerOptions.Standard"/>.</value>
