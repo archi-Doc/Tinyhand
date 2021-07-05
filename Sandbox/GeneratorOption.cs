@@ -5,7 +5,7 @@ using Tinyhand;
 
 namespace Sandbox
 {
-    [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = false)]
+    [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = true)]
     internal class GeneratorOption
     {
     }

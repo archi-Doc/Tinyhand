@@ -29,6 +29,7 @@ namespace Sandbox
     }
 
     [TinyhandObject]
+    [TinyhandUnionTo(0, typeof(AbstractTestBase<int>), typeof(AbstractTestClass))]
     public partial class AbstractTestClass : AbstractTestBase2<int, long>
     {
     }
