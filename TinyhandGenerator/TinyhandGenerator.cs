@@ -27,6 +27,8 @@ namespace Tinyhand.Generator
 
         public string? AssemblyName { get; private set; }
 
+        public int AssemblyId { get; private set; }
+
         public OutputKind OutputKind { get; private set; }
 
         public string? TargetFolder { get; private set; }
@@ -196,7 +198,8 @@ namespace Tinyhand.Generator
 
         private void Prepare(GeneratorExecutionContext context, Compilation compilation)
         {
-            this.AssemblyName = compilation.AssemblyName;
+            this.AssemblyName = compilation.AssemblyName ?? string.Empty;
+            this.AssemblyId = this.AssemblyName.GetHashCode();
             this.OutputKind = compilation.Options.OutputKind;
 
             if (context.ParseOptions.PreprocessorSymbolNames.Any(x => x == "NET5_0"))

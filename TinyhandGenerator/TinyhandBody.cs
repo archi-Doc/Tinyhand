@@ -338,11 +338,14 @@ namespace Tinyhand.Generator
                 ns = generator.AssemblyName;
             }
 
+            // AssemblyId
+            var assemblyId = generator.AssemblyId.ToString("x");
+
             info.ModuleInitializerClass.Add("Tinyhand.Formatters.Generated");
 
             ssb.AppendLine();
             using (var scopeTinyhand = ssb.ScopeNamespace(ns!))
-            using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule"))
+            using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule_" + assemblyId))
             {
                 ssb.AppendLine("private static bool Initialized;");
                 ssb.AppendLine();
@@ -353,8 +356,8 @@ namespace Tinyhand.Generator
 
                 using (var scopeMethod = ssb.ScopeBrace("public static void Initialize()"))
                 {
-                    ssb.AppendLine("if (TinyhandModule.Initialized) return;");
-                    ssb.AppendLine("TinyhandModule.Initialized = true;");
+                    ssb.AppendLine($"if (TinyhandModule_{assemblyId}.Initialized) return;");
+                    ssb.AppendLine($"TinyhandModule_{assemblyId}.Initialized = true;");
                     ssb.AppendLine();
 
                     foreach (var x in info.ModuleInitializerClass)
