@@ -326,7 +326,7 @@ namespace Tinyhand.Generator
         private void GenerateInitializer(TinyhandGenerator generator, ScopingStringBuilder ssb, GeneratorInformation info)
         {
             var ns = "Tinyhand"; // Namespace
-            var assemblyId = string.Empty;
+            var assemblyId = string.Empty; // Assembly ID
             if (!string.IsNullOrEmpty(generator.CustomNamespace))
             {// Custom namespace.
                 ns = generator.CustomNamespace;
