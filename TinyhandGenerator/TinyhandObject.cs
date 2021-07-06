@@ -277,7 +277,7 @@ namespace Tinyhand.Generator
             }
 
             // UnionToAttribute
-            if (this.Generics_Kind != VisceralGenericsKind.ClosedGeneric)
+            /*if (this.Generics_Kind != VisceralGenericsKind.ClosedGeneric)
             {// Avoid duplication
                 foreach (var x in this.AllAttributes.Where(a => a.FullName == TinyhandUnionToAttributeMock.FullName))
                 {
@@ -309,7 +309,7 @@ namespace Tinyhand.Generator
 
                     this.Body.UnionToList.Add(new UnionToItem(unionTo, baseObj));
                 }
-            }
+            }*/
 
             // KeyAttribute
             if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAttributeMock.FullName) is { } keyAttribute)

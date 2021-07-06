@@ -183,9 +183,8 @@ namespace Tinyhand.Generator
 
         internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
 
-        internal List<UnionToItem> UnionToList = new();
+        // internal List<UnionToItem> UnionToList = new();
 
-        // public void Generate(bool generateToFile, bool useModuleInitializer, string? targetFolder)
         public void Generate(TinyhandGenerator generator)
         {
             ScopingStringBuilder ssb = new();
@@ -242,10 +241,10 @@ namespace Tinyhand.Generator
                 x.Value.Configure();
             }
 
-            foreach (var x in this.UnionToList)
+            /*foreach (var x in this.UnionToList)
             {
                 TinyhandUnion.ProcessUnionTo(x);
-            }
+            }*/
 
             this.FlushDiagnostic();
             if (this.Abort)

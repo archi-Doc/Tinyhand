@@ -567,23 +567,12 @@ public partial class UnionTestClassB : IUnionTestInterface
     public virtual void Print() => Console.WriteLine($"B: {this.Name}");
 }
 
-[TinyhandObject]
-[TinyhandUnionTo(2, typeof(IUnionTestInterface), typeof(UnionTestClassC))] // You can add TinyhandUnion from derived class side using TinyhandUnionToAttribute.
-public partial class UnionTestClassC : UnionTestClassB
-{
-    [Key(1)]
-    public double Age { get; set; }
-
-    public override void Print() => Console.WriteLine($"C: {this.Name}, {this.Age}");
-}
-
 public static class UnionTest
 {
     public static void Test()
     {
         var classA = new UnionTestClassA() { X = 10, };
         var classB = new UnionTestClassB() { Name = "test", };
-        var classC = new UnionTestClassC() { Name = "Fuga", Age = 99.99 };
 
         var b = TinyhandSerializer.Serialize((IUnionTestInterface)classA);
         var i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
@@ -592,10 +581,6 @@ public static class UnionTest
         b = TinyhandSerializer.Serialize((IUnionTestInterface)classB);
         i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
         i?.Print(); // B: test
-
-        b = TinyhandSerializer.Serialize((IUnionTestInterface)classC);
-        i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
-        i?.Print(); // C: Fuga
     }
 }
 ```
@@ -827,5 +812,4 @@ var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
 var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
 var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
 ```
-
 

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Tinyhand.Generator
 {
-    public class UnionToItem
+    /*public class UnionToItem
     {
         public UnionToItem(TinyhandUnionToAttributeMock unionTo, TinyhandObject baseObject)
         {
@@ -22,7 +22,7 @@ namespace Tinyhand.Generator
         public TinyhandUnionToAttributeMock UnionTo { get; set; }
 
         public TinyhandObject BaseObject { get; set; }
-    }
+    }*/
 
     public class TinyhandUnion
     {
@@ -104,7 +104,7 @@ namespace Tinyhand.Generator
             return new TinyhandUnion(obj, unionList);
         }
 
-        public static void ProcessUnionTo(UnionToItem item)
+        /*public static void ProcessUnionTo(UnionToItem item)
         {
             var body = item.BaseObject.Body;
             if (item.UnionTo.SubType == null || !body.TryGet(item.UnionTo.SubType, out var subObject))
@@ -165,7 +165,7 @@ namespace Tinyhand.Generator
 
             var atr = new TinyhandUnionAttributeMock(item.UnionTo.Key, symbol, item.UnionTo.Location);
             list.Add(atr);
-        }
+        }*/
 
         public TinyhandUnion(TinyhandObject obj, List<TinyhandUnionAttributeMock> unionList)
         {
