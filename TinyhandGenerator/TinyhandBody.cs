@@ -289,6 +289,7 @@ namespace Tinyhand.Generator
             ssb.AppendLine("#pragma warning disable CS0162", false); // Unreachable code detected
             ssb.AppendLine("#pragma warning disable CS1591", false);
             ssb.AppendLine("#pragma warning disable CS8618", false);
+            ssb.AppendLine("#pragma warning disable CS8714", false); // Ignore Generic type constraints
             ssb.AppendLine("#pragma warning disable CS8774", false); // MemberNotNull
             ssb.AppendLine();
         }
