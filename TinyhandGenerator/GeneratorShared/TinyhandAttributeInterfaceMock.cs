@@ -365,7 +365,7 @@ namespace Tinyhand.Generator
         }
     }
 
-    public class TinyhandUnionToAttributeMock
+    /*public class TinyhandUnionToAttributeMock
     {
         public static readonly string SimpleName = "TinyhandUnionTo";
         public static readonly string Name = SimpleName + "Attribute";
@@ -420,5 +420,5 @@ namespace Tinyhand.Generator
 
             return attribute;
         }
-    }
+    }*/
 }

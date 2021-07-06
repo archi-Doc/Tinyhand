@@ -200,7 +200,7 @@ namespace Tinyhand
         }
     }
 
-    /// <summary>
+    /*/// <summary>
     /// TinyhandUnionToAttribute is derived-side version of TinyhandUnionAttribute.
     /// You can serialize/deserialize derived types via the base type by adding TinyhandUnionAttribute to the derived type.<br/>
     /// The base type must be an abstract class or interface.<br/>
@@ -236,5 +236,5 @@ namespace Tinyhand
             this.BaseType = baseType;
             this.SubType = subType;
         }
-    }
+    }*/
 }

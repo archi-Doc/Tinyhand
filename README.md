@@ -41,9 +41,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
 
 **C# 9.0** or later for generated codes.
 
-**.NET 5** or later **compiler** for source generators.
-
-.NET Core 3 targeted projects can use this library, but **.NET 5 or later** is preferred because this library will use `ModuleInitializerAttribute` if available.
+**.NET 5** or later target framework.
 
 
 
@@ -107,9 +105,6 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            // TinyhandModule.Initialize(); // .NET Core 3.1 does not support ModuleInitializerAttribute, so you need to call TinyhandModule.Initialize() before using Tinyhand. Not required for .NET 5.
-            // ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
-
             var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
             var b = TinyhandSerializer.Serialize(myClass);
             var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b);
@@ -572,23 +567,12 @@ public partial class UnionTestClassB : IUnionTestInterface
     public virtual void Print() => Console.WriteLine($"B: {this.Name}");
 }
 
-[TinyhandObject]
-[TinyhandUnionTo(2, typeof(IUnionTestInterface), typeof(UnionTestClassC))] // You can add TinyhandUnion from derived class side using TinyhandUnionToAttribute.
-public partial class UnionTestClassC : UnionTestClassB
-{
-    [Key(1)]
-    public double Age { get; set; }
-
-    public override void Print() => Console.WriteLine($"C: {this.Name}, {this.Age}");
-}
-
 public static class UnionTest
 {
     public static void Test()
     {
         var classA = new UnionTestClassA() { X = 10, };
         var classB = new UnionTestClassB() { Name = "test", };
-        var classC = new UnionTestClassC() { Name = "Fuga", Age = 99.99 };
 
         var b = TinyhandSerializer.Serialize((IUnionTestInterface)classA);
         var i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
@@ -597,10 +581,6 @@ public static class UnionTest
         b = TinyhandSerializer.Serialize((IUnionTestInterface)classB);
         i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
         i?.Print(); // B: test
-
-        b = TinyhandSerializer.Serialize((IUnionTestInterface)classC);
-        i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
-        i?.Print(); // C: Fuga
     }
 }
 ```
@@ -832,19 +812,4 @@ var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
 var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
 var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
 ```
-
-
-
-
-## External assembly
-
-If you add a reference to a class library which uses Tinyhand, additional initialization code is required.
-
-The namespace of `TinyhandModule` is set to the name of assembly, in order to avoid namespace conflicts.
-
-```csharp
-ClassLibrary1.TinyhandModule.Initialize(); // Initialize for external assembly.
-```
-
-This code will no longer be needed if .NET Standard supports `ModuleInitializerAttribute` in the future.
 

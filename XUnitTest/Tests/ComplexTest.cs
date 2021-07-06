@@ -11,6 +11,8 @@ namespace Tinyhand.Tests
     [TinyhandObject(ImplicitKeyAsName = true)]
     [TinyhandUnion(0, typeof(ComplexTestClass))]
     [TinyhandUnion(1, typeof(ComplexTestClass2<int, string>))]
+    [TinyhandUnion(2, typeof(ComplexTestClass3<double>))]
+    [TinyhandUnion(4, typeof(ComplexTestClass4))]
     // [TinyhandUnion(3, typeof(ComplexTestClass3<double>))]
     public abstract partial class ComplexTestBase<T>
     {
@@ -35,14 +37,14 @@ namespace Tinyhand.Tests
     }
 
     [TinyhandObject(ImplicitKeyAsName = true)]
-    [TinyhandUnionTo(2, typeof(ComplexTestBase<>), typeof(ComplexTestClass3<double>))]
+    // [TinyhandUnionTo(2, typeof(ComplexTestBase<>), typeof(ComplexTestClass3<double>))]
     public partial class ComplexTestClass3<U> : ComplexTestBase<int>
     {
         public U ClassU { get; set; } = default!;
     }
 
     [TinyhandObject(ImplicitKeyAsName = true)]
-    [TinyhandUnionTo(4, typeof(ComplexTestBase<>), typeof(ComplexTestClass4))]
+    // [TinyhandUnionTo(4, typeof(ComplexTestBase<>), typeof(ComplexTestClass4))]
     public partial class ComplexTestClass4 : ComplexTestClass
     {
         public double Age { get; set; }
