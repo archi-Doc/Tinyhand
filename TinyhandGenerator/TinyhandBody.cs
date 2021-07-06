@@ -325,8 +325,8 @@ namespace Tinyhand.Generator
 
         private void GenerateInitializer(TinyhandGenerator generator, ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            // Namespace
-            var ns = "Tinyhand";
+            var ns = "Tinyhand"; // Namespace
+            var assemblyId = string.Empty;
             if (!string.IsNullOrEmpty(generator.CustomNamespace))
             {// Custom namespace.
                 ns = generator.CustomNamespace;
@@ -337,15 +337,16 @@ namespace Tinyhand.Generator
             {// To avoid namespace conflicts, use assembly name for namespace.
                 ns = generator.AssemblyName;
             }
-
-            // AssemblyId
-            var assemblyId = generator.AssemblyId.ToString("x");
+            else
+            {// Other (Apps)
+                assemblyId = "_" + generator.AssemblyId.ToString("x");
+            }
 
             info.ModuleInitializerClass.Add("Tinyhand.Formatters.Generated");
 
             ssb.AppendLine();
             using (var scopeTinyhand = ssb.ScopeNamespace(ns!))
-            using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule_" + assemblyId))
+            using (var scopeClass = ssb.ScopeBrace("public static class TinyhandModule" + assemblyId))
             {
                 ssb.AppendLine("private static bool Initialized;");
                 ssb.AppendLine();
@@ -356,8 +357,8 @@ namespace Tinyhand.Generator
 
                 using (var scopeMethod = ssb.ScopeBrace("public static void Initialize()"))
                 {
-                    ssb.AppendLine($"if (TinyhandModule_{assemblyId}.Initialized) return;");
-                    ssb.AppendLine($"TinyhandModule_{assemblyId}.Initialized = true;");
+                    ssb.AppendLine($"if (Initialized) return;");
+                    ssb.AppendLine($"Initialized = true;");
                     ssb.AppendLine();
 
                     foreach (var x in info.ModuleInitializerClass)
