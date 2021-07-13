@@ -9,6 +9,20 @@ using Tinyhand;
 namespace Sandbox
 {
     [TinyhandObject]
+    public partial class InternalTestClass
+    {
+        [Key(0)]
+        public int Number { get; set; }
+
+        [Key(1)]
+        private int PrivateInt;
+
+        [Key(2)]
+        internal int InternalInt;
+
+    }
+
+    [TinyhandObject]
     public abstract class AbstractTestBase<TIdentifier>
         where TIdentifier : notnull
     {
