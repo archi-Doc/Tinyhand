@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
 using CrossLink;
 using DryIoc;
@@ -9,35 +10,28 @@ using Tinyhand;
 namespace Sandbox
 {
     [TinyhandObject]
-    public abstract class AbstractTestBase<TIdentifier>
-        where TIdentifier : notnull
+    public partial class InternalTestBase
     {
         [Key(0)]
-        public int Number { get; set; }
+        internal int InternalInt = 4;
 
         [Key(1)]
-        protected TIdentifier Identifier { get; set; } = default!;
-    }
+        private int PrivateInt = 4;
 
-    [TinyhandObject]
-    public abstract class AbstractTestBase2<TIdentifier, TState> : AbstractTestBase<TIdentifier>
-        where TIdentifier : notnull
-        where TState : struct
-    {
-        [Key(2)]
-        public string Text { get; set; } = default!;
-    }
-
-    [TinyhandObject]
-    public partial class AbstractTestClass : AbstractTestBase2<int, long>
-    {
+        public InternalTestBase()
+        {
+        }
     }
 
     [TinyhandObject]
     public partial class InternalTestClass2 : ConsoleApp1.InternalTestClass
     {
         [Key(2)]
-        internal int InternalInt2 = 3;
+        internal int InternalInt2 = 4;
+
+        public InternalTestClass2()
+        {
+        }
     }
 
     class Program
@@ -47,14 +41,15 @@ namespace Sandbox
             Console.WriteLine("Sandbox");
             Console.WriteLine();
 
+            var t = typeof(InternalTestClass2);
+            var array = t.GetAllMembers(true).ToArray();
             var a = new ConsoleApp1.InternalTestClass();
             var a2 = TinyhandSerializer.Deserialize<ConsoleApp1.InternalTestClass>(TinyhandSerializer.Serialize(a));
 
             var b = new InternalTestClass2();
-            var b2 = TinyhandSerializer.Deserialize<InternalTestClass2>(TinyhandSerializer.Serialize(a));
-
-            var c = new AbstractTestClass();
-            var c2 = TinyhandSerializer.Deserialize<AbstractTestClass>(TinyhandSerializer.Serialize(c));
+            var b2 = TinyhandSerializer.Deserialize<InternalTestClass2>(TinyhandSerializer.Serialize(b));
+            b.Clear();
+            var b3 = TinyhandSerializer.Deserialize<InternalTestClass2>(TinyhandSerializer.Serialize(b));
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -58,7 +59,11 @@ namespace Tinyhand.Generator
                     return;
                 }
 
-                var compilation = context.Compilation;
+                // var compilation = context.Compilation;
+                var compilation = context.Compilation.WithOptions(context.Compilation.Options.WithMetadataImportOptions(MetadataImportOptions.All));
+                var topLevelBinderFlagsProperty = typeof(CSharpCompilationOptions).GetProperty("TopLevelBinderFlags");
+                // topLevelBinderFlagsProperty.SetValue(compilation.Options, 1U  << 22);
+
                 this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
                 if (this.tinyhandObjectAttributeSymbol == null)
                 {

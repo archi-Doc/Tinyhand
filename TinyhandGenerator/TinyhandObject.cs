@@ -513,7 +513,7 @@ namespace Tinyhand.Generator
             var list = new List<TinyhandObject>();
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Property))
             {
-                if (x.TypeObject != null && !x.IsStatic)
+                if (x.TypeObject != null && !x.IsStatic && (!x.IsInternal || this.IsSameAssembly(x)))
                 {// Valid TypeObject && not static
                     x.Configure();
                     list.Add(x);
@@ -523,7 +523,7 @@ namespace Tinyhand.Generator
             // Members: Field
             foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Field))
             {
-                if (x.TypeObject != null && !x.IsStatic)
+                if (x.TypeObject != null && !x.IsStatic && (!x.IsInternal || this.IsSameAssembly(x)))
                 {// Valid TypeObject && not static
                     x.Configure();
                     list.Add(x);

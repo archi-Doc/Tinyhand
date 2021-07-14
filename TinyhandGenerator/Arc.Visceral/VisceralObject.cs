@@ -1811,6 +1811,52 @@ namespace Arc.Visceral
             }
         }
 
+        public bool IsInternal
+        {
+            get
+            {
+                if (this.symbol is IPropertySymbol ps)
+                {
+                    var flag = false;
+                    if (ps.SetMethod is { } setMethod)
+                    {
+                        flag |= setMethod.DeclaredAccessibility.IsInternal();
+                    }
+
+                    if (ps.GetMethod is { } getMethod)
+                    {
+                        flag |= getMethod.DeclaredAccessibility.IsInternal();
+                    }
+
+                    return flag;
+                }
+                else if (this.symbol != null)
+                {
+                    return this.symbol.DeclaredAccessibility.IsInternal();
+                }
+
+                return false;
+            }
+        }
+
+        public bool IsSameAssembly(VisceralObjectBase<T> target)
+        {
+            if (this.symbol != null && target.symbol != null)
+            {
+#pragma warning disable RS1024
+                return this.symbol.ContainingAssembly == target.symbol.ContainingAssembly;
+#pragma warning restore RS1024
+            }
+            else if (this.type != null && target.type != null)
+            {
+                return this.type.Assembly == this.type.Assembly;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         private bool? isReadable;
 
         public bool IsReadable

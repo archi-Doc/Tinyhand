@@ -15,12 +15,19 @@ namespace ConsoleApp1
     public partial class InternalTestClass
     {
         [Key(0)]
-        public int PublicInt = 1;
+        private int PrivateInt = 1;
 
         [Key(1)]
         internal int InternalInt = 2;
 
         public int PropertyInt { get; private set; } = 3;
+
+        public void Clear()
+        {
+            this.PrivateInt = 0;
+            this.InternalInt = 0;
+            this.PropertyInt = 0;
+        }
 
     }
 
