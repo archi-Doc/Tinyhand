@@ -59,10 +59,11 @@ namespace Tinyhand.Generator
                     return;
                 }
 
-                // var compilation = context.Compilation;
-                var compilation = context.Compilation.WithOptions(context.Compilation.Options.WithMetadataImportOptions(MetadataImportOptions.All));
-                var topLevelBinderFlagsProperty = typeof(CSharpCompilationOptions).GetProperty("TopLevelBinderFlags");
-                // topLevelBinderFlagsProperty.SetValue(compilation.Options, 1U  << 22);
+                var compilation = context.Compilation;
+                /*var options = context.Compilation.Options.WithMetadataImportOptions(MetadataImportOptions.All);
+                var topLevelBinderFlagsProperty = typeof(CSharpCompilationOptions).GetProperty("TopLevelBinderFlags", BindingFlags.Instance | BindingFlags.NonPublic);
+                topLevelBinderFlagsProperty.SetValue(options, 1U  << 22);
+                var compilation = context.Compilation.WithOptions(options);*/
 
                 this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
                 if (this.tinyhandObjectAttributeSymbol == null)
