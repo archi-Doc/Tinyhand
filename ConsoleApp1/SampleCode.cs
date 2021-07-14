@@ -12,6 +12,19 @@ using Tinyhand;
 namespace ConsoleApp1
 {
     [TinyhandObject]
+    public partial class InternalTestClass
+    {
+        [Key(0)]
+        public int PublicInt = 1;
+
+        [Key(1)]
+        internal int InternalInt = 2;
+
+        public int PropertyInt { get; private set; } = 3;
+
+    }
+
+    [TinyhandObject]
     public partial class DefaultBehaviourClass
     {
         [Key(0)]
