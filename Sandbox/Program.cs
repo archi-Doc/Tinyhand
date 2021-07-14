@@ -10,7 +10,7 @@ using Tinyhand;
 namespace Sandbox
 {
     [TinyhandObject]
-    public partial class InternalTestBase
+    public partial class InternalTestBase<T>
     {
         [Key(0)]
         internal int InternalInt = 0;
@@ -31,7 +31,7 @@ namespace Sandbox
         public int PublicPrivate { get; private set; } = 5;
 
         [Key(6)]
-        private int PrivatePrivate { get; set; } = 6;
+        private T PrivatePrivate { get; set; } = default!;
 
 
         public InternalTestBase()
@@ -46,12 +46,12 @@ namespace Sandbox
             this.PublicProtected = 0;
             this.PrivateProtected = 0;
             this.PublicPrivate = 0;
-            this.PrivatePrivate = 0;
+            this.PrivatePrivate = default!;
         }
     }
 
     [TinyhandObject]
-    public partial class InternalTestClass2 : InternalTestBase // ConsoleApp1.InternalTestClass
+    public partial class InternalTestClass2<T> : InternalTestBase<T> // ConsoleApp1.InternalTestClass
     {
         [Key(7)]
         internal int InternalInt2 = 3;
@@ -101,10 +101,10 @@ namespace Sandbox
             var a = new ConsoleApp1.InternalTestClass();
             var a2 = TinyhandSerializer.Deserialize<ConsoleApp1.InternalTestClass>(TinyhandSerializer.Serialize(a));
 
-            var b = new InternalTestClass2();
-            var b2 = TinyhandSerializer.Deserialize<InternalTestClass2>(TinyhandSerializer.Serialize(b));
+            var b = new InternalTestClass2<double>();
+            var b2 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
             b.Clear();
-            var b3 = TinyhandSerializer.Deserialize<InternalTestClass2>(TinyhandSerializer.Serialize(b));
+            var b3 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
         }
     }
 }

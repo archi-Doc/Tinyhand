@@ -2677,7 +2677,7 @@ ModuleInitializerClass_Added:
             if (x.RequiresGetter)
             {
                 v1 = ssb.ScopeBrace(string.Empty);
-                ssb.AppendLine($"var vd = {x.GetterDelegateIdentifier}!(this);");
+                ssb.AppendLine($"var vd = {x.GetterDelegateIdentifier}!({ssb.FullObject});");
                 v2 = ssb.ScopeFullObject("vd");
             }
             else
