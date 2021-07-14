@@ -36,6 +36,14 @@ namespace Arc.Visceral
             _ => string.Empty,
         };
 
+        public static bool IsInternal(this Accessibility accessibility) => accessibility switch
+        {
+            Accessibility.ProtectedAndInternal => true,
+            Accessibility.Internal => true,
+            Accessibility.ProtectedOrInternal => false,
+            _ => false,
+        };
+
         public static Accessibility MethodBaseToAccessibility(MethodBase? mb)
         {
             if (mb == null)

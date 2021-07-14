@@ -9,6 +9,31 @@ using Tinyhand;
 
 namespace Sandbox
 {
+    /*[TinyhandObject]
+    public abstract class AbstractTestBase<TIdentifier>
+        where TIdentifier : notnull
+    {
+        [Key(0)]
+        public int Number { get; set; }
+
+        [Key(1)]
+        protected TIdentifier Identifier { get; set; } = default!;
+    }
+
+    [TinyhandObject]
+    public abstract class AbstractTestBase2<TIdentifier, TState> : AbstractTestBase<TIdentifier>
+        where TIdentifier : notnull
+        where TState : struct
+    {
+        [Key(2)]
+        public string Text { get; set; } = default!;
+    }
+
+    [TinyhandObject]
+    public partial class AbstractTestClass : AbstractTestBase2<int, long>
+    {
+    }*/
+
     /*[TinyhandObject(ImplicitKeyAsName = true, IncludePrivateMembers = true)]
     public partial record TestRecord
     {

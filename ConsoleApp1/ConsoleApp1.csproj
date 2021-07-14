@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Generated\*" />
+  </ItemGroup>
+
 </Project>
