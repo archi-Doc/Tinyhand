@@ -411,7 +411,7 @@ namespace Tinyhand.Generator
             // Method condition (Serialize/Deserialize)
             this.MethodCondition_Serialize = MethodCondition.MemberMethod;
             this.MethodCondition_Deserialize = MethodCondition.MemberMethod;
-            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerialize"))
+            if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandSerialize"))
             {// ITinyhandSerialize implemented
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
 
@@ -446,7 +446,7 @@ namespace Tinyhand.Generator
 
             // Method condition (Reconstruct)
             this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
-            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandReconstruct"))
+            if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandReconstruct"))
             {// ITinyhandReconstruct implemented
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandReconstruct;
 
@@ -471,7 +471,7 @@ namespace Tinyhand.Generator
             // Method condition (Clone)
             var cloneInterface = $"Tinyhand.ITinyhandClone<{this.FullName}>";
             this.MethodCondition_Clone = MethodCondition.MemberMethod;
-            if (this.AllInterfaces.Any(x => x == cloneInterface))
+            if (this.Interfaces.Any(x => x == cloneInterface))
             {// ITinyhandClone implemented
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandClone;
 
@@ -495,7 +495,7 @@ namespace Tinyhand.Generator
             }
 
             // ITinyhandSerializationCallback
-            if (this.AllInterfaces.Any(x => x == "Tinyhand.ITinyhandSerializationCallback"))
+            if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandSerializationCallback"))
             {
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializationCallback;
                 if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnBeforeSerialize"))

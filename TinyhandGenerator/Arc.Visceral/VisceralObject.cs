@@ -1115,6 +1115,61 @@ namespace Arc.Visceral
             }
         }
 
+        private ImmutableArray<string> interfaces;
+
+        public ImmutableArray<string> Interfaces
+        {
+            get
+            {
+                if (this.interfaces.IsDefault)
+                {
+                    if (this.IsSystem)
+                    {
+                        this.interfaces = ImmutableArray<string>.Empty;
+                    }
+                    else
+                    if (this.symbol is ITypeSymbol typeSymbol)
+                    {
+                        var builder = ImmutableArray.CreateBuilder<string>();
+                        if (typeSymbol.BaseType is INamedTypeSymbol baseType &&
+                            baseType.TypeKind == TypeKind.Error &&
+                            baseType.ToString() == "INotifyPropertyChanged")
+                        {
+                            builder.Add("System.ComponentModel.INotifyPropertyChanged");
+                        }
+
+                        foreach (var x in typeSymbol.Interfaces)
+                        {
+                            builder.Add(this.Body.SymbolToFullName(x));
+                        }
+
+                        this.interfaces = builder.ToImmutable();
+                    }
+                    else if (this.type != null)
+                    {
+                        var builder = ImmutableArray.CreateBuilder<string>();
+                        foreach (var x in this.type.GetInterfaces())
+                        {
+                            builder.Add(VisceralHelper.TypeToFullName(x));
+                        }
+
+                        this.interfaces = builder.ToImmutable();
+                    }
+                    else
+                    {
+                        this.interfaces = ImmutableArray<string>.Empty;
+                    }
+                }
+
+                return this.interfaces;
+            }
+
+            protected set
+            {
+                this.interfaces = value;
+            }
+        }
+
         private bool baseObjectFlag;
         private T? baseObject;
 
