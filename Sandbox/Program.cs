@@ -13,10 +13,26 @@ namespace Sandbox
     public partial class InternalTestBase
     {
         [Key(0)]
-        internal int InternalInt = 1;
+        internal int InternalInt = 0;
 
         [Key(1)]
-        private int PrivateInt = 2;
+        private int PrivateInt = 1;
+
+        [Key(2)]
+        public int PublicPublic { get; set; } = 2;
+
+        [Key(3)]
+        public int PublicProtected { get; protected set; } = 3;
+
+        [Key(4)]
+        protected int PrivateProtected { private get; set; } = 4;
+
+        [Key(5)]
+        public int PublicPrivate { get; private set; } = 5;
+
+        [Key(6)]
+        private int PrivatePrivate { get; set; } = 6;
+
 
         public InternalTestBase()
         {
@@ -26,16 +42,21 @@ namespace Sandbox
         {
             this.InternalInt = 0;
             this.PrivateInt = 0;
+            this.PublicPublic = 0;
+            this.PublicProtected = 0;
+            this.PrivateProtected = 0;
+            this.PublicPrivate = 0;
+            this.PrivatePrivate = 0;
         }
     }
 
     [TinyhandObject]
     public partial class InternalTestClass2 : InternalTestBase // ConsoleApp1.InternalTestClass
     {
-        [Key(2)]
+        [Key(7)]
         internal int InternalInt2 = 3;
 
-        [Key(3)]
+        [Key(8)]
         private int PrivateInt2 = 4;
 
         public InternalTestClass2()
