@@ -49,7 +49,7 @@ namespace Tinyhand.Generator
 
         public void Execute(GeneratorExecutionContext context)
         {
-            try
+            // try
             {
                 this.Context = context;
 
@@ -117,7 +117,7 @@ namespace Tinyhand.Generator
 
                 this.body.Generate(this);
             }
-            catch
+            // catch
             {
             }
         }
