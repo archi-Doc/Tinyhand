@@ -40,7 +40,7 @@ namespace Arc.Visceral
         {
             Accessibility.ProtectedAndInternal => true,
             Accessibility.Internal => true,
-            Accessibility.ProtectedOrInternal => true,
+            Accessibility.ProtectedOrInternal => false,
             _ => false,
         };
 
