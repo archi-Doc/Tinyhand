@@ -1063,12 +1063,27 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.RequiresSetter = true;
             }
 
-            if (!this.IsPublic)
+            if (this.ContainingObject != parent)
             {
-                if (this.ContainingObject != parent)
+                if (this.Kind == VisceralObjectKind.Field)
                 {
-                    this.RequiresGetter = true;
-                    this.RequiresSetter = true;
+                    if (this.Field_IsPrivate)
+                    {
+                        this.RequiresGetter = true;
+                        this.RequiresSetter = true;
+                    }
+                }
+                else if (this.Kind == VisceralObjectKind.Property)
+                {
+                    if (this.Property_IsPrivateGetter)
+                    {
+                        this.RequiresGetter = true;
+                    }
+
+                    if (this.Property_IsPrivateSetter)
+                    {
+                        this.RequiresSetter = true;
+                    }
                 }
             }
         }
@@ -1931,12 +1946,12 @@ ModuleInitializerClass_Added:
             if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
             {
                 methodCode = $"public {this.FullName} DeepClone(TinyhandSerializerOptions options)";
-                sourceObject = "this.";
+                sourceObject = "this";
             }
             else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
             {
                 methodCode = $"public static {this.FullName + this.QuestionMarkIfReferenceType} DeepClone{this.GenericsNumberString}(ref {this.RegionalName + this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
-                sourceObject = "v.";
+                sourceObject = "v";
             }
             else
             {
@@ -1954,7 +1969,17 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"var value = {this.NewInstanceCode()};");
                 foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
                 {
-                    this.GenerateCloneCore(ssb, info, x, sourceObject + x.SimpleName);
+                    string sourceName;
+                    if (x.RequiresGetter)
+                    {
+                        sourceName = $"{x.GetterDelegateIdentifier}!({sourceObject})";
+                    }
+                    else
+                    {
+                        sourceName = sourceObject + "." + x.SimpleName;
+                    }
+
+                    this.GenerateCloneCore(ssb, info, x, sourceName);
                 }
 
                 ssb.AppendLine($"return value;");

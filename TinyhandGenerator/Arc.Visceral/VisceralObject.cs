@@ -2487,6 +2487,57 @@ namespace Arc.Visceral
             return null;
         }
 
+        public bool Field_IsPrivate
+        {
+            get
+            {
+                if (this.symbol is IFieldSymbol fs)
+                {
+                    return fs.DeclaredAccessibility == Accessibility.Private;
+                }
+                else if (this.memberInfo is FieldInfo fi)
+                {
+                    return fi.IsPrivate;
+                }
+
+                return false;
+            }
+        }
+
+        public bool Property_IsPrivateGetter
+        {
+            get
+            {
+                if (this.symbol is IPropertySymbol ps)
+                {
+                    return ps.GetMethod?.DeclaredAccessibility == Accessibility.Private;
+                }
+                else if (this.memberInfo is PropertyInfo pi)
+                {
+                    return pi.GetMethod.IsPrivate;
+                }
+
+                return false;
+            }
+        }
+
+        public bool Property_IsPrivateSetter
+        {
+            get
+            {
+                if (this.symbol is IPropertySymbol ps)
+                {
+                    return ps.SetMethod?.DeclaredAccessibility == Accessibility.Private;
+                }
+                else if (this.memberInfo is PropertyInfo pi)
+                {
+                    return pi.SetMethod.IsPrivate;
+                }
+
+                return false;
+            }
+        }
+
         public WithNullable<T>? CreateWithNullable(NullableAnnotation nullableAnnotation)
         {
             if (this.symbol == null)
