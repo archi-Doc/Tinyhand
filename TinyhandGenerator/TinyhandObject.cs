@@ -1923,10 +1923,7 @@ ModuleInitializerClass_Added:
         {
             foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do && x.KeyAttribute == null))
             {
-                using (var c = ssb.ScopeObject(x.SimpleName))
-                {
-                    this.GenerateReconstructCore(ssb, info, x);
-                }
+                this.GenerateReconstructCore(ssb, info, x);
             }
         }
 
@@ -1955,10 +1952,7 @@ ModuleInitializerClass_Added:
             {
                 foreach (var x in this.Members)
                 {
-                    using (var c = ssb.ScopeObject(x.SimpleName))
-                    {
-                        this.GenerateReconstructCore(ssb, info, x);
-                    }
+                    this.GenerateReconstructCore(ssb, info, x);
                 }
             }
         }
@@ -2203,6 +2197,7 @@ ModuleInitializerClass_Added:
             }
 
             ScopingStringBuilder.IScope? initSetter = null;
+            var destObject = ssb.FullObject;
             using (var m = ssb.ScopeObject(x.SimpleName))
             {
                 var coder = CoderResolver.Instance.TryGetCoder(withNullable);
@@ -2227,12 +2222,12 @@ ModuleInitializerClass_Added:
 
                         if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
                         {// T?
-                            ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
                         }
                         else
                         {// T
                             ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
-                            ssb.AppendLine($"{m.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
+                            ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
                         }
                     }
 
@@ -2244,7 +2239,7 @@ ModuleInitializerClass_Added:
                     using (var invalid = ssb.ScopeBrace("else"))
                     {
                         InitSetter_Start();
-                        ssb.AppendLine($"{m.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                        ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                         InitSetter_End();
                     }
                 }
@@ -2263,7 +2258,7 @@ ModuleInitializerClass_Added:
                         }
                         else
                         {
-                            ssb.AppendLine($"{m.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
+                            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
                         }
 
                         InitSetter_End();
@@ -2286,7 +2281,7 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!(this, vd);");
+                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);");
                 }
             }
         }
@@ -2301,6 +2296,7 @@ ModuleInitializerClass_Added:
             }
 
             ScopingStringBuilder.IScope? initSetter = null;
+            var destObject = ssb.FullObject;
             using (var m = ssb.ScopeObject(x.SimpleName))
             {
                 var coder = CoderResolver.Instance.TryGetCoder(withNullable);
@@ -2385,7 +2381,7 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!(this, vd);");
+                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);");
                 }
             }
         }
@@ -2400,45 +2396,49 @@ ModuleInitializerClass_Added:
 
             ScopingStringBuilder.IScope? initSetter = null;
             ScopingStringBuilder.IScope? emptyBrace = null;
+            var destObject = ssb.FullObject;
 
-            if (x.IsDefaultable)
-            {// Default
-                InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
-                InitSetter_End();
-                return;
-            }
-
-            if (x.ReconstructState != ReconstructState.Do)
+            using (var c2 = ssb.ScopeObject(x.SimpleName))
             {
-                return;
-            }
+                if (x.IsDefaultable)
+                {// Default
+                    InitSetter_Start(true);
+                    ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                    InitSetter_End();
+                    return;
+                }
 
-            // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if ({ssb.FullObject} == null)" : string.Empty;
-
-            if (withNullable.Object.ObjectAttribute != null)
-            {// TinyhandObject. For the purpose of default value and instance reuse.
-                using (var c = ssb.ScopeBrace(string.Empty))
+                if (x.ReconstructState != ReconstructState.Do)
                 {
-                    InitSetter_Start();
-                    withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    return;
+                }
+
+                // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if ({ssb.FullObject} == null)" : string.Empty;
+
+                if (withNullable.Object.ObjectAttribute != null)
+                {// TinyhandObject. For the purpose of default value and instance reuse.
+                    using (var c = ssb.ScopeBrace(string.Empty))
+                    {
+                        InitSetter_Start();
+                        withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                        InitSetter_End();
+                    }
+                }
+                else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
+                {// Coder
+                    using (var c = ssb.ScopeBrace(string.Empty))
+                    {
+                        InitSetter_Start();
+                        coder.CodeReconstruct(ssb, info);
+                        InitSetter_End();
+                    }
+                }
+                else
+                {// Default constructor
+                    InitSetter_Start(true);
+                    ssb.AppendLine($"{ssb.FullObject} = {withNullable.Object.NewInstanceCode()};");
                     InitSetter_End();
                 }
-            }
-            else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
-            {// Coder
-                using (var c = ssb.ScopeBrace(string.Empty))
-                {
-                    InitSetter_Start();
-                    coder.CodeReconstruct(ssb, info);
-                    InitSetter_End();
-                }
-            }
-            else
-            {// Default constructor
-                InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = {withNullable.Object.NewInstanceCode()};");
-                InitSetter_End();
             }
 
             void InitSetter_Start(bool brace = false)
@@ -2461,7 +2461,7 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!(this, vd);");
+                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);");
 
                     if (emptyBrace != null)
                     {
@@ -2481,43 +2481,47 @@ ModuleInitializerClass_Added:
             }
 
             ScopingStringBuilder.IScope? initSetter = null;
+            var destObject = ssb.FullObject;
 
-            if (x.IsDefaultable)
-            {// Default
-                using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
+            using (var c = ssb.ScopeObject(x.SimpleName))
+            {
+                if (x.IsDefaultable)
+                {// Default
+                    using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
+                    {
+                        InitSetter_Start();
+                        ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+                        InitSetter_End();
+                    }
+
+                    return;
+                }
+
+                // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if (!deserializedFlag[{reconstructIndex}] && {ssb.FullObject} == null)" : $"if (!deserializedFlag[{reconstructIndex}])";
+                var nullCheckCode = $"if (!deserializedFlag[{reconstructIndex}])";
+
+                using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
                 {
                     InitSetter_Start();
-                    ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
+
+                    if (x.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated || x.ReconstructState == ReconstructState.Do)
+                    {// T
+                        if (withNullable.Object.ObjectAttribute != null)
+                        {// TinyhandObject. For the purpose of default value and instance reuse.
+                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                        }
+                        else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
+                        {
+                            coder.CodeReconstruct(ssb, info);
+                        }
+                        else
+                        {// Default constructor
+                            ssb.AppendLine($"{ssb.FullObject} = {withNullable.Object.NewInstanceCode()};");
+                        }
+                    }
+
                     InitSetter_End();
                 }
-
-                return;
-            }
-
-            // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if (!deserializedFlag[{reconstructIndex}] && {ssb.FullObject} == null)" : $"if (!deserializedFlag[{reconstructIndex}])";
-            var nullCheckCode = $"if (!deserializedFlag[{reconstructIndex}])";
-
-            using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
-            {
-                InitSetter_Start();
-
-                if (x.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated || x.ReconstructState == ReconstructState.Do)
-                {// T
-                    if (withNullable.Object.ObjectAttribute != null)
-                    {// TinyhandObject. For the purpose of default value and instance reuse.
-                        withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    }
-                    else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
-                    {
-                        coder.CodeReconstruct(ssb, info);
-                    }
-                    else
-                    {// Default constructor
-                        ssb.AppendLine($"{ssb.FullObject} = {withNullable.Object.NewInstanceCode()};");
-                    }
-                }
-
-                InitSetter_End();
             }
 
             void InitSetter_Start()
@@ -2535,7 +2539,7 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!(this, vd);");
+                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);");
                 }
             }
         }

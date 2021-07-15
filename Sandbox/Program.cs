@@ -11,7 +11,7 @@ using Tinyhand;
 
 namespace Sandbox
 {
-    // [TinyhandObject]
+    [TinyhandObject]
     public partial class InheritanceTestBase<T>
     {
         [Key(0)]
@@ -52,7 +52,7 @@ namespace Sandbox
         }
     }
 
-    // [TinyhandObject]
+    [TinyhandObject]
     public partial class InternalTestClass2<T> : InheritanceTestBase<T> // ConsoleApp1.InternalTestClass
     {
         [Key(7)]
