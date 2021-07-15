@@ -12,7 +12,7 @@ using Tinyhand;
 namespace Sandbox
 {
     // [TinyhandObject]
-    public partial class InheritanceTestBase
+    public partial class InheritanceTestBase<T>
     {
         [Key(0)]
         internal int InternalInt = 0;
@@ -33,7 +33,7 @@ namespace Sandbox
         public int PublicPrivate { get; private set; } = 5;
 
         [Key(6)]
-        private int PrivatePrivate { get; set; } = default!;
+        private T PrivatePrivate { get; set; } = default!;
 
 
         public InheritanceTestBase()
@@ -48,12 +48,12 @@ namespace Sandbox
             this.PublicProtected = 0;
             this.PrivateProtected = 0;
             this.PublicPrivate = 0;
-            this.PrivatePrivate = 0;
+            this.PrivatePrivate = default!;
         }
     }
 
     // [TinyhandObject]
-    public partial class InternalTestClass2<T> : InheritanceTestBase // ConsoleApp1.InternalTestClass
+    public partial class InternalTestClass2<T> : InheritanceTestBase<T> // ConsoleApp1.InternalTestClass
     {
         [Key(7)]
         internal int InternalInt2 = 3;
@@ -69,6 +69,18 @@ namespace Sandbox
         {
             this.InternalInt2 = 0;
             this.PrivateInt2 = 0;
+        }
+
+        public static class __identifier
+        {
+            static __identifier()
+            {
+                var exp = Expression.Parameter(typeof(InheritanceTestBase<T>));
+                var exp2 = Expression.Parameter(typeof(T));
+                setterDelegate = Expression.Lambda<Action< InternalTestClass2<T>, T>>(Expression.Assign(Expression.PropertyOrField(exp, "PrivatePrivate"), exp2), exp, exp2).Compile();
+            }
+
+            public static Action<InternalTestClass2<T>, T> setterDelegate;
         }
     }
 
@@ -100,7 +112,7 @@ namespace Sandbox
 
             var aa = getter(subject);*/
 
-            var b = new InternalTestClass2<double>();
+            /*var b = new InternalTestClass2<double>();
             // var field = t.GetField("PrivateProtected", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var targetExp = Expression.Parameter(typeof(InternalTestClass2<double>));
             var valueExp = Expression.Parameter(typeof(int));
@@ -111,7 +123,10 @@ namespace Sandbox
 
             var getter = Expression.Lambda<Func<InternalTestClass2<double>, int>>(Expression.PropertyOrField(Expression.Convert(targetExp, typeof(InheritanceTestBase)), "PrivateProtected"), targetExp).Compile();
 
-            var c = getter(b);
+            var c = getter(b);*/
+
+            var b = new InternalTestClass2<double>();
+            InternalTestClass2<double>.__identifier.setterDelegate(b, 4.44);
 
             /*var a = new ConsoleApp1.InternalTestClass();
             var a2 = TinyhandSerializer.Deserialize<ConsoleApp1.InternalTestClass>(TinyhandSerializer.Serialize(a));
