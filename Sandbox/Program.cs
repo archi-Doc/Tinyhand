@@ -7,10 +7,12 @@ using CrossLink;
 using DryIoc;
 using Tinyhand;
 
+#pragma warning disable CS0414
+
 namespace Sandbox
 {
-    [TinyhandObject]
-    public partial class InternalTestBase<T>
+    // [TinyhandObject]
+    public partial class InheritanceTestBase
     {
         [Key(0)]
         internal int InternalInt = 0;
@@ -31,10 +33,10 @@ namespace Sandbox
         public int PublicPrivate { get; private set; } = 5;
 
         [Key(6)]
-        private T PrivatePrivate { get; set; } = default!;
+        private int PrivatePrivate { get; set; } = default!;
 
 
-        public InternalTestBase()
+        public InheritanceTestBase()
         {
         }
 
@@ -46,12 +48,12 @@ namespace Sandbox
             this.PublicProtected = 0;
             this.PrivateProtected = 0;
             this.PublicPrivate = 0;
-            this.PrivatePrivate = default!;
+            this.PrivatePrivate = 0;
         }
     }
 
-    [TinyhandObject]
-    public partial class InternalTestClass2<T> : InternalTestBase<T> // ConsoleApp1.InternalTestClass
+    // [TinyhandObject]
+    public partial class InternalTestClass2<T> : InheritanceTestBase // ConsoleApp1.InternalTestClass
     {
         [Key(7)]
         internal int InternalInt2 = 3;
@@ -98,13 +100,26 @@ namespace Sandbox
 
             var aa = getter(subject);*/
 
-            var a = new ConsoleApp1.InternalTestClass();
+            var b = new InternalTestClass2<double>();
+            // var field = t.GetField("PrivateProtected", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var targetExp = Expression.Parameter(typeof(InternalTestClass2<double>));
+            var valueExp = Expression.Parameter(typeof(int));
+            var fieldExp = Expression.PropertyOrField(targetExp, "PrivateProtected");
+            var setter = Expression.Lambda<Action<InternalTestClass2<double>, int>>(Expression.Assign(fieldExp, valueExp), targetExp, valueExp).Compile();
+
+            setter(b, 444);
+
+            var getter = Expression.Lambda<Func<InternalTestClass2<double>, int>>(Expression.PropertyOrField(Expression.Convert(targetExp, typeof(InheritanceTestBase)), "PrivateProtected"), targetExp).Compile();
+
+            var c = getter(b);
+
+            /*var a = new ConsoleApp1.InternalTestClass();
             var a2 = TinyhandSerializer.Deserialize<ConsoleApp1.InternalTestClass>(TinyhandSerializer.Serialize(a));
 
             var b = new InternalTestClass2<double>();
             var b2 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
             b.Clear();
-            var b3 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
+            var b3 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));*/
         }
     }
 }

@@ -1553,7 +1553,7 @@ ModuleInitializerClass_Added:
             {
                 ssb.AppendLine($"var type = typeof({this.LocalName});");
                 ssb.AppendLine("var expType = Expression.Parameter(type);");
-                ssb.AppendLine("System.Reflection.MethodInfo mi;");
+                // ssb.AppendLine("System.Reflection.MethodInfo mi;");
                 ssb.AppendLine("ParameterExpression exp;");
                 ssb.AppendLine("ParameterExpression exp2;");
                 // ssb.AppendLine("FieldInfo fi;");
@@ -1561,25 +1561,50 @@ ModuleInitializerClass_Added:
                 {
                     if (x.RequiresSetter)
                     {
-                        if (x.Kind == VisceralObjectKind.Property)
-                        {
+                        ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
+                        ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
+                        ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
+
+                        /*if (x.Kind == VisceralObjectKind.Property)
+                        {// Property
                             ssb.AppendLine($"mi = type.GetMethod(\"set_{x.SimpleName}\")!;");
                             ssb.AppendLine($"exp = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
                             ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Call(expType, mi!, exp), expType, exp).CompileFast();");
                         }
                         else
-                        {
+                        {// Field
                             // ssb.AppendLine($"fi = typeof({x.ContainingObject!.FullName}).GetField(\"{x.SimpleName}\", BindingFlags.NonPublic | BindingFlags.Instance)!;");
                             ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
                             ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
                             ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Assign(Expression.Field(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
-                        }
+                        }*/
                     }
 
                     if (x.RequiresGetter)
                     {
-                        ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
-                        ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Field(exp, \"{x.SimpleName}\"), exp).CompileFast();");
+                        if (this == x.ContainingObject)
+                        {
+                            ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(expType, \"{x.SimpleName}\"), expType).CompileFast();");
+                        }
+                        else
+                        {
+                            ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(Expression.Convert(expType, typeof({x.ContainingObject!.FullName})), \"{x.SimpleName}\"), expType).CompileFast();");
+                        }
+
+                        /*if (x.Kind == VisceralObjectKind.Property)
+                        {// Property
+                            ssb.AppendLine($"mi = type.GetMethod(\"get_{x.SimpleName}\")!;");
+                            ssb.AppendLine($"exp = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
+                            ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Call(expType, mi!" +
+                                $"), expType).CompileFast();");
+                        }
+                        else
+                        {// Field
+                            // ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
+                            // ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Field(exp, \"{x.SimpleName}\")).CompileFast();");
+
+                            ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Field(Expression.Convert(expType, typeof({x.ContainingObject!.FullName})), \"{x.SimpleName}\"), expType).CompileFast();");
+                        }*/
                     }
                 }
 
