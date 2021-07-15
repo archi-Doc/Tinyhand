@@ -50,8 +50,101 @@ namespace Tinyhand.Tests
         public double Age { get; set; }
     }
 
+    [TinyhandObject]
+    public partial class InheritanceTestBase
+    {
+        [Key(0)]
+        internal int InternalInt;
+
+        [Key(1)]
+        private int PrivateInt;
+
+        [Key(2)]
+        public int PublicPublic { get; set; }
+
+        [Key(3)]
+        public int PublicProtected { get; protected set; }
+
+        [Key(4)]
+        protected int PrivateProtected { private get; set; }
+
+        [Key(5)]
+        public int PublicPrivate { get; private set; }
+
+        [Key(6)]
+        private int PrivatePrivate { get; set; }
+
+        public InheritanceTestBase()
+        {
+        }
+
+        public void Set()
+        {
+            this.InternalInt = 1;
+            this.PrivateInt = 2;
+            this.PublicPublic = 3;
+            this.PublicProtected = 4;
+            this.PrivateProtected = 5;
+            this.PublicPrivate = 6;
+            this.PrivatePrivate = 7;
+        }
+    }
+
+    [TinyhandObject]
+    public partial class InheritanceTestClass : InheritanceTestBase
+    {
+        [Key(7)]
+        internal int InternalInt2;
+
+        [Key(8)]
+        private int PrivateInt2;
+
+        [Key(9)]
+        public int InitInt { get; init; }
+
+        public InheritanceTestClass(int n = 0)
+        {
+            this.InitInt = n;
+        }
+
+        public void Set2()
+        {
+            this.InternalInt2 = 8;
+            this.PrivateInt2 = 9;
+        }
+    }
+
     public class ComplexTest
     {
+        [Fact]
+        public void TestInheritance()
+        {
+            var c1 = new InheritanceTestBase();
+            var c2 = new InheritanceTestBase();
+            c2.Set();
+
+            var b = TinyhandSerializer.Serialize(c1);
+            var c = TinyhandSerializer.Deserialize<InheritanceTestBase>(b);
+            c.IsStructuralEqual(c1);
+
+            b = TinyhandSerializer.Serialize(c2);
+            c = TinyhandSerializer.Deserialize<InheritanceTestBase>(b);
+            c.IsStructuralEqual(c2);
+
+            var d1 = new InheritanceTestClass(0);
+            var d2 = new InheritanceTestClass(10);
+            d2.Set();
+            d2.Set2();
+
+            b = TinyhandSerializer.Serialize(d1);
+            var d = TinyhandSerializer.Deserialize<InheritanceTestClass>(b);
+            d.IsStructuralEqual(d1);
+
+            b = TinyhandSerializer.Serialize(d2);
+            d = TinyhandSerializer.Deserialize<InheritanceTestClass>(b);
+            d.IsStructuralEqual(d2);
+        }
+
         [Fact]
         public void Test1()
         {
