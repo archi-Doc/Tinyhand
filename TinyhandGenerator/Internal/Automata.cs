@@ -39,10 +39,7 @@ namespace Tinyhand.Generator
                     continue;
                 }
 
-                using (var c = ssb.ScopeObject(x.Member.SimpleName))
-                {
-                    this.Object.GenerateReconstructCore2(ssb, info, x.Member, x.ReconstructIndex);
-                }
+                this.Object.GenerateReconstructCore2(ssb, info, x.Member, x.ReconstructIndex);
             }
         }
 
