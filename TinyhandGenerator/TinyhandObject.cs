@@ -1666,11 +1666,13 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_Serialize == MethodCondition.MemberMethod)
             {
+                info.GeneratingStaticMethod = false;
                 methodCode = "public void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)";
                 objectCode = "this";
             }
             else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
             {
+                info.GeneratingStaticMethod = true;
                 methodCode = $"public static void Serialize(ref TinyhandWriter writer, {this.RegionalName} v, TinyhandSerializerOptions options)";
                 objectCode = "v";
             }
@@ -1889,11 +1891,13 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_Deserialize == MethodCondition.MemberMethod)
             {
+                info.GeneratingStaticMethod = false;
                 methodCode = "public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)";
                 objectCode = "this";
             }
             else if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
             {
+                info.GeneratingStaticMethod = true;
                 methodCode = $"public static void Deserialize{this.GenericsNumberString}(ref {this.RegionalName} v, ref TinyhandReader reader, TinyhandSerializerOptions options)";
                 objectCode = "v";
             }
@@ -1934,11 +1938,13 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
             {
+                info.GeneratingStaticMethod = false;
                 methodCode = "public void Reconstruct(TinyhandSerializerOptions options)";
                 objectCode = "this";
             }
             else if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
             {
+                info.GeneratingStaticMethod = true;
                 methodCode = $"public static void Reconstruct{this.GenericsNumberString}(ref {this.RegionalName} v, TinyhandSerializerOptions options)";
                 objectCode = "v";
             }
@@ -1964,11 +1970,13 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
             {
+                info.GeneratingStaticMethod = false;
                 methodCode = $"public {this.FullName} DeepClone(TinyhandSerializerOptions options)";
                 sourceObject = "this";
             }
             else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
             {
+                info.GeneratingStaticMethod = true;
                 methodCode = $"public static {this.FullName + this.QuestionMarkIfReferenceType} DeepClone{this.GenericsNumberString}(ref {this.RegionalName + this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
                 sourceObject = "v";
             }
@@ -1991,7 +1999,8 @@ ModuleInitializerClass_Added:
                     string sourceName;
                     if (x.RequiresGetter)
                     {
-                        sourceName = $"{x.GetterDelegateIdentifier}!({sourceObject})";
+                        var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                        sourceName = $"{prefix}{x.GetterDelegateIdentifier}!({sourceObject})";
                     }
                     else
                     {
@@ -2281,7 +2290,8 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
                 }
             }
         }
@@ -2381,7 +2391,8 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
                 }
             }
         }
@@ -2461,7 +2472,8 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
 
                     if (emptyBrace != null)
                     {
@@ -2539,7 +2551,8 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
                 }
             }
         }
@@ -2604,7 +2617,8 @@ ModuleInitializerClass_Added:
                     {
                         initSetter.Dispose();
                         initSetter = null;
-                        ssb.AppendLine($"{x.SetterDelegateIdentifier}!({destObject}, vd);"); // reverse
+                        var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);"); // reverse
 
                         if (emptyBrace != null)
                         {
@@ -2706,7 +2720,8 @@ ModuleInitializerClass_Added:
             if (x.RequiresGetter)
             {
                 v1 = ssb.ScopeBrace(string.Empty);
-                ssb.AppendLine($"var vd = {x.GetterDelegateIdentifier}!({ssb.FullObject});");
+                var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                ssb.AppendLine($"var vd = {prefix}{x.GetterDelegateIdentifier}!({ssb.FullObject});");
                 v2 = ssb.ScopeFullObject("vd");
             }
             else

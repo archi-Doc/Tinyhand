@@ -22,6 +22,8 @@ namespace Tinyhand.Generator
 
         public List<string> ModuleInitializerClass { get; } = new();
 
+        public bool GeneratingStaticMethod { get; set; }
+
         public bool TryGetBlock(string blockKey, out GeneratorBlock block) => this.keyToBlock.TryGetValue(blockKey, out block);
 
         public bool CreateBlock(string blockKey, out GeneratorBlock block)
