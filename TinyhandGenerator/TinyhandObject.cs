@@ -911,7 +911,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.CloneTarget))
                 {
-                    if (parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&
+                    if (/*parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&*/
                     this.TypeObjectWithNullable != null &&
                     this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
 CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
