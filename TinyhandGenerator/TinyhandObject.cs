@@ -1442,7 +1442,7 @@ ModuleInitializerClass_Added:
                     x.Generate2(ssb, info);
                 }
 
-                if (this.ObjectAttribute != null && info.UseMemberNotNull)
+                /*if (this.ObjectAttribute != null && info.UseMemberNotNull)
                 {// MemberNotNull
                     if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
                     {
@@ -1452,7 +1452,7 @@ ModuleInitializerClass_Added:
                     {
                         this.GenerateMemberNotNull_StaticMethod(ssb, info);
                     }
-                }
+                }*/
 
                 // StringKey fields
                 this.GenerateStringKeyFields(ssb, info);
