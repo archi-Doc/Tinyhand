@@ -910,12 +910,16 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 }
 
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.CloneTarget))
-                {
+                {// Exclude clone target
                     if (/*parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&*/
                     this.TypeObjectWithNullable != null &&
                     this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
 CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                     {// No Coder or Formatter
+                        this.ObjectFlag &= ~TinyhandObjectFlag.CloneTarget;
+                    }
+                    else if (this.IgnoreMemberAttribute != null)
+                    {// [IgnoreMember]
                         this.ObjectFlag &= ~TinyhandObjectFlag.CloneTarget;
                     }
                 }
