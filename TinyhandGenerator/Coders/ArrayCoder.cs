@@ -120,7 +120,6 @@ namespace Tinyhand.Coders
             ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullNameWithNullable}[]>().Clone({sourceObject}, options)!;");
         }
 
-        // [MemberNotNull(nameof(block))]
         private void GenerateMethod(GeneratorInformation info)
         {
             var key = this.element.FullNameWithNullable;

@@ -910,12 +910,16 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 }
 
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.CloneTarget))
-                {
-                    if (parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&
+                {// Exclude clone target
+                    if (/*parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&*/
                     this.TypeObjectWithNullable != null &&
                     this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
 CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                     {// No Coder or Formatter
+                        this.ObjectFlag &= ~TinyhandObjectFlag.CloneTarget;
+                    }
+                    else if (this.IgnoreMemberAttribute != null)
+                    {// [IgnoreMember]
                         this.ObjectFlag &= ~TinyhandObjectFlag.CloneTarget;
                     }
                 }
@@ -1442,7 +1446,7 @@ ModuleInitializerClass_Added:
                     x.Generate2(ssb, info);
                 }
 
-                if (this.ObjectAttribute != null && info.UseMemberNotNull)
+                /*if (this.ObjectAttribute != null && info.UseMemberNotNull)
                 {// MemberNotNull
                     if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
                     {
@@ -1452,7 +1456,7 @@ ModuleInitializerClass_Added:
                     {
                         this.GenerateMemberNotNull_StaticMethod(ssb, info);
                     }
-                }
+                }*/
 
                 // StringKey fields
                 this.GenerateStringKeyFields(ssb, info);
