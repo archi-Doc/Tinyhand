@@ -516,7 +516,7 @@ public partial class SomeClass
 
 Above code causes an exception during source code generation since Tinyhand doesn't know how to create an instance.
 
-But by setting `TinyhandSerializer.ServiceProvider`and  `UseServiceProvider` to true, Tinyhand can create an instance without default constructor.
+By setting `TinyhandSerializer.ServiceProvider`and  `UseServiceProvider` to true, Tinyhand can create an instance without default constructor.
 
 ```csharp
 [TinyhandObject(UseServiceProvider = true)]
@@ -529,7 +529,7 @@ public partial class SomeClass
 ```
 
  ```csharp
- TinyhandSerializer.ServiceProvider = container;
+ TinyhandSerializer.ServiceProvider = someContainer;
  var c = TinyhandSerializer.Deserialize<SomeClass>(b);
  ```
 
