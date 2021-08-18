@@ -254,7 +254,7 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                return new Uri(reader.ReadString(), UriKind.RelativeOrAbsolute);
+                return new Uri(reader.ReadString() ?? string.Empty, UriKind.RelativeOrAbsolute);
             }
         }
 
@@ -294,7 +294,7 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                return new Version(reader.ReadString());
+                return new Version(reader.ReadString() ?? string.Empty);
             }
         }
 
@@ -601,7 +601,7 @@ namespace Tinyhand.Formatters
                 return null;
             }
 
-            return (T)Type.GetType(reader.ReadString(), throwOnError: true);
+            return (T?)Type.GetType(reader.ReadString() ?? string.Empty, throwOnError: true);
         }
 
         public T Reconstruct(TinyhandSerializerOptions options)
@@ -609,6 +609,6 @@ namespace Tinyhand.Formatters
             return (T)typeof(object);
         }
 
-        public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : (T)Type.GetType(value.AssemblyQualifiedName, throwOnError: true);
+        public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : (T?)Type.GetType(value.AssemblyQualifiedName ?? string.Empty, throwOnError: true);
     }
 }

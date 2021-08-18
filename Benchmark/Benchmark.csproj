@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <LangVersion>9.0</LangVersion>
-    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>default</LangVersion>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.0" />
-    <PackageReference Include="MessagePack" Version="2.2.85" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+    <PackageReference Include="MessagePack" Version="2.3.75" />
     <PackageReference Include="protobuf-net" Version="3.0.101" />
   </ItemGroup>
 

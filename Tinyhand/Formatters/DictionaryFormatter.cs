@@ -193,6 +193,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class DictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, Dictionary<TKey, TValue>, Dictionary<TKey, TValue>.Enumerator, Dictionary<TKey, TValue>>
+        where TKey : notnull
     {
         protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
         {
@@ -230,6 +231,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class InterfaceDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, Dictionary<TKey, TValue>, IDictionary<TKey, TValue>>
+        where TKey : notnull
     {
         protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
         {
@@ -248,6 +250,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class SortedListFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, SortedList<TKey, TValue>>
+        where TKey : notnull
     {
         protected override void Add(SortedList<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
         {
@@ -261,6 +264,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class SortedDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, SortedDictionary<TKey, TValue>, SortedDictionary<TKey, TValue>.Enumerator, SortedDictionary<TKey, TValue>>
+        where TKey : notnull
     {
         protected override void Add(SortedDictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
         {
@@ -284,6 +288,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class ReadOnlyDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, Dictionary<TKey, TValue>, ReadOnlyDictionary<TKey, TValue>>
+        where TKey : notnull
     {
         protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
         {
@@ -302,6 +307,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class InterfaceReadOnlyDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, Dictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>>
+        where TKey : notnull
     {
         protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
         {
@@ -320,6 +326,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class ConcurrentDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, System.Collections.Concurrent.ConcurrentDictionary<TKey, TValue>>
+        where TKey : notnull
     {
         protected override void Add(ConcurrentDictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
         {

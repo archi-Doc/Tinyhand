@@ -30,7 +30,7 @@ namespace Tinyhand.Formatters
                 IFormatterResolver resolver = options.Resolver;
                 ITinyhandFormatter<string> keyFormatter = resolver.GetFormatter<string>();
                 ITinyhandFormatter<object> valueFormatter = resolver.GetFormatter<object>();
-                IDictionary<string, object> dictionary = result;
+                IDictionary<string, object> dictionary = result!;
 
                 options.Security.DepthStep(ref reader);
                 try
@@ -59,7 +59,7 @@ namespace Tinyhand.Formatters
             }
             else
             {
-                var dict = (IDictionary<string, object>)value;
+                var dict = (IDictionary<string, object>)value!;
                 var keyFormatter = options.Resolver.GetFormatter<string>();
                 var valueFormatter = options.Resolver.GetFormatter<object>();
 
@@ -85,7 +85,7 @@ namespace Tinyhand.Formatters
             }
 
             var result = new ExpandoObject();
-            var dict = (IDictionary<string, object>)value;
+            var dict = (IDictionary<string, object>)value!;
 
             if (dict.Count > 0)
             {
