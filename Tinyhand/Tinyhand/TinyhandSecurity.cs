@@ -242,9 +242,9 @@ namespace Tinyhand
         {
             internal static readonly CollisionResistantHasher<T> Instance = new CollisionResistantHasher<T>();
 
-            public bool Equals(T x, T y) => EqualityComparer<T>.Default.Equals(x, y);
+            public bool Equals(T? x, T? y) => EqualityComparer<T>.Default.Equals(x, y);
 
-            bool IEqualityComparer.Equals(object x, object y) => ((IEqualityComparer)EqualityComparer<T>.Default).Equals(x, y);
+            bool IEqualityComparer.Equals(object? x, object? y) => ((IEqualityComparer)EqualityComparer<T>.Default).Equals(x, y);
 
             public int GetHashCode(object obj) => this.GetHashCode((T)obj);
 
@@ -266,9 +266,9 @@ namespace Tinyhand
                 this.security = security ?? throw new ArgumentNullException(nameof(security));
             }
 
-            bool IEqualityComparer<object>.Equals(object x, object y) => EqualityComparer<object>.Default.Equals(x, y);
+            bool IEqualityComparer<object>.Equals(object? x, object? y) => EqualityComparer<object>.Default.Equals(x, y);
 
-            bool IEqualityComparer.Equals(object x, object y) => ((IEqualityComparer)EqualityComparer<object>.Default).Equals(x, y);
+            bool IEqualityComparer.Equals(object? x, object? y) => ((IEqualityComparer)EqualityComparer<object>.Default).Equals(x, y);
 
             public int GetHashCode(object value)
             {
@@ -290,11 +290,13 @@ namespace Tinyhand
                 {
                     try
                     {
-                        equalityComparer = (IEqualityComparer)GetHashCollisionResistantEqualityComparerOpenGenericMethod.MakeGenericMethod(valueType).Invoke(this.security, Array.Empty<object>());
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
+                        equalityComparer = (IEqualityComparer)GetHashCollisionResistantEqualityComparerOpenGenericMethod.MakeGenericMethod(valueType).Invoke(this.security, Array.Empty<object>())!;
+#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
                     }
                     catch (TargetInvocationException ex)
                     {
-                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                        ExceptionDispatchInfo.Capture(ex.InnerException!).Throw();
                     }
 
                     this.equalityComparerCache.TryAdd(valueType, equalityComparer);

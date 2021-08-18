@@ -5,6 +5,8 @@ using System.Dynamic;
 using Tinyhand.Formatters;
 using Tinyhand.IO;
 
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
+
 namespace Tinyhand.Resolvers
 {
     /// <summary>
@@ -42,7 +44,7 @@ namespace Tinyhand.Resolvers
             {
                 var keyFormatter = options.Resolver.GetFormatter<string>();
                 var objectFormatter = options.Resolver.GetFormatter<object>();
-                IDictionary<string, object> dictionary = new ExpandoObject();
+                IDictionary<string, object> dictionary = new ExpandoObject()!;
                 for (int i = 0; i < length; i++)
                 {
                     var key = keyFormatter.Deserialize(ref reader, options);

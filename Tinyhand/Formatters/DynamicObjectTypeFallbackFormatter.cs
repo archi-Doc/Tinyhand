@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Tinyhand.IO;
 
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
+
 namespace Tinyhand.Formatters
 {
     /// <summary>
@@ -64,7 +66,7 @@ namespace Tinyhand.Formatters
                         ParameterExpression param2 = Expression.Parameter(typeof(object), "value");
                         ParameterExpression param3 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
 
-                        MethodInfo serializeMethodInfo = formatterType.GetRuntimeMethod("Serialize", new[] { typeof(TinyhandWriter).MakeByRefType(), type, typeof(TinyhandSerializerOptions) });
+                        MethodInfo serializeMethodInfo = formatterType.GetRuntimeMethod("Serialize", new[] { typeof(TinyhandWriter).MakeByRefType(), type, typeof(TinyhandSerializerOptions) })!;
 
                         MethodCallExpression body = Expression.Call(
                             Expression.Convert(param0, formatterType),

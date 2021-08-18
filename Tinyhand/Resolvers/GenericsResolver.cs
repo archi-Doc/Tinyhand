@@ -11,6 +11,7 @@ using System.Reflection;
 using Tinyhand.Formatters;
 using Tinyhand.Internal;
 
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 #pragma warning disable SA1401 // Fields should be private
 
 namespace Tinyhand.Resolvers
@@ -112,19 +113,19 @@ namespace Tinyhand.Internal
                         return ByteArrayFormatter.Instance;
                     }
 
-                    return Activator.CreateInstance(typeof(ArrayFormatter<>).MakeGenericType(t.GetElementType()));
+                    return Activator.CreateInstance(typeof(ArrayFormatter<>).MakeGenericType(t.GetElementType()!));
                 }
                 else if (rank == 2)
                 {
-                    return Activator.CreateInstance(typeof(TwoDimensionalArrayFormatter<>).MakeGenericType(t.GetElementType()));
+                    return Activator.CreateInstance(typeof(TwoDimensionalArrayFormatter<>).MakeGenericType(t.GetElementType()!));
                 }
                 else if (rank == 3)
                 {
-                    return Activator.CreateInstance(typeof(ThreeDimensionalArrayFormatter<>).MakeGenericType(t.GetElementType()));
+                    return Activator.CreateInstance(typeof(ThreeDimensionalArrayFormatter<>).MakeGenericType(t.GetElementType()!));
                 }
                 else if (rank == 4)
                 {
-                    return Activator.CreateInstance(typeof(FourDimensionalArrayFormatter<>).MakeGenericType(t.GetElementType()));
+                    return Activator.CreateInstance(typeof(FourDimensionalArrayFormatter<>).MakeGenericType(t.GetElementType()!));
                 }
                 else
                 {
@@ -140,7 +141,7 @@ namespace Tinyhand.Internal
                 {// KeyValuePair
                     return CreateInstance(typeof(KeyValuePairFormatter<,>), ti.GenericTypeArguments);
                 }
-                else if (ti.FullName.StartsWith("System.Tuple"))
+                else if (ti.FullName?.StartsWith("System.Tuple") == true)
                 {// Tuple
                     Type? tupleFormatterType = null;
                     switch (ti.GenericTypeArguments.Length)
@@ -178,7 +179,7 @@ namespace Tinyhand.Internal
                         return CreateInstance(tupleFormatterType, ti.GenericTypeArguments);
                     }
                 }
-                else if (ti.FullName.StartsWith("System.ValueTuple"))
+                else if (ti.FullName?.StartsWith("System.ValueTuple") == true)
                 {// ValueTuple
                     Type? tupleFormatterType = null;
                     switch (ti.GenericTypeArguments.Length)
@@ -328,7 +329,7 @@ namespace Tinyhand.Internal
 
         private static object CreateInstance(Type genericType, Type[] genericTypeArguments, params object[] arguments)
         {
-            return Activator.CreateInstance(genericType.MakeGenericType(genericTypeArguments), arguments);
+            return Activator.CreateInstance(genericType.MakeGenericType(genericTypeArguments), arguments)!;
         }
     }
 }

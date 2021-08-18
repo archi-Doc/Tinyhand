@@ -31,7 +31,7 @@ namespace Tinyhand.IO
         /// <summary>
         /// Gets or sets the cancellation token for this serialization operation.
         /// </summary>
-        public CancellationToken CancellationToken { get; set; }
+        public CancellationToken CancellationToken { get; set; } = default;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct,

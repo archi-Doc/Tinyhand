@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using Tinyhand.Internal;
 using Tinyhand.IO;
 
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
+
 namespace Tinyhand
 {
     /// <summary>
@@ -67,7 +69,7 @@ namespace Tinyhand
         private static readonly ThreadsafeTypeKeyHashTable<Func<IFormatterResolver, ITinyhandFormatter>> FormatterGetters =
             new ThreadsafeTypeKeyHashTable<Func<IFormatterResolver, ITinyhandFormatter>>();
 
-        private static readonly MethodInfo GetFormatterRuntimeMethod = typeof(IFormatterResolver).GetRuntimeMethod(nameof(IFormatterResolver.TryGetFormatter), Type.EmptyTypes);
+        private static readonly MethodInfo GetFormatterRuntimeMethod = typeof(IFormatterResolver).GetRuntimeMethod(nameof(IFormatterResolver.TryGetFormatter), Type.EmptyTypes)!;
 
         public static object TryGetFormatterDynamic(this IFormatterResolver resolver, Type type)
         {

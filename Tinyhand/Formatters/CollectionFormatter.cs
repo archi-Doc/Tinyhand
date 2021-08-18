@@ -278,7 +278,7 @@ namespace Tinyhand.Formatters
 
         public ReadOnlySequence<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
         {
-            return new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options));
+            return new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options) ?? Array.Empty<T>());
         }
 
         public ReadOnlySequence<T> Reconstruct(TinyhandSerializerOptions options)
@@ -286,7 +286,7 @@ namespace Tinyhand.Formatters
             return ReadOnlySequence<T>.Empty;
         }
 
-        public ReadOnlySequence<T> Clone(ReadOnlySequence<T> value, TinyhandSerializerOptions options) => new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options));
+        public ReadOnlySequence<T> Clone(ReadOnlySequence<T> value, TinyhandSerializerOptions options) => new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options) ?? Array.Empty<T>());
     }
 
     public sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment<T>>
@@ -918,6 +918,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class InterfaceLookupFormatter<TKey, TElement> : CollectionFormatterBase<IGrouping<TKey, TElement>, Dictionary<TKey, IGrouping<TKey, TElement>>, ILookup<TKey, TElement>>
+        where TKey : notnull
     {
         protected override void Add(Dictionary<TKey, IGrouping<TKey, TElement>> collection, int index, IGrouping<TKey, TElement> value, TinyhandSerializerOptions options)
         {
@@ -966,6 +967,7 @@ namespace Tinyhand.Formatters
     }
 
     internal class Lookup<TKey, TElement> : ILookup<TKey, TElement>
+        where TKey : notnull
     {
         private readonly Dictionary<TKey, IGrouping<TKey, TElement>> groupings;
 
@@ -1398,7 +1400,7 @@ namespace Tinyhand.Formatters
                 for (int i = 0; i < count; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    var key = formatter.Deserialize(ref reader, options);
+                    var key = formatter.Deserialize(ref reader, options)!;
                     var value = formatter.Deserialize(ref reader, options);
                     dict.Add(key, value);
                 }
@@ -1429,7 +1431,7 @@ namespace Tinyhand.Formatters
             var dict = CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(count, options.Security.GetEqualityComparer());
             foreach (DictionaryEntry item in value)
             {
-                dict.Add(formatter.Clone(item.Key, options), formatter.Clone(item.Value, options));
+                dict.Add(formatter.Clone(item.Key, options) ?? formatter.Reconstruct(options), formatter.Clone(item.Value, options));
             }
 
             return dict;

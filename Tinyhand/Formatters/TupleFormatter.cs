@@ -523,6 +523,7 @@ namespace Tinyhand.Formatters
     }
 
     public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>>
+        where TRest : notnull
     {
         public void Serialize(ref TinyhandWriter writer, Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? value, TinyhandSerializerOptions options)
         {

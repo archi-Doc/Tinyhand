@@ -715,7 +715,7 @@ namespace Tinyhand.IO
         {
             if (this.NextMessagePackType == MessagePackType.String)
             {
-                return DateTime.Parse(this.ReadString(), CultureInfo.InvariantCulture).ToUniversalTime();
+                return DateTime.Parse(this.ReadString() ?? string.Empty, CultureInfo.InvariantCulture).ToUniversalTime();
             }
 
             return this.ReadDateTime(this.ReadExtensionFormatHeader());
