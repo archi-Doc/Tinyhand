@@ -1,0 +1,63 @@
+﻿// Copyright (c) All contributors. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using Tinyhand.Formatters;
+using Tinyhand.IO;
+using Xunit;
+
+namespace Tinyhand.Tests
+{
+    [TinyhandObject(ImplicitKeyAsName = true)]
+    public partial class ExtraFormatterClass
+    {
+        public ExtraFormatterClass()
+        {
+            this.IPv4 = IPAddress.Parse("192.168.0.1");
+            this.IPv6 = IPAddress.Parse("2001:0db8:1234:5678:90ab:cdef:0000:0000");
+            this.IPArray = new IPAddress?[] { this.IPv4, this.IPv6, IPNull, };
+        }
+
+        public IPAddress IPv4 { get; set; }
+
+        public IPAddress IPv6 { get; set; }
+
+        public IPAddress? IPNull { get; set; } = default!;
+
+        public IPAddress?[] IPArray { get; set; }
+    }
+
+    public class ExtraFormattersTest
+    {
+        [Fact]
+        public void IPAddressTest()
+        {
+            var address = IPAddress.IPv6Loopback;
+            var b = TinyhandSerializer.Serialize(address);
+            var address2 = TinyhandSerializer.Deserialize<IPAddress>(b);
+            address.Is(address2);
+        }
+
+        [Fact]
+        public void ClassTest()
+        {
+            var c = new ExtraFormatterClass();
+            var b = TinyhandSerializer.Serialize(c);
+            var c2 = TinyhandSerializer.Deserialize<ExtraFormatterClass>(b);
+
+            // c.IsStructuralEqual(c2);
+            c.IPv4.Is(c2.IPv4);
+            c.IPv6.Is(c2.IPv6);
+            c.IPNull.Is(c2.IPNull);
+            for (var n = 0; n < c.IPArray.Length; n++)
+            {
+                c.IPArray[n].Is(c2.IPArray[n]);
+            }
+        }
+    }
+}
