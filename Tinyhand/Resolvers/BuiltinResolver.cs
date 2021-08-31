@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Tinyhand.Formatters;
@@ -120,6 +121,9 @@ namespace Tinyhand.Resolvers
             { typeof(ReadOnlySequence<byte>?), new StaticNullableFormatter<ReadOnlySequence<byte>>(ByteReadOnlySequenceFormatter.Instance) },
             { typeof(ArraySegment<byte>), ByteArraySegmentFormatter.Instance },
             { typeof(ArraySegment<byte>?), new StaticNullableFormatter<ArraySegment<byte>>(ByteArraySegmentFormatter.Instance) },
+
+            // Extra
+            { typeof(IPAddress), IPAddressFormatter.Instance },
         };
 
         private BuiltinResolver()
