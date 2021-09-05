@@ -242,7 +242,7 @@ namespace Tinyhand
         {
             internal static readonly CollisionResistantHasher<T> Instance = new CollisionResistantHasher<T>();
 
-            public bool Equals(T? x, T? y) => EqualityComparer<T>.Default.Equals(x, y);
+            public bool Equals(T? x, T? y) => EqualityComparer<T>.Default.Equals(x!, y!);
 
             bool IEqualityComparer.Equals(object? x, object? y) => ((IEqualityComparer)EqualityComparer<T>.Default).Equals(x, y);
 
@@ -266,7 +266,7 @@ namespace Tinyhand
                 this.security = security ?? throw new ArgumentNullException(nameof(security));
             }
 
-            bool IEqualityComparer<object>.Equals(object? x, object? y) => EqualityComparer<object>.Default.Equals(x, y);
+            bool IEqualityComparer<object>.Equals(object? x, object? y) => EqualityComparer<object>.Default.Equals(x!, y!);
 
             bool IEqualityComparer.Equals(object? x, object? y) => ((IEqualityComparer)EqualityComparer<object>.Default).Equals(x, y);
 

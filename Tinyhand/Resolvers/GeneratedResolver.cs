@@ -48,6 +48,11 @@ namespace Tinyhand.Resolvers
             }
 
             var targetType = typeof(T);
+            if (!targetType.IsGenericType)
+            {
+                return null;
+            }
+
             var genericType = targetType.GetGenericTypeDefinition();
             if (this.formatterGenerator.TryGetValue(genericType, out var info))
             {
