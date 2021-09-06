@@ -50,10 +50,11 @@ namespace Benchmark
             Console.WriteLine(Stopwatch.ToSimpleString());
             Console.WriteLine();
 
-            DebugRun<TypeSwitch.SwitchBenchmark>();
+            DebugRun<DualWriter.DualWriterBenchmark>();
 
             var switcher = new BenchmarkSwitcher(new[]
             {
+                typeof(DualWriter.DualWriterBenchmark),
                 typeof(TypeSwitch.SwitchBenchmark),
                 typeof(Clone.CloneBenchmark),
                 typeof(InitOnly.InitOnlyBenchmark),
