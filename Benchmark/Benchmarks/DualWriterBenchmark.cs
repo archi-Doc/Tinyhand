@@ -33,7 +33,7 @@ namespace Benchmark.DualWriter
         }
 
         public unsafe void WriteInt32(int value)
-        {
+        {// Pure byte[] writer is fast, but
             fixed (byte* p = &this.dualBuffer[this.dualSize])
             {
                 p[0] = MessagePackCode.Int32;
@@ -44,7 +44,7 @@ namespace Benchmark.DualWriter
         }
 
         public unsafe void WriteInt32B(int value)
-        {
+        {// Adding some features reduces the performance to almost the same level of current TinyhandWriter...
             if (this.CheckDualBuffer(5))
             {
                 fixed (byte* p = &this.dualBuffer![this.dualSize])
