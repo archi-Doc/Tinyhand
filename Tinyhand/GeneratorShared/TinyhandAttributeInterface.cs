@@ -46,10 +46,31 @@ namespace Tinyhand
         /// </summary>
         public bool UseServiceProvider { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets the number of reserved keys for the future use.<br/>
+        /// Derived classes cannot use reserved keys (from 0 to ReservedKeys).
+        /// </summary>
+        public int ReservedKeys { get; set; } = -1;
+
         public TinyhandObjectAttribute()
         {
         }
     }
+
+    /*/// <summary>
+    /// Reserves keys (from 0 to numberOfKeys) for the future use.<br/>
+    /// Derives classes cannot use reserved keys.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = true)]
+    public sealed class ReserveKeyAttribute : Attribute
+    {
+        public ReserveKeyAttribute(int numberOfKeys)
+        {
+            this.NumberOfKeys = numberOfKeys;
+        }
+
+        public int NumberOfKeys { get; private set; }
+    }*/
 
     /// <summary>
     /// Adds the member to the serialization target and specify the Key (integer or string).
