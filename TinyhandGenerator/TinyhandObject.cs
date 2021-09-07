@@ -825,6 +825,19 @@ namespace Tinyhand.Generator
 
         private void CheckObject_IntKey()
         {
+            // Reserved keys
+            var reservedKeys = -1;
+            var baseObject = this.BaseObject;
+            while (baseObject != null)
+            {
+                if (baseObject.ObjectAttribute?.ReservedKeys is int key && key >= 0)
+                {
+                    reservedKeys = Math.Max(reservedKeys, key);
+                }
+
+                baseObject = baseObject.BaseObject;
+            }
+
             // Integer key
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
             {
@@ -849,7 +862,11 @@ namespace Tinyhand.Generator
             {
                 if (x.KeyAttribute?.IntKey is int i && i >= 0 && i <= TinyhandBody.MaxIntegerKey)
                 {
-                    if (this.IntKey_Array[i] != null)
+                    if (i <= reservedKeys && x.ContainingObject == this)
+                    {// Reserved
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyReserved, x.KeyVisceralAttribute?.Location, reservedKeys);
+                    }
+                    else if (this.IntKey_Array[i] != null)
                     {// Conflict
                         this.IntKey_Array[i].ObjectFlag |= TinyhandObjectFlag.IntKeyConflicted;
                         x.ObjectFlag |= TinyhandObjectFlag.IntKeyConflicted;
@@ -866,7 +883,8 @@ namespace Tinyhand.Generator
                 this.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyConflicted, x.KeyVisceralAttribute?.Location);
             }
 
-            if (this.IntKey_Max >= 10 && this.IntKey_Max > (this.IntKey_Number * 2))
+            var unusedKeys = this.IntKey_Max - (reservedKeys + 1);
+            if (unusedKeys >= 10 && unusedKeys > (this.IntKey_Number * 2))
             {// Too many unused key.
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_IntKeyUnused, this.Location);
             }

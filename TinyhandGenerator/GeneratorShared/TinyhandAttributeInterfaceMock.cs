@@ -73,6 +73,12 @@ namespace Tinyhand.Generator
         /// </summary>
         public bool UseServiceProvider { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets the number of reserved keys for the future use.<br/>
+        /// Derived classes cannot use reserved keys (from 0 to ReservedKeys).
+        /// </summary>
+        public int ReservedKeys { get; set; } = -1;
+
         public TinyhandObjectAttributeMock()
         {
         }
@@ -128,6 +134,12 @@ namespace Tinyhand.Generator
             if (val != null)
             {
                 attribute.UseServiceProvider = (bool)val;
+            }
+
+            val = AttributeHelper.GetValue(-1, nameof(ReservedKeys), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.ReservedKeys = (int)val;
             }
 
             return attribute;

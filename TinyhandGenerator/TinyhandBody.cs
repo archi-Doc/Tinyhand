@@ -176,6 +176,10 @@ namespace Tinyhand.Generator
             id: "TG038", title: "UnionTo error", messageFormat: "The base type of TinyhandUnionToAttribute must be annotated with TinyhandObjectAttribute and must be an abstract class or interface",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Error_IntKeyReserved = new DiagnosticDescriptor(
+            id: "TG039", title: "Int Key reserved", messageFormat: "Integer keys from 0 to {0} are reserved in base class",
+            category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {
