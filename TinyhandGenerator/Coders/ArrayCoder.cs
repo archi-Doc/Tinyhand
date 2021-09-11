@@ -89,7 +89,7 @@ namespace Tinyhand.Coders
                 {
                     using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
                     {
-                        ssb.AppendLine($"{ssb.FullObject} = System.Array.Empty<{this.element.FullNameWithNullable}>();");
+                        ssb.AppendLine($"{ssb.FullObject} = global::System.Array.Empty<{this.element.FullNameWithNullable}>();");
                     }
 
                     using (var b = ssb.ScopeBrace($"else"))
@@ -106,13 +106,13 @@ namespace Tinyhand.Coders
 
             void CodeDeserializerNonNullable()
             {
-                ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options) ?? System.Array.Empty<{this.element.FullNameWithNullable}>();");
+                ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options) ?? global::System.Array.Empty<{this.element.FullNameWithNullable}>();");
             }
         }
 
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            ssb.AppendLine($"{ssb.FullObject} = System.Array.Empty<{this.element.FullName}>();");
+            ssb.AppendLine($"{ssb.FullObject} = global::System.Array.Empty<{this.element.FullName}>();");
         }
 
         public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -256,7 +256,7 @@ namespace Tinyhand.Coders
 
         public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
         {
-            ssb.AppendLine($"{ssb.FullObject} = System.Array.Empty<{this.element.FullName}>();");
+            ssb.AppendLine($"{ssb.FullObject} = global::System.Array.Empty<{this.element.FullName}>();");
         }
 
         public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
