@@ -22,6 +22,8 @@ namespace Tinyhand.Generator
 
         public string? CustomNamespace { get; private set; }
 
+        public bool UseModuleInitializer { get; set; } = true;
+
         public bool MemberNotNullIsAvailable { get; private set; } = false;
 
         public bool ModuleInitializerIsAvailable { get; private set; } = false;
@@ -252,6 +254,7 @@ namespace Tinyhand.Generator
                     this.AttachDebugger = ta.AttachDebugger;
                     this.GenerateToFile = ta.GenerateToFile;
                     this.CustomNamespace = ta.CustomNamespace;
+                    this.UseModuleInitializer = ta.UseModuleInitializer;
                     this.TargetFolder = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(receiver.GeneratorOptionSyntax.SyntaxTree.FilePath), "Generated");
                 }
             }

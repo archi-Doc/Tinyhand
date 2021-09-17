@@ -195,7 +195,7 @@ namespace Tinyhand.Generator
             GeneratorInformation info = new()
             {
                 UseMemberNotNull = generator.MemberNotNullIsAvailable,
-                UseModuleInitializer = generator.ModuleInitializerIsAvailable,
+                UseModuleInitializer = generator.ModuleInitializerIsAvailable && generator.UseModuleInitializer,
             };
             List<TinyhandObject> rootObjects = new();
 

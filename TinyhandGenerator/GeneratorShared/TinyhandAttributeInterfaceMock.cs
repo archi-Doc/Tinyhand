@@ -294,6 +294,8 @@ namespace Tinyhand.Generator
 
         public string? CustomNamespace { get; set; }
 
+        public bool UseModuleInitializer { get; set; } = true;
+
         public static TinyhandGeneratorOptionAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
         {
             var attribute = new TinyhandGeneratorOptionAttributeMock();
@@ -315,6 +317,12 @@ namespace Tinyhand.Generator
             if (val != null)
             {
                 attribute.CustomNamespace = (string)val;
+            }
+
+            val = AttributeHelper.GetValue(-1, nameof(UseModuleInitializer), constructorArguments, namedArguments);
+            if (val != null)
+            {
+                attribute.UseModuleInitializer = (bool)val;
             }
 
             return attribute;
