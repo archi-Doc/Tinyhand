@@ -52,6 +52,11 @@ namespace Arc.Visceral
 
         public bool AddDiagnostic(DiagnosticDescriptor descriptor, Location? location, params object?[]? messageArgs)
         {
+            if (descriptor.DefaultSeverity == DiagnosticSeverity.Error)
+            {
+                this.Abort = true; // Abort the process if an error occurred.
+            }
+
             return this.DiagnosticItems.Add(new DiagnosticIdentification(descriptor, location, messageArgs));
         }
 
@@ -356,8 +361,8 @@ namespace Arc.Visceral
 
             if (nameFormat == NameFormat.AddNamespaceAndClass)
             {// Add Namespace
-                var ns = symbol.ContainingNamespace.ToDisplayString();
-                if (ns.Length > 0)
+                var ns = symbol.ContainingNamespace?.ToDisplayString();
+                if (ns != null && ns.Length > 0)
                 {
                     result = ns + "." + result;
                 }
