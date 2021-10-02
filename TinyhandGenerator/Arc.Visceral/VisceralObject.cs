@@ -2398,6 +2398,23 @@ namespace Arc.Visceral
             }
         }
 
+        public T? Method_ReturnObject
+        {
+            get
+            {
+                if (this.symbol is IMethodSymbol ms)
+                {
+                    return this.Body.Add(ms.ReturnType);
+                }
+                else if (this.memberInfo is MethodInfo mi)
+                {
+                    return this.Body.Add(mi.ReturnType);
+                }
+
+                return null;
+            }
+        }
+
         public T? Array_Element
         {
             get
@@ -2501,6 +2518,42 @@ namespace Arc.Visceral
                 }
 
                 return false;
+            }
+        }
+
+        public Accessibility Field_Accessibility
+        {
+            get
+            {
+                if (this.symbol is IFieldSymbol fs)
+                {
+                    return fs.DeclaredAccessibility;
+                }
+                else if (this.memberInfo is FieldInfo fi)
+                {
+                    return VisceralHelper.FieldInfoToAccessibility(fi);
+                }
+
+                return Accessibility.NotApplicable;
+            }
+        }
+
+        public (Accessibility getter, Accessibility setter) Property_Accessibility
+        {
+            get
+            {
+                if (this.symbol is IPropertySymbol ps)
+                {
+                    return (ps.GetMethod == null ? Accessibility.NotApplicable : ps.GetMethod.DeclaredAccessibility,
+                        ps.SetMethod == null ? Accessibility.NotApplicable : ps.SetMethod.DeclaredAccessibility);
+                }
+                else if (this.memberInfo is PropertyInfo pi)
+                {
+                    return (VisceralHelper.MethodBaseToAccessibility(pi.GetMethod),
+                        VisceralHelper.MethodBaseToAccessibility(pi.SetMethod));
+                }
+
+                return (Accessibility.NotApplicable, Accessibility.NotApplicable);
             }
         }
 
