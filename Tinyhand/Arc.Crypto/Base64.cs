@@ -18,12 +18,12 @@ using System.Runtime.InteropServices;
  * @neuecc Thanks a lot!
 */
 
-namespace Arc.Crypto
-{
+namespace Tinyhand;
+
     /// <summary>
     /// Base64 encoding/decoding class.
     /// </summary>
-    public static unsafe class Base64
+    internal static unsafe class Base64
     { // Encode/Decode Base64.
         private const int StackallocThreshold = 1024;
 
@@ -686,4 +686,3 @@ namespace Arc.Crypto
 #pragma warning restore CS0675
 
     }
-}

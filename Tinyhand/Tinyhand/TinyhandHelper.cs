@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Arc.Crypto;
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly
 #pragma warning disable SA1201 // Elements should appear in the correct order
