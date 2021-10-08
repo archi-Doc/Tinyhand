@@ -7,12 +7,12 @@ using System.Runtime.InteropServices;
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1310 // Field names should not contain underscore
 
-namespace Arc.Crypto
-{
+namespace Tinyhand;
+
     /// <summary>
     /// FarmHash 64bit Class.
     /// </summary>
-    public class FarmHash : IHash
+    internal class FarmHash : IHash
     {
         // Magic numbers for 32-bit hashing.  Copied from Murmur3.
         private const uint C1 = 0xcc9e2d51;
@@ -809,4 +809,3 @@ namespace Arc.Crypto
             public ulong mul;
         }
     }
-}

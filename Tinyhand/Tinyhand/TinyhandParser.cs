@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Arc.Crypto;
 using Tinyhand.Tree;
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly

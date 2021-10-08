@@ -2,12 +2,12 @@
 
 using System;
 
-namespace Arc.Crypto
-{
+namespace Tinyhand;
+
     /// <summary>
     /// Hash interface.
     /// </summary>
-    public interface IHash
+    internal interface IHash
     {
         /// <summary>
         /// Gets the hash name. e.g. "CRC-32", "FarmHash".
@@ -68,4 +68,3 @@ namespace Arc.Crypto
         /// <returns>A hash.</returns>
         byte[] HashFinal();
     }
-}

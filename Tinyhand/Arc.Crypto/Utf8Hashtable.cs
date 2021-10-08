@@ -8,8 +8,8 @@ using System.Linq;
 #pragma warning disable SA1401 // Fields should be private
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Arc.Crypto
-{
+namespace Tinyhand;
+
     public class Utf8Hashtable<TValue>
     { // HashTable for UTF-8 (ReadOnlySpan<byte>).
         private readonly object cs = new object();
@@ -111,7 +111,7 @@ namespace Arc.Crypto
         private bool AddKeyValue(ReadOnlySpan<byte> key, TValue value)
         { // lock(cs) required.
             var table = this.hashTable;
-            var hash = unchecked((int)Arc.Crypto.FarmHash.Hash64(key));
+            var hash = unchecked((int)FarmHash.Hash64(key));
             var h = hash & (table.Length - 1);
 
             if (table[h] == null)
@@ -170,7 +170,7 @@ namespace Arc.Crypto
         private bool AddKeyValue(byte[] key, TValue value)
         { // lock(cs) required.
             var table = this.hashTable;
-            var hash = unchecked((int)Arc.Crypto.FarmHash.Hash64(key));
+            var hash = unchecked((int)FarmHash.Hash64(key));
             var h = hash & (table.Length - 1);
 
             if (table[h] == null)
@@ -206,7 +206,7 @@ namespace Arc.Crypto
         public bool TryGetValue(ReadOnlySpan<byte> key, [MaybeNullWhen(false)] out TValue value)
         {
             var table = this.hashTable;
-            var hash = unchecked((int)Arc.Crypto.FarmHash.Hash64(key));
+            var hash = unchecked((int)FarmHash.Hash64(key));
             var item = table[hash & (table.Length - 1)];
 
             while (item != null)
@@ -256,4 +256,3 @@ namespace Arc.Crypto
             }
         }
     }
-}

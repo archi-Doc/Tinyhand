@@ -1471,7 +1471,7 @@ namespace Tinyhand.IO
 
             writer.WriteUInt8((byte)'b');
             writer.WriteUInt8(TinyhandConstants.Quote);
-            writer.WriteSpan(Arc.Crypto.Base64.EncodeToBase64Utf8(result.ToArray()));
+            writer.WriteSpan(Base64.EncodeToBase64Utf8(result.ToArray()));
             writer.WriteUInt8(TinyhandConstants.Quote);
         }
 
