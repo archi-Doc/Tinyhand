@@ -21,6 +21,7 @@ namespace Tinyhand.Tests
             this.IPv4 = IPAddress.Parse("192.168.0.1");
             this.IPv6 = IPAddress.Parse("2001:0db8:1234:5678:90ab:cdef:0000:0000");
             this.IPArray = new IPAddress?[] { this.IPv4, this.IPv6, IPNull, };
+            this.EndPoint = new(IPAddress.Parse("192.168.0.1"), 1234);
         }
 
         public IPAddress IPv4 { get; set; }
@@ -30,6 +31,8 @@ namespace Tinyhand.Tests
         public IPAddress? IPNull { get; set; } = default!;
 
         public IPAddress?[] IPArray { get; set; }
+
+        public IPEndPoint EndPoint { get; set; }
     }
 
     public class ExtraFormattersTest
@@ -41,6 +44,20 @@ namespace Tinyhand.Tests
             var b = TinyhandSerializer.Serialize(address);
             var address2 = TinyhandSerializer.Deserialize<IPAddress>(b);
             address.Is(address2);
+        }
+
+        [Fact]
+        public void IPEndPointTest()
+        {
+            var endPoint = new IPEndPoint(IPAddress.Loopback, 1234);
+            var b = TinyhandSerializer.Serialize(endPoint);
+            var endPoint2 = TinyhandSerializer.Deserialize<IPEndPoint>(b);
+            endPoint.Is(endPoint2);
+
+            endPoint = new IPEndPoint(IPAddress.IPv6Loopback, 1234);
+            b = TinyhandSerializer.Serialize(endPoint);
+            endPoint2 = TinyhandSerializer.Deserialize<IPEndPoint>(b);
+            endPoint.Is(endPoint2);
         }
 
         [Fact]
@@ -58,6 +75,8 @@ namespace Tinyhand.Tests
             {
                 c.IPArray[n].Is(c2.IPArray[n]);
             }
+
+            c.EndPoint.Is(c2.EndPoint);
         }
     }
 }

@@ -124,6 +124,7 @@ namespace Tinyhand.Resolvers
 
             // Extra
             { typeof(IPAddress), IPAddressFormatter.Instance },
+            { typeof(IPEndPoint), IPEndPointFormatter.Instance },
         };
 
         private BuiltinResolver()
