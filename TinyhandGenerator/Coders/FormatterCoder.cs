@@ -97,6 +97,7 @@ namespace Tinyhand.Coders
             this.AddGenericsType(typeof(IImmutableStack<>));
 
             this.AddFormatter(typeof(System.Net.IPAddress));
+            this.AddFormatter(typeof(System.Net.IPEndPoint));
         }
 
         public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)

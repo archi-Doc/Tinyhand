@@ -10,7 +10,7 @@ using Tinyhand.IO;
 namespace Tinyhand.Formatters
 {
     /// <summary>
-    /// Serialize by .NET native DateTime binary format.
+    /// Serialize IPAddress.
     /// </summary>
     public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
     {
@@ -61,6 +61,57 @@ namespace Tinyhand.Formatters
         }
 
         public IPAddress? Clone(IPAddress? value, TinyhandSerializerOptions options) => value == null ? null : new IPAddress(value.GetAddressBytes());
+    }
+
+    /// <summary>
+    /// Serialize IPAddress.
+    /// </summary>
+    public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
+    {
+        public static readonly IPEndPointFormatter Instance = new IPEndPointFormatter();
+
+        public void Serialize(ref TinyhandWriter writer, IPEndPoint? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                writer.WriteNil();
+                return;
+            }
+
+            var span = writer.GetSpan(32);
+            if (value.Address.TryWriteBytes(span.Slice(2), out var written))
+            {
+                span[0] = MessagePackCode.Bin8;
+                span[1] = (byte)written;
+                writer.Advance(2 + written);
+                writer.Write(value.Port);
+            }
+            else
+            {
+                writer.WriteNil();
+                return;
+            }
+        }
+
+        public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        {
+            var seq = reader.ReadBytes();
+            if (seq.HasValue)
+            {
+                return new IPEndPoint(new IPAddress(seq.Value.ToArray()), reader.ReadInt32());
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public IPEndPoint Reconstruct(TinyhandSerializerOptions options)
+        {
+            return new IPEndPoint(IPAddress.None, 0);
+        }
+
+        public IPEndPoint? Clone(IPEndPoint? value, TinyhandSerializerOptions options) => value == null ? null : new IPEndPoint(new IPAddress(value.Address.GetAddressBytes()), value.Port);
     }
 
     /*public sealed class NativeDateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
