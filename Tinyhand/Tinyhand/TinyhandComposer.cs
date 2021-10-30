@@ -24,11 +24,18 @@ namespace Tinyhand
 
     public static class TinyhandComposer
     {
+        private const int InitialBufferLength = 32 * 1024;
+
         [ThreadStatic]
-        private static byte[] initialBuffer = new byte[32 * 1024];
+        private static byte[]? initialBuffer;
 
         public static byte[] Compose(Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
         {
+            if (initialBuffer == null)
+            {
+                initialBuffer = new byte[InitialBufferLength];
+            }
+
             var writer = new TinyhandRawWriter(initialBuffer);
             try
             {
