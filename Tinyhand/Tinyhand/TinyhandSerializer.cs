@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -357,6 +358,30 @@ namespace Tinyhand
             };
 
             return Deserialize<T>(ref reader, options);
+        }
+
+        /// <summary>
+        /// Attempts to deserialize a value of a given type from a sequence of bytes.
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="buffer">The buffer to deserialize from.</param>
+        /// <param name="value">.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns><see langword="true"/> if the deserialization is successfully done; otherwise, <see langword="false"/>.</returns>
+        public static bool TryDeserialize<T>(ReadOnlyMemory<byte> buffer, [MaybeNullWhen(false)] out T? value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                value = Deserialize<T>(buffer, options, cancellationToken);
+                return value != null;
+            }
+            catch
+            {
+            }
+
+            value = default;
+            return false;
         }
 
         /// <summary>
