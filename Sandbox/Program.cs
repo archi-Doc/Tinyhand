@@ -130,6 +130,7 @@ namespace Sandbox
 
             var a = new ConsoleApp1.InternalTestClass();
             var a2 = TinyhandSerializer.Deserialize<ConsoleApp1.InternalTestClass>(TinyhandSerializer.Serialize(a));
+            TinyhandSerializer.TryDeserialize<ConsoleApp1.InternalTestClass>(TinyhandSerializer.Serialize(a), out var a3);
 
             b = new InternalTestClass2<double>();
             var b2 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
