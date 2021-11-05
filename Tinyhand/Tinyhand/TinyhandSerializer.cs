@@ -369,7 +369,7 @@ namespace Tinyhand
         /// <param name="options">The options. Use <c>null</c> to use default options.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns><see langword="true"/> if the deserialization is successfully done; otherwise, <see langword="false"/>.</returns>
-        public static bool TryDeserialize<T>(ReadOnlyMemory<byte> buffer, [MaybeNullWhen(false)] out T? value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        public static bool TryDeserialize<T>(ReadOnlyMemory<byte> buffer, [MaybeNullWhen(false)] out T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
         {
             try
             {
