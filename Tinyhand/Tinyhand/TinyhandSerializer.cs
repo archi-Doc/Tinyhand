@@ -448,12 +448,12 @@ namespace Tinyhand
         /// </summary>
         /// <typeparam name="T">The type of value to deserialize.</typeparam>
         /// <param name="buffer">The memory to deserialize from.</param>
-        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
         /// <param name="bytesRead">The number of bytes read.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The deserialized value.</returns>
         /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-        public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options, out int bytesRead, CancellationToken cancellationToken = default)
+        public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer, out int bytesRead, TinyhandSerializerOptions? options, CancellationToken cancellationToken = default)
         {
             var reader = new TinyhandReader(buffer)
             {
@@ -461,8 +461,34 @@ namespace Tinyhand
             };
 
             var result = Deserialize<T>(ref reader, options);
-            bytesRead = buffer.Slice(0, (int)reader.Consumed).Length;
+            bytesRead = (int)reader.Consumed; // buffer.Slice(0, (int)reader.Consumed).Length;
             return result;
+        }
+
+        /// <summary>
+        /// Attempts to deserialize a value of a given type from a sequence of bytes.
+        /// </summary>
+        /// <typeparam name="T">The type of value to deserialize.</typeparam>
+        /// <param name="buffer">The buffer to deserialize from.</param>
+        /// <param name="value">.</param>
+        /// <param name="bytesRead">The number of bytes read.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns><see langword="true"/> if the deserialization is successfully done; otherwise, <see langword="false"/>.</returns>
+        public static bool TryDeserialize<T>(ReadOnlyMemory<byte> buffer, [MaybeNullWhen(false)] out T value, out int bytesRead, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                value = Deserialize<T>(buffer, out bytesRead, options, cancellationToken);
+                return value != null;
+            }
+            catch
+            {
+            }
+
+            value = default;
+            bytesRead = 0;
+            return false;
         }
 
         /// <summary>
@@ -741,7 +767,7 @@ namespace Tinyhand
             cancellationToken.ThrowIfCancellationRequested();
             if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
             {
-                result = Deserialize<T>(streamBuffer.AsMemory(checked((int)ms.Position)), options, out int bytesRead, cancellationToken);
+                result = Deserialize<T>(streamBuffer.AsMemory(checked((int)ms.Position)), out int bytesRead, options, cancellationToken);
 
                 // Emulate that we had actually "read" from the stream.
                 ms.Seek(bytesRead, SeekOrigin.Current);
