@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CrossLink" Version="0.18.0" />
     <PackageReference Include="DryIoc.dll" Version="4.8.4" />
   </ItemGroup>
 
