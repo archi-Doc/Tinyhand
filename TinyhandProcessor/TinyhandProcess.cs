@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Tinyhand.Logging;
 using Tinyhand.Tree;
 
 #pragma warning disable CS1998
