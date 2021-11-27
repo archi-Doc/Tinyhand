@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -189,7 +190,7 @@ namespace Tinyhand.Generator
 
         // internal List<UnionToItem> UnionToList = new();
 
-        public void Generate(TinyhandGenerator generator)
+        public void Generate(TinyhandGenerator generator, CancellationToken cancellationToken)
         {
             ScopingStringBuilder ssb = new();
             GeneratorInformation info = new()
@@ -202,6 +203,7 @@ namespace Tinyhand.Generator
             // Namespace - Primary TinyhandObjects
             foreach (var x in this.Namespaces)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 this.GenerateHeader(ssb);
                 var ns = ssb.ScopeNamespace(x.Key);
 
@@ -232,6 +234,7 @@ namespace Tinyhand.Generator
                 }
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             this.GenerateLoader(generator, info, rootObjects);
             this.FlushDiagnostic();
         }

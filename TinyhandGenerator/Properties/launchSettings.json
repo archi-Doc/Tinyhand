@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TinyhandGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\ConsoleApp1\\ConsoleApp1.csproj"
+    }
+  }
+}
