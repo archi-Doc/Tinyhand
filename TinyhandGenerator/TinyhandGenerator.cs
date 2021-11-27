@@ -55,6 +55,7 @@ namespace Tinyhand.Generator
             try
             {
                 this.Context = context;
+                context.CancellationToken.ThrowIfCancellationRequested();
 
                 if (!(context.SyntaxReceiver is TinyhandSyntaxReceiver receiver))
                 {
@@ -92,6 +93,7 @@ namespace Tinyhand.Generator
                 }
 
                 this.Prepare(context, compilation);
+                context.CancellationToken.ThrowIfCancellationRequested();
 
                 this.body = new TinyhandBody(context);
                 receiver.Generics.Prepare(compilation);
@@ -116,14 +118,16 @@ namespace Tinyhand.Generator
                 }
 
                 this.SalvageCloseGeneric(receiver.Generics);
+                context.CancellationToken.ThrowIfCancellationRequested();
 
                 this.body.Prepare();
+                context.CancellationToken.ThrowIfCancellationRequested();
                 if (this.body.Abort)
                 {
                     return;
                 }
 
-                this.body.Generate(this);
+                this.body.Generate(this, context.CancellationToken);
             }
             catch
             {
