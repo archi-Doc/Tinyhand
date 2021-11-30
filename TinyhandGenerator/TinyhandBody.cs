@@ -186,18 +186,19 @@ namespace Tinyhand.Generator
         {
         }
 
+        public TinyhandBody(SourceProductionContext context)
+            : base(context)
+        {
+        }
+
         internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
 
         // internal List<UnionToItem> UnionToList = new();
 
-        public void Generate(TinyhandGenerator generator, CancellationToken cancellationToken)
+        public void Generate(IGeneratorInformation generator, CancellationToken cancellationToken)
         {
             ScopingStringBuilder ssb = new();
-            GeneratorInformation info = new()
-            {
-                UseMemberNotNull = generator.MemberNotNullIsAvailable,
-                UseModuleInitializer = generator.ModuleInitializerIsAvailable && generator.UseModuleInitializer,
-            };
+            GeneratorInformation info = new();
             List<TinyhandObject> rootObjects = new();
 
             // Namespace - Primary TinyhandObjects
@@ -230,7 +231,10 @@ namespace Tinyhand.Generator
                 }
                 else
                 {
-                    this.Context?.AddSource($"gen.Tinyhand.{x.Key}", SourceText.From(result, Encoding.UTF8));
+                    var hintName = $"gen.Tinyhand.{x.Key}";
+                    var sourceText = SourceText.From(result, Encoding.UTF8);
+                    this.Context?.AddSource(hintName, sourceText);
+                    this.Context2?.AddSource(hintName, sourceText);
                 }
             }
 
@@ -301,7 +305,7 @@ namespace Tinyhand.Generator
             ssb.AppendLine();
         }
 
-        private void GenerateLoader(TinyhandGenerator generator, GeneratorInformation info, List<TinyhandObject> rootObjects)
+        private void GenerateLoader(IGeneratorInformation generator, GeneratorInformation info, List<TinyhandObject> rootObjects)
         {
             var ssb = new ScopingStringBuilder();
             this.GenerateHeader(ssb);
@@ -326,11 +330,14 @@ namespace Tinyhand.Generator
             }
             else
             {
-                this.Context?.AddSource($"gen.TinyhandLoader", SourceText.From(result, Encoding.UTF8));
+                var hintName = "gen.TinyhandLoader";
+                var sourceText = SourceText.From(result, Encoding.UTF8);
+                this.Context?.AddSource(hintName, sourceText);
+                this.Context2?.AddSource(hintName, sourceText);
             }
         }
 
-        private void GenerateInitializer(TinyhandGenerator generator, ScopingStringBuilder ssb, GeneratorInformation info)
+        private void GenerateInitializer(IGeneratorInformation generator, ScopingStringBuilder ssb, GeneratorInformation info)
         {
             var ns = "Tinyhand"; // Namespace
             var assemblyId = string.Empty; // Assembly ID
@@ -355,10 +362,7 @@ namespace Tinyhand.Generator
             {
                 ssb.AppendLine("private static bool Initialized;");
                 ssb.AppendLine();
-                if (info.UseModuleInitializer)
-                {
-                    ssb.AppendLine("[ModuleInitializer]");
-                }
+                ssb.AppendLine("[ModuleInitializer]");
 
                 using (var scopeMethod = ssb.ScopeBrace("public static void Initialize()"))
                 {

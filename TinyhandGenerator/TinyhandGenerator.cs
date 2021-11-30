@@ -14,19 +14,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Tinyhand.Generator
 {
     [Generator]
-    public class TinyhandGenerator : ISourceGenerator
+    public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
     {
         public bool AttachDebugger { get; private set; } = false;
 
         public bool GenerateToFile { get; private set; } = false;
 
         public string? CustomNamespace { get; private set; }
-
-        public bool UseModuleInitializer { get; set; } = true;
-
-        public bool MemberNotNullIsAvailable { get; private set; } = false;
-
-        public bool ModuleInitializerIsAvailable { get; private set; } = false;
 
         public string? AssemblyName { get; private set; }
 
@@ -219,24 +213,6 @@ namespace Tinyhand.Generator
             this.AssemblyName = compilation.AssemblyName ?? string.Empty;
             this.AssemblyId = this.AssemblyName.GetHashCode();
             this.OutputKind = compilation.Options.OutputKind;
-
-            if (context.ParseOptions.PreprocessorSymbolNames.Any(x => x == "NET5_0"))
-            {// .NET 5
-                this.MemberNotNullIsAvailable = true;
-                this.ModuleInitializerIsAvailable = true;
-            }
-            else
-            {
-                if (compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.MemberNotNullAttribute") is { } atr && atr.DeclaredAccessibility == Accessibility.Public)
-                {// [MemberNotNull] is supported.
-                    this.MemberNotNullIsAvailable = true;
-                }
-
-                if (compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.ModuleInitializerAttribute") is { } atr2 && atr2.DeclaredAccessibility == Accessibility.Public)
-                {// [ModuleInitializer] is supported.
-                    this.ModuleInitializerIsAvailable = true;
-                }
-            }
         }
 
         private void ProcessGeneratorOption(TinyhandSyntaxReceiver receiver, Compilation compilation)
@@ -258,7 +234,6 @@ namespace Tinyhand.Generator
                     this.AttachDebugger = ta.AttachDebugger;
                     this.GenerateToFile = ta.GenerateToFile;
                     this.CustomNamespace = ta.CustomNamespace;
-                    this.UseModuleInitializer = ta.UseModuleInitializer;
                     this.TargetFolder = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(receiver.GeneratorOptionSyntax.SyntaxTree.FilePath), "Generated");
                 }
             }
