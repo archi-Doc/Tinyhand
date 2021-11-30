@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Tinyhand.Generator
 {
-    [Generator]
+    // [Generator]
     public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
     {
         public bool AttachDebugger { get; private set; } = false;
