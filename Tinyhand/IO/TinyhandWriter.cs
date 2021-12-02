@@ -67,6 +67,9 @@ namespace Tinyhand.IO
 
         public byte[] FlushAndGetArray() => this.writer.FlushAndGetArray();
 
+        public void FlushAndGetMemory(out Memory<byte> memory, out bool useInitialBuffer)
+            => this.writer.FlushAndGetMemory(out memory, out useInitialBuffer);
+
         public ReadOnlySequence<byte> FlushAndGetReadOnlySequence() => this.writer.FlushAndGetReadOnlySequence();
 
         public void Flush() => this.writer.Flush();
