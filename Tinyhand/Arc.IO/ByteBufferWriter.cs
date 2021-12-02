@@ -19,27 +19,28 @@ namespace Arc.IO
 
         private Span<byte> span; // A byte span to be consumed.
         private int spanSize; // The size of the span.
-        private Span<byte> originalSpan; // The original (not sliced) version of the span.
+        // private Span<byte> originalSpan; // The original (not sliced) version of the span.
         private long spanWritten; // The size of the written span.
+        private byte[]? initialBuffer; // The initial buffer.
 
         public ByteBufferWriter(IBufferWriter<byte> bufferWriter)
-        { // Use other IBufferWriter instance.
+        { // Use other IBufferWriter instance (this.bufferWriter != null).
             this.byteSequence = null;
             this.bufferWriter = bufferWriter;
             this.span = this.bufferWriter.GetSpan();
             this.spanSize = 0;
-            this.originalSpan = this.span;
             this.spanWritten = 0;
+            this.initialBuffer = null;
         }
 
         public ByteBufferWriter(byte[] initialBuffer)
-        { // Use initial buffer and ByteSequence.
+        { // Use initial buffer and ByteSequence (this.bufferWriter null -> not null, this.initialBuffer not null -> null).
             this.byteSequence = null;
             this.bufferWriter = null!;
             this.span = initialBuffer.AsSpan();
             this.spanSize = 0;
-            this.originalSpan = this.span;
             this.spanWritten = 0;
+            this.initialBuffer = initialBuffer;
         }
 
         public void Dispose()
@@ -80,7 +81,6 @@ namespace Arc.IO
 
             var memory = this.bufferWriter.GetMemory(sizeHint);
             this.span = memory.Span; // this.spanSize is already initialized in Flush().
-            this.originalSpan = this.span;
         }
 
         /// <summary>
@@ -119,18 +119,18 @@ namespace Arc.IO
             if (this.spanSize > 0)
             {
                 if (this.bufferWriter == null)
-                { // Initial Buffer to ByteSequence.
+                { // Initial buffer to ByteSequence.
                     this.byteSequence = new ByteSequence();
                     this.bufferWriter = this.byteSequence;
                     var span = this.bufferWriter.GetSpan(this.spanSize);
-                    this.originalSpan.Slice(0, this.spanSize).CopyTo(span);
+                    this.initialBuffer.AsSpan(0, this.spanSize).CopyTo(span);
+                    this.initialBuffer = default;
                 }
 
                 this.spanWritten += this.spanSize;
                 this.bufferWriter.Advance(this.spanSize);
                 this.span = default;
                 this.spanSize = 0;
-                this.originalSpan = default;
             }
         }
 
@@ -142,7 +142,7 @@ namespace Arc.IO
         {
             if (this.bufferWriter == null)
             { // Initial Buffer
-                return this.originalSpan.Slice(0, this.spanSize).ToArray();
+                return this.initialBuffer.AsSpan(0, this.spanSize).ToArray();
             }
 
             this.Flush();
@@ -156,6 +156,32 @@ namespace Arc.IO
         }
 
         /// <summary>
+        /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a memory region.<br/>
+        /// Pursue perfection.
+        /// </summary>
+        /// <param name="memory">A memory region consisting of the written data.</param>
+        /// <param name="useInitialBuffer"><see langword="true"/>: A memory region is a part of the initial buffer.</param>
+        public void FlushAndGetMemory(out Memory<byte> memory, out bool useInitialBuffer)
+        {
+            if (this.bufferWriter == null)
+            { // Initial Buffer
+                memory = this.initialBuffer.AsMemory(0, this.spanSize);
+                useInitialBuffer = true;
+                return;
+            }
+
+            this.Flush();
+
+            if (this.byteSequence == null)
+            {
+                throw new InvalidOperationException("FlushAndGetArray() is not supported for external IBufferWriter<byte>.");
+            }
+
+            memory = this.byteSequence.GetReadOnlySequence().ToArray().AsMemory();
+            useInitialBuffer = false;
+        }
+
+        /// <summary>
         /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySequence{T}" />.
         /// </summary>
         /// <returns>A byte array consisting of the written data.</returns>
@@ -163,7 +189,7 @@ namespace Arc.IO
         {
             if (this.bufferWriter == null)
             { // Initial Buffer
-                return new ReadOnlySequence<byte>(this.originalSpan.Slice(0, this.spanSize).ToArray());
+                return new ReadOnlySequence<byte>(this.initialBuffer.AsSpan(0, this.spanSize).ToArray());
             }
 
             this.Flush();
@@ -226,162 +252,6 @@ namespace Arc.IO
                 copiedBytes += writable;
                 bytesLeftToCopy -= writable;
                 this.Advance(writable);
-            }
-        }
-    }
-
-    public class ByteSequence : IBufferWriter<byte>, IDisposable
-    {
-        public const int DefaultVaultSize = 32 * 1024;
-        private static ArrayPool<byte> arrayPool = ArrayPool<byte>.Create(80 * 1024, 100);
-
-        private ByteVault? firstVault;
-        private ByteVault? lastVault;
-
-        public ReadOnlySequence<byte> GetReadOnlySequence()
-        {
-            return this.firstVault == null ?
-                ReadOnlySequence<byte>.Empty :
-                new ReadOnlySequence<byte>(this.firstVault, 0, this.lastVault!, this.lastVault!.Size);
-        }
-
-        public void Advance(int count)
-        {
-            if (this.lastVault == null)
-            {
-                throw new InvalidOperationException("Cannot advance before acquiring memory.");
-            }
-
-            this.lastVault.Advance(count);
-        }
-
-        public void Dispose()
-        {
-            var current = this.firstVault;
-            while (current != null)
-            {
-                var next = (ByteVault?)current.Next;
-
-                arrayPool.Return(current.Array);
-                current.Clear();
-
-                current = next;
-            }
-
-            this.firstVault = this.lastVault = null;
-        }
-
-        public Memory<byte> GetMemory(int sizeHint = 0) => this.GetVault(sizeHint).RemainingMemory;
-
-        public Span<byte> GetSpan(int sizeHint = 0) => this.GetVault(sizeHint).RemainingSpan;
-
-        private ByteVault GetVault(int sizeHint)
-        {
-            int bufferSizeToAllocate = 0;
-
-            if (sizeHint == 0)
-            {
-                if (this.lastVault == null || this.lastVault.Remaining == 0)
-                {
-                    bufferSizeToAllocate = DefaultVaultSize;
-                }
-            }
-            else
-            {
-                if (this.lastVault == null || this.lastVault.Remaining < sizeHint)
-                {
-                    bufferSizeToAllocate = Math.Max(sizeHint, DefaultVaultSize);
-                }
-            }
-
-            if (bufferSizeToAllocate > 0)
-            {
-                var vault = new ByteVault(arrayPool.Rent(bufferSizeToAllocate));
-                this.AddVault(vault);
-            }
-
-            return this.lastVault!;
-        }
-
-        private void AddVault(ByteVault vault)
-        {
-            if (this.lastVault == null)
-            {
-                this.firstVault = this.lastVault = vault;
-            }
-            else
-            {
-                if (this.lastVault.Size > 0)
-                {// Add a new block.
-                    this.lastVault.SetNext(vault);
-                }
-                else
-                {// The last block is completely unused. Replace it instead of appending to it.
-                    var current = this.firstVault!;
-                    if (this.firstVault == this.lastVault)
-                    { // Only one vault.
-                        this.firstVault = vault;
-                    }
-                    else
-                    {
-                        while (current.Next != this.lastVault)
-                        {
-                            current = (ByteVault)current.Next!;
-                        }
-                    }
-
-                    arrayPool.Return(this.lastVault.Array);
-                    this.lastVault.Clear();
-
-                    current.SetNext(vault);
-                }
-
-                this.lastVault = vault;
-            }
-        }
-
-        private class ByteVault : ReadOnlySequenceSegment<byte>
-        {
-            public ByteVault(byte[] array)
-            {
-                this.Array = array;
-                this.Memory = array;
-            }
-
-            internal byte[] Array { get; set; }
-
-            internal int Size { get; set; }
-
-            internal int Remaining => this.Array.Length - this.Size;
-
-            internal Memory<byte> RemainingMemory => this.Array.AsMemory().Slice(this.Size);
-
-            internal Span<byte> RemainingSpan => this.Array.AsSpan().Slice(this.Size);
-
-            internal void Advance(int count)
-            {
-                this.Size += count;
-                if (count < 0 || this.Size > this.Array.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(count));
-                }
-            }
-
-            internal void SetNext(ByteVault next)
-            {
-                this.Next = next;
-                next.RunningIndex = this.RunningIndex + this.Size;
-                this.Memory = this.Memory.Slice(0, this.Size);
-            }
-
-            internal void Clear()
-            {
-                this.Memory = default;
-                this.Next = null;
-                this.RunningIndex = 0;
-                this.Size = 0;
-                // arrayPool.Return(this.Array); // Called by ByteSequence.
-                this.Array = null!;
             }
         }
     }
