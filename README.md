@@ -128,18 +128,18 @@ Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-ne
 
 Tinyhand is quite fast and since it is based on Source Generator, it does not take time for dynamic code generation.
 
-| Method                       |     Mean |   Error |  StdDev |   Median |  Gen 0 | Gen 1 | Gen 2 | Allocated |
-| ---------------------------- | -------: | ------: | ------: | -------: | -----: | ----: | ----: | --------: |
-| SerializeProtoBuf            | 449.3 ns | 4.31 ns | 6.04 ns | 452.5 ns | 0.0973 |     - |     - |     408 B |
-| SerializeMessagePack         | 163.9 ns | 1.33 ns | 1.90 ns | 163.2 ns | 0.0134 |     - |     - |      56 B |
-| SerializeTinyhand            | 140.4 ns | 3.32 ns | 4.97 ns | 141.0 ns | 0.0134 |     - |     - |      56 B |
-| DeserializeProtoBuf          | 737.6 ns | 2.45 ns | 3.66 ns | 737.1 ns | 0.0763 |     - |     - |     320 B |
-| DeserializeMessagePack       | 306.6 ns | 0.66 ns | 0.93 ns | 306.7 ns | 0.0668 |     - |     - |     280 B |
-| DeserializeTinyhand          | 280.4 ns | 2.22 ns | 3.19 ns | 280.7 ns | 0.0668 |     - |     - |     280 B |
-| SerializeMessagePackString   | 179.1 ns | 2.64 ns | 3.79 ns | 179.3 ns | 0.0153 |     - |     - |      64 B |
-| SerializeTinyhandString      | 143.8 ns | 2.18 ns | 3.19 ns | 142.1 ns | 0.0153 |     - |     - |      64 B |
-| DeserializeMessagePackString | 320.1 ns | 1.12 ns | 1.60 ns | 319.7 ns | 0.0668 |     - |     - |     280 B |
-| DeserializeTinyhandString    | 311.3 ns | 1.31 ns | 1.84 ns | 310.8 ns | 0.0744 |     - |     - |     312 B |
+| Method                       |      Mean |    Error |    StdDev |    Median |  Gen 0 | Allocated |
+| ---------------------------- | --------: | -------: | --------: | --------: | -----: | --------: |
+| SerializeProtoBuf            | 393.20 ns | 3.185 ns |  4.568 ns | 393.35 ns | 0.0973 |     408 B |
+| SerializeMessagePack         | 162.34 ns | 1.849 ns |  2.591 ns | 160.30 ns | 0.0134 |      56 B |
+| SerializeTinyhand            |  94.34 ns | 1.066 ns |  1.529 ns |  94.39 ns | 0.0134 |      56 B |
+| DeserializeProtoBuf          | 677.01 ns | 3.805 ns |  5.457 ns | 677.64 ns | 0.0763 |     320 B |
+| DeserializeMessagePack       | 295.01 ns | 1.978 ns |  2.707 ns | 293.41 ns | 0.0668 |     280 B |
+| DeserializeTinyhand          | 239.52 ns | 1.405 ns |  2.015 ns | 239.63 ns | 0.0668 |     280 B |
+| SerializeMessagePackString   | 183.26 ns | 8.583 ns | 12.309 ns | 172.45 ns | 0.0153 |      64 B |
+| SerializeTinyhandString      | 128.80 ns | 0.727 ns |  1.043 ns | 128.82 ns | 0.0153 |      64 B |
+| DeserializeMessagePackString | 305.18 ns | 1.600 ns |  2.136 ns | 306.67 ns | 0.0668 |     280 B |
+| DeserializeTinyhandString    | 281.50 ns | 1.696 ns |  2.378 ns | 280.02 ns | 0.0744 |     312 B |
 
 
 
