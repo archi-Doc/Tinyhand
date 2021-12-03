@@ -156,8 +156,33 @@ namespace Arc.IO
         }
 
         /// <summary>
-        /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a memory region.<br/>
+        /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.<br/>
         /// Pursue perfection.
+        /// </summary>
+        /// <param name="rawArray">A byte array containing the written data.</param>
+        /// <param name="written">The total number of bytes written by the writer.</param>
+        public void FlushAndGetArray(out byte[] rawArray, out int written)
+        {
+            if (this.bufferWriter == null)
+            { // Initial Buffer
+                rawArray = this.initialBuffer!;
+                written = this.spanSize;
+                return;
+            }
+
+            this.Flush();
+
+            if (this.byteSequence == null)
+            {
+                throw new InvalidOperationException("FlushAndGetArray() is not supported for external IBufferWriter<byte>.");
+            }
+
+            rawArray = this.byteSequence.GetReadOnlySequence().ToArray();
+            written = rawArray.Length;
+        }
+
+        /// <summary>
+        /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a memory region.<br/>
         /// </summary>
         /// <param name="memory">A memory region consisting of the written data.</param>
         /// <param name="useInitialBuffer"><see langword="true"/>: A memory region is a part of the initial buffer.</param>
@@ -174,7 +199,7 @@ namespace Arc.IO
 
             if (this.byteSequence == null)
             {
-                throw new InvalidOperationException("FlushAndGetArray() is not supported for external IBufferWriter<byte>.");
+                throw new InvalidOperationException("FlushAndGetMemory() is not supported for external IBufferWriter<byte>.");
             }
 
             memory = this.byteSequence.GetReadOnlySequence().ToArray().AsMemory();
