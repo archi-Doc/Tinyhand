@@ -7,6 +7,7 @@ using DryIoc;
 using Tinyhand;
 
 #pragma warning disable CS0414
+#pragma warning disable CS0169
 
 namespace Sandbox
 {
@@ -33,6 +34,9 @@ namespace Sandbox
 
         [Key(6)]
         private T PrivatePrivate { get; set; } = default!;
+
+        [Key(9)]
+        private ConsoleApp1.MyClass? pp = default!;
 
 
         public InheritanceTestBase()
