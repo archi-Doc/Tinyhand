@@ -917,7 +917,7 @@ namespace Tinyhand.Generator
                     this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
 CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                 {// No Coder or Formatter
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_ObjectAttributeRequired, this.Location);
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_ObjectAttributeRequired, this.Location, this.TypeObject.FullName);
                 }
             }
             else
