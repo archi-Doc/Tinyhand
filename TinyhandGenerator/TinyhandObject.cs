@@ -917,7 +917,12 @@ namespace Tinyhand.Generator
                     this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
 CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                 {// No Coder or Formatter
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_ObjectAttributeRequired, this.Location, this.TypeObject.FullName);
+                    var obj = this.TypeObjectWithNullable.Object;
+                    obj.Configure();
+                    if (obj.ObjectAttribute == null)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_ObjectAttributeRequired, this.Location, this.TypeObject.FullName);
+                    }
                 }
             }
             else
@@ -1585,7 +1590,7 @@ ModuleInitializerClass_Added:
                     {
                         ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
                         ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
-                        ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
+                        ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
 
                         /*if (x.Kind == VisceralObjectKind.Property)
                         {// Property
@@ -1639,7 +1644,7 @@ ModuleInitializerClass_Added:
             {
                 if (x.RequiresSetter)
                 {
-                    ssb.AppendLine($"private static Action<{this.LocalName}, {x.TypeObject!.FullName}>? {x.SetterDelegateIdentifier};");
+                    ssb.AppendLine($"private static Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegateIdentifier};");
                 }
 
                 if (x.RequiresGetter)
@@ -2302,7 +2307,7 @@ ModuleInitializerClass_Added:
                 if (x!.SetterDelegateIdentifier != null)
                 {
                     initSetter = ssb.ScopeFullObject("vd");
-                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                    ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
                 }
             }
 
@@ -2403,7 +2408,7 @@ ModuleInitializerClass_Added:
                 if (x!.SetterDelegateIdentifier != null)
                 {
                     initSetter = ssb.ScopeFullObject("vd");
-                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                    ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
                 }
             }
 
@@ -2484,7 +2489,7 @@ ModuleInitializerClass_Added:
                     }
 
                     initSetter = ssb.ScopeFullObject("vd");
-                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                    ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
                 }
             }
 
@@ -2563,7 +2568,7 @@ ModuleInitializerClass_Added:
                 if (x!.SetterDelegateIdentifier != null)
                 {
                     initSetter = ssb.ScopeFullObject("vd");
-                    ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                    ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
                 }
             }
 
@@ -2629,7 +2634,7 @@ ModuleInitializerClass_Added:
                         }
 
                         initSetter = ssb.ScopeFullObject("vd");
-                        ssb.AppendLine(withNullable.Object.FullName + " vd;");
+                        ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
                     }
                 }
 
