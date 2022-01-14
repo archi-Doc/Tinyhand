@@ -86,7 +86,7 @@ namespace Tinyhand.Generator
             category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Error_ObjectAttributeRequired = new DiagnosticDescriptor(
-            id: "TG016", title: "Key attribute required", messageFormat: "Member to be serialized must have TinyhandObjectAttribute",
+            id: "TG016", title: "Key attribute required", messageFormat: "Member to be serialized must have TinyhandObjectAttribute '{0}'",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor Error_AttributePropertyError = new DiagnosticDescriptor(
