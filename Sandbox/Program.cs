@@ -11,6 +11,9 @@ using Tinyhand;
 
 namespace Sandbox;
 
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial record class RecordClassData1(int Data1);
+
 public interface INestedStructClass
 {
 }
