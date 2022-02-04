@@ -3,10 +3,9 @@
 using System;
 using Tinyhand;
 
-namespace Sandbox
+namespace Sandbox;
+
+[TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = false)]
+internal class GeneratorOption
 {
-    [TinyhandGeneratorOption(AttachDebugger = false, GenerateToFile = false)]
-    internal class GeneratorOption
-    {
-    }
 }

@@ -238,6 +238,16 @@ namespace Tinyhand.Generator
             }
         }
 
+        public bool IsTypeParameterWithValueTypeConstraint()
+        {
+            if (this.symbol is ITypeParameterSymbol tps)
+            {
+                return tps.HasValueTypeConstraint;
+            }
+
+            return false;
+        }
+
         public void Configure()
         {
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Configured))
@@ -1220,7 +1230,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 }
 
                 // Open generic
-                (initializerClassName, _) = containingObject.GetClosedGenericName("object");
+                var nameList = containingObject.GetSafeGenericNameList();
+                (initializerClassName, _) = containingObject.GetClosedGenericName(nameList);
 
 ModuleInitializerClass_Added:
                 if (initializerClassName != null)
@@ -1233,7 +1244,7 @@ ModuleInitializerClass_Added:
             {
                 foreach (var x in list2)
                 {
-                    if (x.Generics_Kind != VisceralGenericsKind.OpenGeneric || x.Generics_Arguments.Length == 0)
+                    if (x.Generics_Kind != VisceralGenericsKind.OpenGeneric)
                     {// Formatter
                         var name = string.Format(classFormat, x.FormatterNumber);
                         ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
@@ -1244,15 +1255,16 @@ ModuleInitializerClass_Added:
                     {// Formatter generator
                         var generic = x.GetClosedGenericName(null);
                         generic.count = x.Generics_Arguments.Length;
-                        var genericComma = generic.count <= 1 ? string.Empty : new string(',', generic.count - 1);
+                        var genericBrace = generic.count == 0 ? string.Empty : generic.count == 1 ? "<>" : $"<{new string(',', generic.count - 1)}>";
+                        var getGenericType = generic.count == 0 ? ".GetGenericTypeDefinition()" : string.Empty;
                         ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(typeof({generic.name}), x =>");
                         ssb.AppendLine("{");
                         ssb.IncrementIndent();
                         // ssb.AppendLine($"if (x.Length != {x.CountGenericsArguments()}) return (null!, null!);");
                         var name = string.Format(classFormat, x.FormatterNumber);
-                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof({name}<{genericComma}>).MakeGenericType(x));");
+                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof({name}{genericBrace}){getGenericType}.MakeGenericType(x));");
                         name = string.Format(classFormat, x.FormatterExtraNumber);
-                        ssb.AppendLine($"var formatterExtra = Activator.CreateInstance(typeof({name}<{genericComma}>).MakeGenericType(x));");
+                        ssb.AppendLine($"var formatterExtra = Activator.CreateInstance(typeof({name}{genericBrace}){getGenericType}.MakeGenericType(x));");
                         ssb.AppendLine($"return ((ITinyhandFormatter)formatter!, (ITinyhandFormatterExtra)formatterExtra!);");
                         ssb.DecrementIndent();
                         ssb.AppendLine("});");
@@ -2256,7 +2268,7 @@ ModuleInitializerClass_Added:
                             this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                         }
 
-                        if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
+                        if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
                         {// T?
                             ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
                         }
@@ -2356,7 +2368,7 @@ ModuleInitializerClass_Added:
                             this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                         }
 
-                        if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType())
+                        if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
                         {// T?
                             ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
                         }
