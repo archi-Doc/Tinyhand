@@ -85,7 +85,7 @@ namespace Tinyhand.Generator
 
         public ReuseAttributeMock? ReuseAttribute { get; private set; }
 
-        public int MinimumConstructor { get; private set; }
+        public TinyhandObject? MinimumConstructor { get; private set; }
 
         public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members is not static && property or field
 
@@ -654,7 +654,7 @@ namespace Tinyhand.Generator
                 {
                     if (this.IsRecord)
                     {
-                        this.MinimumConstructor = this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).Min(a => a.Method_Parameters.Length);
+                        this.MinimumConstructor = this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).First();
                     }
                     else if (this.ObjectAttribute?.UseServiceProvider == false &&
                         this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
@@ -1776,7 +1776,7 @@ ModuleInitializerClass_Added:
 
         internal string NewInstanceCode()
         {
-            if (this.MinimumConstructor == 0)
+            if (this.MinimumConstructor == null)
             {
                 if (this.ObjectAttribute?.UseServiceProvider == true)
                 {// Service Provider
@@ -1790,13 +1790,16 @@ ModuleInitializerClass_Added:
             else
             {// new(default!, ..., default!)
                 var sb = new StringBuilder();
-                var n = this.MinimumConstructor;
                 sb.Append("new ");
                 sb.Append(this.FullName);
-                sb.Append("(default!");
-                while (--n > 0)
+                sb.Append("(");
+                for (var i = 0; i < this.MinimumConstructor.Method_Parameters.Length; i++)
                 {
-                    sb.Append(", default!");
+                    sb.Append($"({this.MinimumConstructor.Method_Parameters[i]})default!");
+                    if (i != (this.MinimumConstructor.Method_Parameters.Length - 1))
+                    {
+                        sb.Append($", ");
+                    }
                 }
 
                 sb.Append(")");
