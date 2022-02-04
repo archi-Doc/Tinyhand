@@ -11,12 +11,22 @@ using Tinyhand;
 
 namespace Sandbox;
 
+public interface INestedStructClass
+{
+}
+
+public interface INestedStructClass2
+{
+}
+
 public partial class NestedStructClass<T, U>
     where T : struct
-    where U : class
+    where U : class, INestedStructClass2
 {
+    internal static Type ist => typeof(Item);
+
     [TinyhandObject]
-    public sealed partial class Item
+    private sealed partial class Item
     {
         public Item(int key, T value)
         {
@@ -39,7 +49,7 @@ public partial class NestedStructClass<T, U>
     {
     }
 
-    public List<Item> Items { get; } = new();
+    // public List<Item> Items { get; } = new();
 }
 
 [TinyhandObject]
@@ -158,6 +168,9 @@ class Program
         var getter = Expression.Lambda<Func<InternalTestClass2<double>, int>>(Expression.PropertyOrField(Expression.Convert(targetExp, typeof(InheritanceTestBase)), "PrivateProtected"), targetExp).Compile();
 
         var c = getter(b);*/
+
+        // var ty = typeof(NestedStructClass<,>.Item); // Cannot access Item...
+        var ty = NestedStructClass<int, INestedStructClass2>.ist; // Cannot get NestedStructClass<,>.ist...
 
         var b = new InternalTestClass2<double>();
         InternalTestClass2<double>.__identifier.setterDelegate(b, 4.44);

@@ -373,7 +373,7 @@ namespace Tinyhand.Generator
                     foreach (var x in info.ModuleInitializerClass)
                     {
                         ssb.Append(x, true);
-                        ssb.AppendLine(".__gen__load();", false);
+                        ssb.AppendLine(".__gen__th();", false);
                     }
                 }
 
