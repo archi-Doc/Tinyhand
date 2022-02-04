@@ -655,10 +655,6 @@ namespace Tinyhand.Generator
                     if (this.IsRecord)
                     {
                         this.MinimumConstructor = this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).First();
-                        if (this.MinimumConstructor.Method_Parameters.Length == 0)
-                        {
-                            this.MinimumConstructor = null;
-                        }
                     }
                     else if (this.ObjectAttribute?.UseServiceProvider == false &&
                         this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
@@ -1796,22 +1792,13 @@ ModuleInitializerClass_Added:
                 var sb = new StringBuilder();
                 sb.Append("new ");
                 sb.Append(this.FullName);
+                sb.Append("(");
                 for (var i = 0; i < this.MinimumConstructor.Method_Parameters.Length; i++)
                 {
-                    if (i != 0)
+                    sb.Append($"({this.MinimumConstructor.Method_Parameters[i]})default!");
+                    if (i != (this.MinimumConstructor.Method_Parameters.Length - 1))
                     {
                         sb.Append($", ");
-                    }
-
-                    var paramType = this.MinimumConstructor.Method_Parameters[i];
-                    if (string.IsNullOrEmpty(paramType))
-                    {
-                        sb.Append($"default!");
-                    }
-                    else
-                    {
-                        sb.Append($"default!");
-                        // sb.Append($"({this.MinimumConstructor.Method_Parameters[i]})default!");
                     }
                 }
 
