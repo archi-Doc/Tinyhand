@@ -731,7 +731,7 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
                 }
                 else if (tps.ConstraintTypes.Length > 0 &&
                     this.Body.Add(tps.ConstraintTypes[0]) is { } typeObject)
-                {
+                {// Temporary fix...
                     return typeObject.FullName;
                 }
             }

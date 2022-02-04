@@ -169,8 +169,8 @@ class Program
 
         var c = getter(b);*/
 
-        // var ty = typeof(NestedStructClass<,>.Item);
-        var ty = NestedStructClass<int, INestedStructClass2>.ist;
+        // var ty = typeof(NestedStructClass<,>.Item); // Cannot access Item...
+        var ty = NestedStructClass<int, INestedStructClass2>.ist; // Cannot get NestedStructClass<,>.ist...
 
         var b = new InternalTestClass2<double>();
         InternalTestClass2<double>.__identifier.setterDelegate(b, 4.44);
