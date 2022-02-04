@@ -1240,7 +1240,7 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            using (var m = ssb.ScopeBrace("internal static void __gen__load()"))
+            using (var m = ssb.ScopeBrace("internal static void __gen__th()"))
             {
                 foreach (var x in list2)
                 {

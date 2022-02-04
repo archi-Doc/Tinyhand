@@ -11,9 +11,13 @@ using Tinyhand;
 
 namespace Sandbox;
 
+public interface INestedStructClass
+{
+}
+
 public partial class NestedStructClass<T, U>
     where T : struct
-    where U : class
+    where U : INestedStructClass
 {
     [TinyhandObject]
     public sealed partial class Item
