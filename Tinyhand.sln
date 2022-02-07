@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30626.31
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32127.271
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tinyhand", "Tinyhand\Tinyhand.csproj", "{4BD3488B-DDD7-4379-98F8-B14E5AE7B89D}"
 EndProject
@@ -24,7 +24,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XUnitTest", "XUnitTest\XUni
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark", "Benchmark\Benchmark.csproj", "{92D0FD52-1AF9-43DA-94F9-E2BC6307E591}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox", "Sandbox\Sandbox.csproj", "{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxBase", "SandboxBase\SandboxBase.csproj", "{451C57AF-1C9C-4BEB-9109-B717E3654B7E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +70,10 @@ Global
 		{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8177403C-6F73-4AC3-8EA6-FACFF91C2A2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{451C57AF-1C9C-4BEB-9109-B717E3654B7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{451C57AF-1C9C-4BEB-9109-B717E3654B7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{451C57AF-1C9C-4BEB-9109-B717E3654B7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{451C57AF-1C9C-4BEB-9109-B717E3654B7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

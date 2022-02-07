@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tinyhand;
+using LP;
 
 #pragma warning disable CS0169
 
@@ -21,7 +22,7 @@ namespace ConsoleApp1
         [TinyhandObject]
         public sealed partial class Item
         {
-            public Item(int key, T value)
+            public Item(PrimarySecondaryIdentifier key, T value)
             {
                 this.Key = key;
                 this.Value = value;
@@ -35,7 +36,7 @@ namespace ConsoleApp1
             internal T Value = default!;
 
             [Key(1)]
-            internal int Key;
+            internal PrimarySecondaryIdentifier Key;
         }
 
         public GenericsTestClass()
