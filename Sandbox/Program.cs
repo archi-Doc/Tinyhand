@@ -132,7 +132,7 @@ public partial class InternalTestClass2<T> : InheritanceTestBase<T> // ConsoleAp
 }
 
 [TinyhandObject]
-partial class GenericsImplementedClass : ConsoleApp1.IGenericsTestClass
+partial class GenericsImplementedClass : ConsoleApp1.IItzPayload
 {
     public GenericsImplementedClass()
     {
@@ -149,12 +149,12 @@ partial class GenericsImplementedClass : ConsoleApp1.IGenericsTestClass
 }
 
 [TinyhandObject]
-partial struct GenericsImplementedStruct : ConsoleApp1.IGenericsTestClass
+partial struct GenericsImplementedStruct : ConsoleApp1.IItzPayload
 {
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-public partial record struct IntPayload2(int Data2) : ConsoleApp1.IGenericsTestClass;
+public partial record struct IntPayload2(int Data2) : ConsoleApp1.IItzPayload;
 
 class Program
 {
@@ -163,9 +163,9 @@ class Program
         Console.WriteLine("Sandbox");
         Console.WriteLine();
 
-        var gtc = new ConsoleApp1.GenericsTestClass<GenericsImplementedClass>();
-        var gtc2 = new ConsoleApp1.GenericsTestClass<GenericsImplementedStruct>();
-        var gtc3 = new ConsoleApp1.GenericsTestClass<IntPayload2>();
+        var gtc = new ConsoleApp1.ItzShip<GenericsImplementedClass>();
+        var gtc2 = new ConsoleApp1.ItzShip<GenericsImplementedStruct>();
+        var gtc3 = new ConsoleApp1.ItzShip<IntPayload2>();
 
         /*var t = typeof(InternalTestBase);
         var field = t.GetField("PrivateInt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
