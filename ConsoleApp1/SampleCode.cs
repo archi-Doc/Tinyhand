@@ -11,6 +11,38 @@ using Tinyhand;
 
 namespace ConsoleApp1
 {
+    public interface IGenericsTestClass
+    {
+    }
+
+    public partial class GenericsTestClass<T>
+    where T : IGenericsTestClass
+    {
+        [TinyhandObject]
+        public sealed partial class Item
+        {
+            public Item(int key, T value)
+            {
+                this.Key = key;
+                this.Value = value;
+            }
+
+            public Item()
+            {
+            }
+
+            [Key(0)]
+            internal T Value = default!;
+
+            [Key(1)]
+            internal int Key;
+        }
+
+        public GenericsTestClass()
+        {
+        }
+    }
+
     [TinyhandObject]
     public partial class InternalTestClass
     {

@@ -131,12 +131,41 @@ public partial class InternalTestClass2<T> : InheritanceTestBase<T> // ConsoleAp
     }
 }
 
+[TinyhandObject]
+partial class GenericsImplementedClass : ConsoleApp1.IGenericsTestClass
+{
+    public GenericsImplementedClass()
+    {
+        this.Data = 0;
+    }
+
+    public GenericsImplementedClass(int data)
+    {
+        this.Data = data;
+    }
+
+    [Key(0)]
+    public int Data;
+}
+
+[TinyhandObject]
+partial struct GenericsImplementedStruct : ConsoleApp1.IGenericsTestClass
+{
+}
+
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial record struct IntPayload2(int Data2) : ConsoleApp1.IGenericsTestClass;
+
 class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var gtc = new ConsoleApp1.GenericsTestClass<GenericsImplementedClass>();
+        var gtc2 = new ConsoleApp1.GenericsTestClass<GenericsImplementedStruct>();
+        var gtc3 = new ConsoleApp1.GenericsTestClass<IntPayload2>();
 
         /*var t = typeof(InternalTestBase);
         var field = t.GetField("PrivateInt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
