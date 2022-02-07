@@ -12,12 +12,17 @@ using LP;
 
 namespace ConsoleApp1
 {
-    public interface IGenericsTestClass
+    public interface IItzPayload
     {
     }
 
-    public partial class GenericsTestClass<T>
-    where T : IGenericsTestClass
+    public interface IItzShip<TPayload>
+    where TPayload : IItzPayload
+    {
+    }
+
+    public partial class ItzShip<T> : IItzShip<T>
+        where T : IItzPayload
     {
         [TinyhandObject]
         public sealed partial class Item
@@ -39,7 +44,7 @@ namespace ConsoleApp1
             internal PrimarySecondaryIdentifier Key;
         }
 
-        public GenericsTestClass()
+        public ItzShip()
         {
         }
     }
