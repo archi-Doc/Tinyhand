@@ -22,6 +22,8 @@ namespace Tinyhand.Generator
 
         public string? CustomNamespace { get; private set; }
 
+        public IAssemblySymbol AssemblySymbol { get; private set; } = default!;
+
         public string? AssemblyName { get; private set; }
 
         public int AssemblyId { get; private set; }
@@ -191,7 +193,11 @@ namespace Tinyhand.Generator
 
         private void ProcessSymbol(INamedTypeSymbol s)
         {
-            if (this.processedSymbol.Contains(s))
+            if (!SymbolEqualityComparer.Default.Equals(s.ContainingAssembly, this.AssemblySymbol))
+            {// Different assembly
+                return;
+            }
+            else if (this.processedSymbol.Contains(s))
             {
                 return;
             }
@@ -210,6 +216,7 @@ namespace Tinyhand.Generator
 
         private void Prepare(GeneratorExecutionContext context, Compilation compilation)
         {
+            this.AssemblySymbol = compilation.Assembly;
             this.AssemblyName = compilation.AssemblyName ?? string.Empty;
             this.AssemblyId = this.AssemblyName.GetHashCode();
             this.OutputKind = compilation.Options.OutputKind;

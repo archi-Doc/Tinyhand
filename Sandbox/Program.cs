@@ -55,7 +55,7 @@ public partial class NestedStructClass<T, U>
     // public List<Item> Items { get; } = new();
 }
 
-[TinyhandObject]
+/*[TinyhandObject]
 public partial class InheritanceTestBase<T>
 {
     [Key(0)]
@@ -129,7 +129,32 @@ public partial class InternalTestClass2<T> : InheritanceTestBase<T> // ConsoleAp
 
         public static Action<InternalTestClass2<T>, T> setterDelegate;
     }
+}*/
+
+[TinyhandObject]
+partial class GenericsImplementedClass : ConsoleApp1.IGenericsTestClass
+{
+    public GenericsImplementedClass()
+    {
+        this.Data = 0;
+    }
+
+    public GenericsImplementedClass(int data)
+    {
+        this.Data = data;
+    }
+
+    [Key(0)]
+    public int Data;
 }
+
+[TinyhandObject]
+partial struct GenericsImplementedStruct : ConsoleApp1.IGenericsTestClass
+{
+}
+
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial record struct IntPayload2(int Data2) : ConsoleApp1.IGenericsTestClass;
 
 class Program
 {
@@ -137,6 +162,10 @@ class Program
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var gtc = new ConsoleApp1.GenericsTestClass<GenericsImplementedClass>();
+        var gtc2 = new ConsoleApp1.GenericsTestClass<GenericsImplementedStruct>();
+        var gtc3 = new ConsoleApp1.GenericsTestClass<IntPayload2>();
 
         /*var t = typeof(InternalTestBase);
         var field = t.GetField("PrivateInt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -175,7 +204,7 @@ class Program
         // var ty = typeof(NestedStructClass<,>.Item); // Cannot access Item...
         var ty = NestedStructClass<int, INestedStructClass2>.ist; // Cannot get NestedStructClass<,>.ist...
 
-        var b = new InternalTestClass2<double>();
+        /*var b = new InternalTestClass2<double>();
         InternalTestClass2<double>.__identifier.setterDelegate(b, 4.44);
 
         var a = new ConsoleApp1.InternalTestClass();
@@ -185,6 +214,6 @@ class Program
         b = new InternalTestClass2<double>();
         var b2 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
         b.Clear();
-        var b3 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
+        var b3 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));*/
     }
 }
