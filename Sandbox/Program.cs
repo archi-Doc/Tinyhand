@@ -55,7 +55,7 @@ public partial class NestedStructClass<T, U>
     // public List<Item> Items { get; } = new();
 }
 
-[TinyhandObject]
+/*[TinyhandObject]
 public partial class InheritanceTestBase<T>
 {
     [Key(0)]
@@ -129,7 +129,7 @@ public partial class InternalTestClass2<T> : InheritanceTestBase<T> // ConsoleAp
 
         public static Action<InternalTestClass2<T>, T> setterDelegate;
     }
-}
+}*/
 
 [TinyhandObject]
 partial class GenericsImplementedClass : ConsoleApp1.IGenericsTestClass
@@ -204,7 +204,7 @@ class Program
         // var ty = typeof(NestedStructClass<,>.Item); // Cannot access Item...
         var ty = NestedStructClass<int, INestedStructClass2>.ist; // Cannot get NestedStructClass<,>.ist...
 
-        var b = new InternalTestClass2<double>();
+        /*var b = new InternalTestClass2<double>();
         InternalTestClass2<double>.__identifier.setterDelegate(b, 4.44);
 
         var a = new ConsoleApp1.InternalTestClass();
@@ -214,6 +214,6 @@ class Program
         b = new InternalTestClass2<double>();
         var b2 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
         b.Clear();
-        var b3 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
+        var b3 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));*/
     }
 }
