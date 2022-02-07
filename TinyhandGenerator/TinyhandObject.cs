@@ -248,6 +248,26 @@ namespace Tinyhand.Generator
             return false;
         }
 
+        public bool ContainsTypeParameter
+        {
+            get
+            {
+                if (this.Kind == VisceralObjectKind.TypeParameter)
+                {
+                    return true;
+                }
+                else if (this.Array_Element is { } element &&
+                    element.Kind == VisceralObjectKind.TypeParameter)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
         public void Configure()
         {
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Configured))
@@ -922,10 +942,11 @@ namespace Tinyhand.Generator
             {// Has KeyAttribute
                 this.Body.DebugAssert(this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget), $"{this.FullName}: KeyAttribute and SerializeTarget are inconsistent.");
 
-                if (parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&
+                if (// parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&
                     this.TypeObjectWithNullable != null &&
+                    !this.TypeObject.ContainsTypeParameter &&
                     this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
-CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
+                    CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                 {// No Coder or Formatter
                     var obj = this.TypeObjectWithNullable.Object;
                     obj.Configure();
