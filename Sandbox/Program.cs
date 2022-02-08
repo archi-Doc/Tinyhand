@@ -13,6 +13,16 @@ using Tinyhand.IO;
 namespace Sandbox;
 
 [TinyhandObject]
+public partial class IdentifierReadonlyClass
+{
+    [Key(0)]
+    readonly int Identifier;
+
+    [Key(1)]
+    readonly int Identifier2;
+}
+
+[TinyhandObject]
 public partial class SerializableClass<T> : ISerializableInterface
 {
     /*public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)

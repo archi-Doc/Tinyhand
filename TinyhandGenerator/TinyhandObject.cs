@@ -1123,7 +1123,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 reuseInstanceFlag = false;
             }
 
-            if (reuseInstanceFlag && this.TypeObject.ObjectAttribute != null)
+            if (reuseInstanceFlag && this.TypeObject.ObjectAttribute != null && this.TypeObject.Kind != VisceralObjectKind.Struct)
             {
                 this.ObjectFlag |= TinyhandObjectFlag.ReuseInstanceTarget;
             }
@@ -2754,8 +2754,15 @@ ModuleInitializerClass_Added:
                             ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                         }
                         else if (x.IsReadOnly)
-                        {// *(ulong*)&value.Id0 = vd;
-                            ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{destObject}.{x.SimpleName} = vd;");
+                        {
+                            if (this.Kind == VisceralObjectKind.Struct)
+                            {// *(ulong*)&value.Id0 = vd;
+                                ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{destObject}.{x.SimpleName} = vd;");
+                            }
+                            else
+                            {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                                ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                            }
                         }
 
                         if (emptyBrace != null)
