@@ -125,6 +125,8 @@ namespace Tinyhand.Generator
 
         public string UnsafeDeserializeString => this.RequiresUnsafeDeserialize ? "unsafe " : string.Empty;
 
+        public string InIfStruct => this.Kind == VisceralObjectKind.Struct ? "in " : string.Empty;
+
         internal Automata? Automata { get; private set; }
 
         public TinyhandObject[]? IntKey_Array;
@@ -942,8 +944,10 @@ namespace Tinyhand.Generator
                     {// Requires unsafe deserialize method
                         parent.RequiresUnsafeDeserialize = true;
                     }
-
-                    // this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
+                    else if (this.Kind == VisceralObjectKind.Property)
+                    {// Getter-only property is not supported.
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
+                    }
                 }
             }
 
@@ -1128,6 +1132,13 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             if (this.IsInitOnly)
             {
                 this.RequiresSetter = true;
+            }
+            else if (this.Kind == VisceralObjectKind.Property)
+            {
+                if (this.IsReadOnly)
+                {
+                    this.RequiresSetter = true;
+                }
             }
 
             if (this.ContainingObject != parent)
@@ -1630,9 +1641,17 @@ ModuleInitializerClass_Added:
                 {
                     if (x.RequiresSetter)
                     {
-                        ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
                         ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
-                        ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
+                        if (this.Kind == VisceralObjectKind.Struct)
+                        {// Struct
+                            ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}).MakeByRefType());");
+                            ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<ByRefAction<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
+                        }
+                        else
+                        {// Class
+                            ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
+                            ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
+                        }
 
                         /*if (x.Kind == VisceralObjectKind.Property)
                         {// Property
@@ -1686,7 +1705,14 @@ ModuleInitializerClass_Added:
             {
                 if (x.RequiresSetter)
                 {
-                    ssb.AppendLine($"private static Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegateIdentifier};");
+                    if (this.Kind == VisceralObjectKind.Struct)
+                    {
+                        ssb.AppendLine($"private static ByRefAction<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegateIdentifier};");
+                    }
+                    else
+                    {
+                        ssb.AppendLine($"private static Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegateIdentifier};");
+                    }
                 }
 
                 if (x.RequiresGetter)
@@ -2366,7 +2392,7 @@ ModuleInitializerClass_Added:
                     if (x.SetterDelegateIdentifier != null)
                     {// SetterDelegate!(obj, vd);
                         var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                     }
                     else if (x.IsReadOnly)
                     {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
@@ -2475,7 +2501,7 @@ ModuleInitializerClass_Added:
                     if (x.SetterDelegateIdentifier != null)
                     {// SetterDelegate!(obj, vd);
                         var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                     }
                     else if (x.IsReadOnly)
                     {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
@@ -2564,7 +2590,7 @@ ModuleInitializerClass_Added:
                     if (x.SetterDelegateIdentifier != null)
                     {// SetterDelegate!(obj, vd);
                         var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                     }
                     else if (x.IsReadOnly)
                     {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
@@ -2651,7 +2677,7 @@ ModuleInitializerClass_Added:
                     if (x.SetterDelegateIdentifier != null)
                     {// SetterDelegate!(obj, vd);
                         var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                     }
                     else if (x.IsReadOnly)
                     {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
@@ -2725,7 +2751,7 @@ ModuleInitializerClass_Added:
                         if (x.SetterDelegateIdentifier != null)
                         {// SetterDelegate!(obj, vd);
                             var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                            ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                            ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                         }
                         else if (x.IsReadOnly)
                         {// *(ulong*)&value.Id0 = vd;

@@ -21,10 +21,10 @@ public readonly partial struct IdentifierReadonlyStruct
     readonly ulong Id1;
 
     [Key(2)]
-    readonly ulong Id2;
+    ulong Id2 { get; init; }
 
     [Key(3)]
-    readonly ulong Id3;
+    readonly ulong Id3 { get; init; }
 
     public IdentifierReadonlyStruct()
     {
@@ -53,10 +53,10 @@ public readonly partial struct IdentifierReadonlyStruct2
     readonly ulong Id1;
 
     [KeyAsName]
-    readonly ulong Id2;
+    ulong Id2 { get; init; }
 
     [KeyAsName]
-    readonly ulong Id3;
+    readonly ulong Id3 { get; init; }
 
     public IdentifierReadonlyStruct2()
     {
@@ -77,6 +77,8 @@ public readonly partial struct IdentifierReadonlyStruct2
 
 public class ReadonlyTest
 {
+    delegate void FirstByRefAction<T1, T2>(in T1 arg1, T2 arg2);
+
     [Fact]
     public void Test1()
     {
