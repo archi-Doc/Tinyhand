@@ -16,10 +16,10 @@ namespace Sandbox;
 public partial class IdentifierReadonlyClass
 {
     [Key(0)]
-    readonly int Identifier;
+    readonly IntPayload2 Identifier;
 
     [Key(1)]
-    readonly int Identifier2;
+    readonly IntPayload2 Identifier2;
 }
 
 [TinyhandObject]

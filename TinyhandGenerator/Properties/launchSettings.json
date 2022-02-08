@@ -2,7 +2,7 @@
   "profiles": {
     "TinyhandGenerator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\Benchmark\\Benchmark.csproj"
+      "targetProject": "..\\Sandbox\\Sandbox.csproj"
     }
   }
 }
