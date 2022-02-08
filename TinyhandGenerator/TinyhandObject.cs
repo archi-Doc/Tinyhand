@@ -1875,7 +1875,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("return v;");
         }
 
-        internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue, bool reuseInstance)
+        internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
         {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
             if (this.Kind == VisceralObjectKind.Interface)
             {
@@ -1885,7 +1885,7 @@ ModuleInitializerClass_Added:
                 }
                 else
                 {// Reuse Instance
-                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatterExtra<{this.FullName}>().Deserialize({ssb.FullObject}!, ref reader, options)!;");
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatterExtra<{this.FullName}>().Deserialize({originalName}!, ref reader, options)!;");
                 }
 
                 return;
@@ -1899,11 +1899,11 @@ ModuleInitializerClass_Added:
             {// Reuse Instance
                 if (this.Kind.IsReferenceType())
                 {// Reference type
-                    ssb.AppendLine($"var v2 = {ssb.FullObject} ?? {this.NewInstanceCode()};");
+                    ssb.AppendLine($"var v2 = {originalName} ?? {this.NewInstanceCode()};");
                 }
                 else
                 {// Value type
-                    ssb.AppendLine($"var v2 = {ssb.FullObject};");
+                    ssb.AppendLine($"var v2 = {originalName};");
                 }
             }
 
@@ -1939,7 +1939,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("return v;");
         }
 
-        internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, object? defaultValue, bool reuseInstance)
+        internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
         {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
             if (!reuseInstance)
             {// New Instance
@@ -1949,11 +1949,11 @@ ModuleInitializerClass_Added:
             {// Reuse Instance
                 if (this.Kind.IsReferenceType())
                 {// Reference type
-                    ssb.AppendLine($"var v2 = {ssb.FullObject} ?? {this.NewInstanceCode()};");
+                    ssb.AppendLine($"var v2 = {originalName} ?? {this.NewInstanceCode()};");
                 }
                 else
                 {// Value type
-                    ssb.AppendLine($"var v2 = {ssb.FullObject};");
+                    ssb.AppendLine($"var v2 = {originalName};");
                 }
             }
 
@@ -2307,6 +2307,7 @@ ModuleInitializerClass_Added:
             var destObject = ssb.FullObject;
             using (var m = ssb.ScopeObject(x.SimpleName))
             {
+                var originalName = ssb.FullObject;
                 var coder = CoderResolver.Instance.TryGetCoder(withNullable);
                 using (var valid = ssb.ScopeBrace($"if (numberOfData-- > 0 && !reader.TryReadNil())"))
                 {
@@ -2314,7 +2315,7 @@ ModuleInitializerClass_Added:
 
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
-                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     }
                     else if (coder != null)
                     {
@@ -2357,7 +2358,7 @@ ModuleInitializerClass_Added:
                         InitSetter_Start();
                         if (withNullable.Object.ObjectAttribute != null)
                         {// TinyhandObject. For the purpose of default value and instance reuse.
-                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                         }
                         else if (coder != null)
                         {
@@ -2415,6 +2416,7 @@ ModuleInitializerClass_Added:
             var destObject = ssb.FullObject;
             using (var m = ssb.ScopeObject(x.SimpleName))
             {
+                var originalName = ssb.FullObject;
                 var coder = CoderResolver.Instance.TryGetCoder(withNullable);
                 using (var valid = ssb.ScopeBrace($"if (!reader.TryReadNil())"))
                 {
@@ -2422,7 +2424,7 @@ ModuleInitializerClass_Added:
 
                     if (withNullable.Object.ObjectAttribute != null)
                     {
-                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                        withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     }
                     else if (coder != null)
                     {
@@ -2466,7 +2468,7 @@ ModuleInitializerClass_Added:
                         InitSetter_Start();
                         if (withNullable.Object.ObjectAttribute != null)
                         {// TinyhandObject. For the purpose of default value and instance reuse.
-                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                         }
                         else if (coder != null)
                         {
@@ -2525,6 +2527,7 @@ ModuleInitializerClass_Added:
 
             using (var c2 = ssb.ScopeObject(x.SimpleName))
             {
+                var originalName = ssb.FullObject;
                 if (x.IsDefaultable)
                 {// Default
                     InitSetter_Start(true);
@@ -2545,7 +2548,7 @@ ModuleInitializerClass_Added:
                     using (var c = ssb.ScopeBrace(string.Empty))
                     {
                         InitSetter_Start();
-                        withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                        withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                         InitSetter_End();
                     }
                 }
@@ -2619,6 +2622,7 @@ ModuleInitializerClass_Added:
 
             using (var c = ssb.ScopeObject(x.SimpleName))
             {
+                var originalName = ssb.FullObject;
                 if (x.IsDefaultable)
                 {// Default
                     using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
@@ -2642,7 +2646,7 @@ ModuleInitializerClass_Added:
                     {// T
                         if (withNullable.Object.ObjectAttribute != null)
                         {// TinyhandObject. For the purpose of default value and instance reuse.
-                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                            withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                         }
                         else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
                         {
@@ -2754,8 +2758,15 @@ ModuleInitializerClass_Added:
                             ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                         }
                         else if (x.IsReadOnly)
-                        {// *(ulong*)&value.Id0 = vd;
-                            ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{destObject}.{x.SimpleName} = vd;");
+                        {
+                            if (this.Kind == VisceralObjectKind.Struct)
+                            {// *(ulong*)&value.Id0 = vd;
+                                ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{destObject}.{x.SimpleName} = vd;");
+                            }
+                            else
+                            {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                                ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                            }
                         }
 
                         if (emptyBrace != null)

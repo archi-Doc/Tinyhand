@@ -75,6 +75,26 @@ public readonly partial struct IdentifierReadonlyStruct2
     }
 }
 
+[TinyhandObject]
+public readonly partial struct IdentifierReadonlyStruct3
+{
+    [Key(0)]
+    readonly IdentifierReadonlyStruct Identifier;
+
+    [Key(1)]
+    readonly IdentifierReadonlyStruct Identifier2;
+}
+
+[TinyhandObject]
+public partial class IdentifierReadonlyClass
+{
+    [Key(0)]
+    readonly int Identifier;
+
+    [Key(1)]
+    readonly int Identifier2;
+}
+
 public class ReadonlyTest
 {
     delegate void FirstByRefAction<T1, T2>(in T1 arg1, T2 arg2);
