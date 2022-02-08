@@ -75,19 +75,19 @@ public partial struct IdentifierStruct
 }
 
 [TinyhandObject]
-public partial struct IdentifierReadonlyStruct
+public readonly partial struct IdentifierReadonlyStruct
 {
     [Key(0)]
     readonly ulong Id0;
 
     [Key(1)]
-    ulong Id1;
+    readonly ulong Id1;
 
     [Key(2)]
-    ulong Id2;
+    readonly ulong Id2;
 
     [Key(3)]
-    ulong Id3;
+    readonly ulong Id3;
 
     public IdentifierReadonlyStruct()
     {
@@ -103,11 +103,6 @@ public partial struct IdentifierReadonlyStruct
         this.Id1 = id1;
         this.Id2 = id2;
         this.Id3 = id3;
-    }
-
-    public unsafe void Deserialize()
-    {
-        fixed (ulong* ptr = &this.Id0) *ptr = 11;
     }
 }
 

@@ -29,7 +29,7 @@ public partial class SerializableClass<T> : ISerializableInterface
     public int Id { get; set; }
 
     [Key(1)]
-    public T Value { get; set; }
+    public T Value { get; set; } = default!;
 }
 
 [TinyhandUnion(0, typeof(SerializableClass<int>))]

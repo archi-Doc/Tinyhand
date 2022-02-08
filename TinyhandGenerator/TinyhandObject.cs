@@ -121,6 +121,8 @@ namespace Tinyhand.Generator
 
         public string? GetterDelegateIdentifier { get; private set; }
 
+        public bool RequiresUnsafeDeserialize { get; private set; }
+
         internal Automata? Automata { get; private set; }
 
         public TinyhandObject[]? IntKey_Array;
@@ -931,10 +933,15 @@ namespace Tinyhand.Generator
             }
 
             if (!this.IsSerializable || this.IsReadOnly)
-            {// Not serializable
+            {// Not serializable (before)
                 if (this.KeyAttribute != null || this.ReconstructAttribute != null)
                 {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
+                    if (this.Kind == VisceralObjectKind.Field)
+                    {// Requires unsafe deserialize method
+                        parent.RequiresUnsafeDeserialize = true;
+                    }
+
+                    // this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
                 }
             }
 
@@ -1952,16 +1959,17 @@ ModuleInitializerClass_Added:
             string methodCode;
             string objectCode;
 
+            var unsafeString = this.RequiresUnsafeDeserialize ? "unsafe " : string.Empty;
             if (this.MethodCondition_Deserialize == MethodCondition.MemberMethod)
             {
                 info.GeneratingStaticMethod = false;
-                methodCode = "public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)";
+                methodCode = $"public {unsafeString}void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)";
                 objectCode = "this";
             }
             else if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
             {
                 info.GeneratingStaticMethod = true;
-                methodCode = $"public static void Deserialize{this.GenericsNumberString}(ref {this.RegionalName} v, ref TinyhandReader reader, TinyhandSerializerOptions options)";
+                methodCode = $"public static {unsafeString}void Deserialize{this.GenericsNumberString}(ref {this.RegionalName} v, ref TinyhandReader reader, TinyhandSerializerOptions options)";
                 objectCode = "v";
             }
             else
@@ -2340,8 +2348,8 @@ ModuleInitializerClass_Added:
 
             void InitSetter_Start()
             {
-                if (x!.SetterDelegateIdentifier != null)
-                {
+                if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+                {// TypeName vd;
                     initSetter = ssb.ScopeFullObject("vd");
                     ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
                 }
@@ -2353,8 +2361,16 @@ ModuleInitializerClass_Added:
                 {
                     initSetter.Dispose();
                     initSetter = null;
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
+
+                    if (x.SetterDelegateIdentifier != null)
+                    {// SetterDelegate!(obj, vd);
+                        var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({destObject}, vd);");
+                    }
+                    else if (x.IsReadOnly)
+                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &this.{x.SimpleName}) *ptr = vd;");
+                    }
                 }
             }
         }
