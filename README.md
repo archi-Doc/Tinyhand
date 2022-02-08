@@ -192,23 +192,27 @@ public partial class KeyAsNameClass
 
 
 
-### Readonly and Getter-only
+### Readonly field and getter-only property
 
-Readonly field and getter-only property are not serialization target. 
+Readonly fields is not serialization target by default.
+
+By explicitly adding a `Key` attribute, you can make it a serialization target.
+
+**`unsafe` compiler option is required to serialize readonly fields.**
 
 ```csharp
 [TinyhandObject]
 public partial class ReadonlyGetteronlyClass
 {
     [Key(0)]
-    public readonly int X; // Error!
+    public readonly int X; // `unsafe` required.
 
     [Key(1)]
     public int Y { get; } = 0; // Error!
 }
 ```
 
-Although it is not impossible to serialize read-only fields and getter-only properties, this feature is not supported because it requires dynamic code generation and read-only data should not be targeted for serialization.
+Getter-only property is not supported.
 
 
 

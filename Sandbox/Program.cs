@@ -5,11 +5,37 @@ using System.Linq;
 using System.Linq.Expressions;
 using DryIoc;
 using Tinyhand;
+using Tinyhand.IO;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
 
 namespace Sandbox;
+
+[TinyhandObject]
+public partial class SerializableClass<T> : ISerializableInterface
+{
+    /*public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        // throw new NotImplementedException();
+    }
+
+    public void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
+    {
+        // throw new NotImplementedException();
+    }*/
+
+    [Key(0)]
+    public int Id { get; set; }
+
+    [Key(1)]
+    public T Value { get; set; } = default!;
+}
+
+[TinyhandUnion(0, typeof(SerializableClass<int>))]
+public interface ISerializableInterface : ITinyhandSerialize
+{
+}
 
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial record class RecordClassData1(int Data1);
@@ -166,6 +192,11 @@ class Program
         var gtc = new ConsoleApp1.ItzShip<GenericsImplementedClass>();
         var gtc2 = new ConsoleApp1.ItzShip<GenericsImplementedStruct>();
         var gtc3 = new ConsoleApp1.ItzShip<IntPayload2>();
+
+        var sc = new SerializableClass<int>();
+        var dictionary = new Dictionary<uint, ISerializableInterface>();
+        dictionary[12346] = sc;
+        var ba = TinyhandSerializer.Serialize(dictionary);
 
         /*var t = typeof(InternalTestBase);
         var field = t.GetField("PrivateInt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
