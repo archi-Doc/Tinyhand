@@ -74,6 +74,43 @@ public partial struct IdentifierStruct
     }
 }
 
+[TinyhandObject]
+public partial struct IdentifierReadonlyStruct
+{
+    [Key(0)]
+    readonly ulong Id0;
+
+    [Key(1)]
+    ulong Id1;
+
+    [Key(2)]
+    ulong Id2;
+
+    [Key(3)]
+    ulong Id3;
+
+    public IdentifierReadonlyStruct()
+    {
+        this.Id0 = 0;
+        this.Id1 = 0;
+        this.Id2 = 0;
+        this.Id3 = 0;
+    }
+
+    public IdentifierReadonlyStruct(ulong id0, ulong id1, ulong id2, ulong id3)
+    {
+        this.Id0 = id0;
+        this.Id1 = id1;
+        this.Id2 = id2;
+        this.Id3 = id3;
+    }
+
+    public unsafe void Deserialize()
+    {
+        fixed (ulong* ptr = &this.Id0) *ptr = 11;
+    }
+}
+
 [Config(typeof(BenchmarkConfig))]
 public class SerializeIdentifierTest
 {
@@ -98,5 +135,12 @@ public class SerializeIdentifierTest
     {
         var t = new IdentifierStruct(1234, 5678, 9101112, 13141516);
         return TinyhandSerializer.Deserialize<IdentifierStruct>(TinyhandSerializer.Serialize(t));
+    }
+
+    [Benchmark]
+    public IdentifierReadonlyStruct SerializeDeserializeReadonlyStruct()
+    {
+        var t = new IdentifierReadonlyStruct(1234, 5678, 9101112, 13141516);
+        return TinyhandSerializer.Deserialize<IdentifierReadonlyStruct>(TinyhandSerializer.Serialize(t));
     }
 }
