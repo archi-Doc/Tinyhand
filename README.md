@@ -192,7 +192,7 @@ public partial class KeyAsNameClass
 
 
 
-### Readonly field and getter-only property
+### Readonly and Getter-only
 
 Readonly fields is not serialization target by default.
 
