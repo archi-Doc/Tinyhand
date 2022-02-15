@@ -50,10 +50,11 @@ namespace Benchmark
             Console.WriteLine(Stopwatch.ToSimpleString());
             Console.WriteLine();
 
-            DebugRun<SerializeIdentifierTest>();
+            DebugRun<UnionBenchmark>();
 
             var switcher = new BenchmarkSwitcher(new[]
             {
+                typeof(UnionBenchmark),
                 typeof(SerializeIdentifierTest),
                 typeof(DualWriter.DualWriterBenchmark),
                 typeof(TypeSwitch.SwitchBenchmark),
