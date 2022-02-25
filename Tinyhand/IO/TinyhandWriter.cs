@@ -12,15 +12,18 @@ namespace Tinyhand.IO
     public ref struct TinyhandWriter
     {
         private ByteBufferWriter writer;
+        private int markerPosition;
 
         public TinyhandWriter(IBufferWriter<byte> writer)
         {
             this.writer = new ByteBufferWriter(writer);
+            this.markerPosition = 0;
         }
 
         public TinyhandWriter(byte[] initialBuffer)
         {
             this.writer = new ByteBufferWriter(initialBuffer);
+            this.markerPosition = 0;
         }
 
         public void Dispose()
@@ -84,6 +87,13 @@ namespace Tinyhand.IO
         public void Ensure(int sizeHint) => this.writer.Ensure(sizeHint);
 
         public long Written => this.writer.Written;
+
+        public void SetMarker()
+        {
+            this.markerPosition = (int)this.writer.Written;
+        }
+
+        public int GetMarker() => this.markerPosition;
 
         /// <summary>
         /// Copies bytes directly into the message pack writer.

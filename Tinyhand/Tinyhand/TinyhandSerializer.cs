@@ -254,6 +254,49 @@ namespace Tinyhand
         }
 
         /// <summary>
+        /// Serializes a given value with the specified buffer writer and gets the marker position.
+        /// </summary>
+        /// <param name="value">The value to serialize.</param>
+        /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>A byte array with the serialized value and the marker position.</returns>
+        /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+        public static (byte[] ByteArray, int MarkerPosition) SerializeAndGetMarker<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+        {
+            if (initialBuffer == null)
+            {
+                initialBuffer = new byte[InitialBufferSize];
+            }
+
+            var w = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+            try
+            {
+                options = options ?? DefaultOptions;
+                if (options.Compression == TinyhandCompression.None)
+                {
+                    try
+                    {
+                        options.Resolver.GetFormatter<T>().Serialize(ref w, value, options);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+                    }
+                }
+                else
+                {
+                    Serialize(ref w, value, options);
+                }
+
+                return (w.FlushAndGetArray(), w.GetMarker());
+            }
+            finally
+            {
+                w.Dispose();
+            }
+        }
+
+        /// <summary>
         /// Serializes a given value to the specified stream.
         /// </summary>
         /// <param name="stream">The stream to serialize to.</param>
