@@ -132,6 +132,11 @@ namespace Tinyhand.Generator
                 }
             }
 
+            using (var ifElse = ssb.ScopeBrace("else"))
+            {
+                ssb.AppendLine("goto SkipLabel;");
+            }
+
             // ssb.GotoSkipLabel();
         }
 
@@ -164,6 +169,11 @@ namespace Tinyhand.Generator
 
                     this.Object.GenerateDeserializeCore2(ssb, info, x.Member);
                 }
+            }
+
+            using (var ifElse = ssb.ScopeBrace("else"))
+            {
+                ssb.AppendLine("goto SkipLabel;");
             }
 
             // ssb.GotoSkipLabel();

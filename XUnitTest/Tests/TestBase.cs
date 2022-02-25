@@ -6,12 +6,11 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 
-namespace Tinyhand.Tests
-{
-    public abstract class TestBase
-    {
-        protected readonly CancellationToken TimeoutToken = new CancellationTokenSource(TestTimeoutSpan).Token;
+namespace Tinyhand.Tests;
 
-        private static readonly TimeSpan TestTimeoutSpan = Debugger.IsAttached ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(5);
-    }
+public abstract class TestBase
+{
+    protected readonly CancellationToken TimeoutToken = new CancellationTokenSource(TestTimeoutSpan).Token;
+
+    private static readonly TimeSpan TestTimeoutSpan = Debugger.IsAttached ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(5);
 }
