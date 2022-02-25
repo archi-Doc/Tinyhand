@@ -2876,6 +2876,11 @@ ModuleInitializerClass_Added:
                 return;
             }
 
+            if (x.KeyAttribute?.IntKey == this.IntKey_Marker)
+            {// Key marker
+                ssb.AppendLine("writer.SetMarker();");
+            }
+
             ScopingStringBuilder.IScope? v1 = null;
             ScopingStringBuilder.IScope v2;
             if (x.RequiresGetter)

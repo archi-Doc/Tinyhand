@@ -46,6 +46,7 @@ namespace Tinyhand.Tests
             tc.Z = 3;
 
             var b = TinyhandSerializer.Serialize(tc);
+            var c = TinyhandSerializer.SerializeAndGetMarker(tc);
         }
     }
 }
