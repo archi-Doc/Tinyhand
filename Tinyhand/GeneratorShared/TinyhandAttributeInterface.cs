@@ -91,9 +91,9 @@ public class KeyAttribute : Attribute
     public string? StringKey { get; private set; }
 
     /// <summary>
-    /// Gets a value indicating whether or not to put a marker to get the location.
+    /// Gets or sets a value indicating whether or not to put a marker to get the location.
     /// </summary>
-    public bool Marker { get; private set; }
+    public bool Marker { get; set; }
 
     public KeyAttribute(int x)
     {

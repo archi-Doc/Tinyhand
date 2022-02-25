@@ -181,6 +181,10 @@ namespace Tinyhand.Generator
             id: "TG039", title: "Int Key reserved", messageFormat: "Integer keys from 0 to {0} are reserved in base class",
             category: "TinyhandGenerator", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+        public static readonly DiagnosticDescriptor Warning_InvalidKeyMarker = new DiagnosticDescriptor(
+            id: "TG040", title: "Key marker", messageFormat: "'Key marker is only valid for integer keys",
+            category: "TinyhandGenerator", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
         public TinyhandBody(GeneratorExecutionContext context)
             : base(context)
         {
