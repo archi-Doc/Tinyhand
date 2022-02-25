@@ -80,9 +80,20 @@ public sealed class ReserveKeyAttribute : Attribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
 public class KeyAttribute : Attribute
 {
+    /// <summary>
+    /// Gets the unique integer key used for serialization.
+    /// </summary>
     public int? IntKey { get; private set; }
 
+    /// <summary>
+    /// Gets the unique string key used for serialization.
+    /// </summary>
     public string? StringKey { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether or not to put a marker to get the location.
+    /// </summary>
+    public bool Marker { get; private set; }
 
     public KeyAttribute(int x)
     {

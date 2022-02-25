@@ -156,6 +156,8 @@ namespace Tinyhand.Generator
 
         public string? StringKey { get; private set; }
 
+        public bool Marker { get; private set; }
+
         public KeyAttributeMock(int x)
         {
             this.IntKey = x;
@@ -186,6 +188,12 @@ namespace Tinyhand.Generator
             if (attribute.IntKey == null && attribute.StringKey == null)
             {// Exception: KeyAttribute requires a valid int key or string key.
                 throw new ArgumentNullException();
+            }
+
+            var v = AttributeHelper.GetValue(-1, nameof(Marker), constructorArguments, namedArguments);
+            if (v != null)
+            {
+                attribute.Marker = (bool)v;
             }
 
             return attribute;
