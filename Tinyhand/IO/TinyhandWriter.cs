@@ -12,18 +12,15 @@ namespace Tinyhand.IO
     public ref struct TinyhandWriter
     {
         private ByteBufferWriter writer;
-        private int markerPosition;
 
         public TinyhandWriter(IBufferWriter<byte> writer)
         {
             this.writer = new ByteBufferWriter(writer);
-            this.markerPosition = 0;
         }
 
         public TinyhandWriter(byte[] initialBuffer)
         {
             this.writer = new ByteBufferWriter(initialBuffer);
-            this.markerPosition = 0;
         }
 
         public void Dispose()
@@ -37,6 +34,11 @@ namespace Tinyhand.IO
         public CancellationToken CancellationToken { get; set; } = default;
 
         /// <summary>
+        /// Gets or sets the marker position.
+        /// </summary>
+        public int MarkerPosition { get; set; } = 0;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct,
         /// with the same settings as this one, but with its own buffer writer.
         /// </summary>
@@ -45,6 +47,7 @@ namespace Tinyhand.IO
         public TinyhandWriter Clone(IBufferWriter<byte> writer) => new TinyhandWriter(writer)
         {
             CancellationToken = this.CancellationToken,
+            MarkerPosition = this.MarkerPosition,
         };
 
         /// <summary>
@@ -56,6 +59,7 @@ namespace Tinyhand.IO
         public TinyhandWriter Clone(byte[] initialBuffer) => new TinyhandWriter(initialBuffer)
         {
             CancellationToken = this.CancellationToken,
+            MarkerPosition = this.MarkerPosition,
         };
 
         /// <summary>
@@ -66,6 +70,7 @@ namespace Tinyhand.IO
         public TinyhandWriter Clone() => new TinyhandWriter()
         {
             CancellationToken = this.CancellationToken,
+            MarkerPosition = this.MarkerPosition,
         };
 
         public byte[] FlushAndGetArray() => this.writer.FlushAndGetArray();
@@ -90,10 +95,10 @@ namespace Tinyhand.IO
 
         public void SetMarker()
         {
-            this.markerPosition = (int)this.writer.Written;
+            this.MarkerPosition = (int)this.writer.Written;
         }
 
-        public int GetMarker() => this.markerPosition;
+        public int GetMarker() => this.MarkerPosition;
 
         /// <summary>
         /// Copies bytes directly into the message pack writer.
