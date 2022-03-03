@@ -1,4 +1,4 @@
-name: Publish to NuGet
+name: Publish NuGet
 on: workflow_dispatch
 
 jobs:
@@ -22,4 +22,4 @@ jobs:
     - name: Package
       run: dotnet pack -c Release -o bin Tinyhand/Tinyhand.csproj
     - name: Publish
-      run: dotnet nuget push bin/*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json
+      run: dotnet nuget push bin/*.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json
