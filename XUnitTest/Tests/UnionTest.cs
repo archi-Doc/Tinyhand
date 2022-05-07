@@ -13,8 +13,8 @@ using Xunit;
 
 namespace Tinyhand.Tests
 {
-    [TinyhandUnion(0, typeof(UnionTestClassA))]
-    [TinyhandUnion(1, typeof(UnionTestClassB))]
+    [TinyhandUnion<UnionTestClassA>(0)]
+    [TinyhandUnion<UnionTestClassB>(1)]
     [MessagePack.Union(0, typeof(UnionTestClassA))]
     [MessagePack.Union(1, typeof(UnionTestClassB))]
     public interface IUnionTestInterface
@@ -47,8 +47,8 @@ namespace Tinyhand.Tests
         public int Token;
     }
 
-    [TinyhandUnion(0, typeof(UnionTestSubA))]
-    [TinyhandUnion(1, typeof(UnionTestSubB))]
+    [TinyhandUnion<UnionTestSubA>(0)]
+    [TinyhandUnion<UnionTestSubB>(1)]
     [MessagePack.MessagePackObject]
     [MessagePack.Union(0, typeof(UnionTestSubA))]
     [MessagePack.Union(1, typeof(UnionTestSubB))]

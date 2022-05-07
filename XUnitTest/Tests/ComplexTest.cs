@@ -9,10 +9,10 @@ using Xunit;
 namespace Tinyhand.Tests
 {
     [TinyhandObject(ImplicitKeyAsName = true)]
-    [TinyhandUnion(0, typeof(ComplexTestClass))]
-    [TinyhandUnion(1, typeof(ComplexTestClass2<int, string>))]
-    [TinyhandUnion(2, typeof(ComplexTestClass3<double>))]
-    [TinyhandUnion(4, typeof(ComplexTestClass4))]
+    [TinyhandUnion<ComplexTestClass>(0)]
+    [TinyhandUnion<ComplexTestClass2<int, string>>(1)]
+    [TinyhandUnion<ComplexTestClass3<double>>(2)]
+    [TinyhandUnion<ComplexTestClass4>(4)]
     // [TinyhandUnion(3, typeof(ComplexTestClass3<double>))]
     public abstract partial class ComplexTestBase<T>
     {

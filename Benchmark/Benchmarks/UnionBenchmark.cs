@@ -12,10 +12,13 @@ using BenchmarkDotNet.Attributes;
 using Tinyhand;
 using Tinyhand.IO;
 
+#pragma warning disable CS0414
+#pragma warning disable CS0169
+
 namespace Benchmark;
 
-[TinyhandUnion(0, typeof(UnionTestClassA))]
-[TinyhandUnion(1, typeof(UnionTestClassB))]
+[TinyhandUnion<UnionTestClassA>(0)]
+[TinyhandUnion<UnionTestClassB>(1)]
 public interface UnionTestInterface
 {
 }

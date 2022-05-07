@@ -53,6 +53,7 @@ namespace ConsoleApp1
     public partial class InternalTestClass
     {
         [Key(0)]
+#pragma warning disable CS0414
         private int PrivateInt = 1;
 
         [Key(1)]
@@ -269,8 +270,8 @@ namespace ConsoleApp1
     }
 
     // Annotate inheritance types
-    [TinyhandUnion(0, typeof(UnionTestClassA))]
-    [TinyhandUnion(1, typeof(UnionTestClassB))]
+    [TinyhandUnion<UnionTestClassA>(0)]
+    [TinyhandUnion<UnionTestClassB>(1)]
     public interface IUnionTestInterface
     {
         void Print();

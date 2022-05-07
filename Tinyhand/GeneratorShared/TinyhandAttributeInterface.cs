@@ -209,8 +209,9 @@ public interface ITinyhandClone<T>
 /// The base type must be an abstract class or interface.<br/>
 /// Specify Key (an identifier of the subtype) and SubType (the derived or implementing type).
 /// </summary>
+/// <typeparam name="TSub">The derived or implementing type.</typeparam>
 [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-public class TinyhandUnionAttribute : Attribute
+public class TinyhandUnionAttribute<TSub> : Attribute
 {
     /// <summary>
     /// Gets the distinguishing value that identifies a particular subtype.
@@ -223,14 +224,13 @@ public class TinyhandUnionAttribute : Attribute
     public Type SubType { get; private set; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TinyhandUnionAttribute"/> class.
+    /// Initializes a new instance of the <see cref="TinyhandUnionAttribute{T}"/> class.
     /// </summary>
     /// <param name="key">The distinguishing value that identifies a particular subtype.</param>
-    /// <param name="subType">The derived or implementing type.</param>
-    public TinyhandUnionAttribute(int key, Type subType)
+    public TinyhandUnionAttribute(int key)
     {
         this.Key = key;
-        this.SubType = subType;
+        this.SubType = typeof(TSub);
     }
 }
 
