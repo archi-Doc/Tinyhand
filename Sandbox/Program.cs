@@ -42,7 +42,7 @@ public partial class SerializableClass<T> : ISerializableInterface
     public T Value { get; set; } = default!;
 }
 
-[TinyhandUnion<SerializableClass<int>>(0)]
+// [TinyhandUnion<SerializableClass<int>>(0)]
 public interface ISerializableInterface : ITinyhandSerialize
 {
 }

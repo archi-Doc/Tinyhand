@@ -265,7 +265,7 @@ namespace ConsoleApp1
             // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
 
             var reader = new Tinyhand.IO.TinyhandReader(TinyhandSerializer.Serialize(t));
-            t.Deserialize(ref reader, TinyhandSerializerOptions.Standard); ; // Same as above
+            // t.Deserialize(ref reader, TinyhandSerializerOptions.Standard); ; // Same as above
         }
     }
 
