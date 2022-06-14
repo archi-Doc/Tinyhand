@@ -193,7 +193,7 @@ namespace Benchmark.H2HTest
             return Tinyhand.TinyhandSerializer.Serialize(this.h2h);
         }
 
-        /*[Benchmark]
+        [Benchmark]
         public byte[] SerializeTinyhandUtf8()
         {
             return Tinyhand.TinyhandSerializer.SerializeToUtf8(this.h2h);
@@ -269,6 +269,6 @@ namespace Benchmark.H2HTest
         public ObjectH2H2? DeserializeJsonStringUtf8()
         {
             return JsonSerializer.Deserialize<ObjectH2H2>(this.json);
-        }*/
+        }
     }
 }
