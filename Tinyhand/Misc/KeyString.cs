@@ -168,12 +168,12 @@ public class KeyString
     /// Load from assembly.
     /// </summary>
     /// <param name="culture">The target culture.</param>
-    /// <param name="assemblyname">The assembly name.</param>
+    /// <param name="assembly">The assembly.</param>
+    /// <param name="name">The resource name.</param>
     /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
-    public void LoadAssembly(string culture, string assemblyname, bool reset = false)
+    public void LoadAssembly(string culture, System.Reflection.Assembly assembly, string name, bool reset = false)
     {
-        var asm = System.Reflection.Assembly.GetExecutingAssembly();
-        using (var stream = asm.GetManifestResourceStream(asm.GetName().Name + "." + assemblyname))
+        using (var stream = assembly.GetManifestResourceStream(assembly.GetName().Name + "." + name))
         {
             if (stream == null)
             {
