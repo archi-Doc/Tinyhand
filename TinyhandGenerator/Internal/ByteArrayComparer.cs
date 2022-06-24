@@ -4,36 +4,35 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Tinyhand.Generator
+namespace Tinyhand.Generator;
+
+internal class ByteArrayComparer : EqualityComparer<byte[]>
 {
-    internal class ByteArrayComparer : EqualityComparer<byte[]>
+    public override bool Equals(byte[] first, byte[] second)
     {
-        public override bool Equals(byte[] first, byte[] second)
+        if (first == null || second == null)
         {
-            if (first == null || second == null)
-            {
-                return first == second;
-            }
-            else if (ReferenceEquals(first, second))
-            {
-                return true;
-            }
-            else if (first.Length != second.Length)
-            {
-                return false;
-            }
-
-            return first.SequenceEqual(second);
+            return first == second;
+        }
+        else if (ReferenceEquals(first, second))
+        {
+            return true;
+        }
+        else if (first.Length != second.Length)
+        {
+            return false;
         }
 
-        public override int GetHashCode(byte[] obj)
-        {
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
+        return first.SequenceEqual(second);
+    }
 
-            return obj.Length;
+    public override int GetHashCode(byte[] obj)
+    {
+        if (obj == null)
+        {
+            throw new ArgumentNullException(nameof(obj));
         }
+
+        return obj.Length;
     }
 }

@@ -7,173 +7,172 @@ using Tinyhand.IO;
 
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Formatters
+namespace Tinyhand.Formatters;
+
+/// <summary>
+/// Serialize IPAddress.
+/// </summary>
+public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
 {
-    /// <summary>
-    /// Serialize IPAddress.
-    /// </summary>
-    public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
+    public static readonly IPAddressFormatter Instance = new IPAddressFormatter();
+
+    public void Serialize(ref TinyhandWriter writer, IPAddress? value, TinyhandSerializerOptions options)
     {
-        public static readonly IPAddressFormatter Instance = new IPAddressFormatter();
-
-        public void Serialize(ref TinyhandWriter writer, IPAddress? value, TinyhandSerializerOptions options)
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
-            var span = writer.GetSpan(32);
-            if (value.TryWriteBytes(span.Slice(2), out var written))
-            {
-                span[0] = MessagePackCode.Bin8;
-                span[1] = (byte)written;
-                writer.Advance(2 + written);
-            }
-            else
-            {
-                writer.WriteNil();
-                return;
-            }
-
-            /*Span<byte> span = stackalloc byte[16];
-            value.TryWriteBytes(span, out var written);
-            writer.Write(span);*/
+            writer.WriteNil();
+            return;
         }
 
-        public IPAddress? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        var span = writer.GetSpan(32);
+        if (value.TryWriteBytes(span.Slice(2), out var written))
         {
-            var seq = reader.ReadBytes();
-            if (seq.HasValue)
-            {
-                return new IPAddress(seq.Value.ToArray());
-            }
-            else
-            {
-                return null;
-            }
+            span[0] = MessagePackCode.Bin8;
+            span[1] = (byte)written;
+            writer.Advance(2 + written);
+        }
+        else
+        {
+            writer.WriteNil();
+            return;
         }
 
-        public IPAddress Reconstruct(TinyhandSerializerOptions options)
-        {
-            return IPAddress.None;
-        }
-
-        public IPAddress? Clone(IPAddress? value, TinyhandSerializerOptions options) => value == null ? null : new IPAddress(value.GetAddressBytes());
+        /*Span<byte> span = stackalloc byte[16];
+        value.TryWriteBytes(span, out var written);
+        writer.Write(span);*/
     }
 
-    /// <summary>
-    /// Serialize IPAddress.
-    /// </summary>
-    public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
+    public IPAddress? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        public static readonly IPEndPointFormatter Instance = new IPEndPointFormatter();
-
-        public void Serialize(ref TinyhandWriter writer, IPEndPoint? value, TinyhandSerializerOptions options)
+        var seq = reader.ReadBytes();
+        if (seq.HasValue)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
-            var span = writer.GetSpan(32);
-            if (value.Address.TryWriteBytes(span.Slice(2), out var written))
-            {
-                span[0] = MessagePackCode.Bin8;
-                span[1] = (byte)written;
-                writer.Advance(2 + written);
-                writer.Write(value.Port);
-            }
-            else
-            {
-                writer.WriteNil();
-                return;
-            }
+            return new IPAddress(seq.Value.ToArray());
         }
-
-        public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        else
         {
-            var seq = reader.ReadBytes();
-            if (seq.HasValue)
-            {
-                return new IPEndPoint(new IPAddress(seq.Value.ToArray()), reader.ReadInt32());
-            }
-            else
-            {
-                return null;
-            }
+            return null;
         }
-
-        public IPEndPoint Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new IPEndPoint(IPAddress.None, 0);
-        }
-
-        public IPEndPoint? Clone(IPEndPoint? value, TinyhandSerializerOptions options) => value == null ? null : new IPEndPoint(new IPAddress(value.Address.GetAddressBytes()), value.Port);
     }
 
-    /*public sealed class NativeDateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
+    public IPAddress Reconstruct(TinyhandSerializerOptions options)
     {
-        public static readonly NativeDateTimeArrayFormatter Instance = new NativeDateTimeArrayFormatter();
+        return IPAddress.None;
+    }
 
-        public void Serialize(ref TinyhandWriter writer, DateTime[]? value, TinyhandSerializerOptions options)
+    public IPAddress? Clone(IPAddress? value, TinyhandSerializerOptions options) => value == null ? null : new IPAddress(value.GetAddressBytes());
+}
+
+/// <summary>
+/// Serialize IPAddress.
+/// </summary>
+public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
+{
+    public static readonly IPEndPointFormatter Instance = new IPEndPointFormatter();
+
+    public void Serialize(ref TinyhandWriter writer, IPEndPoint? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
-            {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i].ToBinary());
-                }
-            }
+            writer.WriteNil();
+            return;
         }
 
-        public DateTime[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        var span = writer.GetSpan(32);
+        if (value.Address.TryWriteBytes(span.Slice(2), out var written))
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
+            span[0] = MessagePackCode.Bin8;
+            span[1] = (byte)written;
+            writer.Advance(2 + written);
+            writer.Write(value.Port);
+        }
+        else
+        {
+            writer.WriteNil();
+            return;
+        }
+    }
 
-            var len = reader.ReadArrayHeader();
-            if (len == 0)
-            {
-                return Array.Empty<DateTime>();
-            }
+    public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        var seq = reader.ReadBytes();
+        if (seq.HasValue)
+        {
+            return new IPEndPoint(new IPAddress(seq.Value.ToArray()), reader.ReadInt32());
+        }
+        else
+        {
+            return null;
+        }
+    }
 
-            var array = new DateTime[len];
-            for (int i = 0; i < array.Length; i++)
-            {
-                var dateData = reader.ReadInt64();
-                array[i] = DateTime.FromBinary(dateData);
-            }
+    public IPEndPoint Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new IPEndPoint(IPAddress.None, 0);
+    }
 
+    public IPEndPoint? Clone(IPEndPoint? value, TinyhandSerializerOptions options) => value == null ? null : new IPEndPoint(new IPAddress(value.Address.GetAddressBytes()), value.Port);
+}
+
+/*public sealed class NativeDateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
+{
+    public static readonly NativeDateTimeArrayFormatter Instance = new NativeDateTimeArrayFormatter();
+
+    public void Serialize(ref TinyhandWriter writer, DateTime[]? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
+            {
+                writer.Write(value[i].ToBinary());
+            }
+        }
+    }
+
+    public DateTime[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return null;
+        }
+
+        var len = reader.ReadArrayHeader();
+        if (len == 0)
+        {
+            return Array.Empty<DateTime>();
+        }
+
+        var array = new DateTime[len];
+        for (int i = 0; i < array.Length; i++)
+        {
+            var dateData = reader.ReadInt64();
+            array[i] = DateTime.FromBinary(dateData);
+        }
+
+        return array;
+    }
+
+    public DateTime[] Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new DateTime[0];
+    }
+
+    public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        else
+        {
+            var array = new DateTime[value.Length];
+            Array.Copy(value, array, value.Length);
             return array;
         }
-
-        public DateTime[] Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new DateTime[0];
-        }
-
-        public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new DateTime[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
-        }
-    }*/
-}
+    }
+}*/

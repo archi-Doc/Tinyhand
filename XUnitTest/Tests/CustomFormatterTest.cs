@@ -9,104 +9,103 @@ using Tinyhand;
 using Tinyhand.IO;
 using Xunit;
 
-namespace Tinyhand.Tests
+namespace Tinyhand.Tests;
+
+[TinyhandObject]
+public partial class CustomFormatterClass : ITinyhandSerialize
 {
-    [TinyhandObject]
-    public partial class CustomFormatterClass : ITinyhandSerialize
+    public int ID { get; set; }
+
+    public string Name { get; set; } = default!;
+
+    void ITinyhandSerialize.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        public int ID { get; set; }
-
-        public string Name { get; set; } = default!;
-
-        void ITinyhandSerialize.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        if (!reader.TryReadNil())
         {
-            if (!reader.TryReadNil())
-            {
-                this.ID = reader.ReadInt32();
-            }
-
-            if (!reader.TryReadNil())
-            {
-                this.Name = reader.ReadString() ?? string.Empty;
-            }
-            else
-            {
-                this.Name = string.Empty;
-            }
-        }
-        
-        void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
-        {
-            writer.Write(this.ID + 1);
-            writer.Write(this.Name + "Mock");
+            this.ID = reader.ReadInt32();
         }
 
-        /*public void Reconstruct(TinyhandSerializerOptions options)
+        if (!reader.TryReadNil())
         {
-            if (this.Name == null)
-            {
-                this.Name = string.Empty;
-            }
-        }*/
+            this.Name = reader.ReadString() ?? string.Empty;
+        }
+        else
+        {
+            this.Name = string.Empty;
+        }
+    }
+    
+    void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
+    {
+        writer.Write(this.ID + 1);
+        writer.Write(this.Name + "Mock");
     }
 
-    [TinyhandObject]
-    public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize
+    /*public void Reconstruct(TinyhandSerializerOptions options)
     {
-        public int ID { get; set; }
-
-        public T TValue { get; set; }
-
-        void ITinyhandSerialize.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        if (this.Name == null)
         {
-            if (!reader.TryReadNil())
-            {
-                this.ID = reader.ReadInt32();
-            }
+            this.Name = string.Empty;
+        }
+    }*/
+}
 
-            if (!reader.TryReadNil())
-            {
-                this.TValue = options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
-            }
-            else
-            {
-                this.TValue = options.Resolver.GetFormatter<T>().Reconstruct(options);
-            }
+[TinyhandObject]
+public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize
+{
+    public int ID { get; set; }
+
+    public T TValue { get; set; }
+
+    void ITinyhandSerialize.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (!reader.TryReadNil())
+        {
+            this.ID = reader.ReadInt32();
         }
 
-        void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
+        if (!reader.TryReadNil())
         {
-            writer.Write(this.ID + 1);
-            options.Resolver.GetFormatter<T>().Serialize(ref writer, TValue, options);
+            this.TValue = options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
         }
-
-        /*public void Reconstruct(TinyhandSerializerOptions options)
+        else
         {
-            if (this.Name == null)
-            {
-                this.Name = string.Empty;
-            }
-        }*/
+            this.TValue = options.Resolver.GetFormatter<T>().Reconstruct(options);
+        }
     }
 
-    public class CustomFormatterTest
+    void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
     {
-        [Fact]
-        public void Test()
-        {
-            var tc = new CustomFormatterClass() { ID = 10, Name = "John", };
-            var tc2 = TinyhandSerializer.Deserialize<CustomFormatterClass>(TinyhandSerializer.Serialize(tc));
-            tc2.ID.Is(11);
-            tc2.Name.Is("JohnMock");
-        }
+        writer.Write(this.ID + 1);
+        options.Resolver.GetFormatter<T>().Serialize(ref writer, TValue, options);
+    }
 
-        [Fact]
-        public void GenericTest()
+    /*public void Reconstruct(TinyhandSerializerOptions options)
+    {
+        if (this.Name == null)
         {
-            var tc = new CustomFormatterGenericClass<long>() { ID = 10, TValue = -9, };
-            var tc2 = TinyhandSerializer.Deserialize<CustomFormatterGenericClass<long>>(TinyhandSerializer.Serialize(tc));
-            tc2.ID.Is(11);
-            tc2.TValue.Is(-9);
+            this.Name = string.Empty;
         }
+    }*/
+}
+
+public class CustomFormatterTest
+{
+    [Fact]
+    public void Test()
+    {
+        var tc = new CustomFormatterClass() { ID = 10, Name = "John", };
+        var tc2 = TinyhandSerializer.Deserialize<CustomFormatterClass>(TinyhandSerializer.Serialize(tc));
+        tc2.ID.Is(11);
+        tc2.Name.Is("JohnMock");
+    }
+
+    [Fact]
+    public void GenericTest()
+    {
+        var tc = new CustomFormatterGenericClass<long>() { ID = 10, TValue = -9, };
+        var tc2 = TinyhandSerializer.Deserialize<CustomFormatterGenericClass<long>>(TinyhandSerializer.Serialize(tc));
+        tc2.ID.Is(11);
+        tc2.TValue.Is(-9);
     }
 }

@@ -11,58 +11,57 @@ using Xunit;
 #pragma warning disable SA1401 // Fields should be private
 #pragma warning disable SA1009
 
-namespace Tinyhand.Tests
+namespace Tinyhand.Tests;
+
+public static class TestHelper
 {
-    public static class TestHelper
+    public static T? Convert<T>(T obj) => TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj));
+
+    public static object? ConvertNonGeneric(Type type, object obj) => TinyhandSerializer.Deserialize(type, TinyhandSerializer.Serialize(type, obj));
+
+    public static T? TestWithMessagePack<T>(T obj, bool testClone = true)
     {
-        public static T? Convert<T>(T obj) => TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj));
+        var b = TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Compatible);
+        var b2 = MessagePack.MessagePackSerializer.Serialize<T>(obj);
+        // var json = MessagePack.MessagePackSerializer.ConvertToJson(b2);
+        b.IsStructuralEqual(b2);
 
-        public static object? ConvertNonGeneric(Type type, object obj) => TinyhandSerializer.Deserialize(type, TinyhandSerializer.Serialize(type, obj));
+        var t = TinyhandSerializer.Deserialize<T>(b, TinyhandSerializerOptions.Compatible);
+        obj.IsStructuralEqual(t);
 
-        public static T? TestWithMessagePack<T>(T obj, bool testClone = true)
-        {
-            var b = TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Compatible);
-            var b2 = MessagePack.MessagePackSerializer.Serialize<T>(obj);
-            // var json = MessagePack.MessagePackSerializer.ConvertToJson(b2);
-            b.IsStructuralEqual(b2);
+        t = TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Lz4), TinyhandSerializerOptions.Lz4);
+        obj.IsStructuralEqual(t);
 
-            var t = TinyhandSerializer.Deserialize<T>(b, TinyhandSerializerOptions.Compatible);
-            obj.IsStructuralEqual(t);
+        var st = TinyhandSerializer.SerializeToString<T>(obj);
+        t = TinyhandSerializer.DeserializeFromString<T>(st);
+        obj.IsStructuralEqual(t);
 
-            t = TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Lz4), TinyhandSerializerOptions.Lz4);
-            obj.IsStructuralEqual(t);
+        // t = TinyhandSerializer.Deserialize<T>(MessagePack.MessagePackSerializer.Serialize<T>(obj, MessagePack.MessagePackSerializerOptions.Standard.WithCompression(MessagePack.MessagePackCompression.Lz4BlockArray)), TinyhandSerializerOptions.Lz4);
+        // obj.IsStructuralEqual(t);
 
-            var st = TinyhandSerializer.SerializeToString<T>(obj);
-            t = TinyhandSerializer.DeserializeFromString<T>(st);
-            obj.IsStructuralEqual(t);
-
-            // t = TinyhandSerializer.Deserialize<T>(MessagePack.MessagePackSerializer.Serialize<T>(obj, MessagePack.MessagePackSerializerOptions.Standard.WithCompression(MessagePack.MessagePackCompression.Lz4BlockArray)), TinyhandSerializerOptions.Lz4);
-            // obj.IsStructuralEqual(t);
-
-            if (testClone)
-            {// Clone
-                obj.IsStructuralEqual(TinyhandSerializer.Clone(obj));
-            }
-
-            return t;
+        if (testClone)
+        {// Clone
+            obj.IsStructuralEqual(TinyhandSerializer.Clone(obj));
         }
 
-        public static T? TestWithMessagePackWithoutCompareObject<T>(T obj, bool testClone = true)
-        {
-            var b = TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Compatible);
-            var b2 = MessagePack.MessagePackSerializer.Serialize<T>(obj);
-            b.IsStructuralEqual(b2);
+        return t;
+    }
 
-            var t = TinyhandSerializer.Deserialize<T>(b, TinyhandSerializerOptions.Compatible)!;
-            var b3 = MessagePack.MessagePackSerializer.Serialize<T>(t);
-            b.IsStructuralEqual(b3);
+    public static T? TestWithMessagePackWithoutCompareObject<T>(T obj, bool testClone = true)
+    {
+        var b = TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Compatible);
+        var b2 = MessagePack.MessagePackSerializer.Serialize<T>(obj);
+        b.IsStructuralEqual(b2);
 
-            if (testClone)
-            {// Clone
-                obj.IsStructuralEqual(TinyhandSerializer.Clone(obj));
-            }
+        var t = TinyhandSerializer.Deserialize<T>(b, TinyhandSerializerOptions.Compatible)!;
+        var b3 = MessagePack.MessagePackSerializer.Serialize<T>(t);
+        b.IsStructuralEqual(b3);
 
-            return t;
+        if (testClone)
+        {// Clone
+            obj.IsStructuralEqual(TinyhandSerializer.Clone(obj));
         }
+
+        return t;
     }
 }

@@ -9,346 +9,345 @@ using Tinyhand.IO;
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Formatters
+namespace Tinyhand.Formatters;
+
+// Immutablearray<T>.Enumerator is 'not' IEnumerator<T>, can't use abstraction layer.
+public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
 {
-    // Immutablearray<T>.Enumerator is 'not' IEnumerator<T>, can't use abstraction layer.
-    public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
+    public void Serialize(ref TinyhandWriter writer, ImmutableArray<T> value, TinyhandSerializerOptions options)
     {
-        public void Serialize(ref TinyhandWriter writer, ImmutableArray<T> value, TinyhandSerializerOptions options)
+        if (value.IsDefault)
         {
-            if (value.IsDefault)
-            {
-                writer.WriteNil();
-            }
-            else if (value.IsEmpty)
-            {
-                writer.WriteArrayHeader(0);
-            }
-            else
-            {
-                ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
+            writer.WriteNil();
+        }
+        else if (value.IsEmpty)
+        {
+            writer.WriteArrayHeader(0);
+        }
+        else
+        {
+            ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
-                writer.WriteArrayHeader(value.Length);
-                foreach (T item in value)
-                {
-                    formatter.Serialize(ref writer, item, options);
-                }
+            writer.WriteArrayHeader(value.Length);
+            foreach (T item in value)
+            {
+                formatter.Serialize(ref writer, item, options);
             }
         }
+    }
 
-        public ImmutableArray<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-        {
-            if (reader.TryReadNil())
-            {
-                return default;
-            }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                if (len == 0)
-                {
-                    return ImmutableArray<T>.Empty;
-                }
-
-                ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
-                ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(len);
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    for (int i = 0; i < len; i++)
-                    {
-                        builder.Add(formatter.Deserialize(ref reader, options)!);
-                    }
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-
-                return builder.MoveToImmutable();
-            }
-        }
-
-        public ImmutableArray<T> Reconstruct(TinyhandSerializerOptions options)
+    public ImmutableArray<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
         {
             return default;
         }
-
-        public ImmutableArray<T> Clone(ImmutableArray<T> value, TinyhandSerializerOptions options)
+        else
         {
-            var len = value.Length;
+            var len = reader.ReadArrayHeader();
             if (len == 0)
             {
                 return ImmutableArray<T>.Empty;
             }
-            else
+
+            ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
+            ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(len);
+            options.Security.DepthStep(ref reader);
+            try
             {
-                var formatter = options.Resolver.GetFormatter<T>();
-                var builder = ImmutableArray.CreateBuilder<T>(len);
                 for (int i = 0; i < len; i++)
                 {
-                    builder.Add(formatter.Clone(value[i], options)!);
+                    builder.Add(formatter.Deserialize(ref reader, options)!);
                 }
-
-                return builder.MoveToImmutable();
             }
+            finally
+            {
+                reader.Depth--;
+            }
+
+            return builder.MoveToImmutable();
         }
     }
 
-    public class ImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, ImmutableList<T>.Enumerator, ImmutableList<T>>
+    public ImmutableArray<T> Reconstruct(TinyhandSerializerOptions options)
     {
-        protected override void Add(ImmutableList<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection.Add(value);
-        }
-
-        protected override ImmutableList<T> Complete(ImmutableList<T>.Builder intermediateCollection)
-        {
-            return intermediateCollection.ToImmutable();
-        }
-
-        protected override ImmutableList<T>.Builder Create(int count, TinyhandSerializerOptions options)
-        {
-            return ImmutableList.CreateBuilder<T>();
-        }
-
-        protected override ImmutableList<T>.Enumerator GetSourceEnumerator(ImmutableList<T> source)
-        {
-            return source.GetEnumerator();
-        }
+        return default;
     }
 
-    public class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableDictionary<TKey, TValue>.Builder, ImmutableDictionary<TKey, TValue>.Enumerator, ImmutableDictionary<TKey, TValue>>
-        where TKey : notnull
+    public ImmutableArray<T> Clone(ImmutableArray<T> value, TinyhandSerializerOptions options)
     {
-        protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
+        var len = value.Length;
+        if (len == 0)
         {
-            collection.Add(key, value);
+            return ImmutableArray<T>.Empty;
         }
-
-        protected override ImmutableDictionary<TKey, TValue> Complete(ImmutableDictionary<TKey, TValue>.Builder intermediateCollection)
+        else
         {
-            return intermediateCollection.ToImmutable();
-        }
+            var formatter = options.Resolver.GetFormatter<T>();
+            var builder = ImmutableArray.CreateBuilder<T>(len);
+            for (int i = 0; i < len; i++)
+            {
+                builder.Add(formatter.Clone(value[i], options)!);
+            }
 
-        protected override ImmutableDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
-        {
-            return ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
-        }
-
-        protected override ImmutableDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(ImmutableDictionary<TKey, TValue> source)
-        {
-            return source.GetEnumerator();
+            return builder.MoveToImmutable();
         }
     }
+}
 
-    public class ImmutableHashSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, ImmutableHashSet<T>.Enumerator, ImmutableHashSet<T>>
+public class ImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, ImmutableList<T>.Enumerator, ImmutableList<T>>
+{
+    protected override void Add(ImmutableList<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
     {
-        protected override void Add(ImmutableHashSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection.Add(value);
-        }
-
-        protected override ImmutableHashSet<T> Complete(ImmutableHashSet<T>.Builder intermediateCollection)
-        {
-            return intermediateCollection.ToImmutable();
-        }
-
-        protected override ImmutableHashSet<T>.Builder Create(int count, TinyhandSerializerOptions options)
-        {
-            return ImmutableHashSet.CreateBuilder<T>(options.Security.GetEqualityComparer<T>());
-        }
-
-        protected override ImmutableHashSet<T>.Enumerator GetSourceEnumerator(ImmutableHashSet<T> source)
-        {
-            return source.GetEnumerator();
-        }
+        collection.Add(value);
     }
 
-    public class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableSortedDictionary<TKey, TValue>.Builder, ImmutableSortedDictionary<TKey, TValue>.Enumerator, ImmutableSortedDictionary<TKey, TValue>>
-        where TKey : notnull
+    protected override ImmutableList<T> Complete(ImmutableList<T>.Builder intermediateCollection)
     {
-        protected override void Add(ImmutableSortedDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
-        {
-            collection.Add(key, value);
-        }
-
-        protected override ImmutableSortedDictionary<TKey, TValue> Complete(ImmutableSortedDictionary<TKey, TValue>.Builder intermediateCollection)
-        {
-            return intermediateCollection.ToImmutable();
-        }
-
-        protected override ImmutableSortedDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
-        {
-            return ImmutableSortedDictionary.CreateBuilder<TKey, TValue>();
-        }
-
-        protected override ImmutableSortedDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(ImmutableSortedDictionary<TKey, TValue> source)
-        {
-            return source.GetEnumerator();
-        }
+        return intermediateCollection.ToImmutable();
     }
 
-    public class ImmutableSortedSetFormatter<T> : CollectionFormatterBase<T, ImmutableSortedSet<T>.Builder, ImmutableSortedSet<T>.Enumerator, ImmutableSortedSet<T>>
+    protected override ImmutableList<T>.Builder Create(int count, TinyhandSerializerOptions options)
     {
-        protected override void Add(ImmutableSortedSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection.Add(value);
-        }
-
-        protected override ImmutableSortedSet<T> Complete(ImmutableSortedSet<T>.Builder intermediateCollection)
-        {
-            return intermediateCollection.ToImmutable();
-        }
-
-        protected override ImmutableSortedSet<T>.Builder Create(int count, TinyhandSerializerOptions options)
-        {
-            return ImmutableSortedSet.CreateBuilder<T>();
-        }
-
-        protected override ImmutableSortedSet<T>.Enumerator GetSourceEnumerator(ImmutableSortedSet<T> source)
-        {
-            return source.GetEnumerator();
-        }
+        return ImmutableList.CreateBuilder<T>();
     }
 
-    // not best for performance(does not use ImmutableQueue<T>.Enumerator)
-    public class ImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQueueBuilder<T>, ImmutableQueue<T>>
+    protected override ImmutableList<T>.Enumerator GetSourceEnumerator(ImmutableList<T> source)
     {
-        protected override void Add(ImmutableQueueBuilder<T> collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection.Add(value);
-        }
+        return source.GetEnumerator();
+    }
+}
 
-        protected override ImmutableQueue<T> Complete(ImmutableQueueBuilder<T> intermediateCollection)
-        {
-            return intermediateCollection.Q;
-        }
-
-        protected override ImmutableQueueBuilder<T> Create(int count, TinyhandSerializerOptions options)
-        {
-            return new ImmutableQueueBuilder<T>();
-        }
+public class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableDictionary<TKey, TValue>.Builder, ImmutableDictionary<TKey, TValue>.Enumerator, ImmutableDictionary<TKey, TValue>>
+    where TKey : notnull
+{
+    protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
+    {
+        collection.Add(key, value);
     }
 
-    // not best for performance(does not use ImmutableQueue<T>.Enumerator)
-    public class ImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], ImmutableStack<T>>
+    protected override ImmutableDictionary<TKey, TValue> Complete(ImmutableDictionary<TKey, TValue>.Builder intermediateCollection)
     {
-        protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection[collection.Length - 1 - index] = value;
-        }
-
-        protected override ImmutableStack<T> Complete(T[] intermediateCollection)
-        {
-            return ImmutableStack.CreateRange(intermediateCollection);
-        }
-
-        protected override T[] Create(int count, TinyhandSerializerOptions options)
-        {
-            return count == 0 ? Array.Empty<T>() : new T[count];
-        }
+        return intermediateCollection.ToImmutable();
     }
 
-    public class InterfaceImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, IImmutableList<T>>
+    protected override ImmutableDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
     {
-        protected override void Add(ImmutableList<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection.Add(value);
-        }
-
-        protected override IImmutableList<T> Complete(ImmutableList<T>.Builder intermediateCollection)
-        {
-            return intermediateCollection.ToImmutable();
-        }
-
-        protected override ImmutableList<T>.Builder Create(int count, TinyhandSerializerOptions options)
-        {
-            return ImmutableList.CreateBuilder<T>();
-        }
+        return ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
     }
 
-    public class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableDictionary<TKey, TValue>.Builder, IImmutableDictionary<TKey, TValue>>
-        where TKey : notnull
+    protected override ImmutableDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(ImmutableDictionary<TKey, TValue> source)
     {
-        protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
-        {
-            collection.Add(key, value);
-        }
+        return source.GetEnumerator();
+    }
+}
 
-        protected override IImmutableDictionary<TKey, TValue> Complete(ImmutableDictionary<TKey, TValue>.Builder intermediateCollection)
-        {
-            return intermediateCollection.ToImmutable();
-        }
-
-        protected override ImmutableDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
-        {
-            return ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
-        }
+public class ImmutableHashSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, ImmutableHashSet<T>.Enumerator, ImmutableHashSet<T>>
+{
+    protected override void Add(ImmutableHashSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
+    {
+        collection.Add(value);
     }
 
-    public class InterfaceImmutableSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, IImmutableSet<T>>
+    protected override ImmutableHashSet<T> Complete(ImmutableHashSet<T>.Builder intermediateCollection)
     {
-        protected override void Add(ImmutableHashSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection.Add(value);
-        }
-
-        protected override IImmutableSet<T> Complete(ImmutableHashSet<T>.Builder intermediateCollection)
-        {
-            return intermediateCollection.ToImmutable();
-        }
-
-        protected override ImmutableHashSet<T>.Builder Create(int count, TinyhandSerializerOptions options)
-        {
-            return ImmutableHashSet.CreateBuilder<T>(options.Security.GetEqualityComparer<T>());
-        }
+        return intermediateCollection.ToImmutable();
     }
 
-    public class InterfaceImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQueueBuilder<T>, IImmutableQueue<T>>
+    protected override ImmutableHashSet<T>.Builder Create(int count, TinyhandSerializerOptions options)
     {
-        protected override void Add(ImmutableQueueBuilder<T> collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection.Add(value);
-        }
-
-        protected override IImmutableQueue<T> Complete(ImmutableQueueBuilder<T> intermediateCollection)
-        {
-            return intermediateCollection.Q;
-        }
-
-        protected override ImmutableQueueBuilder<T> Create(int count, TinyhandSerializerOptions options)
-        {
-            return new ImmutableQueueBuilder<T>();
-        }
+        return ImmutableHashSet.CreateBuilder<T>(options.Security.GetEqualityComparer<T>());
     }
 
-    public class InterfaceImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], IImmutableStack<T>>
+    protected override ImmutableHashSet<T>.Enumerator GetSourceEnumerator(ImmutableHashSet<T> source)
     {
-        protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
-        {
-            collection[collection.Length - 1 - index] = value;
-        }
+        return source.GetEnumerator();
+    }
+}
 
-        protected override IImmutableStack<T> Complete(T[] intermediateCollection)
-        {
-            return ImmutableStack.CreateRange(intermediateCollection);
-        }
-
-        protected override T[] Create(int count, TinyhandSerializerOptions options)
-        {
-            return count == 0 ? Array.Empty<T>() : new T[count];
-        }
+public class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableSortedDictionary<TKey, TValue>.Builder, ImmutableSortedDictionary<TKey, TValue>.Enumerator, ImmutableSortedDictionary<TKey, TValue>>
+    where TKey : notnull
+{
+    protected override void Add(ImmutableSortedDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
+    {
+        collection.Add(key, value);
     }
 
-    // pseudo builders
-    public class ImmutableQueueBuilder<T>
+    protected override ImmutableSortedDictionary<TKey, TValue> Complete(ImmutableSortedDictionary<TKey, TValue>.Builder intermediateCollection)
     {
-        public ImmutableQueue<T> Q { get; set; } = ImmutableQueue<T>.Empty;
+        return intermediateCollection.ToImmutable();
+    }
 
-        public void Add(T value)
-        {
-            this.Q = this.Q.Enqueue(value);
-        }
+    protected override ImmutableSortedDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
+    {
+        return ImmutableSortedDictionary.CreateBuilder<TKey, TValue>();
+    }
+
+    protected override ImmutableSortedDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(ImmutableSortedDictionary<TKey, TValue> source)
+    {
+        return source.GetEnumerator();
+    }
+}
+
+public class ImmutableSortedSetFormatter<T> : CollectionFormatterBase<T, ImmutableSortedSet<T>.Builder, ImmutableSortedSet<T>.Enumerator, ImmutableSortedSet<T>>
+{
+    protected override void Add(ImmutableSortedSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
+    {
+        collection.Add(value);
+    }
+
+    protected override ImmutableSortedSet<T> Complete(ImmutableSortedSet<T>.Builder intermediateCollection)
+    {
+        return intermediateCollection.ToImmutable();
+    }
+
+    protected override ImmutableSortedSet<T>.Builder Create(int count, TinyhandSerializerOptions options)
+    {
+        return ImmutableSortedSet.CreateBuilder<T>();
+    }
+
+    protected override ImmutableSortedSet<T>.Enumerator GetSourceEnumerator(ImmutableSortedSet<T> source)
+    {
+        return source.GetEnumerator();
+    }
+}
+
+// not best for performance(does not use ImmutableQueue<T>.Enumerator)
+public class ImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQueueBuilder<T>, ImmutableQueue<T>>
+{
+    protected override void Add(ImmutableQueueBuilder<T> collection, int index, T value, TinyhandSerializerOptions options)
+    {
+        collection.Add(value);
+    }
+
+    protected override ImmutableQueue<T> Complete(ImmutableQueueBuilder<T> intermediateCollection)
+    {
+        return intermediateCollection.Q;
+    }
+
+    protected override ImmutableQueueBuilder<T> Create(int count, TinyhandSerializerOptions options)
+    {
+        return new ImmutableQueueBuilder<T>();
+    }
+}
+
+// not best for performance(does not use ImmutableQueue<T>.Enumerator)
+public class ImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], ImmutableStack<T>>
+{
+    protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
+    {
+        collection[collection.Length - 1 - index] = value;
+    }
+
+    protected override ImmutableStack<T> Complete(T[] intermediateCollection)
+    {
+        return ImmutableStack.CreateRange(intermediateCollection);
+    }
+
+    protected override T[] Create(int count, TinyhandSerializerOptions options)
+    {
+        return count == 0 ? Array.Empty<T>() : new T[count];
+    }
+}
+
+public class InterfaceImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, IImmutableList<T>>
+{
+    protected override void Add(ImmutableList<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
+    {
+        collection.Add(value);
+    }
+
+    protected override IImmutableList<T> Complete(ImmutableList<T>.Builder intermediateCollection)
+    {
+        return intermediateCollection.ToImmutable();
+    }
+
+    protected override ImmutableList<T>.Builder Create(int count, TinyhandSerializerOptions options)
+    {
+        return ImmutableList.CreateBuilder<T>();
+    }
+}
+
+public class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableDictionary<TKey, TValue>.Builder, IImmutableDictionary<TKey, TValue>>
+    where TKey : notnull
+{
+    protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
+    {
+        collection.Add(key, value);
+    }
+
+    protected override IImmutableDictionary<TKey, TValue> Complete(ImmutableDictionary<TKey, TValue>.Builder intermediateCollection)
+    {
+        return intermediateCollection.ToImmutable();
+    }
+
+    protected override ImmutableDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
+    {
+        return ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
+    }
+}
+
+public class InterfaceImmutableSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, IImmutableSet<T>>
+{
+    protected override void Add(ImmutableHashSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
+    {
+        collection.Add(value);
+    }
+
+    protected override IImmutableSet<T> Complete(ImmutableHashSet<T>.Builder intermediateCollection)
+    {
+        return intermediateCollection.ToImmutable();
+    }
+
+    protected override ImmutableHashSet<T>.Builder Create(int count, TinyhandSerializerOptions options)
+    {
+        return ImmutableHashSet.CreateBuilder<T>(options.Security.GetEqualityComparer<T>());
+    }
+}
+
+public class InterfaceImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQueueBuilder<T>, IImmutableQueue<T>>
+{
+    protected override void Add(ImmutableQueueBuilder<T> collection, int index, T value, TinyhandSerializerOptions options)
+    {
+        collection.Add(value);
+    }
+
+    protected override IImmutableQueue<T> Complete(ImmutableQueueBuilder<T> intermediateCollection)
+    {
+        return intermediateCollection.Q;
+    }
+
+    protected override ImmutableQueueBuilder<T> Create(int count, TinyhandSerializerOptions options)
+    {
+        return new ImmutableQueueBuilder<T>();
+    }
+}
+
+public class InterfaceImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], IImmutableStack<T>>
+{
+    protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
+    {
+        collection[collection.Length - 1 - index] = value;
+    }
+
+    protected override IImmutableStack<T> Complete(T[] intermediateCollection)
+    {
+        return ImmutableStack.CreateRange(intermediateCollection);
+    }
+
+    protected override T[] Create(int count, TinyhandSerializerOptions options)
+    {
+        return count == 0 ? Array.Empty<T>() : new T[count];
+    }
+}
+
+// pseudo builders
+public class ImmutableQueueBuilder<T>
+{
+    public ImmutableQueue<T> Q { get; set; } = ImmutableQueue<T>.Empty;
+
+    public void Add(T value)
+    {
+        this.Q = this.Q.Enqueue(value);
     }
 }

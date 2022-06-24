@@ -11,31 +11,30 @@ using Tinyhand.Formatters;
 using Tinyhand.IO;
 using Xunit;
 
-namespace Tinyhand.Tests
+namespace Tinyhand.Tests;
+
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class MemberNameTestClass
 {
-    [TinyhandObject(ImplicitKeyAsName = true)]
-    public partial class MemberNameTestClass
-    {
-        public MemberNameTestItem?[] array = new MemberNameTestItem[10];
+    public MemberNameTestItem?[] array = new MemberNameTestItem[10];
 
-        public int System;
-    }
+    public int System;
+}
 
-    [TinyhandObject(ImplicitKeyAsName = true)]
-    public partial class MemberNameTestItem
-    {
-        public int ii;
-    }
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class MemberNameTestItem
+{
+    public int ii;
+}
 
-    public class MemberNameTest
+public class MemberNameTest
+{
+    [Fact]
+    public void Test1()
     {
-        [Fact]
-        public void Test1()
-        {
-            var c = new MemberNameTestClass();
-            var b = Tinyhand.TinyhandSerializer.Serialize(c);
-            var c2 = Tinyhand.TinyhandSerializer.Deserialize<MemberNameTestClass>(b);
-            c2.IsStructuralEqual(c);
-        }
+        var c = new MemberNameTestClass();
+        var b = Tinyhand.TinyhandSerializer.Serialize(c);
+        var c2 = Tinyhand.TinyhandSerializer.Deserialize<MemberNameTestClass>(b);
+        c2.IsStructuralEqual(c);
     }
 }

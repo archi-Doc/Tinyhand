@@ -4,26 +4,25 @@
 using System;
 using Xunit;
 
-namespace Tinyhand.Tests
-{
-    public class StandardClassLibraryFormatterTests : TestBase
-    {
-        [Fact]
-        public void SystemType_Serializable()
-        {
-            Type type = typeof(string);
-            byte[] msgpack = TinyhandSerializer.Serialize(type, TinyhandSerializerOptions.Standard);
-            Type type2 = TinyhandSerializer.Deserialize<Type>(msgpack, TinyhandSerializerOptions.Standard);
-            Assert.Equal(type, type2);
-        }
+namespace Tinyhand.Tests;
 
-        [Fact]
-        public void SystemType_Serializable_Null()
-        {
-            Type type = null;
-            byte[] msgpack = TinyhandSerializer.Serialize(type, TinyhandSerializerOptions.Standard);
-            Type type2 = TinyhandSerializer.Deserialize<Type>(msgpack, TinyhandSerializerOptions.Standard);
-            Assert.Equal(type, type2);
-        }
+public class StandardClassLibraryFormatterTests : TestBase
+{
+    [Fact]
+    public void SystemType_Serializable()
+    {
+        Type type = typeof(string);
+        byte[] msgpack = TinyhandSerializer.Serialize(type, TinyhandSerializerOptions.Standard);
+        Type type2 = TinyhandSerializer.Deserialize<Type>(msgpack, TinyhandSerializerOptions.Standard);
+        Assert.Equal(type, type2);
+    }
+
+    [Fact]
+    public void SystemType_Serializable_Null()
+    {
+        Type type = null;
+        byte[] msgpack = TinyhandSerializer.Serialize(type, TinyhandSerializerOptions.Standard);
+        Type type2 = TinyhandSerializer.Deserialize<Type>(msgpack, TinyhandSerializerOptions.Standard);
+        Assert.Equal(type, type2);
     }
 }

@@ -13,310 +13,309 @@ using Tinyhand.Tree;
 #pragma warning disable SA1602 // Enumeration items should be documented
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand
+namespace Tinyhand;
+
+public enum TinyhandComposeOption
 {
-    public enum TinyhandComposeOption
+    Standard,
+    UseContextualInformation,
+    Simple,
+}
+
+public static class TinyhandComposer
+{
+    private const int InitialBufferLength = 32 * 1024;
+
+    [ThreadStatic]
+    private static byte[]? initialBuffer;
+
+    public static byte[] Compose(Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
     {
-        Standard,
-        UseContextualInformation,
-        Simple,
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferLength];
+        }
+
+        var writer = new TinyhandRawWriter(initialBuffer);
+        try
+        {
+            Compose(ref writer, element, option);
+            return writer.FlushAndGetArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
     }
 
-    public static class TinyhandComposer
+    public static void Compose(IBufferWriter<byte> bufferWriter, Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
     {
-        private const int InitialBufferLength = 32 * 1024;
-
-        [ThreadStatic]
-        private static byte[]? initialBuffer;
-
-        public static byte[] Compose(Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
+        var writer = new TinyhandRawWriter(bufferWriter);
+        try
         {
-            if (initialBuffer == null)
+            Compose(ref writer, element, option);
+            return;
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    private static void Compose(ref TinyhandRawWriter writer, Element element, TinyhandComposeOption option)
+    {
+        var core = new ComposerCore(option);
+        core.Compose(ref writer, element);
+    }
+
+    internal class ComposerCore
+    {
+        private TinyhandComposeOption option;
+
+        private bool useContextualInformation;
+
+        private int indent;
+        private bool firstElement;
+        private bool requireDelimiter;
+
+        public ComposerCore(TinyhandComposeOption option)
+        {
+            this.option = option;
+            if (option == TinyhandComposeOption.UseContextualInformation)
             {
-                initialBuffer = new byte[InitialBufferLength];
+                this.useContextualInformation = true;
             }
 
-            var writer = new TinyhandRawWriter(initialBuffer);
-            try
+            this.indent = 0;
+            this.firstElement = true;
+        }
+
+        public void Compose(ref TinyhandRawWriter writer, Element element, int contextualIndex = 0)
+        {
+            switch (element.Type)
             {
-                Compose(ref writer, element, option);
-                return writer.FlushAndGetArray();
+                case ElementType.Value:
+                    this.ComposeValue(ref writer, (Value)element);
+                    break;
+
+                case ElementType.Assignment:
+                    this.ComposeAssignment(ref writer, (Assignment)element);
+                    contextualIndex = 1; // Already composed in ComposeAssignment()
+                    break;
+
+                case ElementType.Group:
+                    var g = (Group)element;
+                    this.ComposeGroup(ref writer, g);
+                    break;
+
+                case ElementType.LineFeed:
+                    if (this.useContextualInformation)
+                    {
+                        writer.WriteCRLF();
+                        this.requireDelimiter = false;
+                    }
+                    break;
+
+                case ElementType.Comment:
+                    if (this.useContextualInformation)
+                    {
+                        if (contextualIndex == 1 && !this.firstElement)
+                        {
+                            writer.WriteUInt8(TinyhandConstants.Space);
+                        }
+                        writer.WriteSpan(((Comment)element).CommentUtf8);
+                        if (element.contextualChain?.Type != ElementType.LineFeed)
+                        {
+                            writer.WriteUInt8(TinyhandConstants.Space);
+                        }
+                    }
+                    break;
             }
-            finally
+
+            this.firstElement = false;
+
+            if (this.useContextualInformation && contextualIndex == 0)
             {
-                writer.Dispose();
+                this.ComposeContextualInformation(ref writer, element.contextualChain);
             }
         }
 
-        public static void Compose(IBufferWriter<byte> bufferWriter, Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
+        private void ComposeContextualInformation(ref TinyhandRawWriter writer, Element? element)
         {
-            var writer = new TinyhandRawWriter(bufferWriter);
-            try
+            var contextualNumber = 1;
+
+            while (element != null)
             {
-                Compose(ref writer, element, option);
+                this.Compose(ref writer, element, contextualNumber++);
+                element = element.contextualChain;
+            }
+        }
+
+        private void NewLine(ref TinyhandRawWriter writer, int indent = 0)
+        {
+            if (this.useContextualInformation && !this.requireDelimiter)
+            {
                 return;
             }
-            finally
+
+            writer.WriteCRLF();
+
+            this.indent += indent;
+            for (var n = 0; n < this.indent; n++)
             {
-                writer.Dispose();
+                writer.WriteSpan(TinyhandConstants.IndentSpan);
             }
         }
 
-        private static void Compose(ref TinyhandRawWriter writer, Element element, TinyhandComposeOption option)
+        private void ComposeValue(ref TinyhandRawWriter writer, Value element)
         {
-            var core = new ComposerCore(option);
-            core.Compose(ref writer, element);
-        }
-
-        internal class ComposerCore
-        {
-            private TinyhandComposeOption option;
-
-            private bool useContextualInformation;
-
-            private int indent;
-            private bool firstElement;
-            private bool requireDelimiter;
-
-            public ComposerCore(TinyhandComposeOption option)
+            switch (element.ValueType)
             {
-                this.option = option;
-                if (option == TinyhandComposeOption.UseContextualInformation)
-                {
-                    this.useContextualInformation = true;
-                }
-
-                this.indent = 0;
-                this.firstElement = true;
-            }
-
-            public void Compose(ref TinyhandRawWriter writer, Element element, int contextualIndex = 0)
-            {
-                switch (element.Type)
-                {
-                    case ElementType.Value:
-                        this.ComposeValue(ref writer, (Value)element);
-                        break;
-
-                    case ElementType.Assignment:
-                        this.ComposeAssignment(ref writer, (Assignment)element);
-                        contextualIndex = 1; // Already composed in ComposeAssignment()
-                        break;
-
-                    case ElementType.Group:
-                        var g = (Group)element;
-                        this.ComposeGroup(ref writer, g);
-                        break;
-
-                    case ElementType.LineFeed:
-                        if (this.useContextualInformation)
-                        {
-                            writer.WriteCRLF();
-                            this.requireDelimiter = false;
-                        }
-                        break;
-
-                    case ElementType.Comment:
-                        if (this.useContextualInformation)
-                        {
-                            if (contextualIndex == 1 && !this.firstElement)
-                            {
-                                writer.WriteUInt8(TinyhandConstants.Space);
-                            }
-                            writer.WriteSpan(((Comment)element).CommentUtf8);
-                            if (element.contextualChain?.Type != ElementType.LineFeed)
-                            {
-                                writer.WriteUInt8(TinyhandConstants.Space);
-                            }
-                        }
-                        break;
-                }
-
-                this.firstElement = false;
-
-                if (this.useContextualInformation && contextualIndex == 0)
-                {
-                    this.ComposeContextualInformation(ref writer, element.contextualChain);
-                }
-            }
-
-            private void ComposeContextualInformation(ref TinyhandRawWriter writer, Element? element)
-            {
-                var contextualNumber = 1;
-
-                while (element != null)
-                {
-                    this.Compose(ref writer, element, contextualNumber++);
-                    element = element.contextualChain;
-                }
-            }
-
-            private void NewLine(ref TinyhandRawWriter writer, int indent = 0)
-            {
-                if (this.useContextualInformation && !this.requireDelimiter)
-                {
-                    return;
-                }
-
-                writer.WriteCRLF();
-
-                this.indent += indent;
-                for (var n = 0; n < this.indent; n++)
-                {
-                    writer.WriteSpan(TinyhandConstants.IndentSpan);
-                }
-            }
-
-            private void ComposeValue(ref TinyhandRawWriter writer, Value element)
-            {
-                switch (element.ValueType)
-                {
-                    case ValueElementType.Identifier:
-                    case ValueElementType.SpecialIdentifier:
-                        var i = (Value_Identifier)element;
-                        if (i.IsSpecial)
-                        {
-                            writer.WriteUInt8(TinyhandConstants.AtSign);
-                        }
-                        writer.WriteSpan(i.IdentifierUtf8);
-                        break;
-
-                    case ValueElementType.Value_Binary:
-                        var binary = (Value_Binary)element;
-                        writer.WriteUInt8((byte)'b');
-                        writer.WriteUInt8(TinyhandConstants.Quote);
-                        writer.WriteSpan(binary.ValueBinaryToBase64);
-                        writer.WriteUInt8(TinyhandConstants.Quote);
-                        break;
-
-                    case ValueElementType.Value_String:
-                        var s = (Value_String)element;
-                        if (!s.IsTripleQuoted || s.HasTripleQuote())
-                        { // Escape.
-                            writer.WriteUInt8(TinyhandConstants.Quote);
-                            writer.WriteEscapedUtf8(s.ValueStringUtf8);
-                            writer.WriteUInt8(TinyhandConstants.Quote);
-                        }
-                        else
-                        { // """string"""
-                            writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
-                            writer.WriteSpan(s.ValueStringUtf8);
-                            writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
-                        }
-                        break;
-
-                    case ValueElementType.Value_Long:
-                        var l = (Value_Long)element;
-                        writer.WriteStringInt64(l.ValueLong);
-                        break;
-
-                    case ValueElementType.Value_Double:
-                        var d = (Value_Double)element;
-                        writer.WriteStringDouble(d.ValueDouble);
-                        // writer.WriteUInt8(TinyhandConstants.DoubleSuffix);
-                        break;
-
-                    case ValueElementType.Value_Null:
-                        writer.WriteSpan(TinyhandConstants.NullSpan);
-                        break;
-
-                    case ValueElementType.Value_Bool:
-                        var b = (Value_Bool)element;
-                        if (b.ValueBool)
-                        {
-                            writer.WriteSpan(TinyhandConstants.TrueSpan);
-                        }
-                        else
-                        {
-                            writer.WriteSpan(TinyhandConstants.FalseSpan);
-                        }
-                        break;
-                }
-            }
-
-            private void ComposeAssignment(ref TinyhandRawWriter writer, Assignment element)
-            {
-                if (element.LeftElement != null)
-                {
-                    this.Compose(ref writer, element.LeftElement);
-                }
-
-                writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                this.requireDelimiter = true;
-                this.ComposeContextualInformation(ref writer, element.contextualChain);
-
-                if (element.RightElement != null)
-                {
-                    this.requireDelimiter = true;
-                    this.Compose(ref writer, element.RightElement);
-                }
-            }
-
-            private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
-            {
-                var addBrace = true;
-                if (element.Parent == null &&
-                    (this.option == TinyhandComposeOption.Simple || this.option == TinyhandComposeOption.UseContextualInformation))
-                {
-                    addBrace = false;
-                }
-
-                var newLine = true;
-                if (this.option == TinyhandComposeOption.Simple || element.ElementList.Count == 0)
-                {
-                    newLine = false;
-                }
-
-                if (addBrace)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    if (newLine)
+                case ValueElementType.Identifier:
+                case ValueElementType.SpecialIdentifier:
+                    var i = (Value_Identifier)element;
+                    if (i.IsSpecial)
                     {
-                        this.NewLine(ref writer, 1);
+                        writer.WriteUInt8(TinyhandConstants.AtSign);
                     }
-                }
+                    writer.WriteSpan(i.IdentifierUtf8);
+                    break;
 
-                this.ComposeContextualInformation(ref writer, element.forwardContextual?.contextualChain);
+                case ValueElementType.Value_Binary:
+                    var binary = (Value_Binary)element;
+                    writer.WriteUInt8((byte)'b');
+                    writer.WriteUInt8(TinyhandConstants.Quote);
+                    writer.WriteSpan(binary.ValueBinaryToBase64);
+                    writer.WriteUInt8(TinyhandConstants.Quote);
+                    break;
 
-                var hasAssignment = false;
-                if (element.ElementList.Count > 0 && element.ElementList[0] is Assignment)
-                {
-                    hasAssignment = true;
-                }
-
-                for (var i = 0; i < element.ElementList.Count; i++)
-                {
-                    this.Compose(ref writer, element.ElementList[i]);
-                    if (i == element.ElementList.Count - 1)
-                    {
-                        break;
+                case ValueElementType.Value_String:
+                    var s = (Value_String)element;
+                    if (!s.IsTripleQuoted || s.HasTripleQuote())
+                    { // Escape.
+                        writer.WriteUInt8(TinyhandConstants.Quote);
+                        writer.WriteEscapedUtf8(s.ValueStringUtf8);
+                        writer.WriteUInt8(TinyhandConstants.Quote);
                     }
+                    else
+                    { // """string"""
+                        writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
+                        writer.WriteSpan(s.ValueStringUtf8);
+                        writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
+                    }
+                    break;
 
-                    if (!hasAssignment || this.option == TinyhandComposeOption.Simple)
+                case ValueElementType.Value_Long:
+                    var l = (Value_Long)element;
+                    writer.WriteStringInt64(l.ValueLong);
+                    break;
+
+                case ValueElementType.Value_Double:
+                    var d = (Value_Double)element;
+                    writer.WriteStringDouble(d.ValueDouble);
+                    // writer.WriteUInt8(TinyhandConstants.DoubleSuffix);
+                    break;
+
+                case ValueElementType.Value_Null:
+                    writer.WriteSpan(TinyhandConstants.NullSpan);
+                    break;
+
+                case ValueElementType.Value_Bool:
+                    var b = (Value_Bool)element;
+                    if (b.ValueBool)
                     {
-                        writer.WriteUInt16(0x2C20); // ", "
+                        writer.WriteSpan(TinyhandConstants.TrueSpan);
                     }
                     else
                     {
-                        this.NewLine(ref writer);
+                        writer.WriteSpan(TinyhandConstants.FalseSpan);
                     }
-                }
+                    break;
+            }
+        }
 
-                if (addBrace)
+        private void ComposeAssignment(ref TinyhandRawWriter writer, Assignment element)
+        {
+            if (element.LeftElement != null)
+            {
+                this.Compose(ref writer, element.LeftElement);
+            }
+
+            writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+            this.requireDelimiter = true;
+            this.ComposeContextualInformation(ref writer, element.contextualChain);
+
+            if (element.RightElement != null)
+            {
+                this.requireDelimiter = true;
+                this.Compose(ref writer, element.RightElement);
+            }
+        }
+
+        private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
+        {
+            var addBrace = true;
+            if (element.Parent == null &&
+                (this.option == TinyhandComposeOption.Simple || this.option == TinyhandComposeOption.UseContextualInformation))
+            {
+                addBrace = false;
+            }
+
+            var newLine = true;
+            if (this.option == TinyhandComposeOption.Simple || element.ElementList.Count == 0)
+            {
+                newLine = false;
+            }
+
+            if (addBrace)
+            {
+                writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                if (newLine)
                 {
-                    if (newLine)
-                    {
-                        this.NewLine(ref writer, -1);
-                    }
+                    this.NewLine(ref writer, 1);
+                }
+            }
 
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
+            this.ComposeContextualInformation(ref writer, element.forwardContextual?.contextualChain);
+
+            var hasAssignment = false;
+            if (element.ElementList.Count > 0 && element.ElementList[0] is Assignment)
+            {
+                hasAssignment = true;
+            }
+
+            for (var i = 0; i < element.ElementList.Count; i++)
+            {
+                this.Compose(ref writer, element.ElementList[i]);
+                if (i == element.ElementList.Count - 1)
+                {
+                    break;
                 }
 
-                /* if (!element.IsAssigned())
+                if (!hasAssignment || this.option == TinyhandComposeOption.Simple)
                 {
                     writer.WriteUInt16(0x2C20); // ", "
-                }*/
+                }
+                else
+                {
+                    this.NewLine(ref writer);
+                }
             }
+
+            if (addBrace)
+            {
+                if (newLine)
+                {
+                    this.NewLine(ref writer, -1);
+                }
+
+                writer.WriteUInt8(TinyhandConstants.CloseBrace);
+            }
+
+            /* if (!element.IsAssigned())
+            {
+                writer.WriteUInt16(0x2C20); // ", "
+            }*/
         }
     }
 }

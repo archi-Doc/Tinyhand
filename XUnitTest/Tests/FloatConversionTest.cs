@@ -8,72 +8,71 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Tinyhand.Tests
+namespace Tinyhand.Tests;
+
+public class FloatConversionTest
 {
-    public class FloatConversionTest
+    [Theory]
+    [InlineData(-10)]
+    [InlineData(-120)]
+    [InlineData(10)]
+    [InlineData(0.000006f)]
+    [InlineData(byte.MaxValue)]
+    [InlineData(sbyte.MaxValue)]
+    [InlineData(short.MaxValue)]
+    [InlineData(int.MaxValue)]
+    [InlineData(long.MaxValue)]
+    [InlineData(ushort.MaxValue)]
+    [InlineData(uint.MaxValue)]
+    [InlineData(ulong.MaxValue)]
+    public void FloatTest<T>(T value)
     {
-        [Theory]
-        [InlineData(-10)]
-        [InlineData(-120)]
-        [InlineData(10)]
-        [InlineData(0.000006f)]
-        [InlineData(byte.MaxValue)]
-        [InlineData(sbyte.MaxValue)]
-        [InlineData(short.MaxValue)]
-        [InlineData(int.MaxValue)]
-        [InlineData(long.MaxValue)]
-        [InlineData(ushort.MaxValue)]
-        [InlineData(uint.MaxValue)]
-        [InlineData(ulong.MaxValue)]
-        public void FloatTest<T>(T value)
-        {
-            var bin = TinyhandSerializer.Serialize(value);
-            TinyhandSerializer.Deserialize<float>(bin).Is(Convert.ToSingle(value));
-        }
+        var bin = TinyhandSerializer.Serialize(value);
+        TinyhandSerializer.Deserialize<float>(bin).Is(Convert.ToSingle(value));
+    }
 
-        [Theory]
-        [InlineData(-10)]
-        [InlineData(-120)]
-        [InlineData(10)]
-        [InlineData(0.000006)]
-        [InlineData(byte.MaxValue)]
-        [InlineData(sbyte.MaxValue)]
-        [InlineData(short.MaxValue)]
-        [InlineData(int.MaxValue)]
-        [InlineData(long.MaxValue)]
-        [InlineData(ushort.MaxValue)]
-        [InlineData(uint.MaxValue)]
-        [InlineData(ulong.MaxValue)]
-        public void DoubleTest<T>(T value)
-        {
-            var bin = TinyhandSerializer.Serialize(value);
-            TinyhandSerializer.Deserialize<double>(bin).Is(Convert.ToDouble(value));
-        }
+    [Theory]
+    [InlineData(-10)]
+    [InlineData(-120)]
+    [InlineData(10)]
+    [InlineData(0.000006)]
+    [InlineData(byte.MaxValue)]
+    [InlineData(sbyte.MaxValue)]
+    [InlineData(short.MaxValue)]
+    [InlineData(int.MaxValue)]
+    [InlineData(long.MaxValue)]
+    [InlineData(ushort.MaxValue)]
+    [InlineData(uint.MaxValue)]
+    [InlineData(ulong.MaxValue)]
+    public void DoubleTest<T>(T value)
+    {
+        var bin = TinyhandSerializer.Serialize(value);
+        TinyhandSerializer.Deserialize<double>(bin).Is(Convert.ToDouble(value));
+    }
 
-        [Fact]
-        public void IL2CPPTypeHint()
-        {
-            FloatTest<float>(default);
-            FloatTest<int>(default);
-            FloatTest<byte>(default);
-            FloatTest<sbyte>(default);
-            FloatTest<short>(default);
-            FloatTest<int>(default);
-            FloatTest<long>(default);
-            FloatTest<ushort>(default);
-            FloatTest<uint>(default);
-            FloatTest<ulong>(default);
+    [Fact]
+    public void IL2CPPTypeHint()
+    {
+        FloatTest<float>(default);
+        FloatTest<int>(default);
+        FloatTest<byte>(default);
+        FloatTest<sbyte>(default);
+        FloatTest<short>(default);
+        FloatTest<int>(default);
+        FloatTest<long>(default);
+        FloatTest<ushort>(default);
+        FloatTest<uint>(default);
+        FloatTest<ulong>(default);
 
-            DoubleTest<int>(default);
-            DoubleTest<byte>(default);
-            DoubleTest<sbyte>(default);
-            DoubleTest<short>(default);
-            DoubleTest<int>(default);
-            DoubleTest<long>(default);
-            DoubleTest<ushort>(default);
-            DoubleTest<uint>(default);
-            DoubleTest<ulong>(default);
-            DoubleTest<double>(default);
-        }
+        DoubleTest<int>(default);
+        DoubleTest<byte>(default);
+        DoubleTest<sbyte>(default);
+        DoubleTest<short>(default);
+        DoubleTest<int>(default);
+        DoubleTest<long>(default);
+        DoubleTest<ushort>(default);
+        DoubleTest<uint>(default);
+        DoubleTest<ulong>(default);
+        DoubleTest<double>(default);
     }
 }
