@@ -7,8 +7,8 @@ using System.Threading;
 
 namespace Tinyhand;
 
-public class Utf8Hashtable<TValue>
-{ // HashTable for UTF-8 (ReadOnlySpan<byte>).
+public class Utf16Hashtable<TValue>
+{ // HashTable for UTF-16 (ReadOnlySpan<char>).
     private static uint CalculateCapacity(uint collectionSize)
     {
         collectionSize *= 2;
@@ -26,13 +26,13 @@ public class Utf8Hashtable<TValue>
         return capacity;
     }
 
-    public Utf8Hashtable(uint capacity = 4)
+    public Utf16Hashtable(uint capacity = 4)
     {
         var size = CalculateCapacity(capacity);
         this.hashTable = new Item[size];
     }
 
-    public bool TryAdd(ReadOnlySpan<byte> key, TValue value)
+    public bool TryAdd(ReadOnlySpan<char> key, TValue value)
     {
         lock (this.cs)
         {
@@ -55,7 +55,7 @@ public class Utf8Hashtable<TValue>
         }
     }
 
-    public bool TryAdd(byte[] key, TValue value)
+    public bool TryAdd(char[] key, TValue value)
     {
         lock (this.cs)
         {
@@ -78,7 +78,7 @@ public class Utf8Hashtable<TValue>
         }
     }
 
-    public bool TryGetValue(ReadOnlySpan<byte> key, [MaybeNullWhen(false)] out TValue value)
+    public bool TryGetValue(ReadOnlySpan<char> key, [MaybeNullWhen(false)] out TValue value)
     {
         var table = this.hashTable;
         var hash = unchecked((int)FarmHash.Hash64(key));
@@ -161,7 +161,7 @@ public class Utf8Hashtable<TValue>
         return true;
     }
 
-    private bool AddKeyValue(ReadOnlySpan<byte> key, TValue value)
+    private bool AddKeyValue(ReadOnlySpan<char> key, TValue value)
     { // lock(cs) required.
         var table = this.hashTable;
         var hash = unchecked((int)FarmHash.Hash64(key));
@@ -197,7 +197,7 @@ public class Utf8Hashtable<TValue>
         return true;
     }
 
-    private bool AddKeyValue(byte[] key, TValue value)
+    private bool AddKeyValue(char[] key, TValue value)
     { // lock(cs) required.
         var table = this.hashTable;
         var hash = unchecked((int)FarmHash.Hash64(key));
@@ -241,14 +241,14 @@ public class Utf8Hashtable<TValue>
     {
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1401
-        public byte[] Key;
+        public char[] Key;
         public TValue Value;
         public int Hash;
         public Item? Next;
 #pragma warning restore SA1401
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 
-        public Item(byte[] key, TValue value, int hash)
+        public Item(char[] key, TValue value, int hash)
         {
             this.Key = key;
             this.Value = value;
