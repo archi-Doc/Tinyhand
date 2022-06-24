@@ -2,82 +2,81 @@
 
 using Tinyhand.Formatters;
 
-namespace Tinyhand.Resolvers
+namespace Tinyhand.Resolvers;
+
+/// <summary>
+/// Default composited resolver.
+/// </summary>
+public sealed class StandardResolver : IFormatterResolver
 {
     /// <summary>
-    /// Default composited resolver.
+    /// The singleton instance that can be used.
     /// </summary>
-    public sealed class StandardResolver : IFormatterResolver
+    public static readonly StandardResolver Instance = new();
+
+    private static readonly IFormatterResolver[] Resolvers = new IFormatterResolver[]
+    {// NativeResolver + CompatibleResolver
+        NativeGuidResolver.Instance,
+        NativeDecimalResolver.Instance,
+        BuiltinResolver.Instance,
+        CompositeResolver.Create(ExpandoObjectFormatter.Instance),
+        GenericsResolver.Instance,
+        GeneratedResolver.Instance,
+    };
+
+    private StandardResolver()
     {
-        /// <summary>
-        /// The singleton instance that can be used.
-        /// </summary>
-        public static readonly StandardResolver Instance = new();
+    }
 
-        private static readonly IFormatterResolver[] Resolvers = new IFormatterResolver[]
-        {// NativeResolver + CompatibleResolver
-            NativeGuidResolver.Instance,
-            NativeDecimalResolver.Instance,
-            BuiltinResolver.Instance,
-            CompositeResolver.Create(ExpandoObjectFormatter.Instance),
-            GenericsResolver.Instance,
-            GeneratedResolver.Instance,
-        };
+    public ITinyhandFormatter<T>? TryGetFormatter<T>()
+    {
+        return FormatterCache<T>.Formatter;
+    }
 
-        private StandardResolver()
+    public ITinyhandFormatterExtra<T>? TryGetFormatterExtra<T>()
+    {
+        return FormatterExtraCache<T>.Formatter;
+    }
+
+    private static class FormatterCache<T>
+    {
+        public static readonly ITinyhandFormatter<T>? Formatter;
+
+        static FormatterCache()
         {
-        }
-
-        public ITinyhandFormatter<T>? TryGetFormatter<T>()
-        {
-            return FormatterCache<T>.Formatter;
-        }
-
-        public ITinyhandFormatterExtra<T>? TryGetFormatterExtra<T>()
-        {
-            return FormatterExtraCache<T>.Formatter;
-        }
-
-        private static class FormatterCache<T>
-        {
-            public static readonly ITinyhandFormatter<T>? Formatter;
-
-            static FormatterCache()
+            if (typeof(T) == typeof(object))
             {
-                if (typeof(T) == typeof(object))
-                {
-                    // final fallback
-                    Formatter = (ITinyhandFormatter<T>)Tinyhand.Formatters.DynamicObjectTypeFallbackFormatter.Instance;
-                }
-                else
-                {
-                    foreach (var x in Resolvers)
-                    {
-                        var f = x.TryGetFormatter<T>();
-                        if (f != null)
-                        {
-                            Formatter = f;
-                            return;
-                        }
-                    }
-                }
+                // final fallback
+                Formatter = (ITinyhandFormatter<T>)Tinyhand.Formatters.DynamicObjectTypeFallbackFormatter.Instance;
             }
-        }
-
-        private static class FormatterExtraCache<T>
-        {
-            public static readonly ITinyhandFormatterExtra<T>? Formatter;
-
-            static FormatterExtraCache()
+            else
             {
                 foreach (var x in Resolvers)
                 {
-                    var f = x.TryGetFormatterExtra<T>();
+                    var f = x.TryGetFormatter<T>();
                     if (f != null)
                     {
                         Formatter = f;
                         return;
                     }
+                }
+            }
+        }
+    }
+
+    private static class FormatterExtraCache<T>
+    {
+        public static readonly ITinyhandFormatterExtra<T>? Formatter;
+
+        static FormatterExtraCache()
+        {
+            foreach (var x in Resolvers)
+            {
+                var f = x.TryGetFormatterExtra<T>();
+                if (f != null)
+                {
+                    Formatter = f;
+                    return;
                 }
             }
         }

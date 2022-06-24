@@ -4,90 +4,89 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Benchmark
+namespace Benchmark;
+
+public class Stopwatch
 {
-    public class Stopwatch
+    private readonly double frequencyR;
+    private System.Diagnostics.Stopwatch stopwatch;
+    private long restartTicks;
+
+    public List<Record> Records { get; }
+
+    public Stopwatch()
     {
-        private readonly double frequencyR;
-        private System.Diagnostics.Stopwatch stopwatch;
-        private long restartTicks;
+        this.stopwatch = new System.Diagnostics.Stopwatch();
+        this.frequencyR = 1.0d / (double)System.Diagnostics.Stopwatch.Frequency;
+        this.stopwatch.Start();
 
-        public List<Record> Records { get; }
+        this.Records = new List<Record>();
 
-        public Stopwatch()
+        this.Restart();
+    }
+
+    public void Restart()
+    {
+        this.restartTicks = this.stopwatch.ElapsedTicks;
+    }
+
+    public void Lap(string? comment = null)
+    {
+        var record = new Record()
         {
-            this.stopwatch = new System.Diagnostics.Stopwatch();
-            this.frequencyR = 1.0d / (double)System.Diagnostics.Stopwatch.Frequency;
-            this.stopwatch.Start();
+            Elapsed = this.GetElapsed(),
+            Comment = comment,
+        };
 
-            this.Records = new List<Record>();
+        this.Restart();
 
-            this.Restart();
+        this.Records.Add(record);
+    }
+
+    public void Split(string? comment = null)
+    {
+        var record = new Record()
+        {
+            Elapsed = this.GetElapsed(),
+            Comment = comment,
+        };
+
+        this.Records.Add(record);
+    }
+
+    public string ToSimpleString()
+    {
+        var sb = new StringBuilder();
+        int n;
+
+        void AppendText(Record record)
+        {
+            sb.Append(record.Comment);
+            sb.Append(": ");
+            var s = string.Format("{0:F1}", record.Elapsed * 1000_000);
+            sb.Append(s);
         }
 
-        public void Restart()
+        for (n = 0; n < (this.Records.Count - 1); n++)
         {
-            this.restartTicks = this.stopwatch.ElapsedTicks;
+            AppendText(this.Records[n]);
+            sb.Append("\r\n");
         }
 
-        public void Lap(string? comment = null)
+        if (n < this.Records.Count)
         {
-            var record = new Record()
-            {
-                Elapsed = this.GetElapsed(),
-                Comment = comment,
-            };
-
-            this.Restart();
-
-            this.Records.Add(record);
+            AppendText(this.Records[n]);
         }
 
-        public void Split(string? comment = null)
-        {
-            var record = new Record()
-            {
-                Elapsed = this.GetElapsed(),
-                Comment = comment,
-            };
+        return sb.ToString();
+    }
 
-            this.Records.Add(record);
-        }
+    public double GetElapsed() => (double)(this.stopwatch.ElapsedTicks - this.restartTicks) * this.frequencyR;
 
-        public string ToSimpleString()
-        {
-            var sb = new StringBuilder();
-            int n;
+    public class Record
+    {
+        public double Elapsed { get; set; }
 
-            void AppendText(Record record)
-            {
-                sb.Append(record.Comment);
-                sb.Append(": ");
-                var s = string.Format("{0:F1}", record.Elapsed * 1000_000);
-                sb.Append(s);
-            }
-
-            for (n = 0; n < (this.Records.Count - 1); n++)
-            {
-                AppendText(this.Records[n]);
-                sb.Append("\r\n");
-            }
-
-            if (n < this.Records.Count)
-            {
-                AppendText(this.Records[n]);
-            }
-
-            return sb.ToString();
-        }
-
-        public double GetElapsed() => (double)(this.stopwatch.ElapsedTicks - this.restartTicks) * this.frequencyR;
-
-        public class Record
-        {
-            public double Elapsed { get; set; }
-
-            public string? Comment { get; set; }
-        }
+        public string? Comment { get; set; }
     }
 }

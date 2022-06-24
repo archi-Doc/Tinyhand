@@ -10,416 +10,415 @@ using Tinyhand.IO;
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Formatters
+namespace Tinyhand.Formatters;
+
+/* multi dimensional array serialize to [i, j, [seq]] */
+
+public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
 {
-    /* multi dimensional array serialize to [i, j, [seq]] */
+    private const int ArrayLength = 3;
 
-    public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
+    public void Serialize(ref TinyhandWriter writer, T[,]? value, TinyhandSerializerOptions options)
     {
-        private const int ArrayLength = 3;
-
-        public void Serialize(ref TinyhandWriter writer, T[,]? value, TinyhandSerializerOptions options)
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
-            {
-                var i = value.GetLength(0);
-                var j = value.GetLength(1);
-
-                var formatter = options.Resolver.GetFormatter<T>();
-
-                writer.WriteArrayHeader(ArrayLength);
-                writer.Write(i);
-                writer.Write(j);
-
-                writer.WriteArrayHeader(value.Length);
-                foreach (T item in value)
-                {
-                    writer.CancellationToken.ThrowIfCancellationRequested();
-                    formatter.Serialize(ref writer, item, options);
-                }
-            }
+            writer.WriteNil();
         }
-
-        public T[,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        else
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-            else
-            {
-                var formatter = options.Resolver.GetFormatter<T>();
-
-                var len = reader.ReadArrayHeader();
-                if (len != ArrayLength)
-                {
-                    throw new TinyhandException("Invalid T[,] format");
-                }
-
-                var iLength = reader.ReadInt32();
-                var jLength = reader.ReadInt32();
-                var maxLen = reader.ReadArrayHeader();
-
-                var array = new T[iLength, jLength];
-
-                var i = 0;
-                var j = -1;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    for (int loop = 0; loop < maxLen; loop++)
-                    {
-                        reader.CancellationToken.ThrowIfCancellationRequested();
-                        if (j < jLength - 1)
-                        {
-                            j++;
-                        }
-                        else
-                        {
-                            j = 0;
-                            i++;
-                        }
-
-                        array[i, j] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
-                    }
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-
-                return array;
-            }
-        }
-
-        public T[,] Reconstruct(TinyhandSerializerOptions options) => new T[0, 0];
-
-        public T[,]? Clone(T[,]? value, TinyhandSerializerOptions options)
-        {
-            if (value == null)
-            {
-                return null;
-            }
+            var i = value.GetLength(0);
+            var j = value.GetLength(1);
 
             var formatter = options.Resolver.GetFormatter<T>();
-            var iLength = value.GetLength(0);
-            var jLength = value.GetLength(1);
-            var maxLen = value.Length;
+
+            writer.WriteArrayHeader(ArrayLength);
+            writer.Write(i);
+            writer.Write(j);
+
+            writer.WriteArrayHeader(value.Length);
+            foreach (T item in value)
+            {
+                writer.CancellationToken.ThrowIfCancellationRequested();
+                formatter.Serialize(ref writer, item, options);
+            }
+        }
+    }
+
+    public T[,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return null;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = reader.ReadArrayHeader();
+            if (len != ArrayLength)
+            {
+                throw new TinyhandException("Invalid T[,] format");
+            }
+
+            var iLength = reader.ReadInt32();
+            var jLength = reader.ReadInt32();
+            var maxLen = reader.ReadArrayHeader();
 
             var array = new T[iLength, jLength];
+
             var i = 0;
             var j = -1;
-            for (int loop = 0; loop < maxLen; loop++)
+            options.Security.DepthStep(ref reader);
+            try
             {
-                if (j < jLength - 1)
+                for (int loop = 0; loop < maxLen; loop++)
                 {
-                    j++;
-                }
-                else
-                {
-                    j = 0;
-                    i++;
-                }
+                    reader.CancellationToken.ThrowIfCancellationRequested();
+                    if (j < jLength - 1)
+                    {
+                        j++;
+                    }
+                    else
+                    {
+                        j = 0;
+                        i++;
+                    }
 
-                array[i, j] = formatter.Clone(value[i, j], options)!;
+                    array[i, j] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
             }
 
             return array;
         }
     }
 
-    public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]>
+    public T[,] Reconstruct(TinyhandSerializerOptions options) => new T[0, 0];
+
+    public T[,]? Clone(T[,]? value, TinyhandSerializerOptions options)
     {
-        private const int ArrayLength = 4;
-
-        public void Serialize(ref TinyhandWriter writer, T[,,]? value, TinyhandSerializerOptions options)
+        if (value == null)
         {
-            if (value == null)
+            return null;
+        }
+
+        var formatter = options.Resolver.GetFormatter<T>();
+        var iLength = value.GetLength(0);
+        var jLength = value.GetLength(1);
+        var maxLen = value.Length;
+
+        var array = new T[iLength, jLength];
+        var i = 0;
+        var j = -1;
+        for (int loop = 0; loop < maxLen; loop++)
+        {
+            if (j < jLength - 1)
             {
-                writer.WriteNil();
+                j++;
             }
             else
             {
-                var i = value.GetLength(0);
-                var j = value.GetLength(1);
-                var k = value.GetLength(2);
-
-                var formatter = options.Resolver.GetFormatter<T>();
-
-                writer.WriteArrayHeader(ArrayLength);
-                writer.Write(i);
-                writer.Write(j);
-                writer.Write(k);
-
-                writer.WriteArrayHeader(value.Length);
-                foreach (T item in value)
-                {
-                    writer.CancellationToken.ThrowIfCancellationRequested();
-                    formatter.Serialize(ref writer, item, options);
-                }
+                j = 0;
+                i++;
             }
+
+            array[i, j] = formatter.Clone(value[i, j], options)!;
         }
 
-        public T[,,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        return array;
+    }
+}
+
+public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]>
+{
+    private const int ArrayLength = 4;
+
+    public void Serialize(ref TinyhandWriter writer, T[,,]? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-            else
-            {
-                var formatter = options.Resolver.GetFormatter<T>();
-
-                var len = reader.ReadArrayHeader();
-                if (len != ArrayLength)
-                {
-                    throw new TinyhandException("Invalid T[,,] format");
-                }
-
-                var iLength = reader.ReadInt32();
-                var jLength = reader.ReadInt32();
-                var kLength = reader.ReadInt32();
-                var maxLen = reader.ReadArrayHeader();
-
-                var array = new T[iLength, jLength, kLength];
-
-                var i = 0;
-                var j = 0;
-                var k = -1;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    for (int loop = 0; loop < maxLen; loop++)
-                    {
-                        reader.CancellationToken.ThrowIfCancellationRequested();
-                        if (k < kLength - 1)
-                        {
-                            k++;
-                        }
-                        else if (j < jLength - 1)
-                        {
-                            k = 0;
-                            j++;
-                        }
-                        else
-                        {
-                            k = 0;
-                            j = 0;
-                            i++;
-                        }
-
-                        array[i, j, k] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
-                    }
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-
-                return array;
-            }
+            writer.WriteNil();
         }
-
-        public T[,,] Reconstruct(TinyhandSerializerOptions options) => new T[0, 0, 0];
-
-        public T[,,]? Clone(T[,,]? value, TinyhandSerializerOptions options)
+        else
         {
-            if (value == null)
-            {
-                return null;
-            }
+            var i = value.GetLength(0);
+            var j = value.GetLength(1);
+            var k = value.GetLength(2);
 
             var formatter = options.Resolver.GetFormatter<T>();
-            var iLength = value.GetLength(0);
-            var jLength = value.GetLength(1);
-            var kLength = value.GetLength(2);
-            var maxLen = value.Length;
+
+            writer.WriteArrayHeader(ArrayLength);
+            writer.Write(i);
+            writer.Write(j);
+            writer.Write(k);
+
+            writer.WriteArrayHeader(value.Length);
+            foreach (T item in value)
+            {
+                writer.CancellationToken.ThrowIfCancellationRequested();
+                formatter.Serialize(ref writer, item, options);
+            }
+        }
+    }
+
+    public T[,,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return null;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = reader.ReadArrayHeader();
+            if (len != ArrayLength)
+            {
+                throw new TinyhandException("Invalid T[,,] format");
+            }
+
+            var iLength = reader.ReadInt32();
+            var jLength = reader.ReadInt32();
+            var kLength = reader.ReadInt32();
+            var maxLen = reader.ReadArrayHeader();
 
             var array = new T[iLength, jLength, kLength];
+
             var i = 0;
             var j = 0;
             var k = -1;
-            for (int loop = 0; loop < maxLen; loop++)
+            options.Security.DepthStep(ref reader);
+            try
             {
-                if (k < kLength - 1)
+                for (int loop = 0; loop < maxLen; loop++)
                 {
-                    k++;
-                }
-                else if (j < jLength - 1)
-                {
-                    k = 0;
-                    j++;
-                }
-                else
-                {
-                    k = 0;
-                    j = 0;
-                    i++;
-                }
+                    reader.CancellationToken.ThrowIfCancellationRequested();
+                    if (k < kLength - 1)
+                    {
+                        k++;
+                    }
+                    else if (j < jLength - 1)
+                    {
+                        k = 0;
+                        j++;
+                    }
+                    else
+                    {
+                        k = 0;
+                        j = 0;
+                        i++;
+                    }
 
-                array[i, j, k] = formatter.Clone(value[i, j, k], options)!;
+                    array[i, j, k] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
             }
 
             return array;
         }
     }
 
-    public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]>
+    public T[,,] Reconstruct(TinyhandSerializerOptions options) => new T[0, 0, 0];
+
+    public T[,,]? Clone(T[,,]? value, TinyhandSerializerOptions options)
     {
-        private const int ArrayLength = 5;
-
-        public void Serialize(ref TinyhandWriter writer, T[,,,]? value, TinyhandSerializerOptions options)
+        if (value == null)
         {
-            if (value == null)
+            return null;
+        }
+
+        var formatter = options.Resolver.GetFormatter<T>();
+        var iLength = value.GetLength(0);
+        var jLength = value.GetLength(1);
+        var kLength = value.GetLength(2);
+        var maxLen = value.Length;
+
+        var array = new T[iLength, jLength, kLength];
+        var i = 0;
+        var j = 0;
+        var k = -1;
+        for (int loop = 0; loop < maxLen; loop++)
+        {
+            if (k < kLength - 1)
             {
-                writer.WriteNil();
+                k++;
+            }
+            else if (j < jLength - 1)
+            {
+                k = 0;
+                j++;
             }
             else
             {
-                var i = value.GetLength(0);
-                var j = value.GetLength(1);
-                var k = value.GetLength(2);
-                var l = value.GetLength(3);
-
-                var formatter = options.Resolver.GetFormatter<T>();
-
-                writer.WriteArrayHeader(ArrayLength);
-                writer.Write(i);
-                writer.Write(j);
-                writer.Write(k);
-                writer.Write(l);
-
-                writer.WriteArrayHeader(value.Length);
-                foreach (T item in value)
-                {
-                    writer.CancellationToken.ThrowIfCancellationRequested();
-                    formatter.Serialize(ref writer, item, options);
-                }
+                k = 0;
+                j = 0;
+                i++;
             }
+
+            array[i, j, k] = formatter.Clone(value[i, j, k], options)!;
         }
 
-        public T[,,,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        return array;
+    }
+}
+
+public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]>
+{
+    private const int ArrayLength = 5;
+
+    public void Serialize(ref TinyhandWriter writer, T[,,,]? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-            else
-            {
-                var formatter = options.Resolver.GetFormatter<T>();
-
-                var len = reader.ReadArrayHeader();
-                if (len != ArrayLength)
-                {
-                    throw new TinyhandException("Invalid T[,,,] format");
-                }
-
-                var iLength = reader.ReadInt32();
-                var jLength = reader.ReadInt32();
-                var kLength = reader.ReadInt32();
-                var lLength = reader.ReadInt32();
-                var maxLen = reader.ReadArrayHeader();
-                var array = new T[iLength, jLength, kLength, lLength];
-
-                var i = 0;
-                var j = 0;
-                var k = 0;
-                var l = -1;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-                    for (int loop = 0; loop < maxLen; loop++)
-                    {
-                        reader.CancellationToken.ThrowIfCancellationRequested();
-                        if (l < lLength - 1)
-                        {
-                            l++;
-                        }
-                        else if (k < kLength - 1)
-                        {
-                            l = 0;
-                            k++;
-                        }
-                        else if (j < jLength - 1)
-                        {
-                            l = 0;
-                            k = 0;
-                            j++;
-                        }
-                        else
-                        {
-                            l = 0;
-                            k = 0;
-                            j = 0;
-                            i++;
-                        }
-
-                        array[i, j, k, l] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
-                    }
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-
-                return array;
-            }
+            writer.WriteNil();
         }
-
-        public T[,,,] Reconstruct(TinyhandSerializerOptions options) => new T[0, 0, 0, 0];
-
-        public T[,,,]? Clone(T[,,,]? value, TinyhandSerializerOptions options)
+        else
         {
-            if (value == null)
-            {
-                return null;
-            }
+            var i = value.GetLength(0);
+            var j = value.GetLength(1);
+            var k = value.GetLength(2);
+            var l = value.GetLength(3);
 
             var formatter = options.Resolver.GetFormatter<T>();
-            var iLength = value.GetLength(0);
-            var jLength = value.GetLength(1);
-            var kLength = value.GetLength(2);
-            var lLength = value.GetLength(3);
-            var maxLen = value.Length;
 
+            writer.WriteArrayHeader(ArrayLength);
+            writer.Write(i);
+            writer.Write(j);
+            writer.Write(k);
+            writer.Write(l);
+
+            writer.WriteArrayHeader(value.Length);
+            foreach (T item in value)
+            {
+                writer.CancellationToken.ThrowIfCancellationRequested();
+                formatter.Serialize(ref writer, item, options);
+            }
+        }
+    }
+
+    public T[,,,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return null;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = reader.ReadArrayHeader();
+            if (len != ArrayLength)
+            {
+                throw new TinyhandException("Invalid T[,,,] format");
+            }
+
+            var iLength = reader.ReadInt32();
+            var jLength = reader.ReadInt32();
+            var kLength = reader.ReadInt32();
+            var lLength = reader.ReadInt32();
+            var maxLen = reader.ReadArrayHeader();
             var array = new T[iLength, jLength, kLength, lLength];
+
             var i = 0;
             var j = 0;
             var k = 0;
             var l = -1;
-            for (int loop = 0; loop < maxLen; loop++)
+            options.Security.DepthStep(ref reader);
+            try
             {
-                if (l < lLength - 1)
+                for (int loop = 0; loop < maxLen; loop++)
                 {
-                    l++;
-                }
-                else if (k < kLength - 1)
-                {
-                    l = 0;
-                    k++;
-                }
-                else if (j < jLength - 1)
-                {
-                    l = 0;
-                    k = 0;
-                    j++;
-                }
-                else
-                {
-                    l = 0;
-                    k = 0;
-                    j = 0;
-                    i++;
-                }
+                    reader.CancellationToken.ThrowIfCancellationRequested();
+                    if (l < lLength - 1)
+                    {
+                        l++;
+                    }
+                    else if (k < kLength - 1)
+                    {
+                        l = 0;
+                        k++;
+                    }
+                    else if (j < jLength - 1)
+                    {
+                        l = 0;
+                        k = 0;
+                        j++;
+                    }
+                    else
+                    {
+                        l = 0;
+                        k = 0;
+                        j = 0;
+                        i++;
+                    }
 
-                array[i, j, k, l] = formatter.Clone(value[i, j, k, l], options)!;
+                    array[i, j, k, l] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
             }
 
             return array;
         }
+    }
+
+    public T[,,,] Reconstruct(TinyhandSerializerOptions options) => new T[0, 0, 0, 0];
+
+    public T[,,,]? Clone(T[,,,]? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        var formatter = options.Resolver.GetFormatter<T>();
+        var iLength = value.GetLength(0);
+        var jLength = value.GetLength(1);
+        var kLength = value.GetLength(2);
+        var lLength = value.GetLength(3);
+        var maxLen = value.Length;
+
+        var array = new T[iLength, jLength, kLength, lLength];
+        var i = 0;
+        var j = 0;
+        var k = 0;
+        var l = -1;
+        for (int loop = 0; loop < maxLen; loop++)
+        {
+            if (l < lLength - 1)
+            {
+                l++;
+            }
+            else if (k < kLength - 1)
+            {
+                l = 0;
+                k++;
+            }
+            else if (j < jLength - 1)
+            {
+                l = 0;
+                k = 0;
+                j++;
+            }
+            else
+            {
+                l = 0;
+                k = 0;
+                j = 0;
+                i++;
+            }
+
+            array[i, j, k, l] = formatter.Clone(value[i, j, k, l], options)!;
+        }
+
+        return array;
     }
 }

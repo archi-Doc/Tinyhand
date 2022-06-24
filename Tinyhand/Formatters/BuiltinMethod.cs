@@ -10,1165 +10,1164 @@ using Tinyhand.IO;
 
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Formatters
+namespace Tinyhand.Formatters;
+
+public static partial class Builtin
 {
-    public static partial class Builtin
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt8Array(ref TinyhandWriter writer, byte[]? value)
     {
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeUInt8Array(ref TinyhandWriter writer, byte[]? value)
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static byte[]? DeserializeUInt8Array(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static byte[]? DeserializeUInt8Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new byte[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new byte[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new byte[0];
+                array[i] = reader.ReadUInt8();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new byte[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadUInt8();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeUInt8List(ref TinyhandWriter writer, List<byte>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt8List(ref TinyhandWriter writer, List<byte>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<byte>? DeserializeUInt8List(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<byte>? DeserializeUInt8List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new List<byte>();
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var list = new List<byte>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<byte>();
+                list.Add(reader.ReadUInt8());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<byte>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadUInt8());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static byte[]? CloneUInt8Array(byte[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static byte[]? CloneUInt8Array(byte[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new byte[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new byte[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeInt8Array(ref TinyhandWriter writer, sbyte[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt8Array(ref TinyhandWriter writer, sbyte[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static sbyte[]? DeserializeInt8Array(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static sbyte[]? DeserializeInt8Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new sbyte[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new sbyte[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new sbyte[0];
+                array[i] = reader.ReadInt8();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new sbyte[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadInt8();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeInt8List(ref TinyhandWriter writer, List<sbyte>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt8List(ref TinyhandWriter writer, List<sbyte>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<sbyte>? DeserializeInt8List(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<sbyte>? DeserializeInt8List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<sbyte>();
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var list = new List<sbyte>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<sbyte>();
+                list.Add(reader.ReadInt8());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<sbyte>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadInt8());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static sbyte[]? CloneInt8Array(sbyte[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static sbyte[]? CloneInt8Array(sbyte[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new sbyte[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new sbyte[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeUInt16Array(ref TinyhandWriter writer, ushort[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt16Array(ref TinyhandWriter writer, ushort[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static ushort[]? DeserializeUInt16Array(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static ushort[]? DeserializeUInt16Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new ushort[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new ushort[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new ushort[0];
+                array[i] = reader.ReadUInt16();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new ushort[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadUInt16();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeUInt16List(ref TinyhandWriter writer, List<ushort>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt16List(ref TinyhandWriter writer, List<ushort>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<ushort>? DeserializeUInt16List(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<ushort>? DeserializeUInt16List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<ushort>();
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var list = new List<ushort>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<ushort>();
+                list.Add(reader.ReadUInt16());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<ushort>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadUInt16());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static ushort[]? CloneUInt16Array(ushort[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static ushort[]? CloneUInt16Array(ushort[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new ushort[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new ushort[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeInt16Array(ref TinyhandWriter writer, short[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt16Array(ref TinyhandWriter writer, short[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static short[]? DeserializeInt16Array(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static short[]? DeserializeInt16Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new short[0];
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var array = new short[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new short[0];
+                array[i] = reader.ReadInt16();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new short[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadInt16();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeInt16List(ref TinyhandWriter writer, List<short>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt16List(ref TinyhandWriter writer, List<short>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<short>? DeserializeInt16List(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<short>? DeserializeInt16List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<short>();
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var list = new List<short>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<short>();
+                list.Add(reader.ReadInt16());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<short>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadInt16());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static short[]? CloneInt16Array(short[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static short[]? CloneInt16Array(short[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new short[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
         }
+        else
+        {
+            var array = new short[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
+        }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeUInt32Array(ref TinyhandWriter writer, uint[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt32Array(ref TinyhandWriter writer, uint[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static uint[]? DeserializeUInt32Array(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static uint[]? DeserializeUInt32Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new uint[0];
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var array = new uint[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new uint[0];
+                array[i] = reader.ReadUInt32();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new uint[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadUInt32();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeUInt32List(ref TinyhandWriter writer, List<uint>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt32List(ref TinyhandWriter writer, List<uint>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<uint>? DeserializeUInt32List(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<uint>? DeserializeUInt32List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<uint>();
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var list = new List<uint>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<uint>();
+                list.Add(reader.ReadUInt32());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<uint>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadUInt32());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static uint[]? CloneUInt32Array(uint[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static uint[]? CloneUInt32Array(uint[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new uint[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new uint[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeInt32Array(ref TinyhandWriter writer, int[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt32Array(ref TinyhandWriter writer, int[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static int[]? DeserializeInt32Array(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static int[]? DeserializeInt32Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new int[0];
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var array = new int[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new int[0];
+                array[i] = reader.ReadInt32();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new int[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadInt32();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeInt32List(ref TinyhandWriter writer, List<int>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt32List(ref TinyhandWriter writer, List<int>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<int>? DeserializeInt32List(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<int>? DeserializeInt32List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new List<int>();
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var list = new List<int>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<int>();
+                list.Add(reader.ReadInt32());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<int>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadInt32());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static int[]? CloneInt32Array(int[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static int[]? CloneInt32Array(int[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new int[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new int[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeUInt64Array(ref TinyhandWriter writer, ulong[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt64Array(ref TinyhandWriter writer, ulong[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static ulong[]? DeserializeUInt64Array(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static ulong[]? DeserializeUInt64Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new ulong[0];
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var array = new ulong[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new ulong[0];
+                array[i] = reader.ReadUInt64();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new ulong[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadUInt64();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeUInt64List(ref TinyhandWriter writer, List<ulong>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt64List(ref TinyhandWriter writer, List<ulong>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<ulong>? DeserializeUInt64List(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<ulong>? DeserializeUInt64List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<ulong>();
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var list = new List<ulong>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<ulong>();
+                list.Add(reader.ReadUInt64());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<ulong>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadUInt64());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static ulong[]? CloneUInt64Array(ulong[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static ulong[]? CloneUInt64Array(ulong[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new ulong[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new ulong[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeInt64Array(ref TinyhandWriter writer, long[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt64Array(ref TinyhandWriter writer, long[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static long[]? DeserializeInt64Array(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static long[]? DeserializeInt64Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new long[0];
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var array = new long[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new long[0];
+                array[i] = reader.ReadInt64();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new long[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadInt64();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeInt64List(ref TinyhandWriter writer, List<long>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt64List(ref TinyhandWriter writer, List<long>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<long>? DeserializeInt64List(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<long>? DeserializeInt64List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new List<long>();
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var list = new List<long>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<long>();
+                list.Add(reader.ReadInt64());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<long>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadInt64());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static long[]? CloneInt64Array(long[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static long[]? CloneInt64Array(long[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new long[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new long[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeSingleArray(ref TinyhandWriter writer, float[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeSingleArray(ref TinyhandWriter writer, float[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static float[]? DeserializeSingleArray(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static float[]? DeserializeSingleArray(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new float[0];
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var array = new float[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new float[0];
+                array[i] = reader.ReadSingle();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new float[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadSingle();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeSingleList(ref TinyhandWriter writer, List<float>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeSingleList(ref TinyhandWriter writer, List<float>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<float>? DeserializeSingleList(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<float>? DeserializeSingleList(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<float>();
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var list = new List<float>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<float>();
+                list.Add(reader.ReadSingle());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<float>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadSingle());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static float[]? CloneSingleArray(float[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static float[]? CloneSingleArray(float[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new float[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
         }
+        else
+        {
+            var array = new float[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
+        }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeDoubleArray(ref TinyhandWriter writer, double[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeDoubleArray(ref TinyhandWriter writer, double[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static double[]? DeserializeDoubleArray(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static double[]? DeserializeDoubleArray(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new double[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new double[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new double[0];
+                array[i] = reader.ReadDouble();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new double[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadDouble();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeDoubleList(ref TinyhandWriter writer, List<double>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeDoubleList(ref TinyhandWriter writer, List<double>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<double>? DeserializeDoubleList(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<double>? DeserializeDoubleList(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<double>();
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var list = new List<double>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<double>();
+                list.Add(reader.ReadDouble());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<double>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadDouble());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static double[]? CloneDoubleArray(double[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static double[]? CloneDoubleArray(double[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new double[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
         }
+        else
+        {
+            var array = new double[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
+        }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeBooleanArray(ref TinyhandWriter writer, bool[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeBooleanArray(ref TinyhandWriter writer, bool[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static bool[]? DeserializeBooleanArray(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static bool[]? DeserializeBooleanArray(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new bool[0];
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var array = new bool[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new bool[0];
+                array[i] = reader.ReadBoolean();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new bool[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadBoolean();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeBooleanList(ref TinyhandWriter writer, List<bool>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeBooleanList(ref TinyhandWriter writer, List<bool>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<bool>? DeserializeBooleanList(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<bool>? DeserializeBooleanList(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new List<bool>();
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var list = new List<bool>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<bool>();
+                list.Add(reader.ReadBoolean());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<bool>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadBoolean());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static bool[]? CloneBooleanArray(bool[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static bool[]? CloneBooleanArray(bool[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new bool[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new bool[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeCharArray(ref TinyhandWriter writer, char[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeCharArray(ref TinyhandWriter writer, char[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static char[]? DeserializeCharArray(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static char[]? DeserializeCharArray(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new char[0];
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var array = new char[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new char[0];
+                array[i] = reader.ReadChar();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new char[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadChar();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeCharList(ref TinyhandWriter writer, List<char>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeCharList(ref TinyhandWriter writer, List<char>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<char>? DeserializeCharList(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<char>? DeserializeCharList(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new List<char>();
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var list = new List<char>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<char>();
+                list.Add(reader.ReadChar());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<char>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadChar());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static char[]? CloneCharArray(char[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static char[]? CloneCharArray(char[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new char[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new char[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeDateTimeArray(ref TinyhandWriter writer, DateTime[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeDateTimeArray(ref TinyhandWriter writer, DateTime[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static DateTime[]? DeserializeDateTimeArray(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static DateTime[]? DeserializeDateTimeArray(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
         {
-            if (reader.TryReadNil())
+            return null; // new DateTime[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new DateTime[len];
+            for (int i = 0; i < array.Length; i++)
             {
-                return null; // new DateTime[0];
+                array[i] = reader.ReadDateTime();
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new DateTime[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.ReadDateTime();
-                }
 
-                return array;
-            }
+            return array;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void SerializeDateTimeList(ref TinyhandWriter writer, List<DateTime>? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeDateTimeList(ref TinyhandWriter writer, List<DateTime>? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
             {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<DateTime>? DeserializeDateTimeList(ref TinyhandReader reader)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<DateTime>? DeserializeDateTimeList(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<DateTime>();
+        }
+        else
         {
-            if (reader.TryReadNil())
+            var len = reader.ReadArrayHeader();
+            var list = new List<DateTime>(len);
+            for (int i = 0; i < len; i++)
             {
-                return null; // new List<DateTime>();
+                list.Add(reader.ReadDateTime());
             }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<DateTime>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.ReadDateTime());
-                }
 
-                return list;
-            }
+            return list;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static DateTime[]? CloneDateTimeArray(DateTime[]? value)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static DateTime[]? CloneDateTimeArray(DateTime[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new DateTime[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
+            return null;
+        }
+        else
+        {
+            var array = new DateTime[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
         }
     }
 }

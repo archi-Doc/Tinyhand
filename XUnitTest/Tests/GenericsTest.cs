@@ -11,92 +11,91 @@ using Xunit;
 
 #pragma warning disable SA1139
 
-namespace Tinyhand.Tests
+namespace Tinyhand.Tests;
+
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class GenericsTestClass<T>
 {
-    [TinyhandObject(ImplicitKeyAsName = true)]
-    public partial class GenericsTestClass<T>
+    [DefaultValue(12)]
+    public int Int { get; set; } // 12
+
+    public T TValue { get; set; } = default!;
+
+    [TinyhandObject]
+    public partial class GenericsNestedClass<U>
     {
-        [DefaultValue(12)]
-        public int Int { get; set; } // 12
+        [Key(0)]
+        [DefaultValue("TH")]
+        public string String { get; set; } = default!; // 12
 
-        public T TValue { get; set; } = default!;
-
-        [TinyhandObject]
-        public partial class GenericsNestedClass<U>
-        {
-            [Key(0)]
-            [DefaultValue("TH")]
-            public string String { get; set; } = default!; // 12
-
-            [Key(1)]
-            public U UValue { get; set; } = default!;
-        }
-
-        [TinyhandObject]
-        public partial class GenericsNestedClass2
-        {
-            [Key(0)]
-            public string String { get; set; } = default!; // 12
-        }
-
-        public GenericsNestedClass<double> NestedClass { get; set; } = default!;
-
-        public GenericsNestedClass2 NestedClass2 { get; set; } = default!;
-
-        public GenericsTestClass2<int> ClassInt { get; set; } = default!;
+        [Key(1)]
+        public U UValue { get; set; } = default!;
     }
 
-    [TinyhandObject(ImplicitKeyAsName = true)]
-    public partial class GenericsTestClass2<V>
+    [TinyhandObject]
+    public partial class GenericsNestedClass2
     {
-        public V VValue { get; set; } = default!;
+        [Key(0)]
+        public string String { get; set; } = default!; // 12
     }
 
-    public class GenericsTest
+    public GenericsNestedClass<double> NestedClass { get; set; } = default!;
+
+    public GenericsNestedClass2 NestedClass2 { get; set; } = default!;
+
+    public GenericsTestClass2<int> ClassInt { get; set; } = default!;
+}
+
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class GenericsTestClass2<V>
+{
+    public V VValue { get; set; } = default!;
+}
+
+public class GenericsTest
+{
+    [Fact]
+    public void TestReconstruct()
     {
-        [Fact]
-        public void TestReconstruct()
-        {
-            var t = TinyhandSerializer.Reconstruct<GenericsTestClass<string>>();
-            t.Int.Is(12);
-            t.TValue.Is(string.Empty);
-            t.NestedClass.String.Is("TH");
-            t.NestedClass2.String.Is(string.Empty);
+        var t = TinyhandSerializer.Reconstruct<GenericsTestClass<string>>();
+        t.Int.Is(12);
+        t.TValue.Is(string.Empty);
+        t.NestedClass.String.Is("TH");
+        t.NestedClass2.String.Is(string.Empty);
 
-            var t2 = TinyhandSerializer.Reconstruct<GenericsTestClass<long>>();
-            t2.Int.Is(12);
-            t2.TValue.Is(0);
-            t2.NestedClass.String.Is("TH");
-            t2.NestedClass2.String.Is(string.Empty);
-        }
+        var t2 = TinyhandSerializer.Reconstruct<GenericsTestClass<long>>();
+        t2.Int.Is(12);
+        t2.TValue.Is(0);
+        t2.NestedClass.String.Is("TH");
+        t2.NestedClass2.String.Is(string.Empty);
+    }
 
-        [Fact]
-        public void TestSerialize()
-        {
-            var t = TinyhandSerializer.Reconstruct<GenericsTestClass<string>>();
-            t.Int = 13;
-            t.TValue = "ya";
-            t.NestedClass.String = "na";
-            t.NestedClass.UValue = 1.23d;
-            t.NestedClass2.String = "te";
-            t.ClassInt.VValue = 23;
-            var tt = TestHelper.Convert(t);
-            tt.IsStructuralEqual(t);
-            tt = (GenericsTestClass<string>)TestHelper.ConvertNonGeneric(t.GetType(), (object)t);
-            tt.IsStructuralEqual(t);
+    [Fact]
+    public void TestSerialize()
+    {
+        var t = TinyhandSerializer.Reconstruct<GenericsTestClass<string>>();
+        t.Int = 13;
+        t.TValue = "ya";
+        t.NestedClass.String = "na";
+        t.NestedClass.UValue = 1.23d;
+        t.NestedClass2.String = "te";
+        t.ClassInt.VValue = 23;
+        var tt = TestHelper.Convert(t);
+        tt.IsStructuralEqual(t);
+        tt = (GenericsTestClass<string>)TestHelper.ConvertNonGeneric(t.GetType(), (object)t);
+        tt.IsStructuralEqual(t);
 
-            var t2 = TinyhandSerializer.Reconstruct<GenericsTestClass<long>>();
-            t2.Int = 13;
-            t2.TValue = 789456;
-            t2.NestedClass.String = "na";
-            t2.NestedClass.UValue = 1.23d;
-            t2.NestedClass2.String = "te";
-            t2.ClassInt.VValue = 23;
-            var tt2 = TestHelper.Convert(t2);
-            tt2.IsStructuralEqual(t2);
+        var t2 = TinyhandSerializer.Reconstruct<GenericsTestClass<long>>();
+        t2.Int = 13;
+        t2.TValue = 789456;
+        t2.NestedClass.String = "na";
+        t2.NestedClass.UValue = 1.23d;
+        t2.NestedClass2.String = "te";
+        t2.ClassInt.VValue = 23;
+        var tt2 = TestHelper.Convert(t2);
+        tt2.IsStructuralEqual(t2);
 
-            tt2 = (GenericsTestClass<long>)TestHelper.ConvertNonGeneric(t2.GetType(), (object)t2);
-            tt2.IsStructuralEqual(t2);
-        }
+        tt2 = (GenericsTestClass<long>)TestHelper.ConvertNonGeneric(t2.GetType(), (object)t2);
+        tt2.IsStructuralEqual(t2);
     }
 }

@@ -5,48 +5,47 @@ using Tinyhand.Formatters;
 
 #pragma warning disable SA1401 // Fields should be private
 
-namespace Tinyhand.Resolvers
+namespace Tinyhand.Resolvers;
+
+/// <summary>
+/// Template code for resolver.
+/// </summary>
+public sealed class PrimitiveObjectResolver : IFormatterResolver
 {
     /// <summary>
-    /// Template code for resolver.
+    /// The singleton instance that can be used.
     /// </summary>
-    public sealed class PrimitiveObjectResolver : IFormatterResolver
+    public static readonly PrimitiveObjectResolver Instance;
+
+    /// <summary>
+    /// A <see cref="TinyhandSerializerOptions"/> instance with this formatter pre-configured.
+    /// </summary>
+    public static readonly TinyhandSerializerOptions Options;
+
+    static PrimitiveObjectResolver()
     {
-        /// <summary>
-        /// The singleton instance that can be used.
-        /// </summary>
-        public static readonly PrimitiveObjectResolver Instance;
+        Instance = new PrimitiveObjectResolver();
+        Options = new TinyhandSerializerOptions(Instance);
+    }
 
-        /// <summary>
-        /// A <see cref="TinyhandSerializerOptions"/> instance with this formatter pre-configured.
-        /// </summary>
-        public static readonly TinyhandSerializerOptions Options;
+    private PrimitiveObjectResolver()
+    {
+    }
 
-        static PrimitiveObjectResolver()
+    public ITinyhandFormatter<T>? TryGetFormatter<T>()
+    {
+        return FormatterCache<T>.Formatter;
+    }
+
+    private static class FormatterCache<T>
+    {
+        public static readonly ITinyhandFormatter<T>? Formatter;
+
+        static FormatterCache()
         {
-            Instance = new PrimitiveObjectResolver();
-            Options = new TinyhandSerializerOptions(Instance);
-        }
-
-        private PrimitiveObjectResolver()
-        {
-        }
-
-        public ITinyhandFormatter<T>? TryGetFormatter<T>()
-        {
-            return FormatterCache<T>.Formatter;
-        }
-
-        private static class FormatterCache<T>
-        {
-            public static readonly ITinyhandFormatter<T>? Formatter;
-
-            static FormatterCache()
-            {
-                Formatter = (typeof(T) == typeof(object))
-                    ? (ITinyhandFormatter<T>)(object)PrimitiveObjectFormatter.Instance
-                    : null;
-            }
+            Formatter = (typeof(T) == typeof(object))
+                ? (ITinyhandFormatter<T>)(object)PrimitiveObjectFormatter.Instance
+                : null;
         }
     }
 }

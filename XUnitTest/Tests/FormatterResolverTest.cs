@@ -8,15 +8,14 @@ using System.Threading.Tasks;
 using Tinyhand;
 using Xunit;
 
-namespace Tinyhand.Tests
+namespace Tinyhand.Tests;
+
+public class FormatterResolverTest
 {
-    public class FormatterResolverTest
+    [Fact]
+    public void Test1()
     {
-        [Fact]
-        public void Test1()
-        {
-            var t = new FormatterResolverClass();
-            var t2 = TestHelper.TestWithMessagePackWithoutCompareObject(t, false);
-        }
+        var t = new FormatterResolverClass();
+        var t2 = TestHelper.TestWithMessagePackWithoutCompareObject(t, false);
     }
 }

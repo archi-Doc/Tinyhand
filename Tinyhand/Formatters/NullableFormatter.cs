@@ -5,83 +5,82 @@ using Tinyhand.IO;
 
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Formatters
+namespace Tinyhand.Formatters;
+
+public sealed class NullableFormatter<T> : ITinyhandFormatter<T?>
+    where T : struct
 {
-    public sealed class NullableFormatter<T> : ITinyhandFormatter<T?>
-        where T : struct
+    public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
     {
-        public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
-            {
-                options.Resolver.GetFormatter<T>().Serialize(ref writer, value.Value, options);
-            }
+            writer.WriteNil();
         }
-
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        else
         {
-            if (reader.IsNil)
-            {
-                reader.ReadNil();
-                return null;
-            }
-            else
-            {
-                return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
-            }
+            options.Resolver.GetFormatter<T>().Serialize(ref writer, value.Value, options);
         }
-
-        public T? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(T);
-        }
-
-        public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : options.Resolver.GetFormatter<T>().Clone(value.Value, options);
     }
 
-    public sealed class StaticNullableFormatter<T> : ITinyhandFormatter<T?>
-        where T : struct
+    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        private readonly ITinyhandFormatter<T> underlyingFormatter;
-
-        public StaticNullableFormatter(ITinyhandFormatter<T> underlyingFormatter)
+        if (reader.IsNil)
         {
-            this.underlyingFormatter = underlyingFormatter;
+            reader.ReadNil();
+            return null;
         }
-
-        public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
+        else
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
-            {
-                this.underlyingFormatter.Serialize(ref writer, value.Value, options);
-            }
+            return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
         }
-
-        public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-        {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-            else
-            {
-                return this.underlyingFormatter.Deserialize(ref reader, options);
-            }
-        }
-
-        public T? Reconstruct(TinyhandSerializerOptions options)
-        {
-            return default(T);
-        }
-
-        public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : this.underlyingFormatter.Clone(value.Value, options);
     }
+
+    public T? Reconstruct(TinyhandSerializerOptions options)
+    {
+        return default(T);
+    }
+
+    public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : options.Resolver.GetFormatter<T>().Clone(value.Value, options);
+}
+
+public sealed class StaticNullableFormatter<T> : ITinyhandFormatter<T?>
+    where T : struct
+{
+    private readonly ITinyhandFormatter<T> underlyingFormatter;
+
+    public StaticNullableFormatter(ITinyhandFormatter<T> underlyingFormatter)
+    {
+        this.underlyingFormatter = underlyingFormatter;
+    }
+
+    public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            this.underlyingFormatter.Serialize(ref writer, value.Value, options);
+        }
+    }
+
+    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return null;
+        }
+        else
+        {
+            return this.underlyingFormatter.Deserialize(ref reader, options);
+        }
+    }
+
+    public T? Reconstruct(TinyhandSerializerOptions options)
+    {
+        return default(T);
+    }
+
+    public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : this.underlyingFormatter.Clone(value.Value, options);
 }
