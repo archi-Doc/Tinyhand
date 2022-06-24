@@ -8,6 +8,9 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Represents a collection of utf-16 key (ReadOnlySpan&lt;char&gt;) and string pairs for each culture.
+/// </summary>
 public class KeyString
 {
     public const int MaxKeyLength = 256; // The maximum length of a key.
@@ -40,64 +43,39 @@ public class KeyString
     public CultureInfo CurrentCulture => this.currentCultureInfo;
 
     /// <summary>
-    /// Get a string that matches the key.
+    /// Gets the name of the current culture.
     /// </summary>
-    /// <param name="key">The key.</param>
-    /// <returns>Returns a string. If no string is found, the return value is the key itself.</returns>
-    public string this[string? key]
-    {
-        get
-        {
-            if (key == null)
-            {
-                return this.ErrorMessage;
-            }
-
-            string? result;
-            if (this.currentCultureTable.TryGetValue(key, out result))
-            {// Found in the current culture table.
-                return result;
-            }
-
-            if (this.currentCultureTable != this.defaultCultureTable && this.defaultCultureTable.TryGetValue(key, out result))
-            {// Found in the default culture table.
-                return result;
-            }
-
-            return key;
-        }
-    }
+    /// <returns>The name of the current culture.</returns>
+    public string CurrentCultureName => this.CurrentCulture.Name;
 
     /// <summary>
-    /// Get a string that matches the identifier.
+    /// Get a string that matches the identifier.<br/>
+    /// Current culture -> Default culture -> Error message, if not found.
     /// </summary>
     /// <param name="identifier">The identifier.</param>
-    /// <returns>Returns a string. If no string is found, the return value is null.</returns>
-    public string? Get(string? identifier)
-    {
-        if (identifier == null)
-        {
-            return this.ErrorMessage;
-        }
+    /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
+    public string Get(string? identifier) => this.GetInternal(identifier, this.ErrorMessage);
 
-        string? result;
-        if (this.currentCultureTable.TryGetValue(identifier, out result))
-        {// Found in the current culture table.
-            return result;
-        }
+    /// <summary>
+    /// Get a string that matches the identifier.<br/>
+    /// Current culture -> Default culture -> the identifier itself, if not found.
+    /// </summary>
+    /// <param name="identifier">The identifier.</param>
+    /// <returns>Returns a string. If no string is found, the return value is the identifier itself.</returns>
+    public string GetOrIdentifier(string? identifier) => this.GetInternal(identifier, identifier ?? string.Empty);
 
-        if (this.currentCultureTable != this.defaultCultureTable && this.defaultCultureTable.TryGetValue(identifier, out result))
-        {// Found in the default culture table.
-            return result;
-        }
-
-        return this.ErrorMessage;
-    }
+    /// <summary>
+    /// Get a string that matches the identifier.<br/>
+    /// Current culture -> Default culture -> <see cref="string.Empty"/>, if not found.
+    /// </summary>
+    /// <param name="identifier">The identifier.</param>
+    /// <returns>Returns a string. If no string is found, the return value is <see cref="string.Empty"/>.</returns>
+    public string GetOrEmpty(string? identifier) => this.GetInternal(identifier, string.Empty);
 
     /// <summary>
     /// Set the default culture.
     /// </summary>
-    /// <param name="cultureName">A string of the default culture.</param>
+    /// <param name="cultureName">The name of the default culture.</param>
     public void SetDefaultCulture(string cultureName)
     {
         cultureName = ShortNameToCultureName(cultureName);
@@ -117,13 +95,12 @@ public class KeyString
     }
 
     /// <summary>
-    /// Change culture.
+    /// Change the current culture.
     /// </summary>
     /// <param name="cultureName">The culture name.</param>
     public void ChangeCulture(string cultureName)
     {
         cultureName = ShortNameToCultureName(cultureName);
-
         if (cultureName == this.CurrentCulture.Name)
         {
             return;
@@ -144,39 +121,33 @@ public class KeyString
     }
 
     /// <summary>
-    /// Get a name of the current culture.
-    /// </summary>
-    /// <returns>A name of the current culture.</returns>
-    public string GetCulture() => this.CurrentCulture.Name;
-
-    /// <summary>
-    /// Load from a file.
+    /// Load key/string data from a tinyhand file.
     /// </summary>
     /// <param name="culture">The target culture.</param>
-    /// <param name="fileName">The file name.</param>
-    /// <param name="clearFlag">Clear the string data and reload.</param>
-    public void Load(string culture, string fileName, bool clearFlag = false)
+    /// <param name="tinyhandPath">The path of the tinyhand file.</param>
+    /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
+    public void Load(string culture, string tinyhandPath, bool reset = false)
     {
-        using (var fs = File.OpenRead(fileName))
+        using (var fs = File.OpenRead(tinyhandPath))
         {
             lock (this.syncObject)
             {
-                this.Load(culture, fs, clearFlag);
+                this.Load(culture, fs, reset);
             }
         }
     }
 
     /// <summary>
-    /// Load from stream.
+    /// Load key/string data from a stream.
     /// </summary>
     /// <param name="culture">The target culture.</param>
     /// <param name="stream">Stream.</param>
-    /// <param name="clearFlag">Clear the string data and reload.</param>
-    public void LoadStream(string culture, Stream stream, bool clearFlag = false)
+    /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
+    public void LoadStream(string culture, Stream stream, bool reset = false)
     {
         lock (this.syncObject)
         {
-            this.Load(culture, stream, clearFlag);
+            this.Load(culture, stream, reset);
         }
     }
 
@@ -186,8 +157,8 @@ public class KeyString
     /// </summary>
     /// <param name="culture">The target culture.</param>
     /// <param name="assemblyname">The assembly name.</param>
-    /// <param name="clearFlag">Clear the string data and reload.</param>
-    public void LoadAssembly(string culture, string assemblyname, bool clearFlag = false)
+    /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
+    public void LoadAssembly(string culture, string assemblyname, bool reset = false)
     {
         var asm = System.Reflection.Assembly.GetExecutingAssembly();
         using (var stream = asm.GetManifestResourceStream(asm.GetName().Name + "." + assemblyname))
@@ -199,13 +170,13 @@ public class KeyString
 
             lock (this.syncObject)
             {
-                this.Load(culture, stream, clearFlag);
+                this.Load(culture, stream, reset);
             }
         }
     }
 #endif
 
-    private void Load(string culture, Stream stream, bool clearFlag)
+    private void Load(string culture, Stream stream, bool reset)
     {
         if (stream.Length > MaxTinyhandLength)
         {
@@ -223,7 +194,7 @@ public class KeyString
             table = new Utf16Hashtable<string>();
             this.cultureTable.TryAdd(culture, table);
         }
-        else if (clearFlag)
+        else if (reset)
         {// Clear
             table.Clear();
         }
@@ -245,6 +216,27 @@ public class KeyString
         }
 
         return;
+    }
+
+    private string GetInternal(string? identifier, string alternative)
+    {
+        if (identifier == null)
+        {
+            return alternative;
+        }
+
+        string? result;
+        if (this.currentCultureTable.TryGetValue(identifier, out result))
+        {// Found in the current culture table.
+            return result;
+        }
+
+        if (this.currentCultureTable != this.defaultCultureTable && this.defaultCultureTable.TryGetValue(identifier, out result))
+        {// Found in the default culture table.
+            return result;
+        }
+
+        return alternative;
     }
 
     private object syncObject = new();

@@ -7,8 +7,12 @@ using System.Threading;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Represents a collection of utf-16 key (ReadOnlySpan&lt;char&gt;) and value pairs.
+/// </summary>
+/// <typeparam name="TValue">The type of value.</typeparam>
 public class Utf16Hashtable<TValue>
-{ // HashTable for UTF-16 (ReadOnlySpan<char>).
+{
     private static uint CalculateCapacity(uint collectionSize)
     {
         collectionSize *= 2;
