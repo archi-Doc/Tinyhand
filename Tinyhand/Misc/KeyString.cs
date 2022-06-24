@@ -24,8 +24,9 @@ public class KeyString
         _ => name,
     };
 
-    public KeyString()
+    public KeyString(bool ignoreCase = true)
     {
+        this.IgnoreCase = ignoreCase;
         var table = new Utf16Hashtable<string>();
         this.currentCultureTable = table;
         this.defaultCultureTable = table;
@@ -37,6 +38,8 @@ public class KeyString
     }
 
     public static KeyString Instance { get; } = new KeyString();
+
+    public bool IgnoreCase { get; }
 
     public string ErrorMessage { get; set; } = "No KeyString"; // Error message.
 
@@ -203,6 +206,11 @@ public class KeyString
         {
             if (x.TryGetLeft_IdentifierUtf16(out var identifier))
             {
+                if (this.IgnoreCase)
+                {
+                    identifier = identifier.ToLower();
+                }
+
                 if (x.TryGetRight_Value_String(out var valueString) && valueString.ValueStringUtf16.Length <= MaxStringLength)
                 {
                     table.TryAdd(identifier, valueString.ValueStringUtf16);
@@ -223,6 +231,10 @@ public class KeyString
         if (identifier == null)
         {
             return alternative;
+        }
+        else if (this.IgnoreCase)
+        {
+            identifier = identifier.ToLower();
         }
 
         string? result;
