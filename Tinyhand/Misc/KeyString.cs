@@ -76,6 +76,15 @@ public class KeyString
     public string GetOrEmpty(string? identifier) => this.GetInternal(identifier, string.Empty);
 
     /// <summary>
+    /// Get a string that matches the identifier.<br/>
+    /// Current culture -> Default culture -> The alternative string, if not found.
+    /// </summary>
+    /// <param name="identifier">The identifier.</param>
+    /// <param name="alternative">The alternative string.</param>
+    /// <returns>Returns a string. If no string is found, the return value is the alternative string.</returns>
+    public string GetOrAlternative(string? identifier, string alternative) => this.GetInternal(identifier, alternative);
+
+    /// <summary>
     /// Set the default culture.
     /// </summary>
     /// <param name="cultureName">The name of the default culture.</param>
