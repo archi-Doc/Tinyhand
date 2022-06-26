@@ -72,6 +72,11 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                     {
                         return typeSyntax;
                     }
+                    else if (name.EndsWith(TinyhandHashedStringAttributeMock.Name) ||
+                        name.EndsWith(TinyhandHashedStringAttributeMock.SimpleName))
+                    {
+                        return typeSyntax;
+                    }
                     else if (name.EndsWith(TinyhandObjectAttributeMock.Name) ||
                         name.EndsWith(TinyhandObjectAttributeMock.SimpleName) ||
                         name.EndsWith(TinyhandUnionAttributeMock.Name) ||
@@ -107,6 +112,12 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
 
         this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeMock.FullName);
         if (this.tinyhandGeneratorOptionAttributeSymbol == null)
+        {
+            return;
+        }
+
+        this.tinyhandHashedStringAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandHashedStringAttributeMock.FullName);
+        if (this.tinyhandHashedStringAttributeSymbol == null)
         {
             return;
         }
@@ -261,4 +272,5 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
     private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
     private INamedTypeSymbol? tinyhandUnionAttributeSymbol;
     private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
+    private INamedTypeSymbol? tinyhandHashedStringAttributeSymbol;
 }

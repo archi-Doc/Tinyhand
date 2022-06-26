@@ -441,3 +441,26 @@ public class TinyhandUnionAttributeMock
         return attribute;
     }
 }*/
+
+public sealed class TinyhandHashedStringAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandHashedString";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+
+    public string TinyhandPath { get; set; } = string.Empty;
+
+    public static TinyhandHashedStringAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    {
+        var attribute = new TinyhandHashedStringAttributeMock();
+
+        object? val;
+        val = AttributeHelper.GetValue(0, nameof(TinyhandPath), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.TinyhandPath = (string)val;
+        }
+
+        return attribute;
+    }
+}

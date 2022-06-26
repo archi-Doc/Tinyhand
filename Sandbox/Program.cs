@@ -12,6 +12,11 @@ using Tinyhand.IO;
 
 namespace Sandbox;
 
+[TinyhandHashedString("strings.tinyhand")]
+public partial class Hashed
+{
+}
+
 [TinyhandObject]
 public partial class IdentifierReadonlyClass
 {

@@ -234,6 +234,17 @@ public class TinyhandUnionAttribute : Attribute
     }
 }
 
+/// <summary>
+/// Adds members or child classes to store hashed strings.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
+public sealed class TinyhandHashedStringAttribute : Attribute
+{
+    public TinyhandHashedStringAttribute(string tinyhandPath)
+    {
+    }
+}
+
 /*/// <summary>
 /// TinyhandUnionToAttribute is derived-side version of TinyhandUnionAttribute.
 /// You can serialize/deserialize derived types via the base type by adding TinyhandUnionAttribute to the derived type.<br/>
