@@ -237,7 +237,7 @@ public class TinyhandUnionAttribute : Attribute
 /// <summary>
 /// Adds members or child classes to store hashed strings.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
 public sealed class TinyhandHashedStringAttribute : Attribute
 {
     public TinyhandHashedStringAttribute(string tinyhandPath)

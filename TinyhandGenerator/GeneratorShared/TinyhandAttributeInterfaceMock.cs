@@ -448,6 +448,10 @@ public sealed class TinyhandHashedStringAttributeMock
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
+    public Location Location { get; set; } = Location.None;
+
+    public string FilePath { get; set; } = string.Empty;
+
     public string TinyhandPath { get; set; } = string.Empty;
 
     public static TinyhandHashedStringAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)

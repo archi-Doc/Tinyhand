@@ -128,6 +128,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         this.OutputKind = compilation.Options.OutputKind;
 
         var body = new TinyhandBody(context);
+        var hashedStringBody = new TinyhandHashedStringBody(context);
         // receiver.Generics.Prepare(compilation);
 #pragma warning disable RS1024 // Symbols should be compared for equality
         var processed = new HashSet<INamedTypeSymbol?>();
@@ -152,7 +153,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
             var model = compilation.GetSemanticModel(x.SyntaxTree);
             if (model.GetDeclaredSymbol(x) is INamedTypeSymbol symbol)
             {
-                this.ProcessSymbol(body, processed, x.SyntaxTree, symbol);
+                this.ProcessSymbol(body, hashedStringBody, processed, x.SyntaxTree, symbol);
             }
         }
 
@@ -161,7 +162,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         {
             if (ts.TypeSymbol != null)
             {
-                this.ProcessSymbol(body, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
+                this.ProcessSymbol(body, hashedStringBody, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
             }
         }
 
@@ -175,10 +176,19 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         }
 
         context.CancellationToken.ThrowIfCancellationRequested();
+        hashedStringBody.Prepare();
+        if (hashedStringBody.Abort)
+        {
+            return;
+        }
+
+        context.CancellationToken.ThrowIfCancellationRequested();
         body.Generate(this, context.CancellationToken);
+        context.CancellationToken.ThrowIfCancellationRequested();
+        hashedStringBody.Generate(this, context.CancellationToken);
     }
 
-    private void ProcessSymbol(TinyhandBody body, HashSet<INamedTypeSymbol?> processed, SyntaxTree? syntaxTree, INamedTypeSymbol symbol)
+    private void ProcessSymbol(TinyhandBody body, TinyhandHashedStringBody? hashedStringBody, HashSet<INamedTypeSymbol?> processed, SyntaxTree? syntaxTree, INamedTypeSymbol symbol)
     {
         if (!SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, this.AssemblySymbol))
         {// Different assembly
@@ -194,9 +204,14 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         {
             if (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandObjectAttributeSymbol) ||
                 SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandUnionAttributeSymbol))
-            { // ValueLinkObject
+            { // TinyhandObject or TinyhandUnion
                 body.Add(symbol);
                 break;
+            }
+            else if (hashedStringBody != null &&
+                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandHashedStringAttributeSymbol))
+            { // TinyhandHashedString
+                hashedStringBody.Add(symbol);
             }
             else if (!this.generatorOptionIsSet &&
                 syntaxTree != null &&
@@ -237,7 +252,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                 return;
             }
 
-            this.ProcessSymbol(body, processed, null, ts);
+            this.ProcessSymbol(body, null, processed, null, ts);
 
             stack.Push(ts);
             try
