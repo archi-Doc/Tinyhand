@@ -151,7 +151,33 @@ public class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStrin
                 {
                     x.TinyhandPath = Path.Combine(Path.GetDirectoryName(x.FilePath), x.TinyhandPath);
                 }
+
+                this.LoadTinyhand(x);
             }
+        }
+    }
+
+    internal void LoadTinyhand(TinyhandHashedStringAttributeMock attribute)
+    {
+        if (!File.Exists(attribute.TinyhandPath))
+        {
+            this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, attribute.Location, attribute.TinyhandPath);
+            return;
+        }
+
+        try
+        {
+            File.ReadAllBytes(attribute.TinyhandPath);
+        }
+        catch
+        {
+            this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, attribute.Location, attribute.TinyhandPath);
+            return;
+        }
+
+        try
+        {
+            TinyhandSerializer.
         }
     }
 

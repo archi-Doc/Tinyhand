@@ -163,7 +163,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_InvalidIdentifier = new DiagnosticDescriptor(
-        id: "TG035", title: "Invalid identifier", messageFormat: "'{0}'is not a valid identifier, it's been replaced by '{1}'",
+        id: "TG035", title: "Invalid identifier", messageFormat: "'{0}' is not a valid identifier, it's been replaced by '{1}'",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_KeyAsNameExclusive = new DiagnosticDescriptor(
@@ -188,6 +188,14 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
 
     public static readonly DiagnosticDescriptor Error_GenericType = new DiagnosticDescriptor(
         id: "TG041", title: "Generic type", messageFormat: "Generic type is not supported",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_NoTinyhandFile = new DiagnosticDescriptor(
+        id: "TG042", title: "No Tinyhand", messageFormat: "Could not load tinyhand file '{0}'",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_DeserializeTinyhandFile = new DiagnosticDescriptor(
+        id: "TG043", title: "Deserialize Tinyhand", messageFormat: "Could not deserialize tinyhand file '{0}'",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public TinyhandBody(GeneratorExecutionContext context)
