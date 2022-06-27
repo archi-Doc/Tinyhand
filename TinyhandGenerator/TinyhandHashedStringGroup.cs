@@ -91,7 +91,7 @@ internal class TinyhandHashedStringGroup
                 }
 
                 var hash = FarmHash.Hash64(identifier);
-                ssb.AppendLine($"public static ulong {x} => 0x{hash.ToString("X")}ul;");
+                ssb.AppendLine($"public static ulong {x} => 0x{hash.ToString("x")}ul;");
             }
 
             foreach (var x in this.Groups.Values)
