@@ -26,7 +26,7 @@ public enum TinyhandHashedStringObjectFlag
     TinyhandHashedString = 1 << 10, // TinyhandHashedString
 }
 
-public class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStringObject>
+internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStringObject>
 {
     public TinyhandHashedStringObject()
     {
@@ -39,6 +39,8 @@ public class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStrin
     public List<TinyhandHashedStringAttributeMock>? HashedStringList { get; private set; }
 
     public List<TinyhandHashedStringObject>? Children { get; private set; } // The opposite of ContainingObject
+
+    public TinyhandHashedStringGroup Group { get; private set; } = new(string.Empty);
 
     public void Configure()
     {
@@ -187,13 +189,11 @@ public class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStrin
             return;
         }
 
-        // ProcessElement()
+        this.Group.Process(element);
     }
 
     internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var cls = ssb.ScopeBrace($"{this.AccessibilityName} partial {this.KindName} {this.LocalName}"))
-        {
-        }
+        this.Group.Generate(this, ssb, string.Empty);
     }
 }

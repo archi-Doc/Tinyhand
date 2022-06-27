@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Tinyhand.Generator;
 
-public class TinyhandHashedStringBody : VisceralBody<TinyhandHashedStringObject>
+internal class TinyhandHashedStringBody : VisceralBody<TinyhandHashedStringObject>
 {
     public TinyhandHashedStringBody(SourceProductionContext context)
         : base(context)
