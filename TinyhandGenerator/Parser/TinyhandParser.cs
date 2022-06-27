@@ -17,7 +17,7 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
-public static class TinyhandParser
+internal static class TinyhandParser
 {
     internal class ParserCore
     {

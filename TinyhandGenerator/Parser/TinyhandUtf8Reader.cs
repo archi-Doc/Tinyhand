@@ -126,8 +126,6 @@ public ref struct TinyhandUtf8Reader
 
     public TinyhandModifierType ValueModifierType { get; private set; }
 
-    public string ValueSpanToString => Encoding.UTF8.GetString(this.ValueSpan);
-
     public long ValueLong { get; private set; }
 
     public double ValueDouble { get; private set; }

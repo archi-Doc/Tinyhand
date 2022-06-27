@@ -13,7 +13,6 @@ using Tinyhand.IO;
 namespace Sandbox;
 
 [TinyhandHashedString("strings.tinyhand")]
-[TinyhandHashedString("c:\\strings2.tinyhand")]
 public partial class Hashed
 {
 }

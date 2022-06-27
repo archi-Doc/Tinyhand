@@ -9,7 +9,7 @@ using System;
 
 namespace Tinyhand;
 
-public static class TinyhandConstants
+internal static class TinyhandConstants
 {
     public const byte OpenBrace = (byte)'{';
     public const byte CloseBrace = (byte)'}';

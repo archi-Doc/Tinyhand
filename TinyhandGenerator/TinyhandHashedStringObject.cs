@@ -161,24 +161,33 @@ public class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStrin
     {
         if (!File.Exists(attribute.TinyhandPath))
         {
-            this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, attribute.Location, attribute.TinyhandPath);
+            this.Body.AddDiagnostic(TinyhandBody.Error_NoTinyhandFile, attribute.Location, attribute.TinyhandPath);
             return;
         }
 
+        byte[] bytes;
         try
         {
-            File.ReadAllBytes(attribute.TinyhandPath);
+            bytes = File.ReadAllBytes(attribute.TinyhandPath);
         }
         catch
         {
-            this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, attribute.Location, attribute.TinyhandPath);
+            this.Body.AddDiagnostic(TinyhandBody.Error_NoTinyhandFile, attribute.Location, attribute.TinyhandPath);
             return;
         }
 
+        Tree.Element element;
         try
         {
-            TinyhandSerializer.
+            element = TinyhandParser.Parse(bytes);
         }
+        catch
+        {
+            this.Body.AddDiagnostic(TinyhandBody.Error_ParseTinyhandFile, attribute.Location, attribute.TinyhandPath);
+            return;
+        }
+
+        // ProcessElement()
     }
 
     internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)

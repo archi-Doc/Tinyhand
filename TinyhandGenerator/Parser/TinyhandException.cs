@@ -4,7 +4,7 @@ using System;
 
 namespace Tinyhand;
 
-public class TinyhandException : Exception
+internal class TinyhandException : Exception
 {
     public TinyhandException(string message)
         : base(message)
@@ -15,25 +15,4 @@ public class TinyhandException : Exception
         : base(message, innerException)
     {
     }
-}
-
-public class TinyhandUnexpectedCodeException : TinyhandException
-{
-    public TinyhandUnexpectedCodeException(string message, MessagePackType actual, MessagePackType expected)
-        : base(message)
-    {
-        this.ActualType = actual;
-        this.ExpectedType = expected;
-    }
-
-    public TinyhandUnexpectedCodeException(string message, MessagePackType actual, MessagePackType expected, Exception innerException)
-        : base(message, innerException)
-    {
-        this.ActualType = actual;
-        this.ExpectedType = expected;
-    }
-
-    public MessagePackType ActualType { get; }
-
-    public MessagePackType ExpectedType { get; }
 }

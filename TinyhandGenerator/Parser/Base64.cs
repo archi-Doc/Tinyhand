@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1311 // Static readonly fields should begin with upper-case letter
@@ -195,7 +196,12 @@ internal static unsafe class Base64
             (pooledName = ArrayPool<char>.Shared.Rent(length));
 
         TryToBase64Chars(bytes, span, out var written);
-        var result = new string(span, 0, written);
+
+        string result;
+        fixed (char* c = &MemoryMarshal.GetReference(span))
+        {
+            result = new string(c, 0, written);
+        }
 
         if (pooledName != null)
         {

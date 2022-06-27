@@ -1,0 +1,15 @@
+test
+1
+1.2
+name="test"
+{1,2,3}
+4="5"
+// single comment
+"test.xml"
+/* comment */
+"test2.txt"
+/* comment
+1,2,3
+"test3.txt"
+*/
+"test4.txt"

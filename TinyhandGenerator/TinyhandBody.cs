@@ -91,7 +91,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_AttributePropertyError = new DiagnosticDescriptor(
-        id: "TG017", title: "Attribute property type error", messageFormat: "The argument specified does not match the type of the property",
+        id: "TG017", title: "Attribute property type error", messageFormat: "The specified argument does not match the property type",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_KeyAttributeError = new DiagnosticDescriptor(
@@ -194,8 +194,8 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG042", title: "No Tinyhand", messageFormat: "Could not load tinyhand file '{0}'",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_DeserializeTinyhandFile = new DiagnosticDescriptor(
-        id: "TG043", title: "Deserialize Tinyhand", messageFormat: "Could not deserialize tinyhand file '{0}'",
+    public static readonly DiagnosticDescriptor Error_ParseTinyhandFile = new DiagnosticDescriptor(
+        id: "TG043", title: "Parse Tinyhand", messageFormat: "Could not parse tinyhand file '{0}'",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public TinyhandBody(GeneratorExecutionContext context)
