@@ -48,7 +48,7 @@ internal class TinyhandHashedStringGroup
                     }
                     else // if (assignment.RightElement is Value_String valueString)
                     {
-                        this.Strings.Add(identifier);
+                        this.Values.Add(new(identifier, assignment.RightElement));
                     }
                 }
             }
@@ -57,7 +57,7 @@ internal class TinyhandHashedStringGroup
 
     public void Generate(TinyhandHashedStringObject tinyhandHashedStringObject, ScopingStringBuilder ssb, string groupName)
     {
-        if (this.Groups.Count == 0 && this.Strings.Count == 0)
+        if (this.Groups.Count == 0 && this.Values.Count == 0)
         {
             return;
         }
@@ -76,7 +76,7 @@ internal class TinyhandHashedStringGroup
             }
 
             var firstFlag = true;
-            foreach (var x in this.Strings)
+            foreach (var x in this.Values)
             {
                 firstFlag = false;
 
@@ -111,5 +111,17 @@ internal class TinyhandHashedStringGroup
 
     public SortedDictionary<string, TinyhandHashedStringGroup> Groups { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
 
-    public SortedSet<string> Strings { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
+    public SortedSet<IdentifierValuePair> Values { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
+
+    internal struct IdentifierValuePair
+    {
+        public IdentifierValuePair(string identifier, Element? element)
+        {
+            this.Identifier = identifier;
+            this.Element = element;
+        }
+
+        public string Identifier;
+        public Element? Element;
+    }
 }
