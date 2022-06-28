@@ -22,7 +22,7 @@ internal class TinyhandHashedStringGroup
         this.Identifier = identifier;
     }
 
-    public void Process(Element element)
+    public void Process(Element element, bool hashedString)
     {
         if (element is not Group group)
         {
@@ -44,11 +44,11 @@ internal class TinyhandHashedStringGroup
                             this.Groups.Add(identifier, g);
                         }
 
-                        g.Process(subgroup);
+                        g.Process(subgroup, hashedString);
                     }
                     else // if (assignment.RightElement is Value_String valueString)
                     {
-                        this.Values.Add(new(identifier, assignment.RightElement));
+                        this.Items.Add(new(hashedString, identifier, assignment.RightElement));
                     }
                 }
             }
@@ -57,7 +57,7 @@ internal class TinyhandHashedStringGroup
 
     public void Generate(TinyhandHashedStringObject tinyhandHashedStringObject, ScopingStringBuilder ssb, string groupName)
     {
-        if (this.Groups.Count == 0 && this.Values.Count == 0)
+        if (this.Groups.Count == 0 && this.Items.Count == 0)
         {
             return;
         }
@@ -76,22 +76,28 @@ internal class TinyhandHashedStringGroup
             }
 
             var firstFlag = true;
-            foreach (var x in this.Values)
+            foreach (var x in this.Items)
             {
                 firstFlag = false;
 
-                string identifier;
-                if (string.IsNullOrEmpty(groupName))
-                {
-                    identifier = x;
+                if (x.HashedString)
+                {// Get a hash of an identifier.
+                    string identifier;
+                    if (string.IsNullOrEmpty(groupName))
+                    {
+                        identifier = x.Identifier;
+                    }
+                    else
+                    {
+                        identifier = groupName + "." + x.Identifier;
+                    }
+
+                    var hash = FarmHash.Hash64(identifier);
+                    ssb.AppendLine($"public static ulong {x.Identifier} => 0x{hash.ToString("x")}ul;");
                 }
                 else
-                {
-                    identifier = groupName + "." + x;
+                {// Define a member and set value.
                 }
-
-                var hash = FarmHash.Hash64(identifier);
-                ssb.AppendLine($"public static ulong {x} => 0x{hash.ToString("x")}ul;");
             }
 
             foreach (var x in this.Groups.Values)
@@ -111,17 +117,21 @@ internal class TinyhandHashedStringGroup
 
     public SortedDictionary<string, TinyhandHashedStringGroup> Groups { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
 
-    public SortedSet<IdentifierValuePair> Values { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
+    public SortedSet<Item> Items { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
 
-    internal struct IdentifierValuePair
+    internal struct Item : IComparable<Item>
     {
-        public IdentifierValuePair(string identifier, Element? element)
+        public Item(bool hashedString, string identifier, Element? element)
         {
+            this.HashedString = hashedString;
             this.Identifier = identifier;
             this.Element = element;
         }
 
+        public bool HashedString;
         public string Identifier;
         public Element? Element;
+
+        public int CompareTo(Item other) => this.Identifier.CompareTo(other.Identifier);
     }
 }

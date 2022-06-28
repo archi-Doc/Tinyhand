@@ -189,7 +189,7 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
             return;
         }
 
-        this.Group.Process(element);
+        this.Group.Process(element, attribute.HashedString);
     }
 
     internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)
