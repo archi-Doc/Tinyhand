@@ -23,7 +23,8 @@ public enum TinyhandHashedStringObjectFlag
     RelationConfigured = 1 << 1,
     Checked = 1 << 2,
 
-    TinyhandHashedString = 1 << 10, // TinyhandHashedString
+    TinyhandGenerateMember = 1 << 10, // TinyhandGenerateMember
+    TinyhandGenerateHash = 1 << 11, // TinyhandGenerateHash
 }
 
 internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStringObject>
@@ -36,7 +37,7 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
     public TinyhandHashedStringObjectFlag ObjectFlag { get; private set; }
 
-    public List<TinyhandGenerateFromAttributeMock>? HashedStringList { get; private set; }
+    public List<Item>? Items { get; private set; }
 
     public List<TinyhandHashedStringObject>? Children { get; private set; } // The opposite of ContainingObject
 
@@ -51,25 +52,71 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
         this.ObjectFlag |= TinyhandHashedStringObjectFlag.Configured;
 
-        foreach (var objectAttribute in this.AllAttributes.Where(x => x.FullName == TinyhandGenerateFromAttributeMock.FullName))
-        {// TinyhandHashedStringAttribute
+        foreach (var objectAttribute in this.AllAttributes.Where(x => x.FullName == TinyhandGenerateMemberAttributeMock.FullName))
+        {// TinyhandGenerateMember
             try
             {
-                var attribute = TinyhandGenerateFromAttributeMock.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
-                attribute.Location = objectAttribute.Location;
-                this.ObjectFlag |= TinyhandHashedStringObjectFlag.TinyhandHashedString;
+                var attribute = TinyhandGenerateMemberAttributeMock.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
+                var item = new Item(objectAttribute.Location, attribute.TinyhandPath, false);
+                this.ObjectFlag |= TinyhandHashedStringObjectFlag.TinyhandGenerateMember;
 
                 if (objectAttribute.SyntaxReference is { } syntaxReferencee)
                 {
-                    attribute.FilePath = syntaxReferencee.SyntaxTree.FilePath;
+                    item.FilePath = syntaxReferencee.SyntaxTree.FilePath;
                 }
 
-                this.HashedStringList ??= new();
-                this.HashedStringList.Add(attribute);
+                this.Items ??= new();
+                this.Items.Add(item);
             }
             catch (InvalidCastException)
             {
                 this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, objectAttribute.Location);
+            }
+        }
+
+        foreach (var x in this.AllAttributes)
+        {
+            if (x.FullName == TinyhandGenerateMemberAttributeMock.FullName)
+            {// TinyhandGenerateMember
+                try
+                {
+                    var attribute = TinyhandGenerateMemberAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                    var item = new Item(x.Location, attribute.TinyhandPath, false);
+                    this.ObjectFlag |= TinyhandHashedStringObjectFlag.TinyhandGenerateMember;
+
+                    if (x.SyntaxReference is { } syntaxReferencee)
+                    {
+                        item.FilePath = syntaxReferencee.SyntaxTree.FilePath;
+                    }
+
+                    this.Items ??= new();
+                    this.Items.Add(item);
+                }
+                catch (InvalidCastException)
+                {
+                    this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                }
+            }
+            else if (x.FullName == TinyhandGenerateHashAttributeMock.FullName)
+            {// TinyhandGenerateMember
+                try
+                {
+                    var attribute = TinyhandGenerateHashAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                    var item = new Item(x.Location, attribute.TinyhandPath, true);
+                    this.ObjectFlag |= TinyhandHashedStringObjectFlag.TinyhandGenerateHash;
+
+                    if (x.SyntaxReference is { } syntaxReferencee)
+                    {
+                        item.FilePath = syntaxReferencee.SyntaxTree.FilePath;
+                    }
+
+                    this.Items ??= new();
+                    this.Items.Add(item);
+                }
+                catch (InvalidCastException)
+                {
+                    this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                }
             }
         }
 
@@ -144,9 +191,9 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
         this.ObjectFlag |= TinyhandHashedStringObjectFlag.Checked;
 
-        if (this.HashedStringList != null)
+        if (this.Items != null)
         {// HashedString
-            foreach (var x in this.HashedStringList)
+            foreach (var x in this.Items)
             {
                 if (!Path.IsPathRooted(x.TinyhandPath) &&
                 !string.IsNullOrEmpty(x.FilePath))
@@ -159,22 +206,22 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
         }
     }
 
-    internal void LoadTinyhand(TinyhandGenerateFromAttributeMock attribute)
+    internal void LoadTinyhand(Item item)
     {
-        if (!File.Exists(attribute.TinyhandPath))
+        if (!File.Exists(item.TinyhandPath))
         {
-            this.Body.AddDiagnostic(TinyhandBody.Error_NoTinyhandFile, attribute.Location, attribute.TinyhandPath);
+            this.Body.AddDiagnostic(TinyhandBody.Error_NoTinyhandFile, item.Location, item.TinyhandPath);
             return;
         }
 
         byte[] bytes;
         try
         {
-            bytes = File.ReadAllBytes(attribute.TinyhandPath);
+            bytes = File.ReadAllBytes(item.TinyhandPath);
         }
         catch
         {
-            this.Body.AddDiagnostic(TinyhandBody.Error_NoTinyhandFile, attribute.Location, attribute.TinyhandPath);
+            this.Body.AddDiagnostic(TinyhandBody.Error_NoTinyhandFile, item.Location, item.TinyhandPath);
             return;
         }
 
@@ -185,15 +232,33 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
         }
         catch
         {
-            this.Body.AddDiagnostic(TinyhandBody.Error_ParseTinyhandFile, attribute.Location, attribute.TinyhandPath);
+            this.Body.AddDiagnostic(TinyhandBody.Error_ParseTinyhandFile, item.Location, item.TinyhandPath);
             return;
         }
 
-        this.Group.Process(element, attribute.HashedString);
+        this.Group.Process(element, item.GenerateHash);
     }
 
     internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         this.Group.Generate(this, ssb, string.Empty);
+    }
+
+    internal class Item
+    {
+        public Item(Location location, string tinyhandPath, bool generateHash)
+        {
+            this.Location = location;
+            this.TinyhandPath = tinyhandPath;
+            this.GenerateHash = generateHash;
+        }
+
+        public Location Location { get; set; }
+
+        public string TinyhandPath { get; set; }
+
+        public string FilePath { get; set; } = string.Empty;
+
+        public bool GenerateHash { get; set; }
     }
 }

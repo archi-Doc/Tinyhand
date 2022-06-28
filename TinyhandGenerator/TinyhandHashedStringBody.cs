@@ -87,7 +87,7 @@ internal class TinyhandHashedStringBody : VisceralBody<TinyhandHashedStringObjec
             return;
         }
 
-        array = this.FullNameToObject.Where(x => x.Value.ObjectFlag.HasFlag(TinyhandHashedStringObjectFlag.TinyhandHashedString)).ToArray();
+        array = this.FullNameToObject.Where(x => x.Value.ObjectFlag.HasFlag(TinyhandHashedStringObjectFlag.TinyhandGenerateMember)).ToArray();
         foreach (var x in array)
         {
             x.Value.ConfigureRelation();
