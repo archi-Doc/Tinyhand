@@ -24,7 +24,7 @@ public class KeyStringTest
         using var ms2 = new MemoryStream(Encoding.UTF8.GetBytes(Data2));
         using var ms3 = new MemoryStream(Encoding.UTF8.GetBytes(Data3));
 
-        var ks = new KeyString(true);
+        var ks = new KeyString();
         ks.LoadStream("en", ms1);
         ms1.Position = 0;
 
