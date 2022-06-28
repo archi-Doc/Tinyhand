@@ -11,7 +11,7 @@ namespace Tinyhand;
 /// <summary>
 /// Represents a collection of <see langword="ulong"/> hash and string pairs for each culture.
 /// </summary>
-public class HashedString
+public static class HashedString
 {
     public const int MaxKeyLength = 256; // The maximum length of a key.
     public const int MaxStringLength = 16 * 1024; // The maximum length of a string.
@@ -26,29 +26,27 @@ public class HashedString
         _ => name,
     };
 
-    public HashedString()
+    static HashedString()
     {
         var table = new UInt64Hashtable<string>();
-        this.currentCultureTable = table;
-        this.defaultCultureTable = table;
-        this.defaultCultureName = "en-US";
-        this.currentCultureInfo = new CultureInfo(this.defaultCultureName);
+        currentCultureTable = table;
+        defaultCultureTable = table;
+        defaultCultureName = "en-US";
+        currentCultureInfo = new CultureInfo(defaultCultureName);
 
-        this.cultureTable = new();
-        this.cultureTable.TryAdd(this.currentCultureInfo.Name, table);
+        cultureTable = new();
+        cultureTable.TryAdd(currentCultureInfo.Name, table);
     }
 
-    public static HashedString Instance { get; } = new HashedString();
+    public static string ErrorMessage { get; set; } = "No KeyString"; // Error message.
 
-    public string ErrorMessage { get; set; } = "No KeyString"; // Error message.
-
-    public CultureInfo CurrentCulture => this.currentCultureInfo;
+    public static CultureInfo CurrentCulture => currentCultureInfo;
 
     /// <summary>
     /// Gets the name of the current culture.
     /// </summary>
     /// <returns>The name of the current culture.</returns>
-    public string CurrentCultureName => this.CurrentCulture.Name;
+    public static string CurrentCultureName => CurrentCulture.Name;
 
     /// <summary>
     /// Get a string that matches the hash.<br/>
@@ -56,7 +54,7 @@ public class HashedString
     /// </summary>
     /// <param name="hash"><see cref="ulong"/> hash.</param>
     /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
-    public string Get(ulong hash) => this.GetInternal(hash, this.ErrorMessage);
+    public static string Get(ulong hash) => GetInternal(hash, ErrorMessage);
 
     /// <summary>
     /// Get a string that matches the identifier.<br/>
@@ -64,7 +62,7 @@ public class HashedString
     /// </summary>
     /// <param name="hash"><see cref="ulong"/> hash.</param>
     /// <returns>Returns a string. If no string is found, the return value is <see cref="string.Empty"/>.</returns>
-    public string GetOrEmpty(ulong hash) => this.GetInternal(hash, string.Empty);
+    public static string GetOrEmpty(ulong hash) => GetInternal(hash, string.Empty);
 
     /// <summary>
     /// Get a string that matches the identifier.<br/>
@@ -73,7 +71,7 @@ public class HashedString
     /// <param name="hash"><see cref="ulong"/> hash.</param>
     /// <param name="alternative">The alternative string.</param>
     /// <returns>Returns a string. If no string is found, the return value is the alternative string.</returns>
-    public string GetOrAlternative(ulong hash, string alternative) => this.GetInternal(hash, alternative);
+    public static string GetOrAlternative(ulong hash, string alternative) => GetInternal(hash, alternative);
 
     /// <summary>
     /// Get a string that matches the identifier.<br/>
@@ -81,7 +79,7 @@ public class HashedString
     /// </summary>
     /// <param name="identifier">The identifier.</param>
     /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
-    public string Get(string identifier) => this.GetInternal(IdentifierToHash(identifier), this.ErrorMessage);
+    public static string Get(string identifier) => GetInternal(IdentifierToHash(identifier), ErrorMessage);
 
     /// <summary>
     /// Get a string that matches the identifier.<br/>
@@ -89,7 +87,7 @@ public class HashedString
     /// </summary>
     /// <param name="identifier">The identifier.</param>
     /// <returns>Returns a string. If no string is found, the return value is the identifier itself.</returns>
-    public string GetOrIdentifier(string identifier) => this.GetInternal(IdentifierToHash(identifier), identifier ?? string.Empty);
+    public static string GetOrIdentifier(string identifier) => GetInternal(IdentifierToHash(identifier), identifier ?? string.Empty);
 
     /// <summary>
     /// Get a string that matches the identifier.<br/>
@@ -97,7 +95,7 @@ public class HashedString
     /// </summary>
     /// <param name="identifier">The identifier.</param>
     /// <returns>Returns a string. If no string is found, the return value is <see cref="string.Empty"/>.</returns>
-    public string GetOrEmpty(string identifier) => this.GetInternal(IdentifierToHash(identifier), string.Empty);
+    public static string GetOrEmpty(string identifier) => GetInternal(IdentifierToHash(identifier), string.Empty);
 
     /// <summary>
     /// Get a string that matches the identifier.<br/>
@@ -106,27 +104,27 @@ public class HashedString
     /// <param name="identifier">The identifier.</param>
     /// <param name="alternative">The alternative string.</param>
     /// <returns>Returns a string. If no string is found, the return value is the alternative string.</returns>
-    public string GetOrAlternative(string identifier, string alternative) => this.GetInternal(IdentifierToHash(identifier), alternative);
+    public static string GetOrAlternative(string identifier, string alternative) => GetInternal(IdentifierToHash(identifier), alternative);
 
     /// <summary>
     /// Set the default culture.
     /// </summary>
     /// <param name="cultureName">The name of the default culture.</param>
-    public void SetDefaultCulture(string cultureName)
+    public static void SetDefaultCulture(string cultureName)
     {
         cultureName = ShortNameToCultureName(cultureName);
 
-        lock (this.syncObject)
+        lock (syncObject)
         {
-            this.defaultCultureName = cultureName;
+            defaultCultureName = cultureName;
 
             UInt64Hashtable<string>? table = null;
-            if (!this.cultureTable.TryGetValue(cultureName, out table))
+            if (!cultureTable.TryGetValue(cultureName, out table))
             {
                 table = new();
             }
 
-            Volatile.Write(ref this.defaultCultureTable, table);
+            Volatile.Write(ref defaultCultureTable, table);
         }
     }
 
@@ -134,25 +132,36 @@ public class HashedString
     /// Change the current culture.
     /// </summary>
     /// <param name="cultureName">The culture name.</param>
-    public void ChangeCulture(string cultureName)
+    public static void ChangeCulture(string cultureName)
     {
         cultureName = ShortNameToCultureName(cultureName);
-        if (cultureName == this.CurrentCulture.Name)
+        if (cultureName == CurrentCulture.Name)
         {
             return;
         }
 
         var cultureInfo = new CultureInfo(cultureName);
 
-        lock (this.syncObject)
+        lock (syncObject)
         {
-            if (!this.cultureTable.TryGetValue(cultureName, out var table))
+            if (!cultureTable.TryGetValue(cultureName, out var table))
             {
                 throw new CultureNotFoundException();
             }
 
-            Volatile.Write(ref this.currentCultureTable, table);
-            Volatile.Write(ref this.currentCultureInfo, cultureInfo);
+            Volatile.Write(ref currentCultureTable, table);
+            Volatile.Write(ref currentCultureInfo, cultureInfo);
+        }
+    }
+
+    public static void Clear()
+    {
+        lock (syncObject)
+        {
+            foreach (var x in cultureTable.ToArray())
+            {
+                x.Clear();
+            }
         }
     }
 
@@ -162,13 +171,13 @@ public class HashedString
     /// <param name="culture">The target culture (null for default culture).</param>
     /// <param name="tinyhandPath">The path of the tinyhand file.</param>
     /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
-    public void Load(string? culture, string tinyhandPath, bool reset = false)
+    public static void Load(string? culture, string tinyhandPath, bool reset = false)
     {
         using (var fs = File.OpenRead(tinyhandPath))
         {
-            lock (this.syncObject)
+            lock (syncObject)
             {
-                this.Load(culture, fs, reset);
+                Load(culture, fs, reset);
             }
         }
     }
@@ -179,11 +188,11 @@ public class HashedString
     /// <param name="culture">The target culture.</param>
     /// <param name="stream">Stream.</param>
     /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
-    public void LoadStream(string culture, Stream stream, bool reset = false)
+    public static void LoadStream(string culture, Stream stream, bool reset = false)
     {
-        lock (this.syncObject)
+        lock (syncObject)
         {
-            this.Load(culture, stream, reset);
+            Load(culture, stream, reset);
         }
     }
 
@@ -195,7 +204,7 @@ public class HashedString
     /// <param name="assembly">The assembly.</param>
     /// <param name="name">The resource name.</param>
     /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
-    public void LoadAssembly(string? culture, System.Reflection.Assembly assembly, string name, bool reset = false)
+    public static void LoadAssembly(string? culture, System.Reflection.Assembly assembly, string name, bool reset = false)
     {
         using (var stream = assembly.GetManifestResourceStream(assembly.GetName().Name + "." + name))
         {
@@ -204,15 +213,15 @@ public class HashedString
                 throw new FileNotFoundException();
             }
 
-            lock (this.syncObject)
+            lock (syncObject)
             {
-                this.Load(culture, stream, reset);
+                Load(culture, stream, reset);
             }
         }
     }
 #endif
 
-    private void Load(string? culture, Stream stream, bool reset)
+    private static void Load(string? culture, Stream stream, bool reset)
     {
         if (stream.Length > MaxTinyhandLength)
         {
@@ -224,29 +233,29 @@ public class HashedString
         var element = (Group)TinyhandParser.Parse(ms.ToArray());
 
         UInt64Hashtable<string>? table = null;
-        culture ??= this.defaultCultureName;
+        culture ??= defaultCultureName;
         culture = ShortNameToCultureName(culture);
-        if (!this.cultureTable.TryGetValue(culture, out table))
+        if (!cultureTable.TryGetValue(culture, out table))
         {
             table = new();
-            this.cultureTable.TryAdd(culture, table);
+            cultureTable.TryAdd(culture, table);
         }
         else if (reset)
         {// Clear
             table.Clear();
         }
 
-        this.LoadElement(table, string.Empty, element);
+        LoadElement(table, string.Empty, element);
 
-        if (culture == this.defaultCultureName)
+        if (culture == defaultCultureName)
         {
-            Volatile.Write(ref this.defaultCultureTable, table);
+            Volatile.Write(ref defaultCultureTable, table);
         }
 
         return;
     }
 
-    private void LoadElement(UInt64Hashtable<string> table, string groupName, Element element)
+    private static void LoadElement(UInt64Hashtable<string> table, string groupName, Element element)
     {
         if (element is not Group group)
         {
@@ -278,22 +287,22 @@ public class HashedString
                     }
                     else if (assignment.RightElement is Group subgroup)
                     {
-                        this.LoadElement(table, identifier, subgroup);
+                        LoadElement(table, identifier, subgroup);
                     }
                 }
             }
         }
     }
 
-    private string GetInternal(ulong hash, string alternative)
+    private static string GetInternal(ulong hash, string alternative)
     {
         string? result;
-        if (this.currentCultureTable.TryGetValue(hash, out result))
+        if (currentCultureTable.TryGetValue(hash, out result))
         {// Found in the current culture table.
             return result;
         }
 
-        if (this.currentCultureTable != this.defaultCultureTable && this.defaultCultureTable.TryGetValue(hash, out result))
+        if (currentCultureTable != defaultCultureTable && defaultCultureTable.TryGetValue(hash, out result))
         {// Found in the default culture table.
             return result;
         }
@@ -301,10 +310,10 @@ public class HashedString
         return alternative;
     }
 
-    private object syncObject = new();
-    private UInt64Hashtable<string> currentCultureTable; // Current culture data (name to string).
-    private UInt64Hashtable<string> defaultCultureTable; // Default culture data (name to string).
-    private Utf16Hashtable<UInt64Hashtable<string>> cultureTable; // Culture and data (culture to Utf16Hashtable<string>).
-    private string defaultCultureName; // Default culture
-    private CultureInfo currentCultureInfo;
+    private static object syncObject = new();
+    private static UInt64Hashtable<string> currentCultureTable; // Current culture data (name to string).
+    private static UInt64Hashtable<string> defaultCultureTable; // Default culture data (name to string).
+    private static Utf16Hashtable<UInt64Hashtable<string>> cultureTable; // Culture and data (culture to Utf16Hashtable<string>).
+    private static string defaultCultureName; // Default culture
+    private static CultureInfo currentCultureInfo;
 }

@@ -204,11 +204,10 @@ class Program
         Console.WriteLine("Sandbox");
         Console.WriteLine();
 
-        var h = new Tinyhand.HashedString();
         var asm = System.Reflection.Assembly.GetExecutingAssembly();
-        h.LoadAssembly(null, asm, "strings.tinyhand");
-        h.LoadAssembly(null, asm, "Sub.strings2.tinyhand");
-        var t = h.Get(Hashed.Dialog.Ok);
+        HashedString.LoadAssembly(null, asm, "strings.tinyhand");
+        HashedString.LoadAssembly(null, asm, "Sub.strings2.tinyhand");
+        var t = HashedString.Get(Hashed.Dialog.Ok);
 
         var gtc = new ConsoleApp1.ItzShip<GenericsImplementedClass>();
         var gtc2 = new ConsoleApp1.ItzShip<GenericsImplementedStruct>();
