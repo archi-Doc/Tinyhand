@@ -11,8 +11,8 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandGenerateHash("..\\Resources\\strings.tinyhand")]
-[TinyhandGenerateHash("..\\Resources\\strings2.tinyhand")]
+[TinyhandGenerateHash("../Resources/strings.tinyhand")]
+[TinyhandGenerateHash("../Resources/strings2.tinyhand")]
 public static partial class Hashed
 {
 }
