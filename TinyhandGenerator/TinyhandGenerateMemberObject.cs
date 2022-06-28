@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis;
 namespace Tinyhand.Generator;
 
 [Flags]
-public enum TinyhandHashedStringObjectFlag
+public enum TinyhandGenerateMemberObjectFlag
 {
     Configured = 1 << 0,
     RelationConfigured = 1 << 1,
@@ -27,30 +27,30 @@ public enum TinyhandHashedStringObjectFlag
     TinyhandGenerateHash = 1 << 11, // TinyhandGenerateHash
 }
 
-internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStringObject>
+internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerateMemberObject>
 {
-    public TinyhandHashedStringObject()
+    public TinyhandGenerateMemberObject()
     {
     }
 
-    public new TinyhandHashedStringBody Body => (TinyhandHashedStringBody)((VisceralObjectBase<TinyhandHashedStringObject>)this).Body;
+    public new TinyhandGenerateMemberBody Body => (TinyhandGenerateMemberBody)((VisceralObjectBase<TinyhandGenerateMemberObject>)this).Body;
 
-    public TinyhandHashedStringObjectFlag ObjectFlag { get; private set; }
+    public TinyhandGenerateMemberObjectFlag ObjectFlag { get; private set; }
 
     public List<Item>? Items { get; private set; }
 
-    public List<TinyhandHashedStringObject>? Children { get; private set; } // The opposite of ContainingObject
+    public List<TinyhandGenerateMemberObject>? Children { get; private set; } // The opposite of ContainingObject
 
-    public TinyhandHashedStringGroup Group { get; private set; } = new(string.Empty);
+    public TinyhandGenerateMemberGroup Group { get; private set; } = new(string.Empty);
 
     public void Configure()
     {
-        if (this.ObjectFlag.HasFlag(TinyhandHashedStringObjectFlag.Configured))
+        if (this.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.Configured))
         {
             return;
         }
 
-        this.ObjectFlag |= TinyhandHashedStringObjectFlag.Configured;
+        this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.Configured;
 
         foreach (var objectAttribute in this.AllAttributes.Where(x => x.FullName == TinyhandGenerateMemberAttributeMock.FullName))
         {// TinyhandGenerateMember
@@ -58,11 +58,11 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
             {
                 var attribute = TinyhandGenerateMemberAttributeMock.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
                 var item = new Item(objectAttribute.Location, attribute.TinyhandPath, false);
-                this.ObjectFlag |= TinyhandHashedStringObjectFlag.TinyhandGenerateMember;
+                this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.TinyhandGenerateMember;
 
                 if (objectAttribute.SyntaxReference is { } syntaxReferencee)
                 {
-                    item.FilePath = syntaxReferencee.SyntaxTree.FilePath;
+                    item.SourcePath = syntaxReferencee.SyntaxTree.FilePath;
                 }
 
                 this.Items ??= new();
@@ -82,11 +82,11 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
                 {
                     var attribute = TinyhandGenerateMemberAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
                     var item = new Item(x.Location, attribute.TinyhandPath, false);
-                    this.ObjectFlag |= TinyhandHashedStringObjectFlag.TinyhandGenerateMember;
+                    this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.TinyhandGenerateMember;
 
                     if (x.SyntaxReference is { } syntaxReferencee)
                     {
-                        item.FilePath = syntaxReferencee.SyntaxTree.FilePath;
+                        item.SourcePath = syntaxReferencee.SyntaxTree.FilePath;
                     }
 
                     this.Items ??= new();
@@ -103,11 +103,11 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
                 {
                     var attribute = TinyhandGenerateHashAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
                     var item = new Item(x.Location, attribute.TinyhandPath, true);
-                    this.ObjectFlag |= TinyhandHashedStringObjectFlag.TinyhandGenerateHash;
+                    this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.TinyhandGenerateHash;
 
                     if (x.SyntaxReference is { } syntaxReferencee)
                     {
-                        item.FilePath = syntaxReferencee.SyntaxTree.FilePath;
+                        item.SourcePath = syntaxReferencee.SyntaxTree.FilePath;
                     }
 
                     this.Items ??= new();
@@ -130,12 +130,12 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
     public void ConfigureRelation()
     {// Create an object tree.
-        if (this.ObjectFlag.HasFlag(TinyhandHashedStringObjectFlag.RelationConfigured))
+        if (this.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.RelationConfigured))
         {
             return;
         }
 
-        this.ObjectFlag |= TinyhandHashedStringObjectFlag.RelationConfigured;
+        this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.RelationConfigured;
 
         if (!this.Kind.IsType())
         {// Not type
@@ -154,7 +154,7 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
         if (cf.ContainingObject == null)
         {// Root object
-            List<TinyhandHashedStringObject>? list;
+            List<TinyhandGenerateMemberObject>? list;
             if (!this.Body.Namespaces.TryGetValue(this.Namespace, out list))
             {// Create a new namespace.
                 list = new();
@@ -184,21 +184,21 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
     public void Check()
     {
-        if (this.ObjectFlag.HasFlag(TinyhandHashedStringObjectFlag.Checked))
+        if (this.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.Checked))
         {
             return;
         }
 
-        this.ObjectFlag |= TinyhandHashedStringObjectFlag.Checked;
+        this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.Checked;
 
         if (this.Items != null)
-        {// HashedString
+        {// Generate member
             foreach (var x in this.Items)
             {
                 if (!Path.IsPathRooted(x.TinyhandPath) &&
-                !string.IsNullOrEmpty(x.FilePath))
+                !string.IsNullOrEmpty(x.SourcePath))
                 {
-                    x.TinyhandPath = Path.Combine(Path.GetDirectoryName(x.FilePath), x.TinyhandPath);
+                    x.TinyhandPath = Path.Combine(Path.GetDirectoryName(x.SourcePath), x.TinyhandPath);
                 }
 
                 this.LoadTinyhand(x);
@@ -257,7 +257,7 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
         public string TinyhandPath { get; set; }
 
-        public string FilePath { get; set; } = string.Empty;
+        public string SourcePath { get; set; } = string.Empty;
 
         public bool GenerateHash { get; set; }
     }

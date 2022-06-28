@@ -15,14 +15,14 @@ using Tinyhand.Tree;
 
 namespace Tinyhand.Generator;
 
-internal class TinyhandHashedStringGroup
+internal class TinyhandGenerateMemberGroup
 {
-    public TinyhandHashedStringGroup(string identifier)
+    public TinyhandGenerateMemberGroup(string identifier)
     {
         this.Identifier = identifier;
     }
 
-    public void Process(Element element, bool hashedString)
+    public void Process(Element element, bool generateHash)
     {
         if (element is not Group group)
         {
@@ -40,31 +40,31 @@ internal class TinyhandHashedStringGroup
                     {// Group
                         if (!this.Groups.TryGetValue(identifier, out var g))
                         {
-                            g = new TinyhandHashedStringGroup(identifier);
+                            g = new TinyhandGenerateMemberGroup(identifier);
                             this.Groups.Add(identifier, g);
                         }
 
-                        g.Process(subgroup, hashedString);
+                        g.Process(subgroup, generateHash);
                     }
                     else // if (assignment.RightElement is Value_String valueString)
                     {
-                        this.Items.Add(new(hashedString, identifier, assignment.RightElement));
+                        this.Items.Add(new(generateHash, identifier, assignment.RightElement));
                     }
                 }
             }
         }
     }
 
-    public void Generate(TinyhandHashedStringObject tinyhandHashedStringObject, ScopingStringBuilder ssb, string groupName)
+    public void Generate(TinyhandGenerateMemberObject generateMemberObject, ScopingStringBuilder ssb, string groupName)
     {
         if (this.Groups.Count == 0 && this.Items.Count == 0)
         {
             return;
         }
 
-        var name = string.IsNullOrEmpty(this.Identifier) ? tinyhandHashedStringObject.LocalName : this.Identifier;
+        var name = string.IsNullOrEmpty(this.Identifier) ? generateMemberObject.LocalName : this.Identifier;
         var partial = string.IsNullOrEmpty(this.Identifier) ? "partial " : string.Empty;
-        using (var cls = ssb.ScopeBrace($"{tinyhandHashedStringObject.AccessibilityName} static {partial}{tinyhandHashedStringObject.KindName} {name}"))
+        using (var cls = ssb.ScopeBrace($"{generateMemberObject.AccessibilityName} static {partial}{generateMemberObject.KindName} {name}"))
         {
             if (string.IsNullOrEmpty(groupName))
             {// "group"
@@ -80,7 +80,7 @@ internal class TinyhandHashedStringGroup
             {
                 firstFlag = false;
 
-                if (x.HashedString)
+                if (x.GenerateHash)
                 {// Define members and set hashes generated from identifiers.
                     string identifier;
                     if (string.IsNullOrEmpty(groupName))
@@ -113,27 +113,27 @@ internal class TinyhandHashedStringGroup
                 }
 
                 firstFlag = false;
-                x.Generate(tinyhandHashedStringObject, ssb, groupName);
+                x.Generate(generateMemberObject, ssb, groupName);
             }
         }
     }
 
     public string Identifier { get; }
 
-    public SortedDictionary<string, TinyhandHashedStringGroup> Groups { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
+    public SortedDictionary<string, TinyhandGenerateMemberGroup> Groups { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
 
     public SortedSet<Item> Items { get; } = new(); // new(StringComparer.InvariantCultureIgnoreCase);
 
     internal struct Item : IComparable<Item>
     {
-        public Item(bool hashedString, string identifier, Element? element)
+        public Item(bool generateHash, string identifier, Element? element)
         {
-            this.HashedString = hashedString;
+            this.GenerateHash = generateHash;
             this.Identifier = identifier;
             this.Element = element;
         }
 
-        public bool HashedString;
+        public bool GenerateHash;
         public string Identifier;
         public Element? Element;
 

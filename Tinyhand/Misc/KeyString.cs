@@ -24,9 +24,8 @@ public class KeyString
         _ => name,
     };
 
-    public KeyString(bool ignoreCase = true)
+    public KeyString()
     {
-        this.IgnoreCase = ignoreCase;
         var table = new Utf16Hashtable<string>();
         this.currentCultureTable = table;
         this.defaultCultureTable = table;
@@ -38,8 +37,6 @@ public class KeyString
     }
 
     public static KeyString Instance { get; } = new KeyString();
-
-    public bool IgnoreCase { get; }
 
     public string ErrorMessage { get; set; } = "No KeyString"; // Error message.
 
@@ -135,10 +132,10 @@ public class KeyString
     /// <summary>
     /// Load key/string data from a tinyhand file.
     /// </summary>
-    /// <param name="culture">The target culture.</param>
+    /// <param name="culture">The target culture (null for default culture).</param>
     /// <param name="tinyhandPath">The path of the tinyhand file.</param>
     /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
-    public void Load(string culture, string tinyhandPath, bool reset = false)
+    public void Load(string? culture, string tinyhandPath, bool reset = false)
     {
         using (var fs = File.OpenRead(tinyhandPath))
         {
@@ -167,11 +164,11 @@ public class KeyString
     /// <summary>
     /// Load from assembly.
     /// </summary>
-    /// <param name="culture">The target culture.</param>
+    /// <param name="culture">The target culture (null for default culture).</param>
     /// <param name="assembly">The assembly.</param>
     /// <param name="name">The resource name.</param>
     /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
-    public void LoadAssembly(string culture, System.Reflection.Assembly assembly, string name, bool reset = false)
+    public void LoadAssembly(string? culture, System.Reflection.Assembly assembly, string name, bool reset = false)
     {
         using (var stream = assembly.GetManifestResourceStream(assembly.GetName().Name + "." + name))
         {
@@ -188,7 +185,7 @@ public class KeyString
     }
 #endif
 
-    private void Load(string culture, Stream stream, bool reset)
+    private void Load(string? culture, Stream stream, bool reset)
     {
         if (stream.Length > MaxTinyhandLength)
         {
@@ -200,6 +197,7 @@ public class KeyString
         var group = (Group)TinyhandParser.Parse(ms.ToArray());
 
         Utf16Hashtable<string>? table = null;
+        culture ??= this.defaultCultureName;
         culture = ShortNameToCultureName(culture);
         if (!this.cultureTable.TryGetValue(culture, out table))
         {
@@ -215,11 +213,6 @@ public class KeyString
         {
             if (x.TryGetLeft_IdentifierUtf16(out var identifier))
             {
-                if (this.IgnoreCase)
-                {
-                    identifier = identifier.ToLower();
-                }
-
                 if (x.TryGetRight_Value_String(out var valueString) && valueString.ValueStringUtf16.Length <= MaxStringLength)
                 {
                     table.TryAdd(identifier, valueString.ValueStringUtf16);
@@ -240,10 +233,6 @@ public class KeyString
         if (identifier == null)
         {
             return alternative;
-        }
-        else if (this.IgnoreCase)
-        {
-            identifier = identifier.ToLower();
         }
 
         string? result;

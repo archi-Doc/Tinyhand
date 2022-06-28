@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="strings.tinyhand" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Generated\*" />
   </ItemGroup>
 

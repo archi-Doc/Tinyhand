@@ -18,14 +18,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Tinyhand.Generator;
 
-internal class TinyhandHashedStringBody : VisceralBody<TinyhandHashedStringObject>
+internal class TinyhandGenerateMemberBody : VisceralBody<TinyhandGenerateMemberObject>
 {
-    public TinyhandHashedStringBody(SourceProductionContext context)
+    public TinyhandGenerateMemberBody(SourceProductionContext context)
         : base(context)
     {
     }
 
-    internal Dictionary<string, List<TinyhandHashedStringObject>> Namespaces = new();
+    internal Dictionary<string, List<TinyhandGenerateMemberObject>> Namespaces = new();
 
     public void Generate(IGeneratorInformation generator, CancellationToken cancellationToken)
     {
@@ -87,7 +87,7 @@ internal class TinyhandHashedStringBody : VisceralBody<TinyhandHashedStringObjec
             return;
         }
 
-        array = this.FullNameToObject.Where(x => x.Value.ObjectFlag.HasFlag(TinyhandHashedStringObjectFlag.TinyhandGenerateMember)).ToArray();
+        array = this.FullNameToObject.Where(x => x.Value.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.TinyhandGenerateMember)).ToArray();
         foreach (var x in array)
         {
             x.Value.ConfigureRelation();
