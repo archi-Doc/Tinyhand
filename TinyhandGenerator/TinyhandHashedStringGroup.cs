@@ -81,7 +81,7 @@ internal class TinyhandHashedStringGroup
                 firstFlag = false;
 
                 if (x.HashedString)
-                {// Get a hash of an identifier.
+                {// Define members and set hashes generated from identifiers.
                     string identifier;
                     if (string.IsNullOrEmpty(groupName))
                     {
@@ -96,7 +96,12 @@ internal class TinyhandHashedStringGroup
                     ssb.AppendLine($"public static ulong {x.Identifier} => 0x{hash.ToString("x")}ul;");
                 }
                 else
-                {// Define a member and set value.
+                {// Define members and set values.
+                    var y = this.ElementToTypeValue(x.Element);
+                    if (y.Type != null && y.Value != null)
+                    {
+                        ssb.AppendLine($"public static {y.Type} {x.Identifier} => {y.Value};");
+                    }
                 }
             }
 
@@ -133,5 +138,28 @@ internal class TinyhandHashedStringGroup
         public Element? Element;
 
         public int CompareTo(Item other) => this.Identifier.CompareTo(other.Identifier);
+    }
+
+    private (string? Type, string? Value) ElementToTypeValue(Element? element)
+    {
+        if (element is Value_Bool valueBool)
+        {// bool
+            return ("bool", valueBool.ValueBool ? "true" : "false");
+        }
+        else if (element is Value_String valueString)
+        {// string
+            return ("string", "\"" + valueString.ValueStringUtf16 + "\"");
+        }
+        else if (element is Value_Long valueLong)
+        {// long
+            // return ("long", "0x" + valueLong.ValueLong.ToString("x"));
+            return ("long", valueLong.ValueLong.ToString());
+        }
+        else if (element is Value_Double valueDouble)
+        {// long
+            return ("double", valueDouble.ValueDouble.ToString() + "d");
+        }
+
+        return (null, null);
     }
 }
