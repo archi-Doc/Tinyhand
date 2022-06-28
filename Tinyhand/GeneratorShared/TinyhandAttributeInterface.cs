@@ -235,12 +235,12 @@ public class TinyhandUnionAttribute : Attribute
 }
 
 /// <summary>
-/// Adds members or child classes to store hashed strings.
+/// Adds members or child classes generated from tinyhand file to the class/struct.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
-public sealed class TinyhandHashedStringAttribute : Attribute
+public sealed class TinyhandGenerateFromAttribute : Attribute
 {
-    public TinyhandHashedStringAttribute(string tinyhandPath)
+    public TinyhandGenerateFromAttribute(string tinyhandPath, bool hashedString)
     {
     }
 }

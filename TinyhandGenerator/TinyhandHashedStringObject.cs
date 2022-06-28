@@ -36,7 +36,7 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
     public TinyhandHashedStringObjectFlag ObjectFlag { get; private set; }
 
-    public List<TinyhandHashedStringAttributeMock>? HashedStringList { get; private set; }
+    public List<TinyhandGenerateFromAttributeMock>? HashedStringList { get; private set; }
 
     public List<TinyhandHashedStringObject>? Children { get; private set; } // The opposite of ContainingObject
 
@@ -51,11 +51,11 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
 
         this.ObjectFlag |= TinyhandHashedStringObjectFlag.Configured;
 
-        foreach (var objectAttribute in this.AllAttributes.Where(x => x.FullName == TinyhandHashedStringAttributeMock.FullName))
+        foreach (var objectAttribute in this.AllAttributes.Where(x => x.FullName == TinyhandGenerateFromAttributeMock.FullName))
         {// TinyhandHashedStringAttribute
             try
             {
-                var attribute = TinyhandHashedStringAttributeMock.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
+                var attribute = TinyhandGenerateFromAttributeMock.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
                 attribute.Location = objectAttribute.Location;
                 this.ObjectFlag |= TinyhandHashedStringObjectFlag.TinyhandHashedString;
 
@@ -159,7 +159,7 @@ internal class TinyhandHashedStringObject : VisceralObjectBase<TinyhandHashedStr
         }
     }
 
-    internal void LoadTinyhand(TinyhandHashedStringAttributeMock attribute)
+    internal void LoadTinyhand(TinyhandGenerateFromAttributeMock attribute)
     {
         if (!File.Exists(attribute.TinyhandPath))
         {

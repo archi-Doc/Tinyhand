@@ -12,7 +12,7 @@ using Tinyhand.IO;
 
 namespace Sandbox;
 
-[TinyhandHashedString("strings.tinyhand")]
+[TinyhandGenerateFrom("strings.tinyhand", true)]
 public partial class Hashed
 {
 }

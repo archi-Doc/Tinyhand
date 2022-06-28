@@ -72,8 +72,8 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                     {
                         return typeSyntax;
                     }
-                    else if (name.EndsWith(TinyhandHashedStringAttributeMock.Name) ||
-                        name.EndsWith(TinyhandHashedStringAttributeMock.SimpleName))
+                    else if (name.EndsWith(TinyhandGenerateFromAttributeMock.Name) ||
+                        name.EndsWith(TinyhandGenerateFromAttributeMock.SimpleName))
                     {
                         return typeSyntax;
                     }
@@ -116,7 +116,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
             return;
         }
 
-        this.tinyhandHashedStringAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandHashedStringAttributeMock.FullName);
+        this.tinyhandHashedStringAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateFromAttributeMock.FullName);
         if (this.tinyhandHashedStringAttributeSymbol == null)
         {
             return;

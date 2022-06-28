@@ -442,9 +442,9 @@ public class TinyhandUnionAttributeMock
     }
 }*/
 
-public sealed class TinyhandHashedStringAttributeMock
+public sealed class TinyhandGenerateFromAttributeMock
 {
-    public static readonly string SimpleName = "TinyhandHashedString";
+    public static readonly string SimpleName = "TinyhandGenerateFrom";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
@@ -454,15 +454,23 @@ public sealed class TinyhandHashedStringAttributeMock
 
     public string TinyhandPath { get; set; } = string.Empty;
 
-    public static TinyhandHashedStringAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public bool HashedString { get; set; }
+
+    public static TinyhandGenerateFromAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new TinyhandHashedStringAttributeMock();
+        var attribute = new TinyhandGenerateFromAttributeMock();
 
         object? val;
         val = AttributeHelper.GetValue(0, nameof(TinyhandPath), constructorArguments, namedArguments);
         if (val != null)
         {
             attribute.TinyhandPath = (string)val;
+        }
+
+        val = AttributeHelper.GetValue(1, nameof(HashedString), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.HashedString = (bool)val;
         }
 
         return attribute;
