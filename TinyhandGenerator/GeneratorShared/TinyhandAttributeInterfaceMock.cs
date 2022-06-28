@@ -442,23 +442,19 @@ public class TinyhandUnionAttributeMock
     }
 }*/
 
-public sealed class TinyhandGenerateFromAttributeMock
+public sealed class TinyhandGenerateMemberAttributeMock
 {
-    public static readonly string SimpleName = "TinyhandGenerateFrom";
+    public static readonly string SimpleName = "TinyhandGenerateMember";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
     public Location Location { get; set; } = Location.None;
 
-    public string FilePath { get; set; } = string.Empty;
-
     public string TinyhandPath { get; set; } = string.Empty;
 
-    public bool HashedString { get; set; }
-
-    public static TinyhandGenerateFromAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static TinyhandGenerateMemberAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new TinyhandGenerateFromAttributeMock();
+        var attribute = new TinyhandGenerateMemberAttributeMock();
 
         object? val;
         val = AttributeHelper.GetValue(0, nameof(TinyhandPath), constructorArguments, namedArguments);
@@ -467,10 +463,29 @@ public sealed class TinyhandGenerateFromAttributeMock
             attribute.TinyhandPath = (string)val;
         }
 
-        val = AttributeHelper.GetValue(1, nameof(HashedString), constructorArguments, namedArguments);
+        return attribute;
+    }
+}
+
+public sealed class TinyhandGenerateHashAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandGenerateHash";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+
+    public Location Location { get; set; } = Location.None;
+
+    public string TinyhandPath { get; set; } = string.Empty;
+
+    public static TinyhandGenerateHashAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    {
+        var attribute = new TinyhandGenerateHashAttributeMock();
+
+        object? val;
+        val = AttributeHelper.GetValue(0, nameof(TinyhandPath), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.HashedString = (bool)val;
+            attribute.TinyhandPath = (string)val;
         }
 
         return attribute;

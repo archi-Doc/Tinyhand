@@ -7,7 +7,7 @@ using Tinyhand;
 
 namespace Sandbox;
 
-[TinyhandGenerateFrom("strings2.tinyhand", true)]
+[TinyhandGenerateMember("strings2.tinyhand")]
 public partial class Hashed
 {
 }

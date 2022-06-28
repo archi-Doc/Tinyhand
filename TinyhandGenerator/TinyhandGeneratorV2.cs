@@ -72,8 +72,10 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                     {
                         return typeSyntax;
                     }
-                    else if (name.EndsWith(TinyhandGenerateFromAttributeMock.Name) ||
-                        name.EndsWith(TinyhandGenerateFromAttributeMock.SimpleName))
+                    else if (name.EndsWith(TinyhandGenerateMemberAttributeMock.Name) ||
+                        name.EndsWith(TinyhandGenerateMemberAttributeMock.SimpleName) ||
+                        name.EndsWith(TinyhandGenerateHashAttributeMock.Name) ||
+                        name.EndsWith(TinyhandGenerateHashAttributeMock.SimpleName))
                     {
                         return typeSyntax;
                     }
@@ -116,8 +118,14 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
             return;
         }
 
-        this.tinyhandHashedStringAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateFromAttributeMock.FullName);
-        if (this.tinyhandHashedStringAttributeSymbol == null)
+        this.tinyhandGenerateMemberAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateMemberAttributeMock.FullName);
+        if (this.tinyhandGenerateMemberAttributeSymbol == null)
+        {
+            return;
+        }
+
+        this.tinyhandGenerateHashAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateHashAttributeMock.FullName);
+        if (this.tinyhandGenerateHashAttributeSymbol == null)
         {
             return;
         }
@@ -209,7 +217,8 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                 break;
             }
             else if (hashedStringBody != null &&
-                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandHashedStringAttributeSymbol))
+                (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGenerateMemberAttributeSymbol) ||
+                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGenerateHashAttributeSymbol)))
             { // TinyhandHashedString
                 hashedStringBody.Add(symbol);
             }
@@ -287,5 +296,6 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
     private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
     private INamedTypeSymbol? tinyhandUnionAttributeSymbol;
     private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
-    private INamedTypeSymbol? tinyhandHashedStringAttributeSymbol;
+    private INamedTypeSymbol? tinyhandGenerateMemberAttributeSymbol;
+    private INamedTypeSymbol? tinyhandGenerateHashAttributeSymbol;
 }

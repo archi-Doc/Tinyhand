@@ -60,11 +60,11 @@ internal class TinyhandHashedStringBody : VisceralBody<TinyhandHashedStringObjec
 
             if (generator.GenerateToFile && generator.TargetFolder != null && Directory.Exists(generator.TargetFolder))
             {
-                this.StringToFile(result, Path.Combine(generator.TargetFolder, $"gen.Tinyhand2.{x.Key}.cs"));
+                this.StringToFile(result, Path.Combine(generator.TargetFolder, $"gen.GenerateMember.{x.Key}.cs"));
             }
             else
             {
-                var hintName = $"gen.Tinyhand2.{x.Key}";
+                var hintName = $"gen.GenerateMember.{x.Key}";
                 var sourceText = SourceText.From(result, Encoding.UTF8);
                 this.Context?.AddSource(hintName, sourceText);
                 this.Context2?.AddSource(hintName, sourceText);

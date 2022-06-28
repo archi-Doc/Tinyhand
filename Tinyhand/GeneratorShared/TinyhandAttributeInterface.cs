@@ -235,12 +235,23 @@ public class TinyhandUnionAttribute : Attribute
 }
 
 /// <summary>
-/// Adds members or child classes generated from tinyhand file to the class/struct.
+/// Generates members or child classes from tinyhand file and set values to the members.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
-public sealed class TinyhandGenerateFromAttribute : Attribute
+public sealed class TinyhandGenerateMemberAttribute : Attribute
 {
-    public TinyhandGenerateFromAttribute(string tinyhandPath, bool hashedString)
+    public TinyhandGenerateMemberAttribute(string tinyhandPath)
+    {
+    }
+}
+
+/// <summary>
+/// Generates members or child classes from tinyhand file, and sets the hash of the identifier to the value.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
+public sealed class TinyhandGenerateHashAttribute : Attribute
+{
+    public TinyhandGenerateHashAttribute(string tinyhandPath)
     {
     }
 }
