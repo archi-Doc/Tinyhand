@@ -12,6 +12,11 @@ using Tinyhand.IO;
 
 namespace Sandbox;
 
+[TinyhandGenerateHash("strings.tinyhand")]
+public partial class Hashed
+{
+}
+
 [TinyhandObject]
 public partial class IdentifierReadonlyClass
 {
@@ -160,7 +165,7 @@ public partial class InternalTestClass2<T> : InheritanceTestBase<T> // ConsoleAp
         {
             var exp = Expression.Parameter(typeof(InheritanceTestBase<T>));
             var exp2 = Expression.Parameter(typeof(T));
-            setterDelegate = Expression.Lambda<Action< InternalTestClass2<T>, T>>(Expression.Assign(Expression.PropertyOrField(exp, "PrivatePrivate"), exp2), exp, exp2).Compile();
+            setterDelegate = Expression.Lambda<Action<InternalTestClass2<T>, T>>(Expression.Assign(Expression.PropertyOrField(exp, "PrivatePrivate"), exp2), exp, exp2).Compile();
         }
 
         public static Action<InternalTestClass2<T>, T> setterDelegate;
@@ -198,6 +203,11 @@ class Program
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var asm = System.Reflection.Assembly.GetExecutingAssembly();
+        HashedString.LoadAssembly(null, asm, "strings.tinyhand");
+        HashedString.LoadAssembly(null, asm, "Sub.strings2.tinyhand");
+        var t = HashedString.Get(Hashed.Dialog.Ok);
 
         var gtc = new ConsoleApp1.ItzShip<GenericsImplementedClass>();
         var gtc2 = new ConsoleApp1.ItzShip<GenericsImplementedStruct>();

@@ -13,6 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="strings.tinyhand" />
+    <EmbeddedResource Include="Sub\strings2.tinyhand" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Generated\*" />
   </ItemGroup>
 

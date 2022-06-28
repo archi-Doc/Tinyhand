@@ -441,3 +441,53 @@ public class TinyhandUnionAttributeMock
         return attribute;
     }
 }*/
+
+public sealed class TinyhandGenerateMemberAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandGenerateMember";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+
+    public Location Location { get; set; } = Location.None;
+
+    public string TinyhandPath { get; set; } = string.Empty;
+
+    public static TinyhandGenerateMemberAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    {
+        var attribute = new TinyhandGenerateMemberAttributeMock();
+
+        object? val;
+        val = AttributeHelper.GetValue(0, nameof(TinyhandPath), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.TinyhandPath = (string)val;
+        }
+
+        return attribute;
+    }
+}
+
+public sealed class TinyhandGenerateHashAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandGenerateHash";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+
+    public Location Location { get; set; } = Location.None;
+
+    public string TinyhandPath { get; set; } = string.Empty;
+
+    public static TinyhandGenerateHashAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    {
+        var attribute = new TinyhandGenerateHashAttributeMock();
+
+        object? val;
+        val = AttributeHelper.GetValue(0, nameof(TinyhandPath), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.TinyhandPath = (string)val;
+        }
+
+        return attribute;
+    }
+}

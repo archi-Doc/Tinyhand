@@ -11,7 +11,7 @@ namespace Tinyhand;
 /// Represents a collection of utf-8 key (ReadOnlySpan&lt;byte&gt;) and value pairs.
 /// </summary>
 /// <typeparam name="TValue">The type of value.</typeparam>
-public class Utf8Hashtable<TValue>
+internal class Utf8Hashtable<TValue>
 { // HashTable for UTF-8 .
     private static uint CalculateCapacity(uint collectionSize)
     {
@@ -34,30 +34,6 @@ public class Utf8Hashtable<TValue>
     {
         var size = CalculateCapacity(capacity);
         this.hashTable = new Item[size];
-    }
-
-    public TValue[] ToArray()
-    {
-        lock (this.cs)
-        {
-            var table = this.hashTable;
-            var array = new TValue[this.numberOfItems];
-
-            var n = 0;
-            for (var i = 0; i < table.Length; i++)
-            {
-                if (table[i] is { } item)
-                {
-                    array[n++] = item.Value;
-                    if (n >= this.numberOfItems)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            return array;
-        }
     }
 
     public bool TryAdd(ReadOnlySpan<byte> key, TValue value)
@@ -106,7 +82,7 @@ public class Utf8Hashtable<TValue>
         }
     }
 
-    public bool TryGetValue(ReadOnlySpan<byte> key, [MaybeNullWhen(false)] out TValue value)
+    public bool TryGetValue(ReadOnlySpan<byte> key, out TValue? value)
     {
         var table = this.hashTable;
         var hash = unchecked((int)FarmHash.Hash64(key));

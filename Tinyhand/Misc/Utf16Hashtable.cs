@@ -36,6 +36,30 @@ public class Utf16Hashtable<TValue>
         this.hashTable = new Item[size];
     }
 
+    public TValue[] ToArray()
+    {
+        lock (this.cs)
+        {
+            var table = this.hashTable;
+            var array = new TValue[this.numberOfItems];
+
+            var n = 0;
+            for (var i = 0; i < table.Length; i++)
+            {
+                if (table[i] is { } item)
+                {
+                    array[n++] = item.Value;
+                    if (n >= this.numberOfItems)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return array;
+        }
+    }
+
     public bool TryAdd(ReadOnlySpan<char> key, TValue value)
     {
         lock (this.cs)

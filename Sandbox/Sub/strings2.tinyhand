@@ -1,0 +1,16 @@
+test
+name="test"
+Dialog = {
+    Ok = "ok"
+    Cancel = "cancel"
+}
+
+Application =
+{
+    Name = "test"
+    Option =
+    {
+        Id = "1234",
+        Id2 = 33,
+    }
+}

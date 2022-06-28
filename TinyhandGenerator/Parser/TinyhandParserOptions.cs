@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Tinyhand;
 
-public class TinyhandParserOptions
+internal class TinyhandParserOptions
 {
     public static TinyhandParserOptions Standard => new TinyhandParserOptions();
 

@@ -1,0 +1,10 @@
+NameD = "d"
+GroupA =
+{
+    NameY = "Y"
+}
+
+GroupB =
+{
+    Test = "test"
+}

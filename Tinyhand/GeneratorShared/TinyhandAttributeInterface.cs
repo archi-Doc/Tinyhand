@@ -234,6 +234,28 @@ public class TinyhandUnionAttribute : Attribute
     }
 }
 
+/// <summary>
+/// Generates members or child classes from tinyhand file and set values to the members.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
+public sealed class TinyhandGenerateMemberAttribute : Attribute
+{
+    public TinyhandGenerateMemberAttribute(string tinyhandPath)
+    {
+    }
+}
+
+/// <summary>
+/// Generates members or child classes from tinyhand file, and sets the hash of the identifier to the value.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
+public sealed class TinyhandGenerateHashAttribute : Attribute
+{
+    public TinyhandGenerateHashAttribute(string tinyhandPath)
+    {
+    }
+}
+
 /*/// <summary>
 /// TinyhandUnionToAttribute is derived-side version of TinyhandUnionAttribute.
 /// You can serialize/deserialize derived types via the base type by adding TinyhandUnionAttribute to the derived type.<br/>

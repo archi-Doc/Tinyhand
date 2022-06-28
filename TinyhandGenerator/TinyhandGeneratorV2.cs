@@ -72,6 +72,13 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                     {
                         return typeSyntax;
                     }
+                    else if (name.EndsWith(TinyhandGenerateMemberAttributeMock.Name) ||
+                        name.EndsWith(TinyhandGenerateMemberAttributeMock.SimpleName) ||
+                        name.EndsWith(TinyhandGenerateHashAttributeMock.Name) ||
+                        name.EndsWith(TinyhandGenerateHashAttributeMock.SimpleName))
+                    {
+                        return typeSyntax;
+                    }
                     else if (name.EndsWith(TinyhandObjectAttributeMock.Name) ||
                         name.EndsWith(TinyhandObjectAttributeMock.SimpleName) ||
                         name.EndsWith(TinyhandUnionAttributeMock.Name) ||
@@ -111,12 +118,25 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
             return;
         }
 
+        this.tinyhandGenerateMemberAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateMemberAttributeMock.FullName);
+        if (this.tinyhandGenerateMemberAttributeSymbol == null)
+        {
+            return;
+        }
+
+        this.tinyhandGenerateHashAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateHashAttributeMock.FullName);
+        if (this.tinyhandGenerateHashAttributeSymbol == null)
+        {
+            return;
+        }
+
         this.AssemblySymbol = compilation.Assembly;
         this.AssemblyName = compilation.AssemblyName ?? string.Empty;
         this.AssemblyId = this.AssemblyName.GetHashCode();
         this.OutputKind = compilation.Options.OutputKind;
 
         var body = new TinyhandBody(context);
+        var generateMemberBody = new TinyhandGenerateMemberBody(context);
         // receiver.Generics.Prepare(compilation);
 #pragma warning disable RS1024 // Symbols should be compared for equality
         var processed = new HashSet<INamedTypeSymbol?>();
@@ -141,7 +161,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
             var model = compilation.GetSemanticModel(x.SyntaxTree);
             if (model.GetDeclaredSymbol(x) is INamedTypeSymbol symbol)
             {
-                this.ProcessSymbol(body, processed, x.SyntaxTree, symbol);
+                this.ProcessSymbol(body, generateMemberBody, processed, x.SyntaxTree, symbol);
             }
         }
 
@@ -150,7 +170,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         {
             if (ts.TypeSymbol != null)
             {
-                this.ProcessSymbol(body, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
+                this.ProcessSymbol(body, generateMemberBody, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
             }
         }
 
@@ -164,10 +184,19 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         }
 
         context.CancellationToken.ThrowIfCancellationRequested();
+        generateMemberBody.Prepare();
+        if (generateMemberBody.Abort)
+        {
+            return;
+        }
+
+        context.CancellationToken.ThrowIfCancellationRequested();
         body.Generate(this, context.CancellationToken);
+        context.CancellationToken.ThrowIfCancellationRequested();
+        generateMemberBody.Generate(this, context.CancellationToken);
     }
 
-    private void ProcessSymbol(TinyhandBody body, HashSet<INamedTypeSymbol?> processed, SyntaxTree? syntaxTree, INamedTypeSymbol symbol)
+    private void ProcessSymbol(TinyhandBody body, TinyhandGenerateMemberBody? generateMemberBody, HashSet<INamedTypeSymbol?> processed, SyntaxTree? syntaxTree, INamedTypeSymbol symbol)
     {
         if (!SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, this.AssemblySymbol))
         {// Different assembly
@@ -183,9 +212,15 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         {
             if (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandObjectAttributeSymbol) ||
                 SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandUnionAttributeSymbol))
-            { // ValueLinkObject
+            { // TinyhandObject or TinyhandUnion
                 body.Add(symbol);
                 break;
+            }
+            else if (generateMemberBody != null &&
+                (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGenerateMemberAttributeSymbol) ||
+                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGenerateHashAttributeSymbol)))
+            { // TinyhandGenerateMember
+                generateMemberBody.Add(symbol);
             }
             else if (!this.generatorOptionIsSet &&
                 syntaxTree != null &&
@@ -226,7 +261,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                 return;
             }
 
-            this.ProcessSymbol(body, processed, null, ts);
+            this.ProcessSymbol(body, null, processed, null, ts);
 
             stack.Push(ts);
             try
@@ -261,4 +296,6 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
     private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
     private INamedTypeSymbol? tinyhandUnionAttributeSymbol;
     private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
+    private INamedTypeSymbol? tinyhandGenerateMemberAttributeSymbol;
+    private INamedTypeSymbol? tinyhandGenerateHashAttributeSymbol;
 }

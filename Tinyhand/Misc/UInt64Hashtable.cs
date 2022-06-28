@@ -8,11 +8,11 @@ using System.Threading;
 namespace Tinyhand;
 
 /// <summary>
-/// Represents a collection of utf-8 key (ReadOnlySpan&lt;byte&gt;) and value pairs.
+/// Represents a collection of ulong and value pairs.
 /// </summary>
 /// <typeparam name="TValue">The type of value.</typeparam>
-public class Utf8Hashtable<TValue>
-{ // HashTable for UTF-8 .
+public class UInt64Hashtable<TValue>
+{ // HashTable for ulong
     private static uint CalculateCapacity(uint collectionSize)
     {
         collectionSize *= 2;
@@ -30,37 +30,13 @@ public class Utf8Hashtable<TValue>
         return capacity;
     }
 
-    public Utf8Hashtable(uint capacity = 4)
+    public UInt64Hashtable(uint capacity = 4)
     {
         var size = CalculateCapacity(capacity);
         this.hashTable = new Item[size];
     }
 
-    public TValue[] ToArray()
-    {
-        lock (this.cs)
-        {
-            var table = this.hashTable;
-            var array = new TValue[this.numberOfItems];
-
-            var n = 0;
-            for (var i = 0; i < table.Length; i++)
-            {
-                if (table[i] is { } item)
-                {
-                    array[n++] = item.Value;
-                    if (n >= this.numberOfItems)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            return array;
-        }
-    }
-
-    public bool TryAdd(ReadOnlySpan<byte> key, TValue value)
+    public bool TryAdd(ulong key, TValue value)
     {
         lock (this.cs)
         {
@@ -83,38 +59,15 @@ public class Utf8Hashtable<TValue>
         }
     }
 
-    public bool TryAdd(byte[] key, TValue value)
-    {
-        lock (this.cs)
-        {
-            bool successAdd;
-
-            if ((this.numberOfItems * 2) > this.hashTable.Length)
-            {// rehash
-                this.RebuildTable();
-            }
-
-            // add entry(insert last is thread safe for read)
-            successAdd = this.AddKeyValue(key, value);
-
-            if (successAdd)
-            {
-                this.numberOfItems++;
-            }
-
-            return successAdd;
-        }
-    }
-
-    public bool TryGetValue(ReadOnlySpan<byte> key, [MaybeNullWhen(false)] out TValue value)
+    public bool TryGetValue(ulong key, [MaybeNullWhen(false)] out TValue value)
     {
         var table = this.hashTable;
-        var hash = unchecked((int)FarmHash.Hash64(key));
+        var hash = unchecked((int)key);
         var item = table[hash & (table.Length - 1)];
 
         while (item != null)
         {
-            if (key.SequenceEqual(item.Key) == true)
+            if (key == item.Key)
             { // Identical. alternative: (key == item.Key).
                 value = item.Value;
                 return true;
@@ -170,7 +123,7 @@ public class Utf8Hashtable<TValue>
             var i = table[h];
             while (true)
             {
-                if (i.Key.SequenceEqual(item.Key) == true)
+                if (i.Key == item.Key)
                 {// Identical
                     return false;
                 }
@@ -189,46 +142,10 @@ public class Utf8Hashtable<TValue>
         return true;
     }
 
-    private bool AddKeyValue(ReadOnlySpan<byte> key, TValue value)
+    private bool AddKeyValue(ulong key, TValue value)
     { // lock(cs) required.
         var table = this.hashTable;
-        var hash = unchecked((int)FarmHash.Hash64(key));
-        var h = hash & (table.Length - 1);
-
-        if (table[h] == null)
-        {
-            var item = new Item(key.ToArray(), value, hash);
-            Volatile.Write(ref table[h], item);
-        }
-        else
-        {
-            var i = table[h]!;
-            while (true)
-            {
-                if (key.SequenceEqual(i.Key) == true)
-                {// Identical
-                    return false;
-                }
-
-                if (i.Next == null)
-                { // Last item.
-                    break;
-                }
-
-                i = i.Next;
-            }
-
-            var item = new Item(key.ToArray(), value, hash);
-            Volatile.Write(ref i.Next, item);
-        }
-
-        return true;
-    }
-
-    private bool AddKeyValue(byte[] key, TValue value)
-    { // lock(cs) required.
-        var table = this.hashTable;
-        var hash = unchecked((int)FarmHash.Hash64(key));
+        var hash = unchecked((int)key);
         var h = hash & (table.Length - 1);
 
         if (table[h] == null)
@@ -241,7 +158,7 @@ public class Utf8Hashtable<TValue>
             var i = table[h]!;
             while (true)
             {
-                if (key.SequenceEqual(i.Key) == true)
+                if (key == i.Key)
                 {// Identical
                     return false;
                 }
@@ -267,16 +184,14 @@ public class Utf8Hashtable<TValue>
 
     internal class Item
     {
-#pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1401
-        public byte[] Key;
+        public ulong Key;
         public TValue Value;
         public int Hash;
         public Item? Next;
 #pragma warning restore SA1401
-#pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 
-        public Item(byte[] key, TValue value, int hash)
+        public Item(ulong key, TValue value, int hash)
         {
             this.Key = key;
             this.Value = value;
