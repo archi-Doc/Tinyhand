@@ -11,6 +11,12 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
+[TinyhandGenerateHash("..\\Resources\\strings.tinyhand")]
+[TinyhandGenerateHash("..\\Resources\\strings2.tinyhand")]
+public static partial class Hashed
+{
+}
+
 public class KeyStringTest
 {
     public string Data1 = "a = \"A\", b = \"BB\", c = \"CCC\", d = \"DDDD\"";
@@ -63,5 +69,25 @@ public class KeyStringTest
         ks.Get("c").Is("CCC");
         ks.Get("d").Is("DDDD");
         ks.Get("e").Is("22222");
+    }
+
+    [Fact]
+    public void Test2()
+    {
+        var hs = new Tinyhand.HashedString();
+        var asm = System.Reflection.Assembly.GetExecutingAssembly();
+        hs.LoadAssembly(null, asm, "Resources.strings.tinyhand");
+        hs.LoadAssembly(null, asm, "Resources.strings2.tinyhand");
+
+        hs.Get(Hashed.NameA).Is("a");
+        hs.Get(Hashed.NameA).IsNot("A");
+        hs.Get(Hashed.NameB).Is("b");
+        hs.Get(Hashed.NameD).Is("d");
+        hs.Get(Hashed.GroupA.NameX).Is("X");
+        hs.Get(Hashed.GroupA.NameY).Is("Y");
+
+        hs.Get("NameA").Is("a");
+        hs.Get("Namea").IsNot("a");
+        hs.Get("GroupA.NameX").Is("X");
     }
 }

@@ -11,9 +11,19 @@
   <ItemGroup>
     <Compile Remove="Generated\*" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="Resources\strings.tinyhand" />
+    <None Remove="Resources\strings2.tinyhand" />
+  </ItemGroup>
 
   <ItemGroup>
     <AdditionalFiles Include="..\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\strings.tinyhand" />
+    <EmbeddedResource Include="Resources\strings2.tinyhand" />
   </ItemGroup>
 
   <ItemGroup>
