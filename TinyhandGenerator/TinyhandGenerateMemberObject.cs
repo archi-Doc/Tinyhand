@@ -249,7 +249,7 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
         public Item(Location location, string tinyhandPath, bool generateHash)
         {
             this.Location = location;
-            this.TinyhandPath = tinyhandPath;
+            this.TinyhandPath = tinyhandPath.Replace('\\', '/'); // backslash -> forward slash.
             this.GenerateHash = generateHash;
         }
 
