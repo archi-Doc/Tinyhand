@@ -408,6 +408,13 @@ public class Value_String : Value
         this.valueStringUtf8 = valueStringUtf8;
     }
 
+    public Value_String(Element original, byte[] valueStringUtf8)
+        : base(ValueElementType.Value_String)
+    {
+        this.contextualChain = (Element?)original?.contextualChain?.DeepCopy();
+        this.valueStringUtf8 = valueStringUtf8;
+    }
+
     public Value_String(string valueStringUtf16)
         : base(ValueElementType.Value_String)
     {

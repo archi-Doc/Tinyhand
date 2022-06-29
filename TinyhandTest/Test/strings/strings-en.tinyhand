@@ -3,15 +3,15 @@
 Test1 = "Test1"
 Test2 = "Test2"
 
-App = 
-{
+App = {
     Name = "StandardApp" // Name
     Description = null
     DateTime = "MM/dd H:mm:ss"
 }
 
 // dialog
-Dialog = {
+Dialog =
+{
     Ok = "O K"
     Cancel = "Cancel"
     Yes = "Yes"
@@ -22,15 +22,15 @@ Dialog = {
 
 // settings
 Settings = {
-    Title = "Settings/Info"
-    Tab = {
-        General = "General"
-        Information = "Information"
-    }
-    Folder = "Settings folder"
-    FolderOpen = "Open"
-    Language = "Language"
-    DisplayScaling = "Scaling"
+Title = "Settings/Info"
+Tab = {
+General = "General"
+Information = "Information"
+}
+Folder = "Settings folder"
+FolderOpen = "Open"
+Language = "Language"
+DisplayScaling = "Scaling"
 }
 
 // other

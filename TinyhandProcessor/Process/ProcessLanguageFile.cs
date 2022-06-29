@@ -205,7 +205,7 @@ AddToTable:
                         }
                         else
                         { // "string"
-                            assignment.RightElement = new Value_String(targetUtf8);
+                            assignment.RightElement = new Value_String(assignment.RightElement, targetUtf8);
                         }
                     }
                     else
