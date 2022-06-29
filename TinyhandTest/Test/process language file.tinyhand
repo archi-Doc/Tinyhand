@@ -2,7 +2,7 @@ mode = "process"
 process = "language file"
 // log = {"file", path="mylog.txt", console=true, format="log"}
 
-source = "text"
-destination = "text"
-reference = "strings-ja.tinyhand"
-"strings-en.tinyhand"
+source = "strings"
+destination = "strings"
+reference = "strings-en.tinyhand"
+"strings-ja.tinyhand"

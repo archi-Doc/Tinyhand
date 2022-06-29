@@ -44,6 +44,7 @@ public static class TinyhandConstants
     public static ReadOnlySpan<byte> NullSpan => new byte[] { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
     public static ReadOnlySpan<byte> IndentSpan => new byte[] { Space, Space, };
     public static ReadOnlySpan<byte> TripleQuotesSpan => new byte[] { Quote, Quote, Quote, };
+    public static ReadOnlySpan<byte> ColonSpan => new byte[] { Colon, };
 
     public const int StackallocThreshold = 1024;
 

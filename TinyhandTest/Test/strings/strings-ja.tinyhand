@@ -1,0 +1,80 @@
+// identifier = "string" /* null: Use the default value. */
+
+Test1 = "てすと1"
+Test2 = null
+
+App = {
+
+Name = "StandardApp" // Name
+Description = "standard application"
+DateTime = "MM/dd H:mm:ss"
+}
+
+// dialog
+Dialog = {
+
+Ok = "O K"
+Cancel = "キャンセル"
+Yes = "はい"
+No = "いいえ"
+Exit = "終了してもよろしいですか？"
+Message = "イエス or ノー？"
+}
+
+// settings
+Settings = {
+
+Title = "設定/情報"
+Tab = {
+
+General = "General"
+Information = "情報"
+}
+Folder = "設定フォルダ"
+FolderOpen = "開く"
+Language = "表示言語"
+DisplayScaling = "表示倍率"
+}
+
+// other
+Language = {
+
+En = "英語（English）"
+Ja = "日本語（Japanese）"
+}
+
+Button = {
+
+Text = "通知メッセージ"
+Settings = "設定"
+Datafolder = "データフォルダ"
+}
+Tooltip = {
+
+Button = "ボタンです"
+sample = "サンプルです"
+}
+
+TimeText = "時刻は{0:MM/dd H:mm:ss}です"
+
+Button = {
+
+AddItem = "追加"
+ClearItem = "クリア"
+}
+
+ListView = {
+
+// ListView
+Header = {
+
+Id = "Id"
+Time = "時間"
+}
+
+Menu = {
+
+Increment = "増やす"
+Decrement = "減らす"
+}
+}

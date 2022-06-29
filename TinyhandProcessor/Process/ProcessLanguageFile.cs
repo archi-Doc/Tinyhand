@@ -51,7 +51,9 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         return true;
     }
 
-    private static byte[] zeroByte = new byte[] { 0 };
+    private static byte[] zeroByte = new byte[] { 0, };
+
+    private static byte[] colonByte = new byte[] { TinyhandConstants.Colon, };
 
     private Group? referenceGroup;
 
@@ -60,7 +62,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         var referencePath = Path.Combine(this.Environment.GetPath(PathType.SourceFolder), valueString.ValueStringUtf16);
         if (!File.Exists(referencePath))
         {
-            this.Environment.Log.Fatal(valueString, $"The reference file ({referencePath}) does not exist.");
+            this.Environment.Log.Fatal(valueString, $"Reference file ({referencePath}) does not exist.");
         }
 
         try
@@ -90,7 +92,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         Group targetGroup;
         if (!File.Exists(targetPath))
         {
-            this.Environment.Log.Warning(targetElement, $"The target file ({targetPath}) does not exist. An empty file is created.");
+            this.Environment.Log.Warning(targetElement, $"New target file ({targetPath}) is created.");
             targetGroup = Group.Empty;
             goto AddToTable;
         }
@@ -108,27 +110,66 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         }
 
 AddToTable:
-// Add strings to Utf8Hashtable.
         var table = new Utf8Hashtable<byte[]>();
-        foreach (var x in targetGroup)
+        this.ProcessGroup(table, Array.Empty<byte>(), targetGroup); // Add strings to Utf8Hashtable.
+
+        var group = (Group)this.referenceGroup.DeepCopy();
+        this.ProcessGroup2(table, Array.Empty<byte>(), group);
+
+        try
+        {
+            if (Path.GetDirectoryName(destinationPath) is { } destinationFolder)
+            {
+                Directory.CreateDirectory(destinationFolder);
+                using var fs = new FileStream(destinationPath, FileMode.Create);
+                fs.Write(TinyhandComposer.Compose(group, TinyhandComposeOption.UseContextualInformation));
+            }
+        }
+        catch
+        {
+            this.Environment.Log.Error(targetElement, $"Could not write the destination file ({destinationPath}).");
+        }
+
+        return true;
+    }
+
+    private void ProcessGroup(Utf8Hashtable<byte[]> table, byte[] groupIdentifier, Group group)
+    {
+        if (groupIdentifier.Length != 0)
+        {
+            groupIdentifier = groupIdentifier.Concat(colonByte).ToArray();
+        }
+
+        foreach (var x in group)
         {
             if (x.TryGetLeft_IdentifierUtf8(out var identifier))
             {
                 if (x.TryGetRight_Value(out var value))
-                {
+                {// Value
                     if (value is Value_String valueString)
                     { // String
-                        table.TryAdd(identifier, valueString.ValueStringUtf8);
+                        table.TryAdd(groupIdentifier.Concat(identifier).ToArray(), valueString.ValueStringUtf8);
                     }
                     else if (value is Value_Null)
                     {
-                        table.TryAdd(identifier, zeroByte);
+                        table.TryAdd(groupIdentifier.Concat(identifier).ToArray(), zeroByte);
                     }
+                }
+                else if (x.TryGetRight_Group(out var g))
+                {// Group
+                    this.ProcessGroup(table, groupIdentifier.Concat(identifier).ToArray(), g);
                 }
             }
         }
+    }
 
-        var group = (Group)this.referenceGroup.DeepCopy();
+    private void ProcessGroup2(Utf8Hashtable<byte[]> table, byte[] groupIdentifier, Group group)
+    {
+        if (groupIdentifier.Length != 0)
+        {
+            groupIdentifier = groupIdentifier.Concat(colonByte).ToArray();
+        }
+
         foreach (var x in group)
         {
             if (x.TryGetLeft_IdentifierUtf8(out var identifier))
@@ -136,7 +177,7 @@ AddToTable:
                 if (x.TryGetRight_Value_String(out var valueString))
                 {
                     var assignment = (Assignment)x;
-                    if (table.TryGetValue(identifier, out var targetUtf8))
+                    if (table.TryGetValue(groupIdentifier.Concat(identifier).ToArray(), out var targetUtf8))
                     { // Found.
                         if (targetUtf8.Length == 1 && targetUtf8[0] == 0)
                         { // null
@@ -154,24 +195,13 @@ AddToTable:
                         // assignment.RightElement?.MoveContextualChainTo(assignment);
                         // assignment.RightElement = null; // new Value_Null(assignment.RightElement);
                     }
+
+                }
+                else if (x.TryGetRight_Group(out var g))
+                {// Group
+                    this.ProcessGroup2(table, groupIdentifier.Concat(identifier).ToArray(), g);
                 }
             }
         }
-
-        try
-        {
-            if (Path.GetDirectoryName(destinationPath) is { } destinationFolder)
-            {
-                Directory.CreateDirectory(destinationFolder);
-                using var fs = new FileStream(destinationPath, FileMode.Create);
-                fs.Write(TinyhandComposer.Compose(group, TinyhandComposeOption.UseContextualInformation));
-            }
-        }
-        catch
-        {
-            this.Environment.Log.Error(targetElement, $"Could not write the destination file ({destinationPath}).");
-        }
-
-        return true;
     }
 }

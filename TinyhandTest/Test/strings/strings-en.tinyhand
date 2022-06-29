@@ -1,0 +1,69 @@
+// identifier = "string" /* null: Use the default value. */
+
+Test1 = "Test1"
+Test2 = "Test2"
+
+App = {
+    Name = "StandardApp" // Name
+    Description = null
+    DateTime = "MM/dd H:mm:ss"
+}
+
+// dialog
+Dialog = {
+    Ok = "O K"
+    Cancel = "Cancel"
+    Yes = "Yes"
+    No = "No"
+    Exit = "Are you sure you want to exit?"
+    Message = "Yes or no?"
+}
+
+// settings
+Settings = {
+    Title = "Settings/Info"
+    Tab = {
+        General = "General"
+        Information = "Information"
+    }
+    Folder = "Settings folder"
+    FolderOpen = "Open"
+    Language = "Language"
+    DisplayScaling = "Scaling"
+}
+
+// other
+Language = {
+    En = "English (英語）"
+    Ja = "Japanese (日本語)"
+}
+
+Button = {
+    Text = "Notification message"
+    Settings = "Settings"
+    Datafolder = "DataFolder"
+}
+Tooltip = {
+    Button = "This is a button."
+    sample = "Sample"
+}
+
+TimeText = "Current time is {0:MM/dd H:mm:ss}."
+
+Button = {
+    AddItem = "Add"
+    ClearItem = "Clear"
+}
+
+ListView = {
+// ListView
+    Header = {
+        Id = "Id"
+        Time = "Time"
+    }
+
+    Menu = {
+        Increment = "increment"
+        Decrement = "decrement"
+    }
+}
