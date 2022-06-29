@@ -186,6 +186,8 @@ public class Element
         }
     }
 
+    public string GetLinePositionString() => $"Line:{this.LineNumber} BytePosition:{this.BytePositionInLine}";
+
     public Element? Parent => this.parent;
 
     public ElementType Type { get; }
@@ -403,6 +405,13 @@ public class Value_String : Value
     public Value_String(byte[] valueStringUtf8)
         : base(ValueElementType.Value_String)
     {
+        this.valueStringUtf8 = valueStringUtf8;
+    }
+
+    public Value_String(Element original, byte[] valueStringUtf8)
+        : base(ValueElementType.Value_String)
+    {
+        this.contextualChain = (Element?)original?.contextualChain?.DeepCopy();
         this.valueStringUtf8 = valueStringUtf8;
     }
 

@@ -186,6 +186,8 @@ public class Element
         }
     }
 
+    public string GetLinePositionString() => $"Line:{this.LineNumber} BytePosition:{this.BytePositionInLine}";
+
     public Element? Parent => this.parent;
 
     public ElementType Type { get; }

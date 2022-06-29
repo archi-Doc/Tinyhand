@@ -236,7 +236,7 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
             return;
         }
 
-        this.Group.Process(element, item.GenerateHash);
+        this.Group.Process(this.Body, item.Location, element, item.GenerateHash);
     }
 
     internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)

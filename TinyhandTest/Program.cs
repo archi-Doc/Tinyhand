@@ -28,8 +28,8 @@ public class Program
 
         // TestDeepCopy(Path.Combine(testPath, "simple.tinyhand"));
 
-        TestProcess(Path.Combine(testPath, "process startup time.tinyhand"));
-        // TestProcess(Path.Combine(testPath, "process language file.tinyhand"));
+        // TestProcess(Path.Combine(testPath, "process startup time.tinyhand"));
+        TestProcess(Path.Combine(testPath, "process language file.tinyhand"));
         // TestProcess(Path.Combine(testPath, "process log.tinyhand"));
     }
 

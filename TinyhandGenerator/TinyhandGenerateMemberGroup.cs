@@ -22,7 +22,7 @@ internal class TinyhandGenerateMemberGroup
         this.Identifier = identifier;
     }
 
-    public void Process(Element element, bool generateHash)
+    public void Process(TinyhandGenerateMemberBody body, Location location, Element element, bool generateHash)
     {
         if (element is not Group group)
         {
@@ -34,8 +34,14 @@ internal class TinyhandGenerateMemberGroup
             if (x is Assignment assignment)
             {
                 if (assignment.LeftElement is Value_Identifier i)
-                {// Get left element [Identifier]
+                {// Get the left element [Identifier]
                     var identifier = i.IdentifierUtf16;
+                    if (!VisceralHelper.IsValidIdentifier(identifier))
+                    {// Invalid identifier
+                        body.AddDiagnostic(TinyhandBody.Warning_InvalidIdentifier2, location, identifier, i.GetLinePositionString());
+                        continue;
+                    }
+
                     if (assignment.RightElement is Group subgroup)
                     {// Group
                         if (!this.Groups.TryGetValue(identifier, out var g))
@@ -44,7 +50,7 @@ internal class TinyhandGenerateMemberGroup
                             this.Groups.Add(identifier, g);
                         }
 
-                        g.Process(subgroup, generateHash);
+                        g.Process(body, location, subgroup, generateHash);
                     }
                     else // if (assignment.RightElement is Value_String valueString)
                     {

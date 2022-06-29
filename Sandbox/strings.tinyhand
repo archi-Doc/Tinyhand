@@ -17,3 +17,5 @@ name2="test"
 dialog = {
     No = "no"
 }
+
+dialog_Hanbun = "Hanbun" // dialog.Hanbun is an invalid identifier.

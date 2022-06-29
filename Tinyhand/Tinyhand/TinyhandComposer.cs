@@ -76,7 +76,7 @@ public static class TinyhandComposer
 
         private int indent;
         private bool firstElement;
-        private bool requireDelimiter;
+        // private bool requireDelimiter;
 
         public ComposerCore(TinyhandComposeOption option)
         {
@@ -112,7 +112,7 @@ public static class TinyhandComposer
                     if (this.useContextualInformation)
                     {
                         writer.WriteCRLF();
-                        this.requireDelimiter = false;
+                        // this.requireDelimiter = false;
                     }
                     break;
 
@@ -153,12 +153,15 @@ public static class TinyhandComposer
 
         private void NewLine(ref TinyhandRawWriter writer, int indent = 0)
         {
-            if (this.useContextualInformation && !this.requireDelimiter)
+            /*if (this.useContextualInformation && !this.requireDelimiter)
             {
                 return;
-            }
+            }*/
 
-            writer.WriteCRLF();
+            if (!this.useContextualInformation)
+            {
+                writer.WriteCRLF();
+            }
 
             this.indent += indent;
             for (var n = 0; n < this.indent; n++)
@@ -242,12 +245,12 @@ public static class TinyhandComposer
             }
 
             writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-            this.requireDelimiter = true;
+            // this.requireDelimiter = true;
             this.ComposeContextualInformation(ref writer, element.contextualChain);
 
             if (element.RightElement != null)
             {
-                this.requireDelimiter = true;
+                // this.requireDelimiter = true;
                 this.Compose(ref writer, element.RightElement);
             }
         }
@@ -256,13 +259,15 @@ public static class TinyhandComposer
         {
             var addBrace = true;
             if (element.Parent == null &&
-                (this.option == TinyhandComposeOption.Simple || this.option == TinyhandComposeOption.UseContextualInformation))
+                (this.option == TinyhandComposeOption.Simple ||
+                this.option == TinyhandComposeOption.UseContextualInformation))
             {
                 addBrace = false;
             }
 
             var newLine = true;
-            if (this.option == TinyhandComposeOption.Simple || element.ElementList.Count == 0)
+            if (this.option == TinyhandComposeOption.Simple ||
+                element.ElementList.Count == 0)
             {
                 newLine = false;
             }
@@ -270,13 +275,14 @@ public static class TinyhandComposer
             if (addBrace)
             {
                 writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                if (newLine)
-                {
-                    this.NewLine(ref writer, 1);
-                }
             }
 
             this.ComposeContextualInformation(ref writer, element.forwardContextual?.contextualChain);
+
+            if (addBrace && newLine)
+            {
+                this.NewLine(ref writer, 1);
+            }
 
             var hasAssignment = false;
             if (element.ElementList.Count > 0 && element.ElementList[0] is Assignment)

@@ -110,6 +110,12 @@ public static class TinyhandTreeHelper
         return false;
     }
 
+    public static bool TryGetRight_Group(this Element element, [MaybeNullWhen(false)] out Group value)
+    { // left = group : Get group
+        value = (element as Assignment)?.RightElement as Group;
+        return value != null;
+    }
+
     public static bool TryGetRight_Value(this Element element, [MaybeNullWhen(false)] out Value value)
     { // left = value : Get value
         value = (element as Assignment)?.RightElement as Value;

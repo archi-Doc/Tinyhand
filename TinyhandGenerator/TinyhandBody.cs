@@ -198,6 +198,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG043", title: "Parse Tinyhand", messageFormat: "Could not parse tinyhand file '{0}'",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Warning_InvalidIdentifier2 = new DiagnosticDescriptor(
+        id: "TG044", title: "Invalid identifier", messageFormat: "'{0}' is not valid identifier ({1})",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context)
         : base(context)
     {
