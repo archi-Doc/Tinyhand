@@ -3,7 +3,8 @@
 Test1 = "Test1"
 Test2 = "Test2"
 
-App = {
+App = 
+{
     Name = "StandardApp" // Name
     Description = null
     DateTime = "MM/dd H:mm:ss"

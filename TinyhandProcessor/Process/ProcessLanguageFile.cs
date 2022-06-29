@@ -111,10 +111,10 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
 
 AddToTable:
         var table = new Utf8Hashtable<byte[]>();
-        this.ProcessGroup(table, Array.Empty<byte>(), targetGroup); // Add strings to Utf8Hashtable.
+        this.ProcessTarget(table, Array.Empty<byte>(), targetGroup); // Add strings to Utf8Hashtable.
 
         var group = (Group)this.referenceGroup.DeepCopy();
-        this.ProcessGroup2(table, Array.Empty<byte>(), group);
+        this.ProcessCloned(table, Array.Empty<byte>(), group);
 
         try
         {
@@ -133,7 +133,7 @@ AddToTable:
         return true;
     }
 
-    private void ProcessGroup(Utf8Hashtable<byte[]> table, byte[] groupIdentifier, Group group)
+    private void ProcessTarget(Utf8Hashtable<byte[]> table, byte[] groupIdentifier, Group group)
     {
         if (groupIdentifier.Length != 0)
         {
@@ -157,13 +157,13 @@ AddToTable:
                 }
                 else if (x.TryGetRight_Group(out var g))
                 {// Group
-                    this.ProcessGroup(table, groupIdentifier.Concat(identifier).ToArray(), g);
+                    this.ProcessTarget(table, groupIdentifier.Concat(identifier).ToArray(), g);
                 }
             }
         }
     }
 
-    private void ProcessGroup2(Utf8Hashtable<byte[]> table, byte[] groupIdentifier, Group group)
+    private void ProcessCloned(Utf8Hashtable<byte[]> table, byte[] groupIdentifier, Group group)
     {
         if (groupIdentifier.Length != 0)
         {
@@ -174,9 +174,9 @@ AddToTable:
         {
             if (x.TryGetLeft_IdentifierUtf8(out var identifier))
             {
-                if (x.TryGetRight_Value_String(out var valueString))
-                {
-                    var assignment = (Assignment)x;
+                var assignment = (Assignment)x;
+                if (assignment.RightElement is Value_String valueString)
+                {// Right is string
                     if (table.TryGetValue(groupIdentifier.Concat(identifier).ToArray(), out var targetUtf8))
                     { // Found.
                         if (targetUtf8.Length == 1 && targetUtf8[0] == 0)
@@ -195,11 +195,26 @@ AddToTable:
                         // assignment.RightElement?.MoveContextualChainTo(assignment);
                         // assignment.RightElement = null; // new Value_Null(assignment.RightElement);
                     }
-
+                }
+                else if (assignment.RightElement is Value_Null)
+                {// Right is null
+                    if (table.TryGetValue(groupIdentifier.Concat(identifier).ToArray(), out var targetUtf8))
+                    { // Found.
+                        if (targetUtf8.Length == 1 && targetUtf8[0] == 0)
+                        { // null
+                        }
+                        else
+                        { // "string"
+                            assignment.RightElement = new Value_String(targetUtf8);
+                        }
+                    }
+                    else
+                    { // Not found.
+                    }
                 }
                 else if (x.TryGetRight_Group(out var g))
                 {// Group
-                    this.ProcessGroup2(table, groupIdentifier.Concat(identifier).ToArray(), g);
+                    this.ProcessCloned(table, groupIdentifier.Concat(identifier).ToArray(), g);
                 }
             }
         }
