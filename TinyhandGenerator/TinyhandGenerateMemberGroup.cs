@@ -260,8 +260,7 @@ internal class TinyhandGenerateMemberGroup
 
     private unsafe string GetValueSafeString(string source)
     {
-        var length = source.Length <= MaxSummaryLength ? source.Length : MaxSummaryLength;
-        var span = source.AsSpan().Slice(0, length);
+        var span = source.AsSpan();
 
         // Count
         var count = 0;
@@ -293,56 +292,60 @@ internal class TinyhandGenerateMemberGroup
         }
 
         // Get safe string
-        char* chars = stackalloc char[count + 1];
-        count = 0;
-        foreach (var x in span)
+        count++; // null
+        Span<char> buffer = count <= 1024 ? stackalloc char[count] : new char[count];
+        fixed (char* chars = buffer)
         {
-            switch (x)
+            count = 0;
+            foreach (var x in span)
             {
-                case '\\':
-                    chars[count++] = '\\';
-                    chars[count++] = '\\';
-                    continue;
+                switch (x)
+                {
+                    case '\\':
+                        chars[count++] = '\\';
+                        chars[count++] = '\\';
+                        continue;
 
-                case '\"':
-                    chars[count++] = '\\';
-                    chars[count++] = '\"';
-                    continue;
+                    case '\"':
+                        chars[count++] = '\\';
+                        chars[count++] = '\"';
+                        continue;
 
-                case '\b':
-                    chars[count++] = '\\';
-                    chars[count++] = 'b';
-                    continue;
+                    case '\b':
+                        chars[count++] = '\\';
+                        chars[count++] = 'b';
+                        continue;
 
-                case '\f':
-                    chars[count++] = '\\';
-                    chars[count++] = 'f';
-                    continue;
+                    case '\f':
+                        chars[count++] = '\\';
+                        chars[count++] = 'f';
+                        continue;
 
-                case '\n':
-                    chars[count++] = '\\';
-                    chars[count++] = 'n';
-                    continue;
+                    case '\n':
+                        chars[count++] = '\\';
+                        chars[count++] = 'n';
+                        continue;
 
-                case '\r':
-                    chars[count++] = '\\';
-                    chars[count++] = 'r';
-                    continue;
+                    case '\r':
+                        chars[count++] = '\\';
+                        chars[count++] = 'r';
+                        continue;
 
-                case '\t':
-                    chars[count++] = '\\';
-                    chars[count++] = 't';
-                    continue;
+                    case '\t':
+                        chars[count++] = '\\';
+                        chars[count++] = 't';
+                        continue;
 
-                default:
-                    chars[count++] = x;
-                    continue;
+                    default:
+                        chars[count++] = x;
+                        continue;
+                }
             }
-        }
 
-        chars[count++] = (char)0;
-        var dest = new string(chars);
-        return dest;
+            chars[count++] = (char)0;
+            var dest = new string(chars);
+            return dest;
+        }
     }
 
     private (string? Type, string? Value) ElementToTypeValue(Element? element)
