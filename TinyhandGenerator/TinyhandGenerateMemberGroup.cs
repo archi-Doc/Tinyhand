@@ -17,6 +17,8 @@ namespace Tinyhand.Generator;
 
 internal class TinyhandGenerateMemberGroup
 {
+    public const int MaxSummaryLength = 128;
+
     public TinyhandGenerateMemberGroup(string identifier)
     {
         this.Identifier = identifier;
@@ -98,6 +100,14 @@ internal class TinyhandGenerateMemberGroup
                         identifier = groupName + "." + x.Identifier;
                     }
 
+                    // Comment
+                    var y = this.ElementToTypeValue(x.Element);
+                    if (y.Value != null)
+                    {
+                        ssb.AppendLine($"/// <summary>{this.GetCommentSafeString(y.Value)}</summary>");
+                    }
+
+                    // Property
                     var hash = FarmHash.Hash64(identifier);
                     ssb.AppendLine($"public static ulong {x.Identifier} => 0x{hash.ToString("x")}ul;");
                 }
@@ -106,7 +116,14 @@ internal class TinyhandGenerateMemberGroup
                     var y = this.ElementToTypeValue(x.Element);
                     if (y.Type != null && y.Value != null)
                     {
-                        ssb.AppendLine($"public static {y.Type} {x.Identifier} => {y.Value};");
+                        if (y.Type == "string")
+                        {
+                            ssb.AppendLine($"public static {y.Type} {x.Identifier} => \"{this.GetValueSafeString(y.Value)}\";");
+                        }
+                        else
+                        {
+                            ssb.AppendLine($"public static {y.Type} {x.Identifier} => {y.Value};");
+                        }
                     }
                 }
             }
@@ -146,6 +163,188 @@ internal class TinyhandGenerateMemberGroup
         public int CompareTo(Item other) => this.Identifier.CompareTo(other.Identifier);
     }
 
+    private unsafe string GetCommentSafeString(string source)
+    {
+        var length = source.Length <= MaxSummaryLength ? source.Length : MaxSummaryLength;
+        var span = source.AsSpan().Slice(0, length);
+
+        // Count
+        var count = 0;
+        var change = false;
+        foreach (var x in span)
+        {
+            switch (x)
+            {
+                case '\b':
+                case '\f':
+                case '\n':
+                case '\r':
+                case '\t':
+                    change = true;
+                    count += 2;
+                    continue;
+
+                case '<': // &lt;
+                case '>': // &gt;
+                    change = true;
+                    count += 4;
+                    continue;
+
+                default:
+                    count++;
+                    continue;
+            }
+        }
+
+        if (!change)
+        {// No change
+            return source;
+        }
+
+        // Get safe string
+        char* chars = stackalloc char[count + 1];
+        count = 0;
+        foreach (var x in span)
+        {
+            switch (x)
+            {
+                case '\b':
+                    chars[count++] = '\\';
+                    chars[count++] = 'b';
+                    continue;
+
+                case '\f':
+                    chars[count++] = '\\';
+                    chars[count++] = 'f';
+                    continue;
+
+                case '\n':
+                    chars[count++] = '\\';
+                    chars[count++] = 'n';
+                    continue;
+
+                case '\r':
+                    chars[count++] = '\\';
+                    chars[count++] = 'r';
+                    continue;
+
+                case '\t':
+                    chars[count++] = '\\';
+                    chars[count++] = 't';
+                    continue;
+
+                case '<': // &lt;
+                    chars[count++] = '&';
+                    chars[count++] = 'l';
+                    chars[count++] = 't';
+                    chars[count++] = ';';
+                    continue;
+
+                case '>': // &gt;
+                    chars[count++] = '&';
+                    chars[count++] = 'g';
+                    chars[count++] = 't';
+                    chars[count++] = ';';
+                    continue;
+
+                default:
+                    chars[count++] = x;
+                    continue;
+            }
+        }
+
+        chars[count++] = (char)0;
+        var dest = new string(chars);
+        return dest;
+    }
+
+    private unsafe string GetValueSafeString(string source)
+    {
+        var length = source.Length <= MaxSummaryLength ? source.Length : MaxSummaryLength;
+        var span = source.AsSpan().Slice(0, length);
+
+        // Count
+        var count = 0;
+        var change = false;
+        foreach (var x in span)
+        {
+            switch (x)
+            {
+                case '\\':
+                case '\"':
+                case '\b':
+                case '\f':
+                case '\n':
+                case '\r':
+                case '\t':
+                    change = true;
+                    count += 2;
+                    continue;
+
+                default:
+                    count++;
+                    continue;
+            }
+        }
+
+        if (!change)
+        {// No change
+            return source;
+        }
+
+        // Get safe string
+        char* chars = stackalloc char[count + 1];
+        count = 0;
+        foreach (var x in span)
+        {
+            switch (x)
+            {
+                case '\\':
+                    chars[count++] = '\\';
+                    chars[count++] = '\\';
+                    continue;
+
+                case '\"':
+                    chars[count++] = '\\';
+                    chars[count++] = '\"';
+                    continue;
+
+                case '\b':
+                    chars[count++] = '\\';
+                    chars[count++] = 'b';
+                    continue;
+
+                case '\f':
+                    chars[count++] = '\\';
+                    chars[count++] = 'f';
+                    continue;
+
+                case '\n':
+                    chars[count++] = '\\';
+                    chars[count++] = 'n';
+                    continue;
+
+                case '\r':
+                    chars[count++] = '\\';
+                    chars[count++] = 'r';
+                    continue;
+
+                case '\t':
+                    chars[count++] = '\\';
+                    chars[count++] = 't';
+                    continue;
+
+                default:
+                    chars[count++] = x;
+                    continue;
+            }
+        }
+
+        chars[count++] = (char)0;
+        var dest = new string(chars);
+        return dest;
+    }
+
     private (string? Type, string? Value) ElementToTypeValue(Element? element)
     {
         if (element is Value_Bool valueBool)
@@ -154,7 +353,7 @@ internal class TinyhandGenerateMemberGroup
         }
         else if (element is Value_String valueString)
         {// string
-            return ("string", "\"" + valueString.ValueStringUtf16 + "\"");
+            return ("string", valueString.ValueStringUtf16);
         }
         else if (element is Value_Long valueLong)
         {// long

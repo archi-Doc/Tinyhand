@@ -19,3 +19,7 @@ dialog = {
 }
 
 dialog_Hanbun = "Hanbun" // dialog.Hanbun is an invalid identifier.
+
+EscapeTest = """escape"a\r
+1
+2"""
