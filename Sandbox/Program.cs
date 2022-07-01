@@ -209,6 +209,7 @@ class Program
         HashedString.LoadAssembly(null, asm, "Sub.strings2.tinyhand");
         var t = HashedString.Get(Hashed.Dialog.Ok);
         t = HashedString.Get(Hashed.EscapeTest);
+        t = HashedString.Get(Hashed.StringFormatTest, "1", "2");
 
         var gtc = new ConsoleApp1.ItzShip<GenericsImplementedClass>();
         var gtc2 = new ConsoleApp1.ItzShip<GenericsImplementedStruct>();

@@ -57,6 +57,33 @@ public static class HashedString
     public static string Get(ulong hash) => GetInternal(hash, ErrorMessage);
 
     /// <summary>
+    /// Get(hash) + <see cref="string.Format(string, object)"/>.
+    /// </summary>
+    /// <param name="hash"><see cref="ulong"/> hash.</param>
+    /// <param name="obj1">The object to format.</param>
+    /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
+    public static string Get(ulong hash, object obj1) => string.Format(GetInternal(hash, ErrorMessage), obj1);
+
+    /// <summary>
+    /// Get(hash) + <see cref="string.Format(string, object)"/>.
+    /// </summary>
+    /// <param name="hash"><see cref="ulong"/> hash.</param>
+    /// <param name="obj1">The object to format.</param>
+    /// <param name="obj2">The object to format2.</param>
+    /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
+    public static string Get(ulong hash, object obj1, object obj2) => string.Format(GetInternal(hash, ErrorMessage), obj1, obj2);
+
+    /// <summary>
+    /// Get(hash) + <see cref="string.Format(string, object)"/>.
+    /// </summary>
+    /// <param name="hash"><see cref="ulong"/> hash.</param>
+    /// <param name="obj1">The object to format.</param>
+    /// <param name="obj2">The object to format2.</param>
+    /// <param name="obj3">The object to format3.</param>
+    /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
+    public static string Get(ulong hash, object obj1, object obj2, object obj3) => string.Format(GetInternal(hash, ErrorMessage), obj1, obj2, obj3);
+
+    /// <summary>
     /// Get a string that matches the identifier.<br/>
     /// Current culture -> Default culture -> <see cref="string.Empty"/>, if not found.
     /// </summary>
