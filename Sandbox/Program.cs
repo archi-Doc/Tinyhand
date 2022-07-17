@@ -197,12 +197,44 @@ partial struct GenericsImplementedStruct : ConsoleApp1.IItzPayload
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial record struct IntPayload2(int Data2) : ConsoleApp1.IItzPayload;
 
+[TinyhandObject]
+public partial class MaxLengthClass
+{
+    [Key(0)]
+    [MaxLength(3)]
+    public int X { get; set; }
+
+    [Key(1)]
+    [MaxLength(3)]
+    public string Name { get; set; } = default!;
+
+    [Key(2)]
+    [MaxLength(3)]
+    public int[] Ids { get; set; } = default!;
+
+    [Key(3)]
+    [MaxLength(3, 4)]
+    public string[] StringArray { get; set; } = default!;
+
+    [Key(4)]
+    [MaxLength(4, 3)]
+    public List<string> StringList { get; set; } = default!;
+}
+
 class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var tc = new MaxLengthClass();
+        tc.X = 1;
+        tc.Name = "Fuga";
+        tc.Ids = new int[] { 1, 2, 3, 4, };
+        tc.StringArray = new[] { "11", "2222", "333333", "44444444", "5", };
+        tc.StringList = new(tc.StringArray);
+        var tc2 = TinyhandSerializer.Deserialize<MaxLengthClass>(TinyhandSerializer.Serialize(tc));
 
         var asm = System.Reflection.Assembly.GetExecutingAssembly();
         HashedString.LoadAssembly(null, asm, "strings.tinyhand");

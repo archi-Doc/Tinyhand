@@ -20,7 +20,7 @@ public partial class MaxLengthClass
 
     [Key(1)]
     [MaxLength(3)]
-    public string Name { get; set; }
+    public string Name { get; set; } = default!;
 
     [Key(2)]
     [MaxLength(3)]
@@ -44,7 +44,7 @@ public class MaxLengthTest
         tc.X = 1;
         tc.Name = "Fuga";
         tc.Ids = new int[] { 1, 2, 3, 4, };
-        tc.StringArray = new [] { "11", "2222", "333333", "44444444", "5", };
+        tc.StringArray = new[] { "11", "2222", "333333", "44444444", "5", };
         tc.StringList = new(tc.StringArray);
 
         var tc2 = new MaxLengthClass();

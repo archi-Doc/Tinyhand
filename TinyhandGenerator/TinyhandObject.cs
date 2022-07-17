@@ -85,6 +85,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public ReuseAttributeMock? ReuseAttribute { get; private set; }
 
+    public MaxLengthAttributeMock? MaxLengthAttribute { get; private set; }
+
     public TinyhandObject? MinimumConstructor { get; private set; }
 
     public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members is not static && property or field
@@ -355,57 +357,83 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }*/
 
-        // KeyAttribute
-        if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAttributeMock.FullName) is { } keyAttribute)
+        foreach (var x in this.AllAttributes)
         {
-            this.KeyVisceralAttribute = keyAttribute;
-            try
-            {
-                this.KeyAttribute = KeyAttributeMock.FromArray(keyAttribute.ConstructorArguments, keyAttribute.NamedArguments);
+            if (x.FullName == KeyAttributeMock.FullName)
+            {// KeyAttribute
+                this.KeyVisceralAttribute = x;
+                try
+                {
+                    this.KeyAttribute = KeyAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                }
+                catch (ArgumentNullException)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_KeyAttributeError, x.Location);
+                }
             }
-            catch (ArgumentNullException)
-            {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_KeyAttributeError, keyAttribute.Location);
+            else if (x.FullName == KeyAsNameAttributeMock.FullName)
+            {// KeyAsNameAttribute
+                if (this.KeyAttribute != null)
+                {// KeyAttribute and KeyAsNameAttribute are exclusive.
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_KeyAsNameExclusive, x.Location);
+                }
+                else
+                {// KeyAsNameAttribute to KeyAttribute.
+                    this.KeyVisceralAttribute = x;
+                    this.KeyAttribute = new KeyAttributeMock(this.SimpleName);
+                }
             }
-        }
-
-        // KeyAsNameAttribute
-        if (this.AllAttributes.FirstOrDefault(x => x.FullName == KeyAsNameAttributeMock.FullName) is { } keyAsNameAttribute)
-        {
-            if (this.KeyAttribute != null)
-            {// KeyAttribute and KeyAsNameAttribute are exclusive.
-                this.Body.ReportDiagnostic(TinyhandBody.Warning_KeyAsNameExclusive, keyAsNameAttribute.Location);
+            else if (x.FullName == IgnoreMemberAttributeMock.FullName)
+            {// IgnoreMemberAttribute
+                try
+                {
+                    this.IgnoreMemberAttribute = IgnoreMemberAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                }
+                catch (InvalidCastException)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                }
             }
-            else
-            {// KeyAsNameAttribute to KeyAttribute.
-                this.KeyVisceralAttribute = keyAsNameAttribute;
-                this.KeyAttribute = new KeyAttributeMock(this.SimpleName);
+            else if (x.FullName == ReconstructAttributeMock.FullName)
+            {// ReconstructAttribute
+                try
+                {
+                    this.ReconstructAttribute = ReconstructAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                }
+                catch (InvalidCastException)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                }
             }
-        }
-
-        // IgnoreMemberAttribute
-        if (this.AllAttributes.FirstOrDefault(x => x.FullName == IgnoreMemberAttributeMock.FullName) is { } ignoreMemberAttribute)
-        {
-            try
-            {
-                this.IgnoreMemberAttribute = IgnoreMemberAttributeMock.FromArray(ignoreMemberAttribute.ConstructorArguments, ignoreMemberAttribute.NamedArguments);
+            else if (x.FullName == ReuseAttributeMock.FullName)
+            {// ReuseAttribute
+                try
+                {
+                    this.ReuseAttribute = ReuseAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                }
+                catch (InvalidCastException)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                }
             }
-            catch (InvalidCastException)
-            {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, ignoreMemberAttribute.Location);
+            else if (x.FullName == typeof(DefaultValueAttribute).FullName)
+            {// DefaultValueAttribute
+                this.DefaultValueLocation = x.Location;
+                if (x.ConstructorArguments.Length > 0)
+                {
+                    this.DefaultValue = x.ConstructorArguments[0];
+                }
             }
-        }
-
-        // ReconstructAttribute
-        if (this.AllAttributes.FirstOrDefault(x => x.FullName == ReconstructAttributeMock.FullName) is { } reconstructAttribute)
-        {
-            try
-            {
-                this.ReconstructAttribute = ReconstructAttributeMock.FromArray(reconstructAttribute.ConstructorArguments, reconstructAttribute.NamedArguments);
-            }
-            catch (InvalidCastException)
-            {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, reconstructAttribute.Location);
+            else if (x.FullName == MaxLengthAttributeMock.FullName)
+            {// MaxLengthAttribute
+                try
+                {
+                    this.MaxLengthAttribute = MaxLengthAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                }
+                catch (InvalidCastException)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                }
             }
         }
 
@@ -418,29 +446,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             else
             {
                 this.ReconstructState = ReconstructState.Dont;
-            }
-        }
-
-        // ReuseAttribute
-        if (this.AllAttributes.FirstOrDefault(x => x.FullName == ReuseAttributeMock.FullName) is { } reuseAttribute)
-        {
-            try
-            {
-                this.ReuseAttribute = ReuseAttributeMock.FromArray(reuseAttribute.ConstructorArguments, reuseAttribute.NamedArguments);
-            }
-            catch (InvalidCastException)
-            {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, reuseAttribute.Location);
-            }
-        }
-
-        // DefaultValueAttribute
-        if (this.AllAttributes.FirstOrDefault(x => x.FullName == typeof(DefaultValueAttribute).FullName) is { } defaultValueAttribute)
-        {
-            this.DefaultValueLocation = defaultValueAttribute.Location;
-            if (defaultValueAttribute.ConstructorArguments?.Length > 0)
-            {
-                this.DefaultValue = defaultValueAttribute.ConstructorArguments[0];
             }
         }
 
@@ -1174,6 +1179,27 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 {
                     this.RequiresSetter = true;
                 }
+            }
+        }
+
+        // MaxLength
+        if (this.MaxLengthAttribute != null)
+        {
+            var typeObject = this.TypeObject;
+            if (typeObject.FullName == "string")
+            {// string
+            }
+            else if (typeObject.Array_Rank == 1)
+            {// T[]
+            }
+            else if (typeObject.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
+                typeObject.OriginalDefinition is { } baseObject &&
+                baseObject.FullName == "System.Collections.Generic.List<T>" &&
+                typeObject.Generics_Arguments.Length == 1)
+            {// List<T>
+            }
+            else
+            {
             }
         }
     }
@@ -2332,6 +2358,10 @@ ModuleInitializerClass_Added:
                 else if (coder != null)
                 {
                     coder.CodeDeserializer(ssb, info, true);
+                    if (x.MaxLengthAttribute != null)
+                    {
+                        this.GenerateMaxLength(ssb, info, x.TypeObject!, x.MaxLengthAttribute);
+                    }
                 }
                 else
                 {
@@ -2441,6 +2471,10 @@ ModuleInitializerClass_Added:
                 else if (coder != null)
                 {
                     coder.CodeDeserializer(ssb, info, true);
+                    if (x.MaxLengthAttribute != null)
+                    {
+                        this.GenerateMaxLength(ssb, info, x.TypeObject!, x.MaxLengthAttribute);
+                    }
                 }
                 else
                 {
@@ -2933,6 +2967,38 @@ ModuleInitializerClass_Added:
 
         v2.Dispose();
         v1?.Dispose();
+    }
+
+    internal void GenerateMaxLength(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject typeObject, MaxLengthAttributeMock maxLengthAttribute)
+    {
+        if (typeObject.FullName == "string")
+        {// string
+            if (maxLengthAttribute.MaxLength >= 0)
+            {
+                using (var loop = ssb.ScopeBrace($"if ({ssb.FullObject}.Length > {maxLengthAttribute.MaxLength})"))
+                {// text = text.Substring(0, MaxLength);
+                    ssb.AppendLine($"{ssb.FullObject} = {ssb.FullObject}.Substring(0, {maxLengthAttribute.MaxLength});");
+                }
+            }
+        }
+        else if (typeObject.Array_Rank == 1)
+        {// T[]
+            if (typeObject.Array_Element?.FullName == "string" &&
+                maxLengthAttribute.MaxChildLength >= 0)
+            {// string[]
+
+            }
+        }
+        else if (typeObject.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
+            typeObject.OriginalDefinition is { } baseObject &&
+            baseObject.FullName == "System.Collections.Generic.List<T>" &&
+            typeObject.Generics_Arguments.Length == 1)
+        {// List<T>
+            if (typeObject.Generics_Arguments[0].FullName == "string" &&
+                maxLengthAttribute.MaxChildLength >= 0)
+            {// List<string>
+            }
+        }
     }
 
     internal void GenerateSerializerIntKey(ScopingStringBuilder ssb, GeneratorInformation info)
