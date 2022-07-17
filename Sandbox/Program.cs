@@ -201,7 +201,7 @@ public partial record struct IntPayload2(int Data2) : ConsoleApp1.IItzPayload;
 public partial class MaxLengthClass
 {
     [Key(0)]
-    [MaxLength(3)]
+    // [MaxLength(3)]
     public int X { get; set; }
 
     [Key(1)]

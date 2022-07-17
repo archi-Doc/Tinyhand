@@ -15,7 +15,7 @@ namespace Tinyhand.Tests;
 public partial class MaxLengthClass
 {
     [Key(0)]
-    [MaxLength(3)]
+    // [MaxLength(3)]
     public int X { get; set; }
 
     [Key(1)]
@@ -32,7 +32,26 @@ public partial class MaxLengthClass
 
     [Key(4)]
     [MaxLength(4, 3)]
-    public List<string> StringList { get; set; } = default!;
+    public List<string> StringList { get; init; } = default!;
+
+    [Key(5)]
+    public string Name2
+    {
+        get => this.name2;
+        set
+        {
+            if (value.Length > 3)
+            {
+                this.name2 = value.Substring(0, 3);
+            }
+            else
+            {
+                this.name2 = value;
+            }
+        }
+    }
+
+    private string name2 = string.Empty;
 }
 
 public class MaxLengthTest
@@ -40,19 +59,25 @@ public class MaxLengthTest
     [Fact]
     public void Test1()
     {
-        var tc = new MaxLengthClass();
-        tc.X = 1;
-        tc.Name = "Fuga";
-        tc.Ids = new int[] { 1, 2, 3, 4, };
-        tc.StringArray = new[] { "11", "2222", "333333", "44444444", "5", };
-        tc.StringList = new(tc.StringArray);
+        var tc = new MaxLengthClass()
+        {
+            X = 1,
+            Name = "Fuga",
+            Ids = new int[] { 1, 2, 3, 4, },
+            StringArray = new[] { "11", "2222", "333333", "44444444", "5", },
+            StringList = new(new[] { "11", "2222", "333333", "44444444", "5", }),
+            Name2 = "Hoge",
+        };
 
-        var tc2 = new MaxLengthClass();
-        tc2.X = 1;
-        tc2.Name = "Fug";
-        tc2.Ids = new int[] { 1, 2, 3, };
-        tc2.StringArray = new[] { "11", "2222", "3333", };
-        tc2.StringList = new(new[] { "11", "222", "333", "444", });
+        var tc2 = new MaxLengthClass()
+        {
+            X = 1,
+            Name = "Fug",
+            Ids = new int[] { 1, 2, 3, },
+            StringArray = new[] { "11", "2222", "3333", },
+            StringList = new(new[] { "11", "222", "333", "444", }),
+            Name2 = "Hog",
+        };
 
         var b = TinyhandSerializer.Serialize(tc);
         var tc3 = TinyhandSerializer.Deserialize<MaxLengthClass>(b);

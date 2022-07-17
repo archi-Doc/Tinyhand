@@ -155,7 +155,8 @@ public sealed class ReuseAttribute : Attribute
 }
 
 /// <summary>
-/// Sets the maximum length of the member (<see cref="string"/>, <see cref="Array"/>, <see cref="List{T}"/>).
+/// Sets the maximum length of the member (<see cref="string"/>, <see cref="Array"/>, <see cref="List{T}"/>).<br/>
+/// Valid only when <b>deserializing</b>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
 public sealed class MaxLengthAttribute : Attribute

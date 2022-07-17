@@ -202,6 +202,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG044", title: "Invalid identifier", messageFormat: "'{0}' is not valid identifier ({1})",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Warning_MaxLengthAttribute = new DiagnosticDescriptor(
+        id: "TG045", title: "Max length", messageFormat: "MaxLengthAttribute is valid only for string, array, List<T>",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context)
         : base(context)
     {
