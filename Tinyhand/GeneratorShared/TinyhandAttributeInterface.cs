@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using Tinyhand.IO;
 
 namespace Tinyhand;
@@ -150,6 +151,23 @@ public sealed class ReuseAttribute : Attribute
     public ReuseAttribute(bool reuseInstance)
     {
         this.ReuseInstance = reuseInstance;
+    }
+}
+
+/// <summary>
+/// Sets the maximum length of the member (<see cref="string"/>, <see cref="Array"/>, <see cref="List{T}"/>).
+/// </summary>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+public sealed class MaxLengthAttribute : Attribute
+{
+    public int MaxLength { get; private set; } = -1;
+
+    public int MaxChildLength { get; private set; } = -1;
+
+    public MaxLengthAttribute(int maxLength, int maxChildLength = -1)
+    {
+        this.MaxLength = maxLength;
+        this.MaxChildLength = maxChildLength;
     }
 }
 

@@ -290,6 +290,41 @@ public class ReuseAttributeMock
     }
 }
 
+public class MaxLengthAttributeMock
+{
+    public static readonly string SimpleName = "MaxLength";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+
+    public int MaxLength { get; private set; } = -1;
+
+    public int MaxChildLength { get; private set; } = -1;
+
+    public MaxLengthAttributeMock()
+    {
+    }
+
+    public static MaxLengthAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    {
+        var attribute = new MaxLengthAttributeMock();
+
+        object? val;
+        val = AttributeHelper.GetValue(0, nameof(MaxLength), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.MaxLength = (int)val;
+        }
+
+        val = AttributeHelper.GetValue(1, nameof(MaxChildLength), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.MaxChildLength = (int)val;
+        }
+
+        return attribute;
+    }
+}
+
 public sealed class TinyhandGeneratorOptionAttributeMock
 {
     public static readonly string SimpleName = "TinyhandGeneratorOption";
