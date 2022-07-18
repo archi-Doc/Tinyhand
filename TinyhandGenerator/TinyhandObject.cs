@@ -1182,6 +1182,20 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             }
         }
 
+        // Add property
+        if (this.KeyAttribute != null && !string.IsNullOrEmpty(this.KeyAttribute.AddProperty))
+        {
+            if (this.Kind != VisceralObjectKind.Field)
+            {
+                this.Body.ReportDiagnostic(TinyhandBody.Error_AddProperty, this.KeyVisceralAttribute?.Location);
+            }
+
+            if (!parent.Identifier.Add(this.KeyAttribute.AddProperty))
+            {
+                this.Body.ReportDiagnostic(TinyhandBody.Error_DuplicateKeyword, this.KeyVisceralAttribute?.Location, parent.SimpleName, this.KeyAttribute.AddProperty);
+            }
+        }
+
         // MaxLength
         if (this.MaxLengthAttribute != null)
         {

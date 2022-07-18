@@ -96,6 +96,11 @@ public class KeyAttribute : Attribute
     /// </summary>
     public bool Marker { get; set; }
 
+    /// <summary>
+    /// Gets or sets a name of a property that will be created from the field.
+    /// </summary>
+    public string AddProperty { get; set; } = string.Empty;
+
     public KeyAttribute(int x)
     {
         this.IntKey = x;

@@ -158,6 +158,8 @@ public class KeyAttributeMock
 
     public bool Marker { get; private set; }
 
+    public string AddProperty { get; set; } = string.Empty;
+
     public KeyAttributeMock(int x)
     {
         this.IntKey = x;
@@ -194,6 +196,12 @@ public class KeyAttributeMock
         if (v != null)
         {
             attribute.Marker = (bool)v;
+        }
+
+        v = AttributeHelper.GetValue(-1, nameof(AddProperty), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.AddProperty = (string)v;
         }
 
         return attribute;
