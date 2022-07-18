@@ -1,11 +1,28 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using Tinyhand.IO;
 
 namespace Tinyhand;
 
 public delegate void ByRefAction<T1, T2>(in T1 arg1, T2 arg2); // For struct setter.
+
+/// <summary>
+/// Specifies the accessibility of the generated property.
+/// </summary>
+public enum PropertyAccessibility
+{
+    /// <summary>
+    /// [Default] Generated properties have public getter and setter.
+    /// </summary>
+    PublicSetter,
+
+    /// <summary>
+    /// Generated properties have public getter and protected setter.
+    /// </summary>
+    ProtectedSetter,
+}
 
 /// <summary>
 /// Enables serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
@@ -95,6 +112,17 @@ public class KeyAttribute : Attribute
     /// </summary>
     public bool Marker { get; set; }
 
+    /// <summary>
+    /// Gets or sets a name of a property that will be created from the field.<br/>
+    /// <b>Valid for fields only.</b>
+    /// </summary>
+    public string PropertyName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets an accessibility of a property that will be created from the field.<br/>
+    /// </summary>
+    public PropertyAccessibility PropertyAccessibility { get; set; }
+
     public KeyAttribute(int x)
     {
         this.IntKey = x;
@@ -150,6 +178,24 @@ public sealed class ReuseAttribute : Attribute
     public ReuseAttribute(bool reuseInstance)
     {
         this.ReuseInstance = reuseInstance;
+    }
+}
+
+/// <summary>
+/// Sets the maximum length of the member (<see cref="string"/>, <see cref="Array"/>, <see cref="List{T}"/>).<br/>
+/// Valid only when <b>deserializing</b>.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+public sealed class MaxLengthAttribute : Attribute
+{
+    public int MaxLength { get; private set; } = -1;
+
+    public int MaxChildLength { get; private set; } = -1;
+
+    public MaxLengthAttribute(int maxLength, int maxChildLength = -1)
+    {
+        this.MaxLength = maxLength;
+        this.MaxChildLength = maxChildLength;
     }
 }
 

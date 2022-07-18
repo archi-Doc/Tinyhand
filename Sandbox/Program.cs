@@ -197,12 +197,60 @@ partial struct GenericsImplementedStruct : ConsoleApp1.IItzPayload
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial record struct IntPayload2(int Data2) : ConsoleApp1.IItzPayload;
 
+[TinyhandObject]
+public partial class MaxLengthClass
+{
+    [Key(0, PropertyName = "X")]
+    // [MaxLength(3)]
+    private int _x;
+
+    [Key(1, PropertyName = "Name")]
+    [MaxLength(3)]
+    private string _name = default!;
+
+    [Key(2, PropertyName = "Ids")]
+    [MaxLength(3)]
+    private int[] _ids = default!;
+
+    [Key(3, PropertyName = "StringArray")]
+    [MaxLength(3, 4)]
+    private string[] _stringArray = default!;
+
+    [Key(4, PropertyName = "StringList")]
+    [MaxLength(4, 3)]
+    private List<string> _stringList = default!;
+}
+
+[TinyhandObject]
+public partial class MaxLengthClass2 : MaxLengthClass
+{
+    [Key(5, PropertyName = "Byte")]
+    [MaxLength(4)]
+    private byte[] _byte = default!;
+
+    [Key(6, PropertyName = "ByteArray")]
+    [MaxLength(2, 3)]
+    private byte[][] _byteArray = default!;
+
+    [Key(7, PropertyName = "ByteList", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
+    [MaxLength(3, 2)]
+    private List<byte[]> _byteList = default!;
+}
+
 class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var tc = new MaxLengthClass();
+        tc.X = 1;
+        tc.Name = "Fuga";
+        tc.Ids = new int[] { 1, 2, 3, 4, };
+        tc.StringArray = new[] { "11", "2222", "333333", "44444444", "5", };
+        tc.StringList = new(tc.StringArray);
+        var tc2 = TinyhandSerializer.Deserialize<MaxLengthClass>(TinyhandSerializer.Serialize(tc));
 
         var asm = System.Reflection.Assembly.GetExecutingAssembly();
         HashedString.LoadAssembly(null, asm, "strings.tinyhand");

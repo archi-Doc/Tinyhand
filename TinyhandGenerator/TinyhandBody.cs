@@ -202,6 +202,22 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG044", title: "Invalid identifier", messageFormat: "'{0}' is not valid identifier ({1})",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Warning_MaxLengthAttribute = new DiagnosticDescriptor(
+        id: "TG045", title: "Max length", messageFormat: "MaxLengthAttribute is valid only for string, array, List<T>",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_AddProperty = new DiagnosticDescriptor(
+        id: "TG046", title: "Add property", messageFormat: "You can only add properties to fields",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_DuplicateKeyword = new DiagnosticDescriptor(
+        id: "TG047", title: "Duplicate keyword", messageFormat: "The type '{0}' already contains a definition for '{1}'",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Warning_MaxLengthAttribute2 = new DiagnosticDescriptor(
+        id: "TG048", title: "Max length2", messageFormat: "To enable MaxLengthAttribute, AddProperty must be specified",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context)
         : base(context)
     {

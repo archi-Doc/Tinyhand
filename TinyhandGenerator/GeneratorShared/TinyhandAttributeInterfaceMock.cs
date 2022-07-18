@@ -5,7 +5,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
+#pragma warning disable SA1602
+
 namespace Tinyhand.Generator;
+
+public enum PropertyAccessibility
+{
+    PublicSetter,
+    ProtectedSetter,
+}
 
 public static class AttributeHelper
 {
@@ -158,6 +166,10 @@ public class KeyAttributeMock
 
     public bool Marker { get; private set; }
 
+    public string PropertyName { get; set; } = string.Empty;
+
+    public PropertyAccessibility PropertyAccessibility { get; set; } = PropertyAccessibility.PublicSetter;
+
     public KeyAttributeMock(int x)
     {
         this.IntKey = x;
@@ -194,6 +206,18 @@ public class KeyAttributeMock
         if (v != null)
         {
             attribute.Marker = (bool)v;
+        }
+
+        v = AttributeHelper.GetValue(-1, nameof(PropertyName), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.PropertyName = (string)v;
+        }
+
+        v = AttributeHelper.GetValue(-1, nameof(PropertyAccessibility), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.PropertyAccessibility = (PropertyAccessibility)v;
         }
 
         return attribute;
@@ -284,6 +308,41 @@ public class ReuseAttributeMock
         if (val != null)
         {
             attribute.ReuseInstance = (bool)val;
+        }
+
+        return attribute;
+    }
+}
+
+public class MaxLengthAttributeMock
+{
+    public static readonly string SimpleName = "MaxLength";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+
+    public int MaxLength { get; private set; } = -1;
+
+    public int MaxChildLength { get; private set; } = -1;
+
+    public MaxLengthAttributeMock()
+    {
+    }
+
+    public static MaxLengthAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    {
+        var attribute = new MaxLengthAttributeMock();
+
+        object? val;
+        val = AttributeHelper.GetValue(0, nameof(MaxLength), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.MaxLength = (int)val;
+        }
+
+        val = AttributeHelper.GetValue(1, nameof(MaxChildLength), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.MaxChildLength = (int)val;
         }
 
         return attribute;
