@@ -214,6 +214,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG047", title: "Duplicate keyword", messageFormat: "The type '{0}' already contains a definition for '{1}'",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Warning_MaxLengthAttribute2 = new DiagnosticDescriptor(
+        id: "TG048", title: "Max length2", messageFormat: "To enable MaxLengthAttribute, AddProperty must be specified",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context)
         : base(context)
     {

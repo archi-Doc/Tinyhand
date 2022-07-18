@@ -200,25 +200,25 @@ public partial record struct IntPayload2(int Data2) : ConsoleApp1.IItzPayload;
 [TinyhandObject]
 public partial class MaxLengthClass
 {
-    [Key(0, AddProperty = "X")]
+    [Key(0, PropertyName = "X")]
     // [MaxLength(3)]
-    private int x;
+    private int _x;
 
-    [Key(1)]
+    [Key(1, PropertyName = "Name")]
     [MaxLength(3)]
-    public string Name { get; set; } = default!;
+    private string _name = default!;
 
-    [Key(2)]
+    [Key(2, PropertyName = "Ids")]
     [MaxLength(3)]
-    public int[] Ids { get; set; } = default!;
+    private int[] _ids = default!;
 
-    [Key(3)]
+    [Key(3, PropertyName = "StringArray")]
     [MaxLength(3, 4)]
-    public string[] StringArray { get; set; } = default!;
+    private string[] _stringArray = default!;
 
-    [Key(4)]
+    [Key(4, PropertyName = "StringList")]
     [MaxLength(4, 3)]
-    public List<string> StringList { get; set; } = default!;
+    private List<string> _stringList = default!;
 }
 
 class Program

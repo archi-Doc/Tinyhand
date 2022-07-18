@@ -282,9 +282,9 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     {
         get
         {
-            if (!string.IsNullOrEmpty(this.KeyAttribute?.AddProperty))
+            if (!string.IsNullOrEmpty(this.KeyAttribute?.PropertyName))
             {
-                return this.KeyAttribute!.AddProperty;
+                return this.KeyAttribute!.PropertyName;
             }
             else
             {
@@ -1198,16 +1198,16 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         }
 
         // Add property
-        if (this.KeyAttribute != null && !string.IsNullOrEmpty(this.KeyAttribute.AddProperty))
+        if (this.KeyAttribute != null && !string.IsNullOrEmpty(this.KeyAttribute.PropertyName))
         {
             if (this.Kind != VisceralObjectKind.Field)
             {
                 this.Body.ReportDiagnostic(TinyhandBody.Error_AddProperty, this.KeyVisceralAttribute?.Location);
             }
 
-            if (!parent.Identifier.Add(this.KeyAttribute.AddProperty))
+            if (!parent.Identifier.Add(this.KeyAttribute.PropertyName))
             {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_DuplicateKeyword, this.KeyVisceralAttribute?.Location, parent.SimpleName, this.KeyAttribute.AddProperty);
+                this.Body.ReportDiagnostic(TinyhandBody.Error_DuplicateKeyword, this.KeyVisceralAttribute?.Location, parent.SimpleName, this.KeyAttribute.PropertyName);
             }
         }
 
@@ -1230,6 +1230,11 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             else
             {
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute, this.Location);
+            }
+
+            if (string.IsNullOrEmpty(this.KeyAttribute?.PropertyName))
+            {
+                this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute2, this.Location);
             }
         }
     }
@@ -2182,17 +2187,95 @@ ModuleInitializerClass_Added:
 
     internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(a => !string.IsNullOrEmpty(a.KeyAttribute?.AddProperty)))
+        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(a => !string.IsNullOrEmpty(a.KeyAttribute?.PropertyName)))
         {// int name
             if (x.TypeObjectWithNullable is not { } withNullable)
             {
                 continue;
             }
 
-            using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} X"))
+            using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.PropertyName}"))
+            using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
             {
-                ssb.AppendLine($"get => this.{x.SimpleName};");
-                ssb.AppendLine($"set => this.{x.SimpleName} = value;");
+                ssb.AppendLine($"get => {ssb.FullObject};");
+                if (x.MaxLengthAttribute == null)
+                {
+                    ssb.AppendLine($"set => {ssb.FullObject} = value;");
+                }
+                else
+                {
+                    using (var m2 = ssb.ScopeBrace("set"))
+                    {
+                        this.GenerateAddProperty_Setter(ssb, info, x, x.MaxLengthAttribute);
+                    }
+                }
+            }
+        }
+    }
+
+    internal void GenerateAddProperty_Setter(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, MaxLengthAttributeMock attribute)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = value;");
+        if (x.TypeObject is not { } typeObject)
+        {
+            return;
+        }
+
+        if (typeObject.FullName == "string")
+        {// string
+            if (attribute.MaxLength >= 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}.Length > {attribute.MaxLength})"))
+                {// text = text.Substring(0, MaxLength);
+                    ssb.AppendLine($"{ssb.FullObject} = {ssb.FullObject}.Substring(0, {attribute.MaxLength});");
+                }
+            }
+        }
+        else if (typeObject.Array_Rank == 1)
+        {// T[]
+            if (attribute.MaxLength >= 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}.Length > {attribute.MaxLength})"))
+                {// array = array[..MaxLength];
+                    ssb.AppendLine($"{ssb.FullObject} = {ssb.FullObject}[..{attribute.MaxLength}];");
+                }
+            }
+
+            if (typeObject.Array_Element?.FullName == "string" &&
+            attribute.MaxChildLength >= 0)
+            {// string[]
+                using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < {ssb.FullObject}.Length; i++)"))
+                {
+                    using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}[i].Length > {attribute.MaxChildLength})"))
+                    {// text = text.Substring(0, MaxLength);
+                        ssb.AppendLine($"{ssb.FullObject}[i] = {ssb.FullObject}[i].Substring(0, {attribute.MaxChildLength});");
+                    }
+                }
+            }
+        }
+        else if (typeObject.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
+            typeObject.OriginalDefinition is { } baseObject &&
+            baseObject.FullName == "System.Collections.Generic.List<T>" &&
+            typeObject.Generics_Arguments.Length == 1)
+        {// List<T>
+            if (attribute.MaxLength >= 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}.Count > {attribute.MaxLength})"))
+                {// list = list.GetRange(0, MaxLength);
+                    ssb.AppendLine($"{ssb.FullObject} = {ssb.FullObject}.GetRange(0, {attribute.MaxLength});");
+                }
+            }
+
+            if (typeObject.Generics_Arguments[0].FullName == "string" &&
+                attribute.MaxChildLength >= 0)
+            {// List<string>
+                using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < {ssb.FullObject}.Count; i++)"))
+                {
+                    using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}[i].Length > {attribute.MaxChildLength})"))
+                    {// text = text.Substring(0, MaxLength);
+                        ssb.AppendLine($"{ssb.FullObject}[i] = {ssb.FullObject}[i].Substring(0, {attribute.MaxChildLength});");
+                    }
+                }
             }
         }
     }

@@ -14,44 +14,25 @@ namespace Tinyhand.Tests;
 [TinyhandObject]
 public partial class MaxLengthClass
 {
-    [Key(0)]
+    [Key(0, PropertyName = "X")]
     // [MaxLength(3)]
-    public int X { get; set; }
+    private int _x;
 
-    [Key(1)]
+    [Key(1, PropertyName = "Name")]
     [MaxLength(3)]
-    public string Name { get; set; } = default!;
+    private string _name = default!;
 
-    [Key(2)]
+    [Key(2, PropertyName = "Ids")]
     [MaxLength(3)]
-    public int[] Ids { get; set; } = default!;
+    private int[] _ids = default!;
 
-    [Key(3)]
+    [Key(3, PropertyName = "StringArray")]
     [MaxLength(3, 4)]
-    public string[] StringArray { get; set; } = default!;
+    private string[] _stringArray = default!;
 
-    [Key(4)]
+    [Key(4, PropertyName = "StringList")]
     [MaxLength(4, 3)]
-    public List<string> StringList { get; init; } = default!;
-
-    [Key(5)]
-    public string Name2
-    {
-        get => this.name2;
-        set
-        {
-            if (value.Length > 3)
-            {
-                this.name2 = value.Substring(0, 3);
-            }
-            else
-            {
-                this.name2 = value;
-            }
-        }
-    }
-
-    private string name2 = string.Empty;
+    private List<string> _stringList = default!;
 }
 
 public class MaxLengthTest
@@ -66,7 +47,6 @@ public class MaxLengthTest
             Ids = new int[] { 1, 2, 3, 4, },
             StringArray = new[] { "11", "2222", "333333", "44444444", "5", },
             StringList = new(new[] { "11", "2222", "333333", "44444444", "5", }),
-            Name2 = "Hoge",
         };
 
         var tc2 = new MaxLengthClass()
@@ -76,7 +56,6 @@ public class MaxLengthTest
             Ids = new int[] { 1, 2, 3, },
             StringArray = new[] { "11", "2222", "3333", },
             StringList = new(new[] { "11", "222", "333", "444", }),
-            Name2 = "Hog",
         };
 
         var b = TinyhandSerializer.Serialize(tc);
