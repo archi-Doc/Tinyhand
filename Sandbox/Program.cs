@@ -232,7 +232,7 @@ public partial class MaxLengthClass2 : MaxLengthClass
     [MaxLength(2, 3)]
     private byte[][] _byteArray = default!;
 
-    [Key(7, PropertyName = "ByteList")]
+    [Key(7, PropertyName = "ByteList", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
     [MaxLength(3, 2)]
     private List<byte[]> _byteList = default!;
 }

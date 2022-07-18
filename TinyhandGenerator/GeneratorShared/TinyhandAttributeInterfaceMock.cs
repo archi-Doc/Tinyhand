@@ -5,7 +5,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
+#pragma warning disable SA1602
+
 namespace Tinyhand.Generator;
+
+public enum PropertyAccessibility
+{
+    PublicSetter,
+    ProtectedSetter,
+}
 
 public static class AttributeHelper
 {
@@ -160,6 +168,8 @@ public class KeyAttributeMock
 
     public string PropertyName { get; set; } = string.Empty;
 
+    public PropertyAccessibility PropertyAccessibility { get; set; } = PropertyAccessibility.PublicSetter;
+
     public KeyAttributeMock(int x)
     {
         this.IntKey = x;
@@ -202,6 +212,12 @@ public class KeyAttributeMock
         if (v != null)
         {
             attribute.PropertyName = (string)v;
+        }
+
+        v = AttributeHelper.GetValue(-1, nameof(PropertyAccessibility), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.PropertyAccessibility = (PropertyAccessibility)v;
         }
 
         return attribute;

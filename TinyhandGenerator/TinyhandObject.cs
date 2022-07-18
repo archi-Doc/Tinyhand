@@ -2198,17 +2198,23 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
+            string setterAccessibility = string.Empty;
+            if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
+            {
+                setterAccessibility = "protected ";
+            }
+
             using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.PropertyName}"))
             using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
             {
                 ssb.AppendLine($"get => {ssb.FullObject};");
                 if (x.MaxLengthAttribute == null)
                 {
-                    ssb.AppendLine($"set => {ssb.FullObject} = value;");
+                    ssb.AppendLine($"{setterAccessibility}set => {ssb.FullObject} = value;");
                 }
                 else
                 {
-                    using (var m2 = ssb.ScopeBrace("set"))
+                    using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
                     {
                         this.GenerateAddProperty_Setter(ssb, info, x, x.MaxLengthAttribute);
                     }
