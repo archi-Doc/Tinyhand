@@ -1209,6 +1209,9 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             {
                 this.Body.ReportDiagnostic(TinyhandBody.Error_DuplicateKeyword, this.KeyVisceralAttribute?.Location, parent.SimpleName, this.KeyAttribute.PropertyName);
             }
+
+            this.RequiresGetter = false;
+            this.RequiresSetter = false;
         }
 
         // MaxLength
@@ -2175,7 +2178,7 @@ ModuleInitializerClass_Added:
                 }
                 else
                 {
-                    sourceName = sourceObject + "." + x.SimpleName;
+                    sourceName = sourceObject + "." + x.SimpleNameOrAddedProperty;
                 }
 
                 this.GenerateCloneCore(ssb, info, x, sourceName);
@@ -2188,8 +2191,9 @@ ModuleInitializerClass_Added:
     internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(a => !string.IsNullOrEmpty(a.KeyAttribute?.PropertyName)))
-        {// int name
-            if (x.TypeObjectWithNullable is not { } withNullable)
+        {
+            if (x.TypeObjectWithNullable is not { } withNullable ||
+                x.ContainingObject != this)
             {
                 continue;
             }
@@ -2241,14 +2245,26 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            if (typeObject.Array_Element?.FullName == "string" &&
-            attribute.MaxChildLength >= 0)
-            {// string[]
-                using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < {ssb.FullObject}.Length; i++)"))
-                {
-                    using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}[i].Length > {attribute.MaxChildLength})"))
-                    {// text = text.Substring(0, MaxLength);
-                        ssb.AppendLine($"{ssb.FullObject}[i] = {ssb.FullObject}[i].Substring(0, {attribute.MaxChildLength});");
+            if (attribute.MaxChildLength >= 0)
+            {
+                if (typeObject.Array_Element?.FullName == "string")
+                {// string[]
+                    using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < {ssb.FullObject}.Length; i++)"))
+                    {
+                        using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}[i].Length > {attribute.MaxChildLength})"))
+                        {// text = text.Substring(0, MaxLength);
+                            ssb.AppendLine($"{ssb.FullObject}[i] = {ssb.FullObject}[i].Substring(0, {attribute.MaxChildLength});");
+                        }
+                    }
+                }
+                else if (typeObject.Array_Element?.Array_Rank == 1)
+                {// T[][]
+                    using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < {ssb.FullObject}.Length; i++)"))
+                    {
+                        using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}[i].Length > {attribute.MaxChildLength})"))
+                        {
+                            ssb.AppendLine($"{ssb.FullObject}[i] = {ssb.FullObject}[i][..{attribute.MaxChildLength}];");
+                        }
                     }
                 }
             }
@@ -2266,14 +2282,26 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            if (typeObject.Generics_Arguments[0].FullName == "string" &&
-                attribute.MaxChildLength >= 0)
-            {// List<string>
-                using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < {ssb.FullObject}.Count; i++)"))
-                {
-                    using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}[i].Length > {attribute.MaxChildLength})"))
-                    {// text = text.Substring(0, MaxLength);
-                        ssb.AppendLine($"{ssb.FullObject}[i] = {ssb.FullObject}[i].Substring(0, {attribute.MaxChildLength});");
+            if (attribute.MaxChildLength >= 0)
+            {
+                if (typeObject.Generics_Arguments[0].FullName == "string")
+                {// List<string>
+                    using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < {ssb.FullObject}.Count; i++)"))
+                    {
+                        using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}[i].Length > {attribute.MaxChildLength})"))
+                        {// text = text.Substring(0, MaxLength);
+                            ssb.AppendLine($"{ssb.FullObject}[i] = {ssb.FullObject}[i].Substring(0, {attribute.MaxChildLength});");
+                        }
+                    }
+                }
+                else if (typeObject.Generics_Arguments[0].Array_Rank == 1)
+                {// List<T[]>
+                    using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < {ssb.FullObject}.Count; i++)"))
+                    {
+                        using (var scopeIf = ssb.ScopeBrace($"if ({ssb.FullObject}[i].Length > {attribute.MaxChildLength})"))
+                        {
+                            ssb.AppendLine($"{ssb.FullObject}[i] = {ssb.FullObject}[i][..{attribute.MaxChildLength}];");
+                        }
                     }
                 }
             }

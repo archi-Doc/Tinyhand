@@ -221,6 +221,22 @@ public partial class MaxLengthClass
     private List<string> _stringList = default!;
 }
 
+[TinyhandObject]
+public partial class MaxLengthClass2 : MaxLengthClass
+{
+    [Key(5, PropertyName = "Byte")]
+    [MaxLength(4)]
+    private byte[] _byte = default!;
+
+    [Key(6, PropertyName = "ByteArray")]
+    [MaxLength(2, 3)]
+    private byte[][] _byteArray = default!;
+
+    [Key(7, PropertyName = "ByteList")]
+    [MaxLength(3, 2)]
+    private List<byte[]> _byteList = default!;
+}
+
 class Program
 {
     static void Main(string[] args)
