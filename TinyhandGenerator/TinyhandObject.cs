@@ -2165,6 +2165,23 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(a => !string.IsNullOrEmpty(a.KeyAttribute?.AddProperty)))
+        {// int name
+            if (x.TypeObjectWithNullable is not { } withNullable)
+            {
+                continue;
+            }
+
+            using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} X"))
+            {
+                ssb.AppendLine($"get => this.{x.SimpleName};");
+                ssb.AppendLine($"set => this.{x.SimpleName} = value;");
+            }
+        }
+    }
+
     internal void GenerateMemberNotNull_Attribute(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         var firstFlag = true;
@@ -2220,6 +2237,8 @@ ModuleInitializerClass_Added:
         this.GenerateDeserialize_Method(ssb, info);
         this.GenerateReconstruct_Method(ssb, info);
         this.GenerateClone_Method(ssb, info);
+
+        this.GenerateAddProperty(ssb, info);
 
         return;
     }

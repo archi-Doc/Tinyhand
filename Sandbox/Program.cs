@@ -200,7 +200,7 @@ public partial record struct IntPayload2(int Data2) : ConsoleApp1.IItzPayload;
 [TinyhandObject]
 public partial class MaxLengthClass
 {
-    [Key(0, AddProperty = "Name")]
+    [Key(0, AddProperty = "X")]
     // [MaxLength(3)]
     private int x;
 
