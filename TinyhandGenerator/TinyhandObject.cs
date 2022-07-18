@@ -278,6 +278,21 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
     }
 
+    public string SimpleNameOrAddedProperty
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(this.KeyAttribute?.AddProperty))
+            {
+                return this.KeyAttribute!.AddProperty;
+            }
+            else
+            {
+                return this.SimpleName;
+            }
+        }
+    }
+
     public void Configure()
     {
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Configured))
@@ -2377,7 +2392,7 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? initSetter = null;
         var destObject = ssb.FullObject;
-        using (var m = ssb.ScopeObject(x.SimpleName))
+        using (var m = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             var originalName = ssb.FullObject;
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
@@ -2392,10 +2407,6 @@ ModuleInitializerClass_Added:
                 else if (coder != null)
                 {
                     coder.CodeDeserializer(ssb, info, true);
-                    if (x.MaxLengthAttribute != null)
-                    {
-                        this.GenerateMaxLength(ssb, info, x.TypeObject!, x.MaxLengthAttribute);
-                    }
                 }
                 else
                 {
@@ -2490,7 +2501,7 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? initSetter = null;
         var destObject = ssb.FullObject;
-        using (var m = ssb.ScopeObject(x.SimpleName))
+        using (var m = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             var originalName = ssb.FullObject;
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
@@ -2505,10 +2516,6 @@ ModuleInitializerClass_Added:
                 else if (coder != null)
                 {
                     coder.CodeDeserializer(ssb, info, true);
-                    if (x.MaxLengthAttribute != null)
-                    {
-                        this.GenerateMaxLength(ssb, info, x.TypeObject!, x.MaxLengthAttribute);
-                    }
                 }
                 else
                 {
@@ -2605,7 +2612,7 @@ ModuleInitializerClass_Added:
         ScopingStringBuilder.IScope? emptyBrace = null;
         var destObject = ssb.FullObject;
 
-        using (var c2 = ssb.ScopeObject(x.SimpleName))
+        using (var c2 = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
@@ -2700,7 +2707,7 @@ ModuleInitializerClass_Added:
         ScopingStringBuilder.IScope? initSetter = null;
         var destObject = ssb.FullObject;
 
-        using (var c = ssb.ScopeObject(x.SimpleName))
+        using (var c = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
@@ -2782,7 +2789,7 @@ ModuleInitializerClass_Added:
         ScopingStringBuilder.IScope? initSetter = null;
         ScopingStringBuilder.IScope? emptyBrace = null;
         var destObject = ssb.FullObject;
-        using (var d = ssb.ScopeObject(x.SimpleName))
+        using (var d = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             if (withNullable.Object.ObjectAttribute != null)
             {// TinyhandObject.
@@ -2960,7 +2967,7 @@ ModuleInitializerClass_Added:
         }
         else
         {
-            v2 = ssb.ScopeObject(x.SimpleName);
+            v2 = ssb.ScopeObject(x.SimpleNameOrAddedProperty);
         }
 
         ScopingStringBuilder.IScope? skipDefaultValueScope = null;
