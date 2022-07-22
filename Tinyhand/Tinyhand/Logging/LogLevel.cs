@@ -8,19 +8,9 @@ namespace Tinyhand.Logging;
 public enum LogLevel
 {
     /// <summary>
-    /// Critical errors causing complete failure of the application.
+    /// For debugging. Events that aren't necessarily observable from the outside.
     /// </summary>
-    Fatal,
-
-    /// <summary>
-    /// Functionality is unavailable. Application may or may not continue.
-    /// </summary>
-    Error,
-
-    /// <summary>
-    /// Unexpected events. Application will continue.
-    /// </summary>
-    Warning,
+    Debug,
 
     /// <summary>
     /// Normal behavior.
@@ -28,9 +18,19 @@ public enum LogLevel
     Information,
 
     /// <summary>
-    /// For debugging. Events that aren't necessarily observable from the outside.
+    /// Unexpected events. Application will continue.
     /// </summary>
-    Debug,
+    Warning,
+
+    /// <summary>
+    /// Functionality is unavailable. Application may or may not continue.
+    /// </summary>
+    Error,
+
+    /// <summary>
+    /// Critical errors causing complete failure of the application.
+    /// </summary>
+    Fatal,
 }
 
 public enum LogFormat
