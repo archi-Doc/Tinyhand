@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System.Threading.Tasks;
+using Tinyhand.Logging;
 using Tinyhand.Tree;
 
 #pragma warning disable SA1649 // File name should match first type name
@@ -74,21 +75,6 @@ public interface IProcessEnvironment
     string CombinePath(PathType pathType, string path);
 }
 
-public interface ILogger
-{
-    void Log(LogLevel level, Element? element, string message);
-
-    void Debug(Element? element, string message) => this.Log(LogLevel.Debug, element, message);
-
-    void Information(Element? element, string message) => this.Log(LogLevel.Information, element, message);
-
-    void Warning(Element? element, string message) => this.Log(LogLevel.Warning, element, message);
-
-    void Error(Element? element, string message) => this.Log(LogLevel.Error, element, message);
-
-    void Fatal(Element? element, string message) => this.Log(LogLevel.Fatal, element, message);
-}
-
 /// <summary>
 /// Specifies the path type.
 /// </summary>
@@ -113,48 +99,4 @@ public enum PathType
     /// The destination folder.
     /// </summary>
     DestinationFolder,
-}
-
-/// <summary>
-/// Specifies the meaning and relative importance of a log event.
-/// </summary>
-public enum LogLevel
-{
-    /// <summary>
-    /// Critical errors causing complete failure of the application.
-    /// </summary>
-    Fatal,
-
-    /// <summary>
-    /// Functionality is unavailable. Application may or may not continue.
-    /// </summary>
-    Error,
-
-    /// <summary>
-    /// Unexpected events. Application will continue.
-    /// </summary>
-    Warning,
-
-    /// <summary>
-    /// Normal behavior.
-    /// </summary>
-    Information,
-
-    /// <summary>
-    /// For debugging. Events that aren't necessarily observable from the outside.
-    /// </summary>
-    Debug,
-}
-
-public enum LogFormat
-{
-    /// <summary>
-    /// [LogLevel] Message (Line/Position)
-    /// </summary>
-    Log,
-
-    /// <summary>
-    /// Message only
-    /// </summary>
-    Message,
 }
