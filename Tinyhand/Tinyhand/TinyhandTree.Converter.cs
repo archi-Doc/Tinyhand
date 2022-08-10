@@ -65,14 +65,14 @@ public static class TinyhandTreeConverter
                 var r = reader.Clone(byteSequence.GetReadOnlySequence());
                 while (!r.End)
                 {
-                    FromReaderToUtf8(ref r, ref writer, options); // r.ConvertToUtf8(ref writer);
+                    FromReaderToUtf8(ref r, ref writer, options, true); // r.ConvertToUtf8(ref writer);
                 }
             }
             else
             {
                 while (!reader.End)
                 {
-                    FromReaderToUtf8(ref reader, ref writer, options); // reader.ConvertToUtf8(ref writer);
+                    FromReaderToUtf8(ref reader, ref writer, options, true); // reader.ConvertToUtf8(ref writer);
                 }
             }
         }
@@ -90,7 +90,7 @@ public static class TinyhandTreeConverter
     /// <param name="options">The options.</param>
     /// <param name="indents">The number of indents.</param>
     /// <param name="convertToIdentifier">Convert a string to an identifier if possible.</param>
-    public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, int indents = 0, bool convertToIdentifier = false)
+    public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, bool topLevel, int indents = 0, bool convertToIdentifier = false)
     {
         var type = reader.NextMessagePackType;
         switch (type)
@@ -177,7 +177,7 @@ public static class TinyhandTreeConverter
                     writer.WriteUInt8(TinyhandConstants.OpenBrace);
                     for (int i = 0; i < length; i++)
                     {
-                        FromReaderToUtf8(ref reader, ref writer, options);
+                        FromReaderToUtf8(ref reader, ref writer, options, false);
                         if (i != (length - 1))
                         {
                             writer.WriteUInt16(0x2C20); // ", "
@@ -192,7 +192,12 @@ public static class TinyhandTreeConverter
             case MessagePackType.Map:
                 {
                     int length = reader.ReadMapHeader();
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
+
+                    var addBrace = !topLevel || options.Compose == TinyhandComposeOption.Strict;
+                    if (addBrace)
+                    {// {
+                        writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    }
 
                     if (length > 0)
                     {
@@ -200,14 +205,14 @@ public static class TinyhandTreeConverter
                         for (int i = 0; i < length; i++)
                         {
                             if (options.Compose != TinyhandComposeOption.Simple)
-                            {
+                            {// Next line + indent
                                 writer.WriteCRLF();
                                 writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                             }
 
-                            FromReaderToUtf8(ref reader, ref writer, options, indents, options.Compose != TinyhandComposeOption.Simple);
+                            FromReaderToUtf8(ref reader, ref writer, options, false, indents, options.Compose != TinyhandComposeOption.Simple);
                             writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                            FromReaderToUtf8(ref reader, ref writer, options, indents);
+                            FromReaderToUtf8(ref reader, ref writer, options, false, indents);
 
                             if (options.Compose == TinyhandComposeOption.Simple)
                             {
@@ -220,13 +225,16 @@ public static class TinyhandTreeConverter
 
                         indents--;
                         if (options.Compose != TinyhandComposeOption.Simple)
-                        {
+                        {// Next line + indent
                             writer.WriteCRLF();
                             writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                         }
                     }
 
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    if (addBrace)
+                    {// }
+                        writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    }
                 }
 
                 return;

@@ -20,6 +20,7 @@ public enum TinyhandComposeOption
     Standard,
     UseContextualInformation,
     Simple,
+    Strict,
 }
 
 public static class TinyhandComposer

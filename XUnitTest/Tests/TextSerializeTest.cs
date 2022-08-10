@@ -47,6 +47,18 @@ public partial class TextSerializeClass1
     public MyClass MyClass { get; set; } = default!;
 }
 
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class TextSerializeClass2
+{
+    [DefaultValue(11)]
+    public int Int { get; set; }
+
+    [DefaultValue("Test")]
+    public string String { get; set; }
+
+    public int[] Array { get; set; }
+}
+
 public class TextSerializeTest
 {
     [Fact]
@@ -110,5 +122,23 @@ public class TextSerializeTest
         b = MessagePack.MessagePackSerializer.Serialize<FormatterResolverClass>(c4);
         b2 = TinyhandSerializer.Serialize<FormatterResolverClass>(c5, TinyhandSerializerOptions.Compatible);
         b.IsStructuralEqual(b2);
+    }
+
+    [Fact]
+    public void Test3()
+    {
+        var standard = TinyhandSerializerOptions.Standard;
+        var strict = standard.WithCompose(TinyhandComposeOption.Strict);
+
+        var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass2>();
+        var st = TinyhandSerializer.SerializeToString(c1, standard);
+        st = TinyhandSerializer.SerializeToString(c1, strict);
+
+        var c2 = TinyhandSerializer.Reconstruct<TextSerializeClass2>();
+        c2.Int = 22;
+        c2.String = "Test2";
+
+        var array = new TextSerializeClass2[] { c1, c2, };
+        st = TinyhandSerializer.SerializeToString(array);
     }
 }
