@@ -128,11 +128,10 @@ public class TextSerializeTest
     public void Test3()
     {
         var standard = TinyhandSerializerOptions.Standard;
-        var strict = standard.WithCompose(TinyhandComposeOption.Strict);
 
         var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass2>();
         var st = TinyhandSerializer.SerializeToString(c1, standard);
-        st = TinyhandSerializer.SerializeToString(c1, strict);
+        var d1 = TinyhandSerializer.DeserializeFromString<TextSerializeClass2>(st);
 
         var c2 = TinyhandSerializer.Reconstruct<TextSerializeClass2>();
         c2.Int = 22;

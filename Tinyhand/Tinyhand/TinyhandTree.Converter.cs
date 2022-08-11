@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -52,7 +53,8 @@ public static class TinyhandTreeConverter
     /// <param name="byteArray">A byte array to convert.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    public static void FromBinaryToUtf8(byte[] byteArray, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options)
+    /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
+    public static void FromBinaryToUtf8(byte[] byteArray, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options, bool omitTopLevelBracket = false)
     {
         options ??= TinyhandSerializer.DefaultOptions;
 
@@ -65,14 +67,14 @@ public static class TinyhandTreeConverter
                 var r = reader.Clone(byteSequence.GetReadOnlySequence());
                 while (!r.End)
                 {
-                    FromReaderToUtf8(ref r, ref writer, options, true); // r.ConvertToUtf8(ref writer);
+                    FromReaderToUtf8(ref r, ref writer, options, omitTopLevelBracket); // r.ConvertToUtf8(ref writer);
                 }
             }
             else
             {
                 while (!reader.End)
                 {
-                    FromReaderToUtf8(ref reader, ref writer, options, true); // reader.ConvertToUtf8(ref writer);
+                    FromReaderToUtf8(ref reader, ref writer, options, omitTopLevelBracket); // reader.ConvertToUtf8(ref writer);
                 }
             }
         }
@@ -88,9 +90,10 @@ public static class TinyhandTreeConverter
     /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="options">The options.</param>
+    /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
     /// <param name="indents">The number of indents.</param>
     /// <param name="convertToIdentifier">Convert a string to an identifier if possible.</param>
-    public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, bool topLevel, int indents = 0, bool convertToIdentifier = false)
+    public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, bool omitTopLevelBracket = false, int indents = 0, bool convertToIdentifier = false)
     {
         var type = reader.NextMessagePackType;
         switch (type)
@@ -174,7 +177,11 @@ public static class TinyhandTreeConverter
             case MessagePackType.Array:
                 {
                     int length = reader.ReadArrayHeader();
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    if (!omitTopLevelBracket)
+                    {
+                        writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    }
+
                     for (int i = 0; i < length; i++)
                     {
                         FromReaderToUtf8(ref reader, ref writer, options, false);
@@ -184,7 +191,10 @@ public static class TinyhandTreeConverter
                         }
                     }
 
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    if (!omitTopLevelBracket)
+                    {
+                        writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    }
                 }
 
                 return;
@@ -193,46 +203,51 @@ public static class TinyhandTreeConverter
                 {
                     int length = reader.ReadMapHeader();
 
-                    var addBrace = !topLevel || options.Compose == TinyhandComposeOption.Strict;
-                    if (addBrace)
-                    {// {
+                    if (!omitTopLevelBracket)
+                    {
+                        // {
                         writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                        indents++;
+
+                        // Next line + indent
+                        writer.WriteCRLF();
+                        writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                     }
 
-                    if (length > 0)
+                    for (int i = 0; i < length; i++)
                     {
-                        indents++;
-                        for (int i = 0; i < length; i++)
+                        FromReaderToUtf8(ref reader, ref writer, options, false, indents, options.Compose != TinyhandComposeOption.Simple);
+                        writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+                        FromReaderToUtf8(ref reader, ref writer, options, false, indents);
+
+                        if (i != (length - 1))
                         {
-                            if (options.Compose != TinyhandComposeOption.Simple)
+                            if (options.Compose == TinyhandComposeOption.Simple)
+                            {
+                                writer.WriteUInt16(0x2C20); // ", "
+                            }
+                            else
                             {// Next line + indent
                                 writer.WriteCRLF();
                                 writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                             }
-
-                            FromReaderToUtf8(ref reader, ref writer, options, false, indents, options.Compose != TinyhandComposeOption.Simple);
-                            writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                            FromReaderToUtf8(ref reader, ref writer, options, false, indents);
-
-                            if (options.Compose == TinyhandComposeOption.Simple)
-                            {
-                                if (i != (length - 1))
-                                {
-                                    writer.WriteUInt16(0x2C20); // ", "
-                                }
-                            }
-                        }
-
-                        indents--;
-                        if (options.Compose != TinyhandComposeOption.Simple)
-                        {// Next line + indent
-                            writer.WriteCRLF();
-                            writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                         }
                     }
 
-                    if (addBrace)
-                    {// }
+                    if (!omitTopLevelBracket)
+                    {
+                        indents--;
+                    }
+
+                    if (options.Compose != TinyhandComposeOption.Simple)
+                    {// Next line + indent
+                        writer.WriteCRLF();
+                        writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                    }
+
+                    if (!omitTopLevelBracket)
+                    {
+                        // }
                         writer.WriteUInt8(TinyhandConstants.CloseBrace);
                     }
                 }
@@ -303,11 +318,39 @@ public static class TinyhandTreeConverter
     /// </summary>
     /// <param name="utf8">UTF-8 text.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
-    public static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, ref TinyhandWriter writer)
+    /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
+    public static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, ref TinyhandWriter writer, bool omitTopLevelBracket = false)
     {
         var reader = new TinyhandUtf8Reader(utf8, true);
         var state = new FromReaderToBinary_State(-1);
-        FromReaderToBinary(ref reader, ref writer, out _, state);
+
+        if (omitTopLevelBracket)
+        {
+            var scratchWriter = default(TinyhandWriter);
+            try
+            {
+                var numberOfItems = FromReaderToBinary(ref reader, ref scratchWriter, out var assigned, state);
+
+                if (assigned)
+                {
+                    writer.WriteMapHeader(numberOfItems / 2);
+                    writer.WriteSequence(scratchWriter.FlushAndGetReadOnlySequence());
+                }
+                else
+                {
+                    writer.WriteArrayHeader(numberOfItems);
+                    writer.WriteSequence(scratchWriter.FlushAndGetReadOnlySequence());
+                }
+            }
+            finally
+            {
+                scratchWriter.Dispose();
+            }
+        }
+        else
+        {
+            FromReaderToBinary(ref reader, ref writer, out _, state);
+        }
     }
 
     /// <summary>

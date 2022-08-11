@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,6 +64,7 @@ public static partial class TinyhandSerializer
 
         options = options ?? DefaultOptions;
         var binary = Serialize<T>(value, options, cancellationToken);
+        var omitTopLevelBracket = options.Resolver.TryGetFormatterExtra<T>() != null;
 
         // Slow
         // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
@@ -71,7 +73,7 @@ public static partial class TinyhandSerializer
         var writer = new TinyhandRawWriter(initialBuffer);
         try
         {
-            TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options);
+            TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
             return writer.FlushAndGetArray();
         }
         finally
@@ -118,7 +120,8 @@ public static partial class TinyhandSerializer
         var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
         try
         {
-            TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer);
+            var omitTopLevelBracket = options.Resolver.TryGetFormatterExtra<T>() != null;
+            TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
 
             var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
 
