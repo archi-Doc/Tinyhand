@@ -30,7 +30,7 @@ public ref partial struct TinyhandReader
         this.reader = new SequenceReader<byte>(new ReadOnlySequence<byte>(memory));
     }
 
-    public TinyhandReader(in ReadOnlySequence<byte> readOnlySequence)
+    public TinyhandReader(scoped in ReadOnlySequence<byte> readOnlySequence)
         : this()
     {
         this.reader = new SequenceReader<byte>(readOnlySequence);
@@ -52,7 +52,7 @@ public ref partial struct TinyhandReader
     /// </summary>
     /// <param name="readOnlySequence">The sequence to read from.</param>
     /// <returns>The new reader.</returns>
-    public TinyhandReader Clone(in ReadOnlySequence<byte> readOnlySequence) => new TinyhandReader(readOnlySequence)
+    public TinyhandReader Clone(scoped in ReadOnlySequence<byte> readOnlySequence) => new TinyhandReader(readOnlySequence)
     {
         CancellationToken = this.CancellationToken,
         Depth = this.Depth,
@@ -1038,7 +1038,7 @@ public ref partial struct TinyhandReader
         }
     }
 
-    public ReadOnlySpan<byte> GetSpanFromSequence(in ReadOnlySequence<byte> sequence)
+    public ReadOnlySpan<byte> GetSpanFromSequence(scoped in ReadOnlySequence<byte> sequence)
     {
         if (sequence.IsSingleSegment)
         {

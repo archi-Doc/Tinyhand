@@ -93,7 +93,7 @@ public static class TinyhandTreeConverter
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
     /// <param name="indents">The number of indents.</param>
     /// <param name="convertToIdentifier">Convert a string to an identifier if possible.</param>
-    public static void FromReaderToUtf8(ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, bool omitTopLevelBracket = false, int indents = 0, bool convertToIdentifier = false)
+    public static void FromReaderToUtf8(scoped ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, bool omitTopLevelBracket = false, int indents = 0, bool convertToIdentifier = false)
     {
         var type = reader.NextMessagePackType;
         switch (type)
