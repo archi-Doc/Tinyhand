@@ -34,9 +34,7 @@ public static class ExpandoObjectResolver
     /// A set of options that includes the <see cref="Instance"/>
     /// and puts the deserializer into <see cref="TinyhandSecurity.UntrustedData"/> mode.
     /// </summary>
-    public static readonly TinyhandSerializerOptions Options = TinyhandSerializerOptions.Standard
-        .WithSecurity(TinyhandSecurity.UntrustedData) // when the schema isn't known beforehand, that generally suggests you don't know/trust the data.
-        .WithResolver(Instance);
+    public static readonly TinyhandSerializerOptions Options = TinyhandSerializerOptions.Standard with { Security = TinyhandSecurity.UntrustedData, Resolver = Instance, };
 
     private class PrimitiveObjectWithExpandoMaps : PrimitiveObjectFormatter
     {
