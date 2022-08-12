@@ -92,7 +92,7 @@ public class H2HSandbox
         this.h2h2 = new ObjectH2H2();
         this.utf8 = TinyhandSerializer.SerializeToUtf8(this.h2h2);
         this.json = JsonSerializer.SerializeToUtf8Bytes(this.h2h2);
-        this.simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
+        this.simple = TinyhandSerializerOptions.Standard with { Compose = TinyhandComposeOption.Simple, };
     }
 
     [Benchmark]

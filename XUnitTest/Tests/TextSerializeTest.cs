@@ -65,7 +65,7 @@ public class TextSerializeTest
     public void Test1()
     {// Requires visual assessment: st
         string st;
-        var simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
+        var simple = TinyhandSerializerOptions.Standard with { Compose = TinyhandComposeOption.Simple, };
 
         var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
         c1.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
@@ -84,7 +84,7 @@ public class TextSerializeTest
     public void Test2()
     {// Requires visual assessment: st
         string st;
-        var simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
+        var simple = TinyhandSerializerOptions.Standard with { Compose = TinyhandComposeOption.Simple };
 
         var c1 = TinyhandSerializer.Reconstruct<SimpleIntKeyData>();
         st = TinyhandSerializer.SerializeToString(c1);
@@ -128,7 +128,7 @@ public class TextSerializeTest
     public void Test3()
     {// Requires visual assessment: st
         var standard = TinyhandSerializerOptions.Standard;
-        var strict = standard.WithCompose(TinyhandComposeOption.Strict);
+        var strict = standard with { Compose = TinyhandComposeOption.Strict, };
 
         var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass2>();
         var st = TinyhandSerializer.SerializeToString(c1, standard);
