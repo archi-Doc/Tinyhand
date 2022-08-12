@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -64,7 +65,7 @@ public static partial class TinyhandSerializer
 
         options = options ?? DefaultOptions;
         var binary = Serialize<T>(value, options, cancellationToken);
-        var omitTopLevelBracket = options.Resolver.TryGetFormatterExtra<T>() != null;
+        var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
 
         // Slow
         // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
@@ -120,7 +121,7 @@ public static partial class TinyhandSerializer
         var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
         try
         {
-            var omitTopLevelBracket = options.Resolver.TryGetFormatterExtra<T>() != null;
+            var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
             TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
 
             var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
@@ -249,4 +250,48 @@ public static partial class TinyhandSerializer
             }
         }
     }
+
+    private static bool OmitTopLevelBracket<T>(TinyhandSerializerOptions options)
+    {
+        if (options.Compose == TinyhandComposeOption.Strict)
+        {
+            return false;
+        }
+
+        return typeToOmitTopLevelBracket.GetOrAdd(typeof(T), x =>
+        {// Determines if the object is a single array or map, and the top level bracket can be omitted.
+            try
+            {
+                var value = TinyhandSerializer.Reconstruct<T>();
+                var reader = new TinyhandReader(TinyhandSerializer.Serialize<T>(value));
+
+                var code = reader.NextCode;
+                if (code == MessagePackCode.Map16 || code == MessagePackCode.Map32 ||
+                (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap))
+                {// Map
+                }
+                else if (code == MessagePackCode.Array16 || code == MessagePackCode.Array32 ||
+                (code >= MessagePackCode.MinFixArray && code <= MessagePackCode.MaxFixArray))
+                {// Array
+                }
+                else
+                {// Other
+                    return false;
+                }
+
+                if (reader.TrySkip() && reader.End)
+                {// Single array or map.
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return false;
+        });
+    }
+
+    private static ConcurrentDictionary<Type, bool> typeToOmitTopLevelBracket = new();
 }
