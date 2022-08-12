@@ -47,11 +47,23 @@ public partial class TextSerializeClass1
     public MyClass MyClass { get; set; } = default!;
 }
 
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class TextSerializeClass2
+{
+    [DefaultValue(11)]
+    public int Int { get; set; }
+
+    [DefaultValue("Test")]
+    public string String { get; set; }
+
+    public int[] Array { get; set; }
+}
+
 public class TextSerializeTest
 {
     [Fact]
     public void Test1()
-    {// Requires visual assessment.
+    {// Requires visual assessment: st
         string st;
         var simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
 
@@ -70,7 +82,7 @@ public class TextSerializeTest
 
     [Fact]
     public void Test2()
-    {// Requires visual assessment.
+    {// Requires visual assessment: st
         string st;
         var simple = TinyhandSerializerOptions.Standard.WithCompose(TinyhandComposeOption.Simple);
 
@@ -110,5 +122,28 @@ public class TextSerializeTest
         b = MessagePack.MessagePackSerializer.Serialize<FormatterResolverClass>(c4);
         b2 = TinyhandSerializer.Serialize<FormatterResolverClass>(c5, TinyhandSerializerOptions.Compatible);
         b.IsStructuralEqual(b2);
+    }
+
+    [Fact]
+    public void Test3()
+    {// Requires visual assessment: st
+        var standard = TinyhandSerializerOptions.Standard;
+        var strict = standard.WithCompose(TinyhandComposeOption.Strict);
+
+        var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass2>();
+        var st = TinyhandSerializer.SerializeToString(c1, standard);
+        var d1 = TinyhandSerializer.DeserializeFromString<TextSerializeClass2>(st);
+        st = TinyhandSerializer.SerializeToString(c1, strict);
+        st = TinyhandSerializer.SerializeToString(c1, standard);
+
+        var c2 = TinyhandSerializer.Reconstruct<TextSerializeClass2>();
+        c2.Int = 22;
+        c2.String = "Test2";
+
+        var array = new TextSerializeClass2[] { c1, c2, };
+        st = TinyhandSerializer.SerializeToString(array);
+
+        TinyhandSerializer.SerializeToString(42).Is("42");
+        TinyhandSerializer.SerializeToString(3.14d).Is("3.14");
     }
 }

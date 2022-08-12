@@ -53,18 +53,24 @@ public sealed class GeneratedResolver : IFormatterResolver
             return null;
         }
 
-        var genericType = targetType.GetGenericTypeDefinition();
-        if (this.formatterGenerator.TryGetValue(genericType, out var info))
+        try
         {
-            (ITinyhandFormatter, ITinyhandFormatterExtra) f;
-            var genericArguments = targetType.GetGenericArguments();
-            if (!info.FormatterCache.TryGetValue(genericArguments, out f))
+            var genericType = targetType.GetGenericTypeDefinition();
+            if (this.formatterGenerator.TryGetValue(genericType, out var info))
             {
-                f = info.Generator(genericArguments);
-                info.FormatterCache[genericArguments] = f;
-            }
+                (ITinyhandFormatter, ITinyhandFormatterExtra) f;
+                var genericArguments = targetType.GetGenericArguments();
+                if (!info.FormatterCache.TryGetValue(genericArguments, out f))
+                {
+                    f = info.Generator(genericArguments);
+                    info.FormatterCache[genericArguments] = f;
+                }
 
-            return (ITinyhandFormatter<T>)f.Item1;
+                return (ITinyhandFormatter<T>)f.Item1;
+            }
+        }
+        catch
+        {
         }
 
         return null;
@@ -89,19 +95,25 @@ public sealed class GeneratedResolver : IFormatterResolver
             return formatter;
         }
 
-        var targetType = typeof(T);
-        var genericType = targetType.GetGenericTypeDefinition();
-        if (this.formatterGenerator.TryGetValue(genericType, out var info))
+        try
         {
-            (ITinyhandFormatter, ITinyhandFormatterExtra) f;
-            var genericArguments = targetType.GetGenericArguments();
-            if (!info.FormatterCache.TryGetValue(genericArguments, out f))
+            var targetType = typeof(T);
+            var genericType = targetType.GetGenericTypeDefinition();
+            if (this.formatterGenerator.TryGetValue(genericType, out var info))
             {
-                f = info.Generator(genericArguments);
-                info.FormatterCache[genericArguments] = f;
-            }
+                (ITinyhandFormatter, ITinyhandFormatterExtra) f;
+                var genericArguments = targetType.GetGenericArguments();
+                if (!info.FormatterCache.TryGetValue(genericArguments, out f))
+                {
+                    f = info.Generator(genericArguments);
+                    info.FormatterCache[genericArguments] = f;
+                }
 
-            return (ITinyhandFormatterExtra<T>)f.Item2;
+                return (ITinyhandFormatterExtra<T>)f.Item2;
+            }
+        }
+        catch
+        {
         }
 
         return null;
