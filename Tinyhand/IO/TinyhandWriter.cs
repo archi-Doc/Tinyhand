@@ -29,11 +29,6 @@ public ref struct TinyhandWriter
     }
 
     /// <summary>
-    /// Gets or sets the cancellation token for this serialization operation.
-    /// </summary>
-    public CancellationToken CancellationToken { get; set; } = default;
-
-    /// <summary>
     /// Gets or sets the marker position.
     /// </summary>
     public int MarkerPosition { get; set; } = 0;
@@ -46,7 +41,6 @@ public ref struct TinyhandWriter
     /// <returns>The new writer.</returns>
     public TinyhandWriter Clone(IBufferWriter<byte> writer) => new TinyhandWriter(writer)
     {
-        CancellationToken = this.CancellationToken,
         MarkerPosition = this.MarkerPosition,
     };
 
@@ -58,7 +52,6 @@ public ref struct TinyhandWriter
     /// <returns>The new writer.</returns>
     public TinyhandWriter Clone(byte[] initialBuffer) => new TinyhandWriter(initialBuffer)
     {
-        CancellationToken = this.CancellationToken,
         MarkerPosition = this.MarkerPosition,
     };
 
@@ -69,7 +62,6 @@ public ref struct TinyhandWriter
     /// <returns>The new writer.</returns>
     public TinyhandWriter Clone() => new TinyhandWriter()
     {
-        CancellationToken = this.CancellationToken,
         MarkerPosition = this.MarkerPosition,
     };
 

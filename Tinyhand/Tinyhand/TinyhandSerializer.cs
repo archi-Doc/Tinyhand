@@ -97,11 +97,10 @@ public static partial class TinyhandSerializer
     /// <param name="writer">The buffer writer to serialize with.</param>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static void Serialize<T>(IBufferWriter<byte> writer, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static void Serialize<T>(IBufferWriter<byte> writer, T value, TinyhandSerializerOptions? options = null)
     {
-        var w = new TinyhandWriter(writer) { CancellationToken = cancellationToken };
+        var w = new TinyhandWriter(writer);
         try
         {
             options = options ?? DefaultOptions;
@@ -134,17 +133,16 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A byte array with the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static byte[] Serialize<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static byte[] Serialize<T>(T value, TinyhandSerializerOptions? options = null)
     {
         if (initialBuffer == null)
         {
             initialBuffer = new byte[InitialBufferSize];
         }
 
-        var w = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+        var w = new TinyhandWriter(initialBuffer);
         try
         {
             options = options ?? DefaultOptions;
@@ -178,16 +176,15 @@ public static partial class TinyhandSerializer
     /// <param name="stream">The stream to serialize to.</param>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static void Serialize<T>(Stream stream, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static void Serialize<T>(Stream stream, T value, TinyhandSerializerOptions? options = null)
     {
         if (initialBuffer == null)
         {
             initialBuffer = new byte[InitialBufferSize];
         }
 
-        var w = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+        var w = new TinyhandWriter(initialBuffer);
         try
         {
             Serialize(ref w, value, options);
@@ -196,7 +193,6 @@ public static partial class TinyhandSerializer
             {
                 foreach (var segment in w.FlushAndGetReadOnlySequence())
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
                     stream.Write(segment.Span);
                 }
             }
@@ -258,17 +254,16 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A byte array with the serialized value and the marker position.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static (byte[] ByteArray, int MarkerPosition) SerializeAndGetMarker<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static (byte[] ByteArray, int MarkerPosition) SerializeAndGetMarker<T>(T value, TinyhandSerializerOptions? options = null)
     {
         if (initialBuffer == null)
         {
             initialBuffer = new byte[InitialBufferSize];
         }
 
-        var w = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+        var w = new TinyhandWriter(initialBuffer);
         try
         {
             options = options ?? DefaultOptions;
@@ -302,23 +297,20 @@ public static partial class TinyhandSerializer
     /// <param name="stream">The stream to serialize to.</param>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A task that completes with the result of the async serialization operation.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static async Task SerializeAsync<T>(Stream stream, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static async Task SerializeAsync<T>(Stream stream, T value, TinyhandSerializerOptions? options = null)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         var byteSequence = new ByteSequence();
         try
         {
-            Serialize<T>(byteSequence, value, options, cancellationToken);
+            Serialize<T>(byteSequence, value, options);
 
             try
             {
                 foreach (var segment in byteSequence.GetReadOnlySequence())
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    await stream.WriteAsync(segment, cancellationToken).ConfigureAwait(false);
+                    await stream.WriteAsync(segment).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -351,15 +343,11 @@ public static partial class TinyhandSerializer
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="byteSequence">The sequence to deserialize from.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? Deserialize<T>(in ReadOnlySequence<byte> byteSequence, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static T? Deserialize<T>(in ReadOnlySequence<byte> byteSequence, TinyhandSerializerOptions? options = null)
     {
-        var reader = new TinyhandReader(byteSequence)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(byteSequence);
 
         return Deserialize<T>(ref reader, options);
     }
@@ -371,15 +359,11 @@ public static partial class TinyhandSerializer
     /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
     /// <param name="byteSequence">The sequence to deserialize from.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? DeserializeWith<T>(T reuse, in ReadOnlySequence<byte> byteSequence, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static T? DeserializeWith<T>(T reuse, in ReadOnlySequence<byte> byteSequence, TinyhandSerializerOptions? options = null)
     {
-        var reader = new TinyhandReader(byteSequence)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(byteSequence);
 
         return DeserializeWith<T>(reuse, ref reader, options);
     }
@@ -390,15 +374,11 @@ public static partial class TinyhandSerializer
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="buffer">The buffer to deserialize from.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options = null)
     {
-        var reader = new TinyhandReader(buffer)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(buffer);
 
         return Deserialize<T>(ref reader, options);
     }
@@ -410,13 +390,12 @@ public static partial class TinyhandSerializer
     /// <param name="buffer">The buffer to deserialize from.</param>
     /// <param name="value">.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns><see langword="true"/> if the deserialization is successfully done; otherwise, <see langword="false"/>.</returns>
-    public static bool TryDeserialize<T>(ReadOnlyMemory<byte> buffer, [MaybeNullWhen(false)] out T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static bool TryDeserialize<T>(ReadOnlyMemory<byte> buffer, [MaybeNullWhen(false)] out T value, TinyhandSerializerOptions? options = null)
     {
         try
         {
-            value = Deserialize<T>(buffer, options, cancellationToken);
+            value = Deserialize<T>(buffer, options);
             return value != null;
         }
         catch
@@ -434,15 +413,11 @@ public static partial class TinyhandSerializer
     /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
     /// <param name="buffer">The buffer to deserialize from.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? DeserializeWith<T>(T reuse, ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static T? DeserializeWith<T>(T reuse, ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options = null)
     {
-        var reader = new TinyhandReader(buffer)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(buffer);
 
         return DeserializeWith<T>(reuse, ref reader, options);
     }
@@ -453,15 +428,11 @@ public static partial class TinyhandSerializer
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="buffer">The buffer to deserialize from.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? Deserialize<T>(byte[] buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static T? Deserialize<T>(byte[] buffer, TinyhandSerializerOptions? options = null)
     {
-        var reader = new TinyhandReader(buffer)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(buffer);
 
         return Deserialize<T>(ref reader, options);
     }
@@ -473,15 +444,11 @@ public static partial class TinyhandSerializer
     /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
     /// <param name="buffer">The buffer to deserialize from.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? DeserializeWith<T>(T reuse, byte[] buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static T? DeserializeWith<T>(T reuse, byte[] buffer, TinyhandSerializerOptions? options = null)
     {
-        var reader = new TinyhandReader(buffer)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(buffer);
 
         return DeserializeWith<T>(reuse, ref reader, options);
     }
@@ -493,15 +460,11 @@ public static partial class TinyhandSerializer
     /// <param name="buffer">The memory to deserialize from.</param>
     /// <param name="bytesRead">The number of bytes read.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer, out int bytesRead, TinyhandSerializerOptions? options, CancellationToken cancellationToken = default)
+    public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer, out int bytesRead, TinyhandSerializerOptions? options)
     {
-        var reader = new TinyhandReader(buffer)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(buffer);
 
         var result = Deserialize<T>(ref reader, options);
         bytesRead = (int)reader.Consumed; // buffer.Slice(0, (int)reader.Consumed).Length;
@@ -516,13 +479,12 @@ public static partial class TinyhandSerializer
     /// <param name="value">.</param>
     /// <param name="bytesRead">The number of bytes read.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns><see langword="true"/> if the deserialization is successfully done; otherwise, <see langword="false"/>.</returns>
-    public static bool TryDeserialize<T>(ReadOnlyMemory<byte> buffer, [MaybeNullWhen(false)] out T value, out int bytesRead, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static bool TryDeserialize<T>(ReadOnlyMemory<byte> buffer, [MaybeNullWhen(false)] out T value, out int bytesRead, TinyhandSerializerOptions? options = null)
     {
         try
         {
-            value = Deserialize<T>(buffer, out bytesRead, options, cancellationToken);
+            value = Deserialize<T>(buffer, out bytesRead, options);
             return value != null;
         }
         catch
@@ -542,15 +504,11 @@ public static partial class TinyhandSerializer
     /// <param name="buffer">The memory to deserialize from.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
     /// <param name="bytesRead">The number of bytes read.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? DeserializeWith<T>(T reuse, ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options, out int bytesRead, CancellationToken cancellationToken = default)
+    public static T? DeserializeWith<T>(T reuse, ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options, out int bytesRead)
     {
-        var reader = new TinyhandReader(buffer)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(buffer);
 
         var result = DeserializeWith<T>(reuse, ref reader, options);
         bytesRead = buffer.Slice(0, (int)reader.Consumed).Length;
@@ -670,12 +628,11 @@ public static partial class TinyhandSerializer
     /// If <see cref="Stream.CanSeek"/> is true on the stream, its position will be set to just after the last deserialized byte.
     /// </param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? Deserialize<T>(Stream stream, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static T? Deserialize<T>(Stream stream, TinyhandSerializerOptions? options = null)
     {
-        if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T? result))
+        if (TryDeserializeFromMemoryStream(stream, options, out T? result))
         {
             return result;
         }
@@ -686,14 +643,13 @@ public static partial class TinyhandSerializer
             int bytesRead;
             do
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 var span = byteSequence.GetSpan(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
                 bytesRead = stream.Read(span);
                 byteSequence.Advance(bytesRead);
             }
             while (bytesRead > 0);
 
-            return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence.GetReadOnlySequence(), cancellationToken);
+            return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence.GetReadOnlySequence());
         }
         catch (Exception ex)
         {
@@ -715,12 +671,11 @@ public static partial class TinyhandSerializer
     /// If <see cref="Stream.CanSeek"/> is true on the stream, its position will be set to just after the last deserialized byte.
     /// </param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static async ValueTask<T?> DeserializeAsync<T>(Stream stream, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static async ValueTask<T?> DeserializeAsync<T>(Stream stream, TinyhandSerializerOptions? options = null)
     {
-        if (TryDeserializeFromMemoryStream(stream, options, cancellationToken, out T? result))
+        if (TryDeserializeFromMemoryStream(stream, options, out T? result))
         {
             return result;
         }
@@ -732,12 +687,12 @@ public static partial class TinyhandSerializer
             do
             {
                 var memory = byteSequence.GetMemory(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
-                bytesRead = await stream.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
+                bytesRead = await stream.ReadAsync(memory).ConfigureAwait(false);
                 byteSequence.Advance(bytesRead);
             }
             while (bytesRead > 0);
 
-            return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence.GetReadOnlySequence(), cancellationToken);
+            return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence.GetReadOnlySequence());
         }
         catch (Exception ex)
         {
@@ -805,12 +760,11 @@ public static partial class TinyhandSerializer
         return false;
     }
 
-    private static bool TryDeserializeFromMemoryStream<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken, out T? result)
+    private static bool TryDeserializeFromMemoryStream<T>(Stream stream, TinyhandSerializerOptions? options, out T? result)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
         {
-            result = Deserialize<T>(streamBuffer.AsMemory(checked((int)ms.Position)), out int bytesRead, options, cancellationToken);
+            result = Deserialize<T>(streamBuffer.AsMemory(checked((int)ms.Position)), out int bytesRead, options);
 
             // Emulate that we had actually "read" from the stream.
             ms.Seek(bytesRead, SeekOrigin.Current);
@@ -821,17 +775,14 @@ public static partial class TinyhandSerializer
         return false;
     }
 
-    private static T? DeserializeFromSequenceAndRewindStreamIfPossible<T>(Stream streamToRewind, TinyhandSerializerOptions? options, ReadOnlySequence<byte> sequence, CancellationToken cancellationToken)
+    private static T? DeserializeFromSequenceAndRewindStreamIfPossible<T>(Stream streamToRewind, TinyhandSerializerOptions? options, ReadOnlySequence<byte> sequence)
     {
         if (streamToRewind is null)
         {
             throw new ArgumentNullException(nameof(streamToRewind));
         }
 
-        var reader = new TinyhandReader(sequence)
-        {
-            CancellationToken = cancellationToken,
-        };
+        var reader = new TinyhandReader(sequence);
 
         var result = Deserialize<T>(ref reader, options);
 

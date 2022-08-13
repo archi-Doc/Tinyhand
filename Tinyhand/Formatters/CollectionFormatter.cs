@@ -30,7 +30,6 @@ public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
 
             for (int i = 0; i < value.Length; i++)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, value[i], options);
             }
         }
@@ -53,7 +52,6 @@ public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
             {
                 for (int i = 0; i < array.Length; i++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     array[i] = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);
                 }
             }
@@ -240,7 +238,6 @@ public sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemo
 
         for (int i = 0; i < span.Length; i++)
         {
-            writer.CancellationToken.ThrowIfCancellationRequested();
             formatter.Serialize(ref writer, span[i], options);
         }
     }
@@ -270,7 +267,6 @@ public sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnlySe
             ReadOnlySpan<T> span = segment.Span;
             for (int i = 0; i < span.Length; i++)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, span[i], options);
             }
         }
@@ -347,7 +343,6 @@ public sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
 
             for (int i = 0; i < c; i++)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, value[i], options);
             }
         }
@@ -370,7 +365,6 @@ public sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
             {
                 for (int i = 0; i < len; i++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     list.Add(formatter.Deserialize(ref reader, options)!);
                 }
             }
@@ -431,7 +425,6 @@ public abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerat
 
                 foreach (TElement item in array)
                 {
-                    writer.CancellationToken.ThrowIfCancellationRequested();
                     formatter.Serialize(ref writer, item, options);
                 }
             }
@@ -448,7 +441,6 @@ public abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerat
                     {
                         while (e.MoveNext())
                         {
-                            writer.CancellationToken.ThrowIfCancellationRequested();
                             formatter.Serialize(ref writer, e.Current, options);
                         }
                     }
@@ -463,7 +455,6 @@ public abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerat
                         {
                             while (e.MoveNext())
                             {
-                                writer.CancellationToken.ThrowIfCancellationRequested();
                                 count++;
                                 formatter.Serialize(ref scratchWriter, e.Current, options);
                             }
@@ -499,7 +490,6 @@ public abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerat
             {
                 for (int i = 0; i < len; i++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     this.Add(list, i, formatter.Deserialize(ref reader, options)!, options);
                 }
             }
@@ -1026,7 +1016,6 @@ public sealed class NonGenericListFormatter<T> : ITinyhandFormatter<T>
         writer.WriteArrayHeader(value.Count);
         foreach (var item in value)
         {
-            writer.CancellationToken.ThrowIfCancellationRequested();
             formatter.Serialize(ref writer, item, options);
         }
     }
@@ -1048,7 +1037,6 @@ public sealed class NonGenericListFormatter<T> : ITinyhandFormatter<T>
         {
             for (int i = 0; i < count; i++)
             {
-                reader.CancellationToken.ThrowIfCancellationRequested();
                 list.Add(formatter.Deserialize(ref reader, options));
             }
         }
@@ -1106,7 +1094,6 @@ public sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<
         writer.WriteArrayHeader(value.Count);
         foreach (var item in value)
         {
-            writer.CancellationToken.ThrowIfCancellationRequested();
             formatter.Serialize(ref writer, item, options);
         }
     }
@@ -1132,7 +1119,6 @@ public sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<
         {
             for (int i = 0; i < count; i++)
             {
-                reader.CancellationToken.ThrowIfCancellationRequested();
                 list[i] = formatter.Deserialize(ref reader, options)!;
             }
         }
@@ -1197,7 +1183,6 @@ public sealed class NonGenericInterfaceEnumerableFormatter : ITinyhandFormatter<
             {
                 while (e.MoveNext())
                 {
-                    writer.CancellationToken.ThrowIfCancellationRequested();
                     count++;
                     formatter.Serialize(ref scratchWriter, e.Current, options);
                 }
@@ -1240,7 +1225,6 @@ public sealed class NonGenericInterfaceEnumerableFormatter : ITinyhandFormatter<
         {
             for (int i = 0; i < count; i++)
             {
-                reader.CancellationToken.ThrowIfCancellationRequested();
                 list[i] = formatter.Deserialize(ref reader, options)!;
             }
         }
@@ -1296,7 +1280,6 @@ public sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
         writer.WriteArrayHeader(value.Count);
         foreach (var item in value)
         {
-            writer.CancellationToken.ThrowIfCancellationRequested();
             formatter.Serialize(ref writer, item, options);
         }
     }
@@ -1322,7 +1305,6 @@ public sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
         {
             for (int i = 0; i < count; i++)
             {
-                reader.CancellationToken.ThrowIfCancellationRequested();
                 list[i] = formatter.Deserialize(ref reader, options)!;
             }
         }
@@ -1376,7 +1358,6 @@ public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
         writer.WriteMapHeader(value.Count);
         foreach (DictionaryEntry item in value)
         {
-            writer.CancellationToken.ThrowIfCancellationRequested();
             formatter.Serialize(ref writer, item.Key, options);
             formatter.Serialize(ref writer, item.Value, options);
         }
@@ -1399,7 +1380,6 @@ public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
         {
             for (int i = 0; i < count; i++)
             {
-                reader.CancellationToken.ThrowIfCancellationRequested();
                 var key = formatter.Deserialize(ref reader, options)!;
                 var value = formatter.Deserialize(ref reader, options);
                 dict.Add(key, value);
@@ -1459,7 +1439,6 @@ public sealed class NonGenericInterfaceDictionaryFormatter : ITinyhandFormatter<
         writer.WriteMapHeader(value.Count);
         foreach (DictionaryEntry item in value)
         {
-            writer.CancellationToken.ThrowIfCancellationRequested();
             formatter.Serialize(ref writer, item.Key, options);
             formatter.Serialize(ref writer, item.Value, options);
         }
@@ -1482,7 +1461,6 @@ public sealed class NonGenericInterfaceDictionaryFormatter : ITinyhandFormatter<
         {
             for (int i = 0; i < count; i++)
             {
-                reader.CancellationToken.ThrowIfCancellationRequested();
                 var key = formatter.Deserialize(ref reader, options)!;
                 var value = formatter.Deserialize(ref reader, options)!;
                 dict.Add(key, value);

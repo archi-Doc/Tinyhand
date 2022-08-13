@@ -39,28 +39,28 @@ public partial class TinyhandSerializer
         GetOrAdd(type).Serialize_TinyhandWriter_T_Options.Invoke(ref writer, obj, options);
     }
 
-    /// <seealso cref="Serialize{T}(IBufferWriter{byte}, T, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static void Serialize(Type type, IBufferWriter<byte> writer, object obj, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    /// <seealso cref="Serialize{T}(IBufferWriter{byte}, T, TinyhandSerializerOptions?)"/>
+    public static void Serialize(Type type, IBufferWriter<byte> writer, object obj, TinyhandSerializerOptions? options = null)
     {
-        GetOrAdd(type).Serialize_IBufferWriter_T_Options_CancellationToken.Invoke(writer, obj, options, cancellationToken);
+        GetOrAdd(type).Serialize_IBufferWriter_T_Options_CancellationToken.Invoke(writer, obj, options);
     }
 
-    /// <seealso cref="Serialize{T}(T, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static byte[] Serialize(Type type, object obj, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    /// <seealso cref="Serialize{T}(T, TinyhandSerializerOptions?)"/>
+    public static byte[] Serialize(Type type, object obj, TinyhandSerializerOptions? options = null)
     {
-        return GetOrAdd(type).Serialize_T_Options.Invoke(obj, options, cancellationToken);
+        return GetOrAdd(type).Serialize_T_Options.Invoke(obj, options);
     }
 
-    /// <seealso cref="Serialize{T}(Stream, T, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static void Serialize(Type type, Stream stream, object obj, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    /// <seealso cref="Serialize{T}(Stream, T, TinyhandSerializerOptions?)"/>
+    public static void Serialize(Type type, Stream stream, object obj, TinyhandSerializerOptions? options = null)
     {
-        GetOrAdd(type).Serialize_Stream_T_Options_CancellationToken.Invoke(stream, obj, options, cancellationToken);
+        GetOrAdd(type).Serialize_Stream_T_Options_CancellationToken.Invoke(stream, obj, options);
     }
 
-    /// <seealso cref="SerializeAsync{T}(Stream, T, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static Task SerializeAsync(Type type, Stream stream, object obj, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    /// <seealso cref="SerializeAsync{T}(Stream, T, TinyhandSerializerOptions?)"/>
+    public static Task SerializeAsync(Type type, Stream stream, object obj, TinyhandSerializerOptions? options = null)
     {
-        return GetOrAdd(type).SerializeAsync_Stream_T_Options_CancellationToken.Invoke(stream, obj, options, cancellationToken);
+        return GetOrAdd(type).SerializeAsync_Stream_T_Options_CancellationToken.Invoke(stream, obj, options);
     }
 
     /// <seealso cref="Deserialize{T}(ref TinyhandReader, TinyhandSerializerOptions?)"/>
@@ -69,31 +69,31 @@ public partial class TinyhandSerializer
         return GetOrAdd(type).Deserialize_TinyhandReader_Options.Invoke(ref reader, options);
     }
 
-    /// <seealso cref="Deserialize{T}(Stream, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static object? Deserialize(Type type, Stream stream, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    /// <seealso cref="Deserialize{T}(Stream, TinyhandSerializerOptions?)"/>
+    public static object? Deserialize(Type type, Stream stream, TinyhandSerializerOptions? options = null)
     {
-        return GetOrAdd(type).Deserialize_Stream_Options_CancellationToken.Invoke(stream, options, cancellationToken);
+        return GetOrAdd(type).Deserialize_Stream_Options_CancellationToken.Invoke(stream, options);
     }
 
-    /// <seealso cref="DeserializeAsync{T}(Stream, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static ValueTask<object?> DeserializeAsync(Type type, Stream stream, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    /// <seealso cref="DeserializeAsync{T}(Stream, TinyhandSerializerOptions?)"/>
+    public static ValueTask<object?> DeserializeAsync(Type type, Stream stream, TinyhandSerializerOptions? options = null)
     {
-        return GetOrAdd(type).DeserializeAsync_Stream_Options_CancellationToken.Invoke(stream, options, cancellationToken);
+        return GetOrAdd(type).DeserializeAsync_Stream_Options_CancellationToken.Invoke(stream, options);
     }
 
-    /// <seealso cref="Deserialize{T}(ReadOnlyMemory{byte}, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static object? Deserialize(Type type, ReadOnlyMemory<byte> bytes, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    /// <seealso cref="Deserialize{T}(ReadOnlyMemory{byte}, TinyhandSerializerOptions?)"/>
+    public static object? Deserialize(Type type, ReadOnlyMemory<byte> bytes, TinyhandSerializerOptions? options = null)
     {
-        return GetOrAdd(type).Deserialize_ReadOnlyMemory_Options.Invoke(bytes, options, cancellationToken);
+        return GetOrAdd(type).Deserialize_ReadOnlyMemory_Options.Invoke(bytes, options);
     }
 
-    /// <seealso cref="Deserialize{T}(in ReadOnlySequence{byte}, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static object? Deserialize(Type type, ReadOnlySequence<byte> bytes, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    /// <seealso cref="Deserialize{T}(in ReadOnlySequence{byte}, TinyhandSerializerOptions?)"/>
+    public static object? Deserialize(Type type, ReadOnlySequence<byte> bytes, TinyhandSerializerOptions? options = null)
     {
-        return GetOrAdd(type).Deserialize_ReadOnlySequence_Options_CancellationToken.Invoke(bytes, options, cancellationToken);
+        return GetOrAdd(type).Deserialize_ReadOnlySequence_Options_CancellationToken.Invoke(bytes, options);
     }
 
-    private static async ValueTask<object?> DeserializeObjectAsync<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken) => await DeserializeAsync<T>(stream, options, cancellationToken).ConfigureAwait(false);
+    private static async ValueTask<object?> DeserializeObjectAsync<T>(Stream stream, TinyhandSerializerOptions? options) => await DeserializeAsync<T>(stream, options).ConfigureAwait(false);
 
     private static CompiledMethods GetOrAdd(Type type)
     {
@@ -117,18 +117,18 @@ public partial class TinyhandSerializer
 #pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1401 // Fields should be private
         internal readonly Func<TinyhandSerializerOptions?, object> Reconstruct_T_Options;
-        internal readonly Func<object, TinyhandSerializerOptions?, CancellationToken, byte[]> Serialize_T_Options;
-        internal readonly Action<Stream, object, TinyhandSerializerOptions?, CancellationToken> Serialize_Stream_T_Options_CancellationToken;
-        internal readonly Func<Stream, object, TinyhandSerializerOptions?, CancellationToken, Task> SerializeAsync_Stream_T_Options_CancellationToken;
+        internal readonly Func<object, TinyhandSerializerOptions?, byte[]> Serialize_T_Options;
+        internal readonly Action<Stream, object, TinyhandSerializerOptions?> Serialize_Stream_T_Options_CancellationToken;
+        internal readonly Func<Stream, object, TinyhandSerializerOptions?, Task> SerializeAsync_Stream_T_Options_CancellationToken;
         internal readonly TinyhandWriterSerialize Serialize_TinyhandWriter_T_Options;
-        internal readonly Action<IBufferWriter<byte>, object, TinyhandSerializerOptions?, CancellationToken> Serialize_IBufferWriter_T_Options_CancellationToken;
+        internal readonly Action<IBufferWriter<byte>, object, TinyhandSerializerOptions?> Serialize_IBufferWriter_T_Options_CancellationToken;
 
         internal readonly TinyhandReaderDeserialize Deserialize_TinyhandReader_Options;
-        internal readonly Func<Stream, TinyhandSerializerOptions?, CancellationToken, object?> Deserialize_Stream_Options_CancellationToken;
-        internal readonly Func<Stream, TinyhandSerializerOptions?, CancellationToken, ValueTask<object?>> DeserializeAsync_Stream_Options_CancellationToken;
+        internal readonly Func<Stream, TinyhandSerializerOptions?, object?> Deserialize_Stream_Options_CancellationToken;
+        internal readonly Func<Stream, TinyhandSerializerOptions?, ValueTask<object?>> DeserializeAsync_Stream_Options_CancellationToken;
 
-        internal readonly Func<ReadOnlyMemory<byte>, TinyhandSerializerOptions?, CancellationToken, object?> Deserialize_ReadOnlyMemory_Options;
-        internal readonly Func<ReadOnlySequence<byte>, TinyhandSerializerOptions?, CancellationToken, object?> Deserialize_ReadOnlySequence_Options_CancellationToken;
+        internal readonly Func<ReadOnlyMemory<byte>, TinyhandSerializerOptions?, object?> Deserialize_ReadOnlyMemory_Options;
+        internal readonly Func<ReadOnlySequence<byte>, TinyhandSerializerOptions?, object?> Deserialize_ReadOnlySequence_Options_CancellationToken;
 #pragma warning restore SA1401 // Fields should be private
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore SA1310 // Field names should not contain underscore
@@ -155,94 +155,86 @@ public partial class TinyhandSerializer
             }
 
             {
-                // public static byte[] Serialize<T>(T obj, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                var serialize = GetMethod(nameof(Serialize), type, new Type?[] { null, typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
+                // public static byte[] Serialize<T>(T obj, TinyhandSerializerOptions? options)
+                var serialize = GetMethod(nameof(Serialize), type, new Type?[] { null, typeof(TinyhandSerializerOptions), });
 #if ENABLE_IL2CPP
                 this.Serialize_T_Options = (x, y, z) => (byte[])serialize.Invoke(null, new object?[] { x, y, z });
 #else
                 var param1 = Expression.Parameter(typeof(object), "obj");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param3 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
                 var body = Expression.Call(
                     null,
                     serialize,
                     ti.IsValueType ? Expression.Unbox(param1, type) : Expression.Convert(param1, type),
-                    param2,
-                    param3);
-                var lambda = Expression.Lambda<Func<object, TinyhandSerializerOptions?, CancellationToken, byte[]>>(body, param1, param2, param3).Compile(PreferInterpretation);
+                    param2);
+                var lambda = Expression.Lambda<Func<object, TinyhandSerializerOptions?, byte[]>>(body, param1, param2).Compile(PreferInterpretation);
 
                 this.Serialize_T_Options = lambda;
 #endif
             }
 
             {
-                // public static void Serialize<T>(Stream stream, T obj, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                MethodInfo serialize = GetMethod(nameof(Serialize), type, new Type?[] { typeof(Stream), null, typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
+                // public static void Serialize<T>(Stream stream, T obj, TinyhandSerializerOptions? options)
+                MethodInfo serialize = GetMethod(nameof(Serialize), type, new Type?[] { typeof(Stream), null, typeof(TinyhandSerializerOptions), });
 #if ENABLE_IL2CPP
                 this.Serialize_Stream_T_Options_CancellationToken = (x, y, z, a) => serialize.Invoke(null, new object?[] { x, y, z, a });
 #else
                 var param1 = Expression.Parameter(typeof(Stream), "stream");
                 var param2 = Expression.Parameter(typeof(object), "obj");
                 var param3 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param4 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
                 var body = Expression.Call(
                     null,
                     serialize,
                     param1,
                     ti.IsValueType ? Expression.Unbox(param2, type) : Expression.Convert(param2, type),
-                    param3,
-                    param4);
-                var lambda = Expression.Lambda<Action<Stream, object, TinyhandSerializerOptions?, CancellationToken>>(body, param1, param2, param3, param4).Compile(PreferInterpretation);
+                    param3);
+                var lambda = Expression.Lambda<Action<Stream, object, TinyhandSerializerOptions?>>(body, param1, param2, param3).Compile(PreferInterpretation);
 
                 this.Serialize_Stream_T_Options_CancellationToken = lambda;
 #endif
             }
 
             {
-                // public static Task SerializeAsync<T>(Stream stream, T obj, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                var serialize = GetMethod(nameof(SerializeAsync), type, new Type?[] { typeof(Stream), null, typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
+                // public static Task SerializeAsync<T>(Stream stream, T obj, TinyhandSerializerOptions? options)
+                var serialize = GetMethod(nameof(SerializeAsync), type, new Type?[] { typeof(Stream), null, typeof(TinyhandSerializerOptions), });
 #if ENABLE_IL2CPP
                 this.SerializeAsync_Stream_T_Options_CancellationToken = (x, y, z, a) => (Task)serialize.Invoke(null, new object?[] { x, y, z, a });
 #else
                 var param1 = Expression.Parameter(typeof(Stream), "stream");
                 var param2 = Expression.Parameter(typeof(object), "obj");
                 var param3 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param4 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
                 var body = Expression.Call(
                     null,
                     serialize,
                     param1,
                     ti.IsValueType ? Expression.Unbox(param2, type) : Expression.Convert(param2, type),
-                    param3,
-                    param4);
-                var lambda = Expression.Lambda<Func<Stream, object, TinyhandSerializerOptions?, CancellationToken, Task>>(body, param1, param2, param3, param4).Compile(PreferInterpretation);
+                    param3);
+                var lambda = Expression.Lambda<Func<Stream, object, TinyhandSerializerOptions?, Task>>(body, param1, param2, param3).Compile(PreferInterpretation);
 
                 this.SerializeAsync_Stream_T_Options_CancellationToken = lambda;
 #endif
             }
 
             {
-                // public static Task Serialize<T>(IBufferWriter<byte> writer, T obj, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                var serialize = GetMethod(nameof(Serialize), type, new Type?[] { typeof(IBufferWriter<byte>), null, typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
+                // public static Task Serialize<T>(IBufferWriter<byte> writer, T obj, TinyhandSerializerOptions? options)
+                var serialize = GetMethod(nameof(Serialize), type, new Type?[] { typeof(IBufferWriter<byte>), null, typeof(TinyhandSerializerOptions), });
 #if ENABLE_IL2CPP
                 this.Serialize_IBufferWriter_T_Options_CancellationToken = (x, y, z, a) => serialize.Invoke(null, new object?[] { x, y, z, a });
 #else
                 var param1 = Expression.Parameter(typeof(IBufferWriter<byte>), "writer");
                 var param2 = Expression.Parameter(typeof(object), "obj");
                 var param3 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param4 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
 
                 var body = Expression.Call(
                     null,
                     serialize,
                     param1,
                     ti.IsValueType ? Expression.Unbox(param2, type) : Expression.Convert(param2, type),
-                    param3,
-                    param4);
-                var lambda = Expression.Lambda<Action<IBufferWriter<byte>, object, TinyhandSerializerOptions?, CancellationToken>>(body, param1, param2, param3, param4).Compile(PreferInterpretation);
+                    param3);
+                var lambda = Expression.Lambda<Action<IBufferWriter<byte>, object, TinyhandSerializerOptions?>>(body, param1, param2, param3).Compile(PreferInterpretation);
 
                 this.Serialize_IBufferWriter_T_Options_CancellationToken = lambda;
 #endif
@@ -290,64 +282,60 @@ public partial class TinyhandSerializer
             }
 
             {
-                // public static T Deserialize<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(Stream), typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
+                // public static T Deserialize<T>(Stream stream, TinyhandSerializerOptions? options)
+                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(Stream), typeof(TinyhandSerializerOptions), });
 #if ENABLE_IL2CPP
                 this.Deserialize_Stream_Options_CancellationToken = (x, y, z) => deserialize.Invoke(null, new object?[] { x, y, z });
 #else
                 var param1 = Expression.Parameter(typeof(Stream), "stream");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param3 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
-                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2, param3), typeof(object));
-                var lambda = Expression.Lambda<Func<Stream, TinyhandSerializerOptions?, CancellationToken, object>>(body, param1, param2, param3).Compile(PreferInterpretation);
+                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2), typeof(object));
+                var lambda = Expression.Lambda<Func<Stream, TinyhandSerializerOptions?, object>>(body, param1, param2).Compile(PreferInterpretation);
 
                 this.Deserialize_Stream_Options_CancellationToken = lambda;
 #endif
             }
 
             {
-                // public static ValueTask<object> DeserializeObjectAsync<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                var deserialize = GetMethod(nameof(DeserializeObjectAsync), type, new Type[] { typeof(Stream), typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
+                // public static ValueTask<object> DeserializeObjectAsync<T>(Stream stream, TinyhandSerializerOptions? options)
+                var deserialize = GetMethod(nameof(DeserializeObjectAsync), type, new Type[] { typeof(Stream), typeof(TinyhandSerializerOptions), });
 #if ENABLE_IL2CPP
                 this.DeserializeAsync_Stream_Options_CancellationToken = (x, y, z) => (ValueTask<object?>)deserialize.Invoke(null, new object?[] { x, y, z });
 #else
                 var param1 = Expression.Parameter(typeof(Stream), "stream");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param3 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
-                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2, param3), typeof(ValueTask<object>));
-                var lambda = Expression.Lambda<Func<Stream, TinyhandSerializerOptions?, CancellationToken, ValueTask<object?>>>(body, param1, param2, param3).Compile(PreferInterpretation);
+                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2), typeof(ValueTask<object>));
+                var lambda = Expression.Lambda<Func<Stream, TinyhandSerializerOptions?, ValueTask<object?>>>(body, param1, param2).Compile(PreferInterpretation);
 
                 this.DeserializeAsync_Stream_Options_CancellationToken = lambda;
 #endif
             }
 
             {
-                // public static T Deserialize<T>(ReadOnlyMemory<byte> bytes, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(ReadOnlyMemory<byte>), typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
+                // public static T Deserialize<T>(ReadOnlyMemory<byte> bytes, TinyhandSerializerOptions? options)
+                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(ReadOnlyMemory<byte>), typeof(TinyhandSerializerOptions), });
 #if ENABLE_IL2CPP
                 this.Deserialize_ReadOnlyMemory_Options = (x, y, z) => deserialize.Invoke(null, new object?[] { x, y, z });
 #else
                 var param1 = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "bytes");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param3 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
-                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2, param3), typeof(object));
-                var lambda = Expression.Lambda<Func<ReadOnlyMemory<byte>, TinyhandSerializerOptions?, CancellationToken, object>>(body, param1, param2, param3).Compile(PreferInterpretation);
+                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2), typeof(object));
+                var lambda = Expression.Lambda<Func<ReadOnlyMemory<byte>, TinyhandSerializerOptions?, object>>(body, param1, param2).Compile(PreferInterpretation);
 
                 this.Deserialize_ReadOnlyMemory_Options = lambda;
 #endif
             }
 
             {
-                // public static T Deserialize<T>(ReadOnlySequence<byte> bytes, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(ReadOnlySequence<byte>).MakeByRefType(), typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
+                // public static T Deserialize<T>(ReadOnlySequence<byte> bytes, TinyhandSerializerOptions? options)
+                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(ReadOnlySequence<byte>).MakeByRefType(), typeof(TinyhandSerializerOptions), });
 #if ENABLE_IL2CPP
                 this.Deserialize_ReadOnlySequence_Options_CancellationToken = (x, y, z) => deserialize.Invoke(null, new object?[] { x, y, z });
 #else
                 var param1 = Expression.Parameter(typeof(ReadOnlySequence<byte>), "bytes");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param3 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
-                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2, param3), typeof(object));
-                var lambda = Expression.Lambda<Func<ReadOnlySequence<byte>, TinyhandSerializerOptions?, CancellationToken, object>>(body, param1, param2, param3).Compile(PreferInterpretation);
+                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2), typeof(object));
+                var lambda = Expression.Lambda<Func<ReadOnlySequence<byte>, TinyhandSerializerOptions?, object>>(body, param1, param2).Compile(PreferInterpretation);
 
                 this.Deserialize_ReadOnlySequence_Options_CancellationToken = lambda;
 #endif
