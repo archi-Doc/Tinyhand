@@ -65,7 +65,15 @@ public static partial class TinyhandSerializer
 
         options = options ?? DefaultOptions;
         var binary = Serialize<T>(value, options, cancellationToken);
-        var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
+        bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
+        if (options.Compose == TinyhandComposeOption.Strict)
+        {
+            omitTopLevelBracket = false;
+        }
+        else
+        {
+            omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
+        }
 
         // Slow
         // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
@@ -121,7 +129,16 @@ public static partial class TinyhandSerializer
         var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
         try
         {
-            var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
+            bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
+            if (options.Compose == TinyhandComposeOption.Strict)
+            {
+                omitTopLevelBracket = false;
+            }
+            else
+            {
+                omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
+            }
+
             TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
 
             var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
@@ -251,14 +268,14 @@ public static partial class TinyhandSerializer
         }
     }
 
-    private static bool OmitTopLevelBracket<T>(TinyhandSerializerOptions options)
+    /*private static bool OmitTopLevelBracket<T>(TinyhandSerializerOptions options)
     {
         if (options.Compose == TinyhandComposeOption.Strict)
         {
             return false;
         }
 
-        return typeToOmitTopLevelBracket.GetOrAdd(typeof(T), x =>
+        return typeToOmitTopLevelBracket.GetOrAdd(typeof(T), static x =>
         {// Determines if the object is a single array or map, and the top level bracket can be omitted.
             try
             {
@@ -293,5 +310,41 @@ public static partial class TinyhandSerializer
         });
     }
 
-    private static ConcurrentDictionary<Type, bool> typeToOmitTopLevelBracket = new();
+    private static ConcurrentDictionary<Type, bool> typeToOmitTopLevelBracket = new();*/
+
+    private static class OmitTopLevelBracketCache<T>
+    {
+        public static readonly bool CanOmit = false;
+
+        static OmitTopLevelBracketCache()
+        {
+            try
+            {
+                var value = TinyhandSerializer.Reconstruct<T>();
+                var reader = new TinyhandReader(TinyhandSerializer.Serialize<T>(value));
+
+                var code = reader.NextCode;
+                if (code == MessagePackCode.Map16 || code == MessagePackCode.Map32 ||
+                (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap))
+                {// Map
+                }
+                else if (code == MessagePackCode.Array16 || code == MessagePackCode.Array32 ||
+                (code >= MessagePackCode.MinFixArray && code <= MessagePackCode.MaxFixArray))
+                {// Array
+                }
+                else
+                {// Other
+                    return;
+                }
+
+                if (reader.TrySkip() && reader.End)
+                {// Single array or map.
+                    CanOmit = true;
+                }
+            }
+            catch
+            {
+            }
+        }
+    }
 }
