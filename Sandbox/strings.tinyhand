@@ -14,11 +14,11 @@ name2="test"
 */
 "test4.txt"
 
-dialog = {
+Dialog = {
     No = "no"
 }
 
-dialog_Hanbun = "Hanbun" // dialog.Hanbun is an invalid identifier.
+Dialog_Hanbun = "Hanbun" // dialog.Hanbun is an invalid identifier.
 
 EscapeTest = """escape"a\r
 1
