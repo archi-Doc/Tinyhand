@@ -173,6 +173,35 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
+    /// Serializes a given value with the specified buffer writer.
+    /// </summary>
+    /// <param name="value">The value to serialize.</param>
+    /// <returns>A byte array with the serialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    public static byte[] Serialize<T>(T value)
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        var writer = new TinyhandWriter(initialBuffer);
+        try
+        {
+            DefaultOptions.Resolver.GetFormatter<T>().Serialize(ref writer, value, DefaultOptions);
+            return writer.FlushAndGetArray();
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    /// <summary>
     /// Serializes a given value to the specified stream.
     /// </summary>
     /// <param name="stream">The stream to serialize to.</param>
@@ -464,6 +493,27 @@ public static partial class TinyhandSerializer
         };
 
         return Deserialize<T>(ref reader, options);
+    }
+
+    /// <summary>
+    /// Deserializes a value of a given type from a sequence of bytes.
+    /// </summary>
+    /// <typeparam name="T">The type of value to deserialize.</typeparam>
+    /// <param name="buffer">The buffer to deserialize from.</param>
+    /// <returns>The deserialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+    public static T? Deserialize<T>(byte[] buffer)
+    {
+        var reader = new TinyhandReader(buffer);
+
+        try
+        {
+            return DefaultOptions.Resolver.GetFormatter<T>().Deserialize(ref reader, DefaultOptions);
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+        }
     }
 
     /// <summary>
