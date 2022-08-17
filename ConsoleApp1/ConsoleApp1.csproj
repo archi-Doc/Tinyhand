@@ -9,6 +9,7 @@
     <ProjectReference Include="..\SandboxBase\SandboxBase.csproj" />
     <ProjectReference Include="..\TinyhandGenerator\TinyhandGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>

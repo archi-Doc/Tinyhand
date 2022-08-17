@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TinyhandGenerator\TinyhandGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-*" />
   </ItemGroup>
 
 </Project>

@@ -41,6 +41,7 @@
     </PackageReference>
     <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="7.0.0-*" />
   </ItemGroup>
 
   <ItemGroup>
