@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using Tinyhand;
 
 namespace ConsoleApp1;
@@ -61,5 +62,14 @@ class Program
         Console.WriteLine($"myClassRecon:");
         Console.WriteLine(myClassRecon?.ToString());
         Console.WriteLine();
+
+        var sw = Stopwatch.StartNew();
+        for (var i = 0; i < 1_000_000; i++)
+        {
+            b = TinyhandSerializer.Serialize(myClass);
+            myClass = TinyhandSerializer.Deserialize<MyClass>(b);
+        }
+
+        Console.WriteLine($"{sw.ElapsedMilliseconds.ToString()}");
     }
 }
