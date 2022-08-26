@@ -159,12 +159,13 @@ public static class HashedString
     /// Change the current culture.
     /// </summary>
     /// <param name="cultureName">The culture name.</param>
-    public static void ChangeCulture(string cultureName)
+    /// <returns><see langword="true" /> if the culture change was successfully done.</returns>
+    public static bool ChangeCulture(string cultureName)
     {
         cultureName = ShortNameToCultureName(cultureName);
         if (cultureName == CurrentCulture.Name)
         {
-            return;
+            return true;
         }
 
         var cultureInfo = new CultureInfo(cultureName);
@@ -173,12 +174,14 @@ public static class HashedString
         {
             if (!cultureTable.TryGetValue(cultureName, out var table))
             {
-                throw new CultureNotFoundException();
+                return false;
             }
 
             Volatile.Write(ref currentCultureTable, table);
             Volatile.Write(ref currentCultureInfo, cultureInfo);
         }
+
+        return true;
     }
 
     public static void Clear()
