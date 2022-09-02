@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Unicode;
 using Arc.IO;
 using Tinyhand.IO;
 using Tinyhand.Tree;
@@ -422,8 +423,25 @@ public static class TinyhandTreeConverter
                 case TinyhandAtomType.Identifier: // objectA
                     if (assignedCount <= 1)
                     {
-                        writer.WriteString(reader.ValueSpan.ToArray());
+                        var span = reader.ValueSpan;
                         count++;
+
+                        if (span.SequenceEqual(TinyhandConstants.DoubleNaNSpan))
+                        {
+                            writer.Write(double.NaN);
+                        }
+                        else if (span.SequenceEqual(TinyhandConstants.DoublePositiveInfinitySpan))
+                        {
+                            writer.Write(double.PositiveInfinity);
+                        }
+                        else if (span.SequenceEqual(TinyhandConstants.DoubleNegativeInfinitySpan))
+                        {
+                            writer.Write(double.NegativeInfinity);
+                        }
+                        else
+                        {
+                            writer.WriteString(span);
+                        }
                     }
 
                     break;
@@ -431,7 +449,7 @@ public static class TinyhandTreeConverter
                 case TinyhandAtomType.SpecialIdentifier: // @mode
                     if (assignedCount <= 1)
                     {
-                        var utf8 = reader.ValueSpan.ToArray();
+                        var utf8 = reader.ValueSpan;
                         writer.WriteStringHeader(utf8.Length + 1);
                         writer.RawWriteUInt8(TinyhandConstants.AtSign);
                         writer.WriteSpan(utf8);
@@ -460,7 +478,7 @@ public static class TinyhandTreeConverter
                 case TinyhandAtomType.Value_String: // "text"
                     if (assignedCount <= 1)
                     {
-                        writer.WriteString(reader.ValueSpan.ToArray());
+                        writer.WriteString(reader.ValueSpan);
                         count++;
                     }
 
