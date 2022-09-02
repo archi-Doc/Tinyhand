@@ -59,6 +59,22 @@ public partial class TextSerializeClass2
     public int[] Array { get; set; }
 }
 
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class TextSerializeClass3
+{
+    [DefaultValue(1.0d)]
+    public double Double1 { get; set; }
+
+    [DefaultValue(double.NaN)]
+    public double DoubleNaN { get; set; }
+
+    [DefaultValue(double.PositiveInfinity)]
+    public double DoublePositiveInfinity { get; set; }
+
+    [DefaultValue(double.NegativeInfinity)]
+    public double DoubleNegativeInfinity { get; set; }
+}
+
 public class TextSerializeTest
 {
     [Fact]
@@ -145,5 +161,18 @@ public class TextSerializeTest
 
         TinyhandSerializer.SerializeToString(42).Is("42");
         TinyhandSerializer.SerializeToString(3.14d).Is("3.14");
+    }
+
+    [Fact]
+    public void Test4()
+    {// Requires visual assessment: st
+        var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass3>();
+        var c2 = TinyhandSerializer.Deserialize<TextSerializeClass3>(TinyhandSerializer.Serialize(c1));
+
+        c1.IsStructuralEqual(c2);
+
+        var st = TinyhandSerializer.SerializeToString(c1);
+        var c3 = TinyhandSerializer.DeserializeFromString<TextSerializeClass3>(st);
+        c1.IsStructuralEqual(c3);
     }
 }
