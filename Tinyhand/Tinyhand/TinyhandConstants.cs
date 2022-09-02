@@ -46,6 +46,18 @@ public static class TinyhandConstants
     public static ReadOnlySpan<byte> TripleQuotesSpan => new byte[] { Quote, Quote, Quote, };
     public static ReadOnlySpan<byte> ColonSpan => new byte[] { Colon, };
 
+    public static ReadOnlySpan<byte> DoubleNaNSpan => "double.NaN"u8;
+
+    public static ReadOnlySpan<byte> DoublePositiveInfinitySpan => "double.PositiveInfinity"u8;
+
+    public static ReadOnlySpan<byte> DoubleNegativeInfinitySpan => "double.NegativeInfinity"u8;
+
+    /*public static ReadOnlySpan<byte> FloatNaNSpan => "float.NaN"u8;
+
+    public static ReadOnlySpan<byte> FloatPositiveInfinitySpan => "float.PositiveInfinity"u8;
+
+    public static ReadOnlySpan<byte> FloatNegativeInfinitySpan => "float.NegativeInfinity"u8;*/
+
     public const int StackallocThreshold = 1024;
 
     public const int MaxHintSize = 1024 * 1024;

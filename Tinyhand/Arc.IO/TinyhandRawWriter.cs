@@ -3,7 +3,9 @@
 using System;
 using System.Buffers;
 using System.Buffers.Text;
+using System.Text.Unicode;
 using Arc.IO;
+using Tinyhand;
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly
 
@@ -171,6 +173,22 @@ public ref struct TinyhandRawWriter
 
     public bool WriteStringSingle(float value)
     {
+        if (float.IsNaN(value))
+        {
+            this.WriteSpan(TinyhandConstants.DoubleNaNSpan);
+            return true;
+        }
+        else if (float.IsPositiveInfinity(value))
+        {
+            this.WriteSpan(TinyhandConstants.DoublePositiveInfinitySpan);
+            return true;
+        }
+        else if (float.IsNegativeInfinity(value))
+        {
+            this.WriteSpan(TinyhandConstants.DoubleNegativeInfinitySpan);
+            return true;
+        }
+
         Span<byte> span = this.writer.GetSpan(32);
         if (Utf8Formatter.TryFormat(value, span, out var written))
         {
@@ -183,6 +201,22 @@ public ref struct TinyhandRawWriter
 
     public bool WriteStringDouble(double value)
     {
+        if (double.IsNaN(value))
+        {
+            this.WriteSpan(TinyhandConstants.DoubleNaNSpan);
+            return true;
+        }
+        else if (double.IsPositiveInfinity(value))
+        {
+            this.WriteSpan(TinyhandConstants.DoublePositiveInfinitySpan);
+            return true;
+        }
+        else if (double.IsNegativeInfinity(value))
+        {
+            this.WriteSpan(TinyhandConstants.DoubleNegativeInfinitySpan);
+            return true;
+        }
+
         Span<byte> span = this.writer.GetSpan(32);
         if (Utf8Formatter.TryFormat(value, span, out var written))
         {
