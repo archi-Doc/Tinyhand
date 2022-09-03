@@ -307,7 +307,10 @@ public ref struct TinyhandUtf8Reader
             default: // Number, Binary, Modifier/Value, Identifier/Limited identifier
                 if (TinyhandHelper.IsDigit(b) || b == (byte)'+' || b == (byte)'-')
                 { // Number
-                    return this.ReadNumber();
+                    if (this.ReadNumber())
+                    {
+                        return true;
+                    }
                 }
 
                 if (b == (byte)'b' && this.Remaining >= 2 && this.buffer[this.Position + 1] == TinyhandConstants.Quote)
@@ -716,6 +719,8 @@ Unexpected_Symbol:
         int position = 0;
         bool isDouble = false;
 
+        // Utf8Parser.TryParse("NaN"u8, out var dd, out _); // NaN, Infinity, +/-Infinity
+
         for (var remaining = localBuffer.Length; remaining > 0; remaining--, position++)
         {
             if (this.IsDelimiter(localBuffer, position, remaining))
@@ -727,6 +732,10 @@ Unexpected_Symbol:
             if (val == '.' || val == 'e' || val == 'E')
             {
                 isDouble = true;
+            }
+            else if (!TinyhandHelper.IsDigit(val))
+            {// Not a number.
+                return false;
             }
         }
 

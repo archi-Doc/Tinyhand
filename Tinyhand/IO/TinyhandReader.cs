@@ -699,6 +699,7 @@ public ref partial struct TinyhandReader
                     return code;
                 }
 
+                /*this.reader.Rewind(1);
                 var span = this.ReadStringSpan();
                 if (span.Length == 3)
                 {// 3: NaN
@@ -712,7 +713,7 @@ public ref partial struct TinyhandReader
                     if ((span[0] == (byte)'I' || span[0] == (byte)'i') && span[1] == (byte)'n' && span[2] == (byte)'f' && span[3] == (byte)'i' &&
                         span[4] == (byte)'n' && span[5] == (byte)'i' && span[6] == (byte)'t' && span[7] == (byte)'y')
                     {
-                        return double.NaN;
+                        return double.PositiveInfinity;
                     }
                 }
                 else if (span.Length == 9)
@@ -727,7 +728,7 @@ public ref partial struct TinyhandReader
                     {
                         return double.NegativeInfinity;
                     }
-                }
+                }*/
 
                 throw ThrowInvalidCode(code, MessagePackType.Float);
         }
