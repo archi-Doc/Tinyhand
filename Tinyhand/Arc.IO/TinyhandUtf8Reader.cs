@@ -307,7 +307,10 @@ public ref struct TinyhandUtf8Reader
             default: // Number, Binary, Modifier/Value, Identifier/Limited identifier
                 if (TinyhandHelper.IsDigit(b) || b == (byte)'+' || b == (byte)'-')
                 { // Number
-                    return this.ReadNumber();
+                    if (this.ReadNumber())
+                    {
+                        return true;
+                    }
                 }
 
                 if (b == (byte)'b' && this.Remaining >= 2 && this.buffer[this.Position + 1] == TinyhandConstants.Quote)
@@ -394,6 +397,28 @@ Unexpected_Symbol:
             if (this.ValueSpan[0] == (byte)'f' && this.ValueSpan[1] == (byte)'a' && this.ValueSpan[2] == (byte)'l' && this.ValueSpan[3] == (byte)'s' && this.ValueSpan[4] == (byte)'e')
             { // false
                 this.AtomType = TinyhandAtomType.Value_False;
+                return true;
+            }
+        }
+        else if (this.ValueSpan.Length == TinyhandConstants.DoubleNaNSpan.Length &&
+            this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNaNSpan))
+        {// double.NaN
+            this.AtomType = TinyhandAtomType.Value_Double;
+            this.ValueDouble = double.NaN;
+            return true;
+        }
+        else if (this.ValueSpan.Length == TinyhandConstants.DoublePositiveInfinitySpan.Length)
+        {
+            if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoublePositiveInfinitySpan))
+            {// double.PositiveInfinity
+                this.AtomType = TinyhandAtomType.Value_Double;
+                this.ValueDouble = double.PositiveInfinity;
+                return true;
+            }
+            else if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNegativeInfinitySpan))
+            {// double.NegativeInfinity
+                this.AtomType = TinyhandAtomType.Value_Double;
+                this.ValueDouble = double.NegativeInfinity;
                 return true;
             }
         }
@@ -716,6 +741,8 @@ Unexpected_Symbol:
         int position = 0;
         bool isDouble = false;
 
+        // Utf8Parser.TryParse("NaN"u8, out var dd, out _); // NaN, Infinity, +/-Infinity
+
         for (var remaining = localBuffer.Length; remaining > 0; remaining--, position++)
         {
             if (this.IsDelimiter(localBuffer, position, remaining))
@@ -727,6 +754,13 @@ Unexpected_Symbol:
             if (val == '.' || val == 'e' || val == 'E')
             {
                 isDouble = true;
+            }
+            else if (val == '+' || val == '-')
+            {
+            }
+            else if (!TinyhandHelper.IsDigit(val))
+            {// Not a number.
+                return false;
             }
         }
 

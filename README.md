@@ -27,6 +27,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Use Service Provider](#use-service-provider)
   - [Union](#union)
   - [Text Serialization](#text-serialization)
+  - [Max length](#max-length)
   - [Versioning](#versioning)
   - [Serialization Callback](#serialization-callback)
   - [Deep copy](#deep-copy)
@@ -637,6 +638,56 @@ var myClass3 = TinyhandSerializer.DeserializeFromUtf8<MyClass>(utf8);
 ```
 
 Text Serialization is optional because it is 5 to 8 times slower than binary serialization.
+
+### Max length
+
+You can set the maximum length of members by adding `MaxLength` attribute and setting `PropertyName` of `Key` attribute.
+
+```csharp
+[TinyhandObject]
+public partial record MaxLengthClass
+{
+    [Key(0, PropertyName = "Name")] // "Name" property will be created.
+    [MaxLength(3)] // The maximum length of Name property.
+    private string name = default!;
+
+    [Key(1, PropertyName = "Ids")]
+    [MaxLength(2)]
+    private int[] id = default!;
+
+    [Key(2, PropertyName = "Tags")]
+    [MaxLength(2, 3)] // The maximum length of an array and length of a string.
+    private string[] tags = default!;
+
+    public override string ToString()
+        => $"""
+        Name: {this.Name}
+        Ids: {string.Join(',', this.Ids)}
+        Tags: {string.Join(',', this.Tags)}
+        """;
+}
+
+public static class MaxLengthTest
+{
+    public static void Test()
+    {
+        var c = new MaxLengthClass();
+        c.Name = "ABCD"; // "ABC"
+        c.Ids = new int[] { 0, 1, 2, 3 }; // 0, 1,
+        c.Tags = new string[] { "aaa", "bbbb", "cccc" }; // "aaa", "bbb",
+
+        Console.WriteLine(c.ToString());
+        Console.WriteLine();
+
+        var st = TinyhandSerializer.SerializeToString(c);
+        st = """ "ABCD", {0, 1, 2, 3}, {"aaa", "bbbb", "cccc"} """;
+        var c2 = TinyhandSerializer.DeserializeFromString<MaxLengthClass>(st);
+
+        Console.WriteLine(c2!.ToString());
+        Console.WriteLine();
+    }
+}
+```
 
 
 

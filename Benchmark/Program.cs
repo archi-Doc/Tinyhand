@@ -50,10 +50,11 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<UnionBenchmark>();
+        DebugRun<CompareByteSpanTest>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
+            typeof(CompareByteSpanTest),
             typeof(UnionBenchmark),
             typeof(SerializeIdentifierTest),
             typeof(DualWriter.DualWriterBenchmark),
@@ -109,7 +110,7 @@ public class Program
 
         foreach (var x in methods.Where(i => i.GetCustomAttributes(typeof(BenchmarkAttribute), false).Length > 0))
         { // [BenchmarkAttribute]
-            x.Invoke(t, null);
+            var ret = x.Invoke(t, null);
         }
 
         foreach (var x in methods.Where(i => i.GetCustomAttributes(typeof(GlobalCleanupAttribute), false).Length > 0))

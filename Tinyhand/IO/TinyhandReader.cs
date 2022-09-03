@@ -699,6 +699,37 @@ public ref partial struct TinyhandReader
                     return code;
                 }
 
+                /*this.reader.Rewind(1);
+                var span = this.ReadStringSpan();
+                if (span.Length == 3)
+                {// 3: NaN
+                    if ((span[0] == (byte)'N' || span[0] == (byte)'n') && span[1] == (byte)'a' && span[2] == (byte)'N')
+                    {
+                        return double.NaN;
+                    }
+                }
+                else if (span.Length == 8)
+                {// 8: Infinity
+                    if ((span[0] == (byte)'I' || span[0] == (byte)'i') && span[1] == (byte)'n' && span[2] == (byte)'f' && span[3] == (byte)'i' &&
+                        span[4] == (byte)'n' && span[5] == (byte)'i' && span[6] == (byte)'t' && span[7] == (byte)'y')
+                    {
+                        return double.PositiveInfinity;
+                    }
+                }
+                else if (span.Length == 9)
+                {// 9: +Infinity, -Infinity
+                    if (span[0] == (byte)'+' && (span[1] == (byte)'I' || span[1] == (byte)'i') && span[2] == (byte)'n' && span[3] == (byte)'f' &&
+                        span[4] == (byte)'i' && span[5] == (byte)'n' && span[6] == (byte)'i' && span[7] == (byte)'t' && span[8] == (byte)'y')
+                    {
+                        return double.PositiveInfinity;
+                    }
+                    else if (span[0] == (byte)'-' && (span[1] == (byte)'I' || span[1] == (byte)'i') && span[2] == (byte)'n' && span[3] == (byte)'f' &&
+                        span[4] == (byte)'i' && span[5] == (byte)'n' && span[6] == (byte)'i' && span[7] == (byte)'t' && span[8] == (byte)'y')
+                    {
+                        return double.NegativeInfinity;
+                    }
+                }*/
+
                 throw ThrowInvalidCode(code, MessagePackType.Float);
         }
     }
@@ -1186,36 +1217,48 @@ public ref partial struct TinyhandReader
                     length = byteValue;
                     return true;
                 }
+                else
+                {
+                    length = 0;
+                    return false;
+                }
 
-                break;
             case MessagePackCode.Str16:
                 if (this.reader.TryReadBigEndian(out short shortValue))
                 {
                     length = unchecked((ushort)shortValue);
                     return true;
                 }
+                else
+                {
+                    length = 0;
+                    return false;
+                }
 
-                break;
             case MessagePackCode.Str32:
                 if (this.reader.TryReadBigEndian(out int intValue))
                 {
                     length = intValue;
                     return true;
                 }
+                else
+                {
+                    length = 0;
+                    return false;
+                }
 
-                break;
             default:
                 if (code >= MessagePackCode.MinFixStr && code <= MessagePackCode.MaxFixStr)
                 {
                     length = code & 0x1F;
                     return true;
                 }
-
-                throw ThrowInvalidCode(code, MessagePackType.String);
+                else
+                {
+                    length = 0;
+                    return false;
+                }
         }
-
-        length = 0;
-        return false;
     }
 
     /// <summary>

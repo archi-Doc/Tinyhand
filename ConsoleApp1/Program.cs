@@ -61,5 +61,7 @@ class Program
         Console.WriteLine($"myClassRecon:");
         Console.WriteLine(myClassRecon?.ToString());
         Console.WriteLine();
+
+        MaxLengthTest.Test();
     }
 }
