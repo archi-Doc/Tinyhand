@@ -699,7 +699,7 @@ public ref partial struct TinyhandReader
                     return code;
                 }
 
-                /*this.reader.Rewind(1);
+                this.reader.Rewind(1);
                 var span = this.ReadStringSpan();
                 if (span.Length == 3)
                 {// 3: NaN
@@ -728,7 +728,7 @@ public ref partial struct TinyhandReader
                     {
                         return double.NegativeInfinity;
                     }
-                }*/
+                }
 
                 throw ThrowInvalidCode(code, MessagePackType.Float);
         }

@@ -733,6 +733,9 @@ Unexpected_Symbol:
             {
                 isDouble = true;
             }
+            else if (val == '+' || val == '-')
+            {
+            }
             else if (!TinyhandHelper.IsDigit(val))
             {// Not a number.
                 return false;
