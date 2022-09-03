@@ -423,25 +423,8 @@ public static class TinyhandTreeConverter
                 case TinyhandAtomType.Identifier: // objectA
                     if (assignedCount <= 1)
                     {
-                        var span = reader.ValueSpan;
+                        writer.WriteString(reader.ValueSpan);
                         count++;
-
-                        if (span.SequenceEqual(TinyhandConstants.DoubleNaNSpan))
-                        {
-                            writer.Write(double.NaN);
-                        }
-                        else if (span.SequenceEqual(TinyhandConstants.DoublePositiveInfinitySpan))
-                        {
-                            writer.Write(double.PositiveInfinity);
-                        }
-                        else if (span.SequenceEqual(TinyhandConstants.DoubleNegativeInfinitySpan))
-                        {
-                            writer.Write(double.NegativeInfinity);
-                        }
-                        else
-                        {
-                            writer.WriteString(span);
-                        }
                     }
 
                     break;

@@ -400,6 +400,28 @@ Unexpected_Symbol:
                 return true;
             }
         }
+        else if (this.ValueSpan.Length == TinyhandConstants.DoubleNaNSpan.Length &&
+            this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNaNSpan))
+        {// double.NaN
+            this.AtomType = TinyhandAtomType.Value_Double;
+            this.ValueDouble = double.NaN;
+            return true;
+        }
+        else if (this.ValueSpan.Length == TinyhandConstants.DoublePositiveInfinitySpan.Length)
+        {
+            if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoublePositiveInfinitySpan))
+            {// double.PositiveInfinity
+                this.AtomType = TinyhandAtomType.Value_Double;
+                this.ValueDouble = double.PositiveInfinity;
+                return true;
+            }
+            else if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNegativeInfinitySpan))
+            {// double.NegativeInfinity
+                this.AtomType = TinyhandAtomType.Value_Double;
+                this.ValueDouble = double.NegativeInfinity;
+                return true;
+            }
+        }
 
         return false;
     }

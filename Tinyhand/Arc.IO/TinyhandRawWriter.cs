@@ -173,7 +173,7 @@ public ref struct TinyhandRawWriter
 
     public bool WriteStringSingle(float value)
     {
-        /*if (float.IsNaN(value))
+        if (float.IsNaN(value))
         {
             this.WriteSpan(TinyhandConstants.DoubleNaNSpan);
             return true;
@@ -187,7 +187,7 @@ public ref struct TinyhandRawWriter
         {
             this.WriteSpan(TinyhandConstants.DoubleNegativeInfinitySpan);
             return true;
-        }*/
+        }
 
         Span<byte> span = this.writer.GetSpan(32);
         if (Utf8Formatter.TryFormat(value, span, out var written))
@@ -201,7 +201,7 @@ public ref struct TinyhandRawWriter
 
     public bool WriteStringDouble(double value)
     {
-        /*if (double.IsNaN(value))
+        if (double.IsNaN(value))
         {
             this.WriteSpan(TinyhandConstants.DoubleNaNSpan);
             return true;
@@ -215,7 +215,7 @@ public ref struct TinyhandRawWriter
         {
             this.WriteSpan(TinyhandConstants.DoubleNegativeInfinitySpan);
             return true;
-        }*/
+        }
 
         Span<byte> span = this.writer.GetSpan(32);
         if (Utf8Formatter.TryFormat(value, span, out var written))
