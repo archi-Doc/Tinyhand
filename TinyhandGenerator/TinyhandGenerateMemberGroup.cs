@@ -202,7 +202,7 @@ internal class TinyhandGenerateMemberGroup
         }
 
         // Get safe string
-        char* chars = stackalloc char[count + 1];
+        char* chars = stackalloc char[count];
         count = 0;
         foreach (var x in span)
         {
@@ -253,7 +253,6 @@ internal class TinyhandGenerateMemberGroup
             }
         }
 
-        chars[count++] = (char)0;
         var dest = new string(chars);
         return dest;
     }
@@ -292,7 +291,6 @@ internal class TinyhandGenerateMemberGroup
         }
 
         // Get safe string
-        count++; // null
         Span<char> buffer = count <= 1024 ? stackalloc char[count] : new char[count];
         fixed (char* chars = buffer)
         {
@@ -342,7 +340,6 @@ internal class TinyhandGenerateMemberGroup
                 }
             }
 
-            chars[count++] = (char)0;
             var dest = new string(chars);
             return dest;
         }

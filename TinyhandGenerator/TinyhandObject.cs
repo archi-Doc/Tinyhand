@@ -2072,7 +2072,7 @@ ModuleInitializerClass_Added:
         else if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
         {
             info.GeneratingStaticMethod = true;
-            methodCode = $"public static {this.UnsafeDeserializeString}void Deserialize{this.GenericsNumberString}(ref {this.RegionalName} v, ref TinyhandReader reader, TinyhandSerializerOptions options)";
+            methodCode = $"public static {this.UnsafeDeserializeString}void Deserialize{this.GenericsNumberString}(scoped ref {this.RegionalName} v, ref TinyhandReader reader, TinyhandSerializerOptions options)";
             objectCode = "v";
         }
         else
