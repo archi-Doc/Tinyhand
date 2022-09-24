@@ -110,7 +110,7 @@ public ref struct TinyhandWriter
     /// Copies bytes directly into the message pack writer.
     /// </summary>
     /// <param name="sequence">The span of bytes to copy from.</param>
-    public void WriteSequence(in ReadOnlySequence<byte> sequence)
+    public void WriteSequence(scoped in ReadOnlySequence<byte> sequence)
     {
         foreach (ReadOnlyMemory<byte> segment in sequence)
         {

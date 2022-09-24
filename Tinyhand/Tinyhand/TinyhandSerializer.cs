@@ -930,7 +930,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    private static void ToLZ4BinaryCore(in ReadOnlySequence<byte> msgpackUncompressedData, ref TinyhandWriter writer, TinyhandCompression compression)
+    private static void ToLZ4BinaryCore(scoped in ReadOnlySequence<byte> msgpackUncompressedData, ref TinyhandWriter writer, TinyhandCompression compression)
     {
         if (compression == TinyhandCompression.Lz4)
         {
