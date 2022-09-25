@@ -2035,6 +2035,19 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
+    public bool IsUnmanagedType
+    {
+        get
+        {
+            if (this.symbol is ITypeSymbol typeSymbol)
+            {
+                return typeSymbol.IsUnmanagedType;
+            }
+
+            return false;
+        }
+    }
+
     private bool? isWritable;
 
     public bool IsWritable

@@ -244,6 +244,9 @@ class Program
         Console.WriteLine("Sandbox");
         Console.WriteLine();
 
+        var pk = new PublicKey(2, new byte[] { 0, 1, });
+        pk.Test(new byte[] { });
+
         var tc = new MaxLengthClass();
         tc.X = 1;
         tc.Name = "Fuga";

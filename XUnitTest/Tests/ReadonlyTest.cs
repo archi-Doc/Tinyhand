@@ -12,7 +12,7 @@ using Xunit;
 namespace Tinyhand.Tests;
 
 [TinyhandObject]
-public readonly partial struct IdentifierReadonlyStruct
+public readonly partial struct IdentifierReadonlyStruct : IEquatable<IdentifierReadonlyStruct>
 {
     [Key(0)]
     readonly ulong Id0;
@@ -26,6 +26,9 @@ public readonly partial struct IdentifierReadonlyStruct
     [Key(3)]
     readonly ulong Id3 { get; init; }
 
+    [Key(4)]
+    private readonly byte[] bytes = Array.Empty<byte>();
+
     public IdentifierReadonlyStruct()
     {
         this.Id0 = 0;
@@ -34,13 +37,21 @@ public readonly partial struct IdentifierReadonlyStruct
         this.Id3 = 0;
     }
 
-    public IdentifierReadonlyStruct(ulong id0, ulong id1, ulong id2, ulong id3)
+    public IdentifierReadonlyStruct(ulong id0, ulong id1, ulong id2, ulong id3, byte[] bytes)
     {
         this.Id0 = id0;
         this.Id1 = id1;
         this.Id2 = id2;
         this.Id3 = id3;
+        this.bytes = bytes;
     }
+
+    public bool Equals(IdentifierReadonlyStruct other)
+        => this.Id0 == other.Id0 &&
+        this.Id1 == other.Id1 &&
+        this.Id2 == other.Id2 &&
+        this.Id3 == other.Id3 &&
+        this.bytes.SequenceEqual(other.bytes);
 }
 
 [TinyhandObject]
@@ -102,10 +113,11 @@ public class ReadonlyTest
     [Fact]
     public void Test1()
     {
-        var r = new IdentifierReadonlyStruct(1, 2, 3, 4);
+        var r = new IdentifierReadonlyStruct(1, 2, 3, 4, new byte[] { 1, 2, 3, });
 
         var st = TinyhandSerializer.SerializeToString(r);
         var r3 = TinyhandSerializer.DeserializeFromString<IdentifierReadonlyStruct>(st);
+
         r3.Equals(r).IsTrue(); // r3.IsStructuralEqual(r);
 
         r3 = TinyhandSerializer.Clone(r);
