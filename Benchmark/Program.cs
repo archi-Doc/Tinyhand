@@ -67,6 +67,8 @@ public class Program
             typeof(H2HTest.H2HBenchmark),
             typeof(H2HTest.H2HLarge),
         });
+
+        // BenchmarkRunner.Run<SerializeIdentifierTest>();
         switcher.Run(args);
     }
 

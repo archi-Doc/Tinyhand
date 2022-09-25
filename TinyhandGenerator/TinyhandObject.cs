@@ -2600,8 +2600,15 @@ ModuleInitializerClass_Added:
                     ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
-                {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                    ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                {
+                    if (withNullable.Object.IsUnmanagedType)
+                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                    }
+                    else
+                    {// Unsafe.AsRef({this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                    }
                 }
             }
         }
@@ -2710,9 +2717,17 @@ ModuleInitializerClass_Added:
                     ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
-                {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                    ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                {
+                    if (withNullable.Object.IsUnmanagedType)
+                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                    }
+                    else
+                    {// Unsafe.AsRef({this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                    }
                 }
+
             }
         }
     }
@@ -2800,8 +2815,15 @@ ModuleInitializerClass_Added:
                     ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
-                {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                    ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                {
+                    if (withNullable.Object.IsUnmanagedType)
+                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                    }
+                    else
+                    {// Unsafe.AsRef({this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                    }
                 }
 
                 if (emptyBrace != null)
@@ -2888,8 +2910,15 @@ ModuleInitializerClass_Added:
                     ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
-                {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                    ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                {
+                    if (withNullable.Object.IsUnmanagedType)
+                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                    }
+                    else
+                    {// Unsafe.AsRef({this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                    }
                 }
             }
         }
@@ -2963,13 +2992,29 @@ ModuleInitializerClass_Added:
                     }
                     else if (x.IsReadOnly)
                     {
-                        if (this.Kind == VisceralObjectKind.Struct)
+                        /*if (this.Kind == VisceralObjectKind.Struct)
                         {// *(ulong*)&value.Id0 = vd;
                             ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{destObject}.{x.SimpleName} = vd;");
                         }
                         else
                         {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
                             ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                        }*/
+
+                        if (!withNullable.Object.IsUnmanagedType)
+                        {// Unsafe.AsRef({this.array) = vd;
+                            ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                        }
+                        else
+                        {
+                            if (this.Kind == VisceralObjectKind.Struct)
+                            {// *(ulong*)&value.Id0 = vd;
+                                ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{destObject}.{x.SimpleName} = vd;");
+                            }
+                            else
+                            {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                                ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                            }
                         }
                     }
 
