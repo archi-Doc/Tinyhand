@@ -310,7 +310,7 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<Key
 {
     public void Serialize(ref TinyhandWriter writer, KeyValuePair<TKey, TValue> value, TinyhandSerializerOptions options)
     {
-        writer.WriteArrayHeader(2);
+        writer.WriteArrayHeader(2); // writer.WriteMapHeader(1);
         IFormatterResolver resolver = options.Resolver;
         resolver.GetFormatter<TKey>().Serialize(ref writer, value.Key, options);
         resolver.GetFormatter<TValue>().Serialize(ref writer, value.Value, options);
@@ -320,7 +320,6 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<Key
     public KeyValuePair<TKey, TValue> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
         var count = reader.ReadArrayHeader();
-
         if (count != 2)
         {
             throw new TinyhandException("Invalid KeyValuePair format.");
@@ -349,6 +348,91 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<Key
     {
         var resolver = options.Resolver;
         return new KeyValuePair<TKey, TValue>(resolver.GetFormatter<TKey>().Clone(value.Key, options)!, resolver.GetFormatter<TValue>().Clone(value.Value, options)!);
+    }
+}
+
+public sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<KeyValueList<TKey, TValue>>
+{
+    public void Serialize(ref TinyhandWriter writer, KeyValueList<TKey, TValue>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            var keyFormatter = options.Resolver.GetFormatter<TKey>();
+            var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+            var count = value.Count;
+            writer.WriteMapHeader(count);
+            for (var i = 0; i < count; i++)
+            {
+                writer.CancellationToken.ThrowIfCancellationRequested();
+                keyFormatter.Serialize(ref writer, value[i].Key, options);
+                valueFormatter.Serialize(ref writer, value[i].Value, options);
+            }
+        }
+
+        return;
+    }
+
+    public KeyValueList<TKey, TValue>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return default;
+        }
+        else
+        {
+            var keyFormatter = options.Resolver.GetFormatter<TKey>();
+            var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+            var count = reader.ReadMapHeader2();
+            var list = new KeyValueList<TKey, TValue>(count);
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    reader.CancellationToken.ThrowIfCancellationRequested();
+                    list.Add(new(keyFormatter.Deserialize(ref reader, options)!, valueFormatter.Deserialize(ref reader, options)!));
+                }
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+
+            return list;
+        }
+    }
+
+    public KeyValueList<TKey, TValue> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new();
+    }
+
+    public KeyValueList<TKey, TValue>? Clone(KeyValueList<TKey, TValue>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return default;
+        }
+        else
+        {
+            var keyFormatter = options.Resolver.GetFormatter<TKey>();
+            var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+            var len = value.Count;
+            var list = new KeyValueList<TKey, TValue>(len);
+            for (var i = 0; i < len; i++)
+            {
+                list.Add(new(keyFormatter.Clone(value[i].Key, options)!, valueFormatter.Clone(value[i].Value, options)!));
+            }
+
+            return list;
+        }
     }
 }
 

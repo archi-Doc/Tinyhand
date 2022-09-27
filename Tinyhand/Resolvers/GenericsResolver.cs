@@ -141,6 +141,10 @@ namespace Tinyhand.Internal
                 {// KeyValuePair
                     return CreateInstance(typeof(KeyValuePairFormatter<,>), ti.GenericTypeArguments);
                 }
+                else if (genericType == typeof(KeyValueList<,>))
+                {// KeyValueList
+                    return CreateInstance(typeof(KeyValueListFormatter<,>), ti.GenericTypeArguments);
+                }
                 else if (ti.FullName?.StartsWith("System.Tuple") == true)
                 {// Tuple
                     Type? tupleFormatterType = null;

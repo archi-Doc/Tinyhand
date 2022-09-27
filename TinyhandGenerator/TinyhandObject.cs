@@ -2727,7 +2727,6 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
                     }
                 }
-
             }
         }
     }
