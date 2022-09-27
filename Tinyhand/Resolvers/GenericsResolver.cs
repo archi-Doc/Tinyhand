@@ -104,6 +104,10 @@ namespace Tinyhand.Internal
             { typeof(UnorderedSet<>), typeof(UnorderedSetFormatter<>) },
             { typeof(UnorderedMultiMap<,>), typeof(UnorderedMultiMapFormatter<,>) },
             { typeof(UnorderedMultiSet<>), typeof(UnorderedMultiSetFormatter<>) },
+            { typeof(OrderedKeyValueList<,>), typeof(OrderedKeyValueListFormatter<,>) },
+            { typeof(OrderedList<>), typeof(OrderedListFormatter<>) },
+            { typeof(UnorderedList<>), typeof(UnorderedListFormatter<>) },
+            { typeof(UnorderedLinkedList<>), typeof(UnorderedLinkedListFormatter<>) },
         };
 
         // Reduce IL2CPP code generate size(don't write long code in <T>)

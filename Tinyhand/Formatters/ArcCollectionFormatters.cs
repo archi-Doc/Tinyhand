@@ -2,6 +2,9 @@
 
 using System.Collections.Generic;
 using Arc.Collections;
+using Tinyhand.IO;
+
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 
 namespace Tinyhand.Formatters;
 
@@ -206,6 +209,267 @@ public sealed class UnorderedMultiSetFormatter<T> : CollectionFormatterBase<T, U
     }
 
     protected override UnorderedMultiMap<T, int>.KeyCollection.Enumerator GetSourceEnumerator(UnorderedMultiSet<T> source)
+    {
+        return source.GetEnumerator();
+    }
+}
+
+public sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T>>
+{
+    public void Serialize(ref TinyhandWriter writer, OrderedList<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var c = value.Count;
+            writer.WriteArrayHeader(c);
+            for (var i = 0; i < c; i++)
+            {
+                writer.CancellationToken.ThrowIfCancellationRequested();
+                formatter.Serialize(ref writer, value[i], options);
+            }
+        }
+    }
+
+    public OrderedList<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return default;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = reader.ReadArrayHeader();
+            var list = new OrderedList<T>((int)len);
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                for (var i = 0; i < len; i++)
+                {
+                    reader.CancellationToken.ThrowIfCancellationRequested();
+                    list.Add(formatter.Deserialize(ref reader, options)!);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+
+            return list;
+        }
+    }
+
+    public OrderedList<T> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new OrderedList<T>();
+    }
+
+    public OrderedList<T>? Clone(OrderedList<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return default;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = value.Count;
+            var list = new OrderedList<T>(len);
+            for (var i = 0; i < len; i++)
+            {
+                list.Add(formatter.Clone(value[i], options)!);
+            }
+
+            return list;
+        }
+    }
+}
+
+public sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedList<T>>
+{
+    public void Serialize(ref TinyhandWriter writer, UnorderedList<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var c = value.Count;
+            writer.WriteArrayHeader(c);
+            for (var i = 0; i < c; i++)
+            {
+                writer.CancellationToken.ThrowIfCancellationRequested();
+                formatter.Serialize(ref writer, value[i], options);
+            }
+        }
+    }
+
+    public UnorderedList<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return default;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = reader.ReadArrayHeader();
+            var list = new UnorderedList<T>((int)len);
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                for (var i = 0; i < len; i++)
+                {
+                    reader.CancellationToken.ThrowIfCancellationRequested();
+                    list.Add(formatter.Deserialize(ref reader, options)!);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+
+            return list;
+        }
+    }
+
+    public UnorderedList<T> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new UnorderedList<T>();
+    }
+
+    public UnorderedList<T>? Clone(UnorderedList<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return default;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = value.Count;
+            var list = new UnorderedList<T>(len);
+            for (var i = 0; i < len; i++)
+            {
+                list.Add(formatter.Clone(value[i], options)!);
+            }
+
+            return list;
+        }
+    }
+}
+
+public sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<UnorderedLinkedList<T>>
+{
+    public void Serialize(ref TinyhandWriter writer, UnorderedLinkedList<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var c = value.Count;
+            writer.WriteArrayHeader(c);
+            foreach (var x in value)
+            {
+                writer.CancellationToken.ThrowIfCancellationRequested();
+                formatter.Serialize(ref writer, x, options);
+            }
+        }
+    }
+
+    public UnorderedLinkedList<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return default;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = reader.ReadArrayHeader();
+            var list = new UnorderedLinkedList<T>();
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                for (var i = 0; i < len; i++)
+                {
+                    reader.CancellationToken.ThrowIfCancellationRequested();
+                    list.AddLast(formatter.Deserialize(ref reader, options)!);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+
+            return list;
+        }
+    }
+
+    public UnorderedLinkedList<T> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new UnorderedLinkedList<T>();
+    }
+
+    public UnorderedLinkedList<T>? Clone(UnorderedLinkedList<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return default;
+        }
+        else
+        {
+            var formatter = options.Resolver.GetFormatter<T>();
+
+            var len = value.Count;
+            var list = new UnorderedLinkedList<T>();
+            foreach (var x in value)
+            {
+                list.AddLast(formatter.Clone(x, options)!);
+            }
+
+            return list;
+        }
+    }
+}
+
+public sealed class OrderedKeyValueListFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, OrderedKeyValueList<TKey, TValue>, OrderedKeyValueList<TKey, TValue>.Enumerator, OrderedKeyValueList<TKey, TValue>>
+    where TKey : notnull
+{
+    protected override void Add(OrderedKeyValueList<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
+    {
+        collection.Add(key, value);
+    }
+
+    protected override OrderedKeyValueList<TKey, TValue> Complete(OrderedKeyValueList<TKey, TValue> intermediateCollection)
+    {
+        return intermediateCollection;
+    }
+
+    protected override OrderedKeyValueList<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    {
+        return new OrderedKeyValueList<TKey, TValue>();
+    }
+
+    protected override OrderedKeyValueList<TKey, TValue>.Enumerator GetSourceEnumerator(OrderedKeyValueList<TKey, TValue> source)
     {
         return source.GetEnumerator();
     }

@@ -107,6 +107,10 @@ public sealed class FormatterResolver : ICoderResolver
         this.AddGenericsFullName("Arc.Collections.UnorderedMultiMap<TKey, TValue>");
         this.AddGenericsFullName("Arc.Collections.UnorderedSet<T>");
         this.AddGenericsFullName("Arc.Collections.UnorderedMultiSet<T>");
+        this.AddGenericsFullName("Arc.Collections.OrderedKeyValueList<TKey, TValue>");
+        this.AddGenericsFullName("Arc.Collections.OrderedList<T>");
+        this.AddGenericsFullName("Arc.Collections.UnorderedList<T>");
+        this.AddGenericsFullName("Arc.Collections.UnorderedLinkedList<T>");
     }
 
     public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
