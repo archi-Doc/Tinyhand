@@ -98,6 +98,19 @@ public sealed class FormatterResolver : ICoderResolver
 
         this.AddFormatter(typeof(System.Net.IPAddress));
         this.AddFormatter(typeof(System.Net.IPEndPoint));
+
+        this.AddGenericsFullName("Arc.Collections.OrderedMap<TKey, TValue>");
+        this.AddGenericsFullName("Arc.Collections.OrderedMultiMap<TKey, TValue>");
+        this.AddGenericsFullName("Arc.Collections.OrderedSet<T>");
+        this.AddGenericsFullName("Arc.Collections.OrderedMultiSet<T>");
+        this.AddGenericsFullName("Arc.Collections.UnorderedMap<TKey, TValue>");
+        this.AddGenericsFullName("Arc.Collections.UnorderedMultiMap<TKey, TValue>");
+        this.AddGenericsFullName("Arc.Collections.UnorderedSet<T>");
+        this.AddGenericsFullName("Arc.Collections.UnorderedMultiSet<T>");
+        this.AddGenericsFullName("Arc.Collections.OrderedKeyValueList<TKey, TValue>");
+        this.AddGenericsFullName("Arc.Collections.OrderedList<T>");
+        this.AddGenericsFullName("Arc.Collections.UnorderedList<T>");
+        this.AddGenericsFullName("Arc.Collections.UnorderedLinkedList<T>");
     }
 
     public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
@@ -197,6 +210,12 @@ Check_GenericsArguments:
     public void AddGenericsType(Type genericsType)
     {
         this.genericsType.Add(VisceralHelper.TypeToFullName(genericsType));
+    }
+
+    public void AddGenericsFullName(string fullName)
+    {
+        this.genericsType.Add(fullName);
+        this.genericsType.Add(fullName + "?");
     }
 
     public ITinyhandCoder? AddFormatter(Type type)
