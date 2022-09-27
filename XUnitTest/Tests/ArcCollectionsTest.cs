@@ -26,6 +26,18 @@ public partial class ArcCollectionsTestClass
 
     [Key(3)]
     public OrderedMultiSet<int> Set2 { get; set; } = default!;
+
+    [Key(4)]
+    public UnorderedMap<int, string> Map3 { get; set; } = default!;
+
+    [Key(5)]
+    public UnorderedMultiMap<int, string> Map4 { get; set; } = default!;
+
+    [Key(6)]
+    public UnorderedSet<int> Set3 { get; set; } = default!;
+
+    [Key(7)]
+    public UnorderedMultiSet<int> Set4 { get; set; } = default!;
 }
 
 public class ArcCollectionsTest
@@ -78,6 +90,44 @@ public class ArcCollectionsTest
 
         st = TinyhandSerializer.SerializeToString(orderedMultiSet);
         TinyhandSerializer.DeserializeFromString<OrderedMultiSet<int>>(st)!.SequenceEqual(orderedMultiSet);
+
+        var unorderedMap = new UnorderedMap<int, string>();
+        foreach (var x in list)
+        {
+            unorderedMap.Add(x.Key, x.Value);
+        }
+
+        st = TinyhandSerializer.SerializeToString(unorderedMap);
+        TinyhandSerializer.DeserializeFromString<UnorderedMap<int, string>>(st)!.SequenceEqual(unorderedMap);
+
+        var unorderedSet = new UnorderedSet<int>();
+        foreach (var x in list)
+        {
+            unorderedSet.Add(x.Key);
+        }
+
+        st = TinyhandSerializer.SerializeToString(unorderedSet);
+        TinyhandSerializer.DeserializeFromString<UnorderedSet<int>>(st)!.SequenceEqual(unorderedSet);
+
+        list.Add(new(3, "ccc2"));
+
+        var unorderedMultiMap = new UnorderedMultiMap<int, string>();
+        foreach (var x in list)
+        {
+            unorderedMultiMap.Add(x.Key, x.Value);
+        }
+
+        st = TinyhandSerializer.SerializeToString(unorderedMultiMap);
+        TinyhandSerializer.DeserializeFromString<UnorderedMultiMap<int, string>>(st)!.SequenceEqual(unorderedMultiMap);
+
+        var unorderedMultiSet = new UnorderedMultiSet<int>();
+        foreach (var x in list)
+        {
+            unorderedMultiSet.Add(x.Key);
+        }
+
+        st = TinyhandSerializer.SerializeToString(unorderedMultiSet);
+        TinyhandSerializer.DeserializeFromString<UnorderedMultiSet<int>>(st)!.SequenceEqual(unorderedMultiSet);
     }
 
     [Fact]
@@ -97,6 +147,11 @@ public class ArcCollectionsTest
             tc.Map2.Add(x.Key, x.Value);
             tc.Set1.Add(x.Key);
             tc.Set2.Add(x.Key);
+
+            tc.Map3.Add(x.Key, x.Value);
+            tc.Map4.Add(x.Key, x.Value);
+            tc.Set3.Add(x.Key);
+            tc.Set4.Add(x.Key);
         }
 
         var st = TinyhandSerializer.SerializeToString(tc);
