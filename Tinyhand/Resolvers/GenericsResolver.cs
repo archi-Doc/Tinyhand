@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using Arc.Collections;
 using Tinyhand.Formatters;
 using Tinyhand.Internal;
 
@@ -95,6 +96,10 @@ namespace Tinyhand.Internal
             { typeof(IImmutableQueue<>), typeof(InterfaceImmutableQueueFormatter<>) },
             { typeof(IImmutableSet<>), typeof(InterfaceImmutableSetFormatter<>) },
             { typeof(IImmutableStack<>), typeof(InterfaceImmutableStackFormatter<>) },
+            { typeof(OrderedMap<,>), typeof(OrderedMapFormatter<,>) },
+            { typeof(OrderedSet<>), typeof(OrderedSetFormatter<>) },
+            { typeof(OrderedMultiMap<,>), typeof(OrderedMultiMapFormatter<,>) },
+            { typeof(OrderedMultiSet<>), typeof(OrderedMultiSetFormatter<>) },
         };
 
         // Reduce IL2CPP code generate size(don't write long code in <T>)

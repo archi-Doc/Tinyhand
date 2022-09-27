@@ -21,8 +21,4 @@
     <Compile Remove="Generated\*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="DryIoc.dll" Version="5.2.1" />
-  </ItemGroup>
-
 </Project>
