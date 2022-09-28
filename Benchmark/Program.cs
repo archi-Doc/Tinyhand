@@ -50,7 +50,7 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<CompareByteSpanTest>();
+        DebugRun<H2HTest.H2HBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
