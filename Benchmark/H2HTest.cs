@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using ProtoBuf;
-using MemoryPack;
+// using MemoryPack;
 using Tinyhand;
 using Tinyhand.IO;
 
@@ -22,7 +22,7 @@ namespace Benchmark.H2HTest;
 [ProtoContract]
 [MessagePack.MessagePackObject]
 [TinyhandObject]
-[MemoryPackable]
+// [MemoryPackable]
 public partial class ObjectH2H
 {
     public const int ArrayN = 10;
@@ -167,7 +167,7 @@ public class H2HBenchmark
         // var c = JsonSerializer.Deserialize<ObjectH2H2>(System.Text.Encoding.UTF8.GetBytes("{ \"X\":0,\"Y\":0,\"Z\":0,\"A\":\"H2Htest\",\"B\":[0,1,2,3,4,5,6,7,8,9]}"));
 
         this.data3 = this.SerializeProtoBuf();
-        this.data4 = MemoryPackSerializer.Serialize(this.h2h);
+        // this.data4 = MemoryPackSerializer.Serialize(this.h2h);
     }
 
     [GlobalCleanup]
@@ -197,11 +197,11 @@ public class H2HBenchmark
         return Tinyhand.TinyhandSerializer.Serialize(this.h2h);
     }
 
-    [Benchmark]
+    /*[Benchmark]
     public byte[] SerializeMemoryPack()
     {
         return MemoryPackSerializer.Serialize(this.h2h);
-    }
+    }*/
 
     [Benchmark]
     public byte[] SerializeTinyhandUtf8()
@@ -233,11 +233,11 @@ public class H2HBenchmark
         return Tinyhand.TinyhandSerializer.DeserializeFromUtf8<ObjectH2H>(this.utf8);
     }
 
-    [Benchmark]
+    /*[Benchmark]
     public ObjectH2H? DeserializeMemoryPack()
     {
         return MemoryPackSerializer.Deserialize<ObjectH2H>(this.data4);
-    }
+    }*/
 
     [Benchmark]
     public byte[] SerializeMessagePackString()
