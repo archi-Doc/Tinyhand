@@ -140,7 +140,7 @@ public class H2HBenchmark
     ObjectH2H h2h = default!;
     byte[] data = default!;
     byte[] data3 = default!;
-    byte[] data4 = default!;
+    // byte[] data4 = default!;
     byte[] utf8 = default!;
 
     ObjectH2H2 h2h2 = default!;

@@ -169,7 +169,8 @@ public static class TinyhandTreeConverter
                 {
                     writer.WriteUInt8((byte)'b');
                     writer.WriteUInt8(TinyhandConstants.Quote);
-                    writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
+                    // writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
+                    writer.WriteSpan(Arc.Crypto.Base64.Default.FromByteArrayToUtf8(bytes.Value.ToArray()));
                     writer.WriteUInt8(TinyhandConstants.Quote);
                 }
 
