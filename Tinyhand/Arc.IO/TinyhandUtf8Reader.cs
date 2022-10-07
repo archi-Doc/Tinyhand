@@ -642,7 +642,8 @@ Unexpected_Symbol:
         var length = this.GetQuotedStringLength(stringSpan);
         this.ValueSpan = stringSpan.Slice(0, length);
 
-        this.ValueBinary = Base64.DecodeFromBase64Utf8(this.ValueSpan);
+        // this.ValueBinary = Base64.DecodeFromBase64Utf8(this.ValueSpan);
+        this.ValueBinary = Arc.Crypto.Base64.Default.FromUtf8ToByteArray(this.ValueSpan);
         if (this.ValueBinary == null)
         {
             this.ThrowException("Cannot decode Base64 string.");
