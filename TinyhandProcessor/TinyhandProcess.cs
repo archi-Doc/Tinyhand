@@ -133,8 +133,10 @@ public class ProcessEnvironment : IProcessEnvironment
 
         // Add to this.ProcessCore.
         this.AddProcessCoreInfo(TinyhandProcessCore_None.StaticName, () => new TinyhandProcessCore_None());
+        this.AddProcessCoreInfo(TinyhandProcessCore_Example.StaticName, () => new TinyhandProcessCore_Example());
         this.AddProcessCoreInfo(TinyhandProcessCore_LanguageFile.StaticName, () => new TinyhandProcessCore_LanguageFile());
         this.AddProcessCoreInfo(TinyhandProcessCore_StartupTime.StaticName, () => new TinyhandProcessCore_StartupTime());
+        this.AddProcessCoreInfo(TinyhandProcessCore_TextToTinyhand.StaticName, () => new TinyhandProcessCore_TextToTinyhand());
 
         // Add to identifierTable (identifier to Func<>).
         this.identifierTable.TryAdd(ProcessString, this.IdentifierTable_process);
