@@ -1,0 +1,5 @@
+mode = "process"
+process = "text to tinyhand"
+format = ""
+
+"english.txt"

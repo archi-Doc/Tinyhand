@@ -1,0 +1,7 @@
+mode = "process"
+process = "example"
+number = 3
+file = "test.file"
+// log = {"file", path="mylog.txt", console=true, format="log"}
+
+"test1"

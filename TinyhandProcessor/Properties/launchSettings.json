@@ -2,7 +2,7 @@
   "profiles": {
     "TinyhandProcessor": {
       "commandName": "Project",
-      "commandLineArgs": "\"process startup time.tinyhand\""
+      "commandLineArgs": "\"process text to tinyhand.tinyhand\""
     }
   }
 }
