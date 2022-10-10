@@ -81,6 +81,7 @@ public class TinyhandProcessCore_TextToTinyhand : IProcessCore
                 if (this.format == Format.Binary)
                 {
                     output = TinyhandSerializer.Serialize(lines);
+                    // var lines2 = TinyhandSerializer.Deserialize<string[]>(output);
                 }
                 else if (this.format == Format.Utf8)
                 {
@@ -89,6 +90,7 @@ public class TinyhandProcessCore_TextToTinyhand : IProcessCore
                 else
                 {
                     output = TinyhandSerializer.Serialize(lines, TinyhandSerializerOptions.Lz4);
+                    // var lines2 = TinyhandSerializer.Deserialize<string[]>(output, TinyhandSerializerOptions.Lz4);
                 }
 
                 File.WriteAllBytes(path2, output);
