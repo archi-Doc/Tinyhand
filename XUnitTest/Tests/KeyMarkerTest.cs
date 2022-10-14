@@ -60,6 +60,6 @@ public class ConditionTest
         tc2.A = "A";
         tc2.Z = 3;
 
-        var b = TinyhandSerializer.Serialize(tc);
+        var b = TinyhandSerializer.Serialize(tc, TinyhandSerializerOptions.Conditional);
     }
 }

@@ -3231,7 +3231,24 @@ ModuleInitializerClass_Added:
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
-            this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+            // this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+
+            if (x?.KeyAttribute?.Condition == true)
+            {// Conditional
+                using (var scopeIf = ssb.ScopeBrace($"if (options.ConditionalSerialization)"))
+                {
+                    ssb.AppendLine("writer.WriteNil();");
+                }
+
+                using (var scopeElse = ssb.ScopeBrace("else"))
+                {
+                    this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+                }
+            }
+            else
+            {
+                this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+            }
         }
     }
 
