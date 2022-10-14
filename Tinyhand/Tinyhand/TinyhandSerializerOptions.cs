@@ -45,6 +45,8 @@ public record TinyhandSerializerOptions
 
     public static TinyhandSerializerOptions Lz4 { get; } = Standard with { Compression = TinyhandCompression.Lz4, };
 
+    public static TinyhandSerializerOptions Conditional { get; } = Standard with { ConditionalSerialization = true, };
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandSerializerOptions"/> class.
     /// </summary>
@@ -83,4 +85,9 @@ public record TinyhandSerializerOptions
     /// Gets the compose option.
     /// </summary>
     public TinyhandComposeOption Compose { get; init; } = TinyhandComposeOption.Standard;
+
+    /// <summary>
+    /// Gets a value indicating whether conditional serialization should be performed.
+    /// </summary>
+    public bool ConditionalSerialization { get; init; } = false;
 }

@@ -756,7 +756,6 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
                             {
                                 sb.Append(GetSafeGenericName(nts.TypeArguments[i]));
                             }
-                            
                             sb.Append(">");
                         }
 
