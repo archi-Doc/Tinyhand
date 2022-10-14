@@ -108,9 +108,9 @@ public class KeyAttribute : Attribute
     public string? StringKey { get; private set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to put a marker before the key.
+    /// Gets or sets a value indicating whether or not to serialize this member during conditional serialization.
     /// </summary>
-    public bool Marker { get; set; }
+    public bool Condition { get; set; }
 
     /// <summary>
     /// Gets or sets a name of a property that will be created from the field.<br/>

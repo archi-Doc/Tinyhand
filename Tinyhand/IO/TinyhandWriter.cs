@@ -34,11 +34,6 @@ public ref struct TinyhandWriter
     public CancellationToken CancellationToken { get; set; } = default;
 
     /// <summary>
-    /// Gets or sets the marker position.
-    /// </summary>
-    public int MarkerPosition { get; set; } = 0;
-
-    /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct,
     /// with the same settings as this one, but with its own buffer writer.
     /// </summary>
@@ -47,7 +42,6 @@ public ref struct TinyhandWriter
     public TinyhandWriter Clone(IBufferWriter<byte> writer) => new TinyhandWriter(writer)
     {
         CancellationToken = this.CancellationToken,
-        MarkerPosition = this.MarkerPosition,
     };
 
     /// <summary>
@@ -59,7 +53,6 @@ public ref struct TinyhandWriter
     public TinyhandWriter Clone(byte[] initialBuffer) => new TinyhandWriter(initialBuffer)
     {
         CancellationToken = this.CancellationToken,
-        MarkerPosition = this.MarkerPosition,
     };
 
     /// <summary>
@@ -70,7 +63,6 @@ public ref struct TinyhandWriter
     public TinyhandWriter Clone() => new TinyhandWriter()
     {
         CancellationToken = this.CancellationToken,
-        MarkerPosition = this.MarkerPosition,
     };
 
     public byte[] FlushAndGetArray() => this.writer.FlushAndGetArray();
@@ -92,13 +84,6 @@ public ref struct TinyhandWriter
     public void Ensure(int sizeHint) => this.writer.Ensure(sizeHint);
 
     public long Written => this.writer.Written;
-
-    public void SetMarker()
-    {
-        this.MarkerPosition = (int)this.writer.Written;
-    }
-
-    public int GetMarker() => this.MarkerPosition;
 
     /// <summary>
     /// Copies bytes directly into the message pack writer.

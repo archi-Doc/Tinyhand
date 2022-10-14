@@ -139,8 +139,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public int IntKey_Number { get; private set; } = 0;
 
-    public int IntKey_Marker { get; private set; } = -1;
-
     public MethodCondition MethodCondition_Serialize { get; private set; }
 
     public MethodCondition MethodCondition_Deserialize { get; private set; }
@@ -876,10 +874,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     s = "_";
                 }
 
-                if (x.KeyAttribute?.Marker == true)
+                /*if (x.KeyAttribute?.Marker == true)
                 {// Key marker is only valid for integer keys.
                     this.Body.AddDiagnostic(TinyhandBody.Warning_InvalidKeyMarker, x.KeyVisceralAttribute?.Location);
-                }
+                }*/
 
                 this.Automata.AddNode(s, x);
             }
@@ -915,11 +913,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.IntKey_Number++;
                     this.IntKey_Max = Math.Max(this.IntKey_Max, i);
                     this.IntKey_Min = Math.Min(this.IntKey_Min, i);
-
-                    if (x.KeyAttribute.Marker == true && this.IntKey_Marker <= i)
-                    {// Key marker
-                        this.IntKey_Marker = i;
-                    }
                 }
             }
         }
@@ -3110,11 +3103,6 @@ ModuleInitializerClass_Added:
         {// no object
             ssb.AppendLine("writer.WriteNil();");
             return;
-        }
-
-        if (x.KeyAttribute?.IntKey == this.IntKey_Marker)
-        {// Key marker
-            ssb.AppendLine("writer.SetMarker();");
         }
 
         ScopingStringBuilder.IScope? v1 = null;

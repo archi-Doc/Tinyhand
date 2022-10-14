@@ -164,7 +164,7 @@ public class KeyAttributeMock
 
     public string? StringKey { get; private set; }
 
-    public bool Marker { get; private set; }
+    public bool Condition { get; private set; }
 
     public string PropertyName { get; set; } = string.Empty;
 
@@ -202,10 +202,10 @@ public class KeyAttributeMock
             throw new ArgumentNullException();
         }
 
-        var v = AttributeHelper.GetValue(-1, nameof(Marker), constructorArguments, namedArguments);
+        var v = AttributeHelper.GetValue(-1, nameof(Condition), constructorArguments, namedArguments);
         if (v != null)
         {
-            attribute.Marker = (bool)v;
+            attribute.Condition = (bool)v;
         }
 
         v = AttributeHelper.GetValue(-1, nameof(PropertyName), constructorArguments, namedArguments);
