@@ -31,37 +31,37 @@ public enum PropertyAccessibility
 public sealed class TinyhandObjectAttribute : Attribute
 {
     /// <summary>
-    /// Gets or sets a value indicating whether or not to include private/protected members as serialization targets [the default is false].
+    /// Gets or sets a value indicating whether or not to include private/protected members as serialization targets [default is <see langword="false"/>].
     /// </summary>
     public bool IncludePrivateMembers { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to use member names as string keys. String key and Int key are exclusive [the default is false].
+    /// Gets or sets a value indicating whether or not to use member names as string keys. String key and Int key are exclusive [default is <see langword="false"/>].
     /// </summary>
     public bool ImplicitKeyAsName { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [the default is false].
+    /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [default is <see langword="false"/>].
     /// </summary>
     public bool ExplicitKeyOnly { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [the default is true].
+    /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [default is <see langword="true"/>].
     /// </summary>
     public bool ReconstructMember { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [the default is true].
+    /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [default is <see langword="true"/>].
     /// </summary>
     public bool ReuseMember { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the the default value [the default is false].
+    /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the the default value [default is <see langword="false"/>].
     /// </summary>
     public bool SkipSerializingDefaultValue { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to use <seealso cref="IServiceProvider"/> to create an instance [the default is false]. Set <see cref="TinyhandSerializer.ServiceProvider"/>.
+    /// Gets or sets a value indicating whether or not to use <seealso cref="IServiceProvider"/> to create an instance [default is <see langword="false"/>]. Set <see cref="TinyhandSerializer.ServiceProvider"/>.
     /// </summary>
     public bool UseServiceProvider { get; set; } = false;
 
@@ -108,9 +108,9 @@ public class KeyAttribute : Attribute
     public string? StringKey { get; private set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to serialize this member during conditional serialization.
+    /// Gets or sets a value indicating whether or not to serialize this member during conditional serialization [default is <see langword="true"/>].
     /// </summary>
-    public bool Condition { get; set; }
+    public bool Condition { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a name of a property that will be created from the field.<br/>

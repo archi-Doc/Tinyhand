@@ -3231,9 +3231,7 @@ ModuleInitializerClass_Added:
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
-            // this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
-
-            if (x?.KeyAttribute?.Condition == true)
+            if (x?.KeyAttribute?.Condition == false)
             {// Conditional
                 using (var scopeIf = ssb.ScopeBrace($"if (options.ConditionalSerialization)"))
                 {
@@ -3270,7 +3268,23 @@ ModuleInitializerClass_Added:
         foreach (var x in this.Automata.NodeList)
         {
             ssb.AppendLine($"writer.WriteString({cf.LocalName}.{x.Identifier});");
-            this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
+
+            if (x.Member?.KeyAttribute?.Condition == false)
+            {// Conditional
+                using (var scopeIf = ssb.ScopeBrace($"if (options.ConditionalSerialization)"))
+                {
+                    ssb.AppendLine("writer.WriteNil();");
+                }
+
+                using (var scopeElse = ssb.ScopeBrace("else"))
+                {
+                    this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
+                }
+            }
+            else
+            {
+                this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
+            }
         }
     }
 

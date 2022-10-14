@@ -46,45 +46,20 @@ public sealed class TinyhandObjectAttributeMock
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether or not to include private/protected members as serialization targets [the default is false].
-    /// </summary>
     public bool IncludePrivateMembers { get; set; } = false;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether or not to use member names as string keys. String key and Int key are exclusive [the default is false].
-    /// </summary>
     public bool ImplicitKeyAsName { get; set; } = false;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [the default is false].
-    /// </summary>
     public bool ExplicitKeyOnly { get; set; } = false;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [the default is true].
-    /// </summary>
     public bool ReconstructMember { get; set; } = true;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [the default is true].
-    /// </summary>
     public bool ReuseMember { get; set; } = true;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the default value [the default is false].
-    /// </summary>
     public bool SkipSerializingDefaultValue { get; set; } = false;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether or not to use <seealso cref="IServiceProvider"/> to create an instance [the default is false].
-    /// </summary>
     public bool UseServiceProvider { get; set; } = false;
 
-    /// <summary>
-    /// Gets or sets the number of reserved keys for the future use.<br/>
-    /// Derived classes cannot use reserved keys (from 0 to ReservedKeys).
-    /// </summary>
     public int ReservedKeys { get; set; } = -1;
 
     public TinyhandObjectAttributeMock()
@@ -164,7 +139,7 @@ public class KeyAttributeMock
 
     public string? StringKey { get; private set; }
 
-    public bool Condition { get; private set; }
+    public bool Condition { get; private set; } = true;
 
     public string PropertyName { get; set; } = string.Empty;
 
