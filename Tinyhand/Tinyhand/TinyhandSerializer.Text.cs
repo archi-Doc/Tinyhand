@@ -177,6 +177,76 @@ public static partial class TinyhandSerializer
         }
     }
 
+    /// <summary>
+    /// Deserializes a value of a given type from a sequence of bytes (UTF-8).
+    /// </summary>
+    /// <typeparam name="T">The type of value to deserialize.</typeparam>
+    /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+    /// <param name="utf8">The buffer to deserialize from.</param>
+    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The deserialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+    public static T? DeserializeWithFromUtf8<T>(T reuse, ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        options = options ?? DefaultOptions;
+
+        var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+        try
+        {
+            bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
+            if (options.Compose == TinyhandComposeOption.Strict)
+            {
+                omitTopLevelBracket = false;
+            }
+            else
+            {
+                omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
+            }
+
+            TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
+
+            var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
+
+            try
+            {
+                return options.Resolver.GetFormatterExtra<T>().Deserialize(reuse, ref reader, options);
+            }
+            catch (TinyhandUnexpectedCodeException invalidCode)
+            {// Invalid code
+                var position = reader.Consumed;
+                if (position > 0)
+                {
+                    position--;
+                }
+
+                // Get the Line/BytePosition from which the exception was thrown.
+                var e = TinyhandTreeConverter.GetTextPositionFromBinaryPosition(utf8, position);
+                TinyhandException? ex = invalidCode;
+
+                if (e.LineNumber != 0)
+                {
+                    ex = new TinyhandException($"Unexpected element type, expected: {invalidCode.ExpectedType.ToString()} actual: {invalidCode.ActualType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
+                }
+
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
     public static T? DeserializeFromElement<T>(Element element, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
         options = options ?? DefaultOptions;
@@ -235,6 +305,30 @@ public static partial class TinyhandSerializer
     public static T? DeserializeFromUtf8<T>(ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeFromUtf8<T>(utf8.Span, options, cancellationToken);
 
     /// <summary>
+    /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes (UTF-8).
+    /// </summary>
+    /// <typeparam name="T">The type of value to deserialize.</typeparam>
+    /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+    /// <param name="utf8">The buffer to deserialize from.</param>
+    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The deserialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+    public static T? DeserializeWithFromUtf8<T>(T reuse, byte[] utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeWithFromUtf8<T>(reuse, utf8.AsSpan(), options, cancellationToken);
+
+    /// <summary>
+    /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes (UTF-8).
+    /// </summary>
+    /// <typeparam name="T">The type of value to deserialize.</typeparam>
+    /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+    /// <param name="utf8">The buffer to deserialize from.</param>
+    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The deserialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+    public static T? DeserializeWithFromUtf8<T>(T reuse, ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeWithFromUtf8<T>(reuse, utf8.Span, options, cancellationToken);
+
+    /// <summary>
     /// Deserializes a value of a given type from a string (UTF-16).
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -257,6 +351,41 @@ public static partial class TinyhandSerializer
             int actualByteCount = TinyhandHelper.GetUtf8FromText(utf16.AsSpan(), utf8);
             utf8 = utf8.Slice(0, actualByteCount);
             return DeserializeFromUtf8<T>(utf8, options, cancellationToken);
+        }
+        finally
+        {
+            if (tempArray != null)
+            {
+                utf8.Clear();
+                ArrayPool<byte>.Shared.Return(tempArray);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reuse an existing instance and deserializes a value of a given type from a string (UTF-16).
+    /// </summary>
+    /// <typeparam name="T">The type of value to deserialize.</typeparam>
+    /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
+    /// <param name="utf16">The string (UTF-16) to deserialize from.</param>
+    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The deserialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
+    public static T? DeserializeWithFromString<T>(T reuse, string utf16, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        const long ArrayPoolMaxSizeBeforeUsingNormalAlloc = 1024 * 1024;
+        byte[]? tempArray = null;
+
+        Span<byte> utf8 = utf16.Length <= (ArrayPoolMaxSizeBeforeUsingNormalAlloc / TinyhandConstants.MaxExpansionFactorWhileTranscoding) ?
+            tempArray = ArrayPool<byte>.Shared.Rent(utf16.Length * TinyhandConstants.MaxExpansionFactorWhileTranscoding) :
+            new byte[TinyhandHelper.GetUtf8ByteCount(utf16.AsSpan())];
+
+        try
+        {
+            int actualByteCount = TinyhandHelper.GetUtf8FromText(utf16.AsSpan(), utf8);
+            utf8 = utf8.Slice(0, actualByteCount);
+            return DeserializeWithFromUtf8<T>(reuse, utf8, options, cancellationToken);
         }
         finally
         {
