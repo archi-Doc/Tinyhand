@@ -50,10 +50,11 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<H2HTest.H2HBenchmark>();
+        DebugRun<CompareByteSpanTest>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
+            typeof(ReadOnlySpanTest),
             typeof(CompareByteSpanTest),
             typeof(UnionBenchmark),
             typeof(SerializeIdentifierTest),
