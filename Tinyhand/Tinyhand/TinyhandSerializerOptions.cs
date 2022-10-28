@@ -110,4 +110,10 @@ public record TinyhandSerializerOptions
     /// Gets the serialization mode.
     /// </summary>
     public Mode SerializationMode { get; init; } = Mode.Standard;
+
+    public bool IsStandardMode => this.SerializationMode == Mode.Standard;
+
+    public bool IsConditionalMode => this.SerializationMode == Mode.Conditional;
+
+    public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
 }

@@ -146,7 +146,7 @@ public partial struct DefaultTestStructDouble
     public EmptyClass EmptyClass { get; set; }
 }
 
-public class DefaultValueTest
+public partial class DefaultValueTest
 {
     [Fact]
     public void TestClass()
@@ -200,5 +200,58 @@ public class DefaultValueTest
 
         var t3 = TinyhandSerializer.Reconstruct<DefaultTestStruct>();
         t3.IsStructuralEqual(t2);
+    }
+
+    [TinyhandObject]
+    public partial class TokenClassV1
+    {
+        [Key(0)]
+        public int Id { get; set; }
+
+        [Key(1)]
+        public string Name { get; set; } = string.Empty;
+
+        [Key(2, Condition = false)]
+        public byte[] Signature = Array.Empty<byte>();
+    }
+
+    [TinyhandObject]
+    public partial class TokenClassV2
+    {
+        [Key(0)]
+        public int Id { get; set; }
+
+        [Key(1)]
+        public string Name { get; set; } = string.Empty;
+
+        [Key(2, Condition = false)]
+        public byte[] Signature = Array.Empty<byte>();
+
+        [Key(3)]
+        [DefaultValue(0)]
+        public long AddedMember { get; set; }
+    }
+
+    [Fact]
+    public void TestToken()
+    {
+        var v1 = new TokenClassV1();
+        v1.Id = 1;
+        v1.Name = "Test";
+        v1.Signature = TinyhandSerializer.Serialize(v1, TinyhandSerializerOptions.Signature);
+        v1.Signature.SequenceEqual(TinyhandSerializer.Serialize(v1, TinyhandSerializerOptions.Signature)).IsTrue();
+
+        var v2 = new TokenClassV2();
+        v2.Id = 1;
+        v2.Name = "Test";
+        v2.AddedMember = 1;
+        v2.Signature = TinyhandSerializer.Serialize(v2, TinyhandSerializerOptions.Signature);
+        v2.Signature.SequenceEqual(TinyhandSerializer.Serialize(v2, TinyhandSerializerOptions.Signature)).IsTrue();
+        v2.Signature.SequenceEqual(v1.Signature).IsFalse();
+
+        var b1 = TinyhandSerializer.Serialize(v1);
+        v2 = TinyhandSerializer.Deserialize<TokenClassV2>(b1);
+        var sig = TinyhandSerializer.Serialize(v2, TinyhandSerializerOptions.Signature);
+        v2.Signature.SequenceEqual(sig).IsTrue();
     }
 }
