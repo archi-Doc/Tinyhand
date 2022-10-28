@@ -3233,9 +3233,13 @@ ModuleInitializerClass_Added:
         {
             if (x?.KeyAttribute?.Condition == false)
             {// Conditional
-                using (var scopeIf = ssb.ScopeBrace($"if (options.ConditionalSerialization)"))
+                using (var scopeIf = ssb.ScopeBrace("if (options.SerializationMode == TinyhandSerializerOptions.Mode.Conditional)"))
                 {
                     ssb.AppendLine("writer.WriteNil();");
+                }
+
+                using (var scopeIf = ssb.ScopeBrace("else if (options.SerializationMode == TinyhandSerializerOptions.Mode.Signature)"))
+                {
                 }
 
                 using (var scopeElse = ssb.ScopeBrace("else"))
@@ -3271,9 +3275,14 @@ ModuleInitializerClass_Added:
 
             if (x.Member?.KeyAttribute?.Condition == false)
             {// Conditional
-                using (var scopeIf = ssb.ScopeBrace($"if (options.ConditionalSerialization)"))
+
+                using (var scopeIf = ssb.ScopeBrace("if (options.SerializationMode == TinyhandSerializerOptions.Mode.Conditional)"))
                 {
                     ssb.AppendLine("writer.WriteNil();");
+                }
+
+                using (var scopeIf = ssb.ScopeBrace("else if (options.SerializationMode == TinyhandSerializerOptions.Mode.Signature)"))
+                {
                 }
 
                 using (var scopeElse = ssb.ScopeBrace("else"))
