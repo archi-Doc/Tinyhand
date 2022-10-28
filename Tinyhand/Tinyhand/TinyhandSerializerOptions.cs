@@ -39,13 +39,33 @@ public static class TinyhandSerializerOptionsExtension
 
 public record TinyhandSerializerOptions
 {
+    public enum Mode
+    {
+        /// <summary>
+        /// Standard.
+        /// </summary>
+        Standard,
+
+        /// <summary>
+        /// Serialize members whose conditions are true, and output Nil otherwise.
+        /// </summary>
+        Conditional,
+
+        /// <summary>
+        /// Serialize members whose conditions are true and values are not the default values.
+        /// </summary>
+        Signature,
+    }
+
     public static TinyhandSerializerOptions Standard { get; } = new TinyhandSerializerOptions(StandardResolver.Instance);
 
     public static TinyhandSerializerOptions Compatible { get; } = new TinyhandSerializerOptions(CompatibleResolver.Instance);
 
     public static TinyhandSerializerOptions Lz4 { get; } = Standard with { Compression = TinyhandCompression.Lz4, };
 
-    public static TinyhandSerializerOptions Conditional { get; } = Standard with { ConditionalSerialization = true, };
+    public static TinyhandSerializerOptions Conditional { get; } = Standard with { SerializationMode = Mode.Conditional, };
+
+    public static TinyhandSerializerOptions Signature { get; } = Standard with { SerializationMode = Mode.Signature, };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandSerializerOptions"/> class.
@@ -87,7 +107,13 @@ public record TinyhandSerializerOptions
     public TinyhandComposeOption Compose { get; init; } = TinyhandComposeOption.Standard;
 
     /// <summary>
-    /// Gets a value indicating whether conditional serialization should be performed.
+    /// Gets the serialization mode.
     /// </summary>
-    public bool ConditionalSerialization { get; init; } = false;
+    public Mode SerializationMode { get; init; } = Mode.Standard;
+
+    public bool IsStandardMode => this.SerializationMode == Mode.Standard;
+
+    public bool IsConditionalMode => this.SerializationMode == Mode.Conditional;
+
+    public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
 }

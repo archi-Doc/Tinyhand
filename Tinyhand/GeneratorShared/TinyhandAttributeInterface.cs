@@ -56,9 +56,9 @@ public sealed class TinyhandObjectAttribute : Attribute
     public bool ReuseMember { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the the default value [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the the default value [default is <see langword="true"/>].
     /// </summary>
-    public bool SkipSerializingDefaultValue { get; set; } = false;
+    public bool SkipSerializingDefaultValue { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not to use <seealso cref="IServiceProvider"/> to create an instance [default is <see langword="false"/>]. Set <see cref="TinyhandSerializer.ServiceProvider"/>.

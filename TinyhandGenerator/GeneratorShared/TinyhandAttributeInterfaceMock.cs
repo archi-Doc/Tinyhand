@@ -56,7 +56,7 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool ReuseMember { get; set; } = true;
 
-    public bool SkipSerializingDefaultValue { get; set; } = false;
+    public bool SkipSerializingDefaultValue { get; set; } = true;
 
     public bool UseServiceProvider { get; set; } = false;
 

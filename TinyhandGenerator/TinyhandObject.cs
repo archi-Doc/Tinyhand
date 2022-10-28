@@ -3124,13 +3124,21 @@ ModuleInitializerClass_Added:
         {
             if (x.IsDefaultable)
             {
-                ssb.AppendLine($"if ({ssb.FullObject} == {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)}) {{ writer.WriteNil(); }}");
+                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject} == {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)})"))
+                {
+                    ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");
+                }
+
                 skipDefaultValueScope = ssb.ScopeBrace("else");
             }
             else if (withNullable.Object.AllMembers.Any(a => a.Kind == VisceralObjectKind.Method &&
             a.SimpleName == "CompareDefaultValue" && a.Method_Parameters.Length == 1 && a.Method_Parameters[0] == x.DefaultValueTypeName) == true)
             {
-                ssb.AppendLine($"if ({ssb.FullObject}.CompareDefaultValue({VisceralDefaultValue.DefaultValueToString(x.DefaultValue)})) {{ writer.WriteNil(); }}");
+                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject}.CompareDefaultValue({VisceralDefaultValue.DefaultValueToString(x.DefaultValue)}))"))
+                {
+                    ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");
+                }
+
                 skipDefaultValueScope = ssb.ScopeBrace("else");
             }
         }
@@ -3227,15 +3235,19 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        ssb.AppendLine($"writer.WriteArrayHeader({this.IntKey_Array.Length});");
+        ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
             if (x?.KeyAttribute?.Condition == false)
             {// Conditional
-                using (var scopeIf = ssb.ScopeBrace($"if (options.ConditionalSerialization)"))
+                using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
                 {
                     ssb.AppendLine("writer.WriteNil();");
+                }
+
+                using (var scopeIf = ssb.ScopeBrace("else if (options.IsSignatureMode)"))
+                {
                 }
 
                 using (var scopeElse = ssb.ScopeBrace("else"))
@@ -3271,9 +3283,13 @@ ModuleInitializerClass_Added:
 
             if (x.Member?.KeyAttribute?.Condition == false)
             {// Conditional
-                using (var scopeIf = ssb.ScopeBrace($"if (options.ConditionalSerialization)"))
+                using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
                 {
                     ssb.AppendLine("writer.WriteNil();");
+                }
+
+                using (var scopeIf = ssb.ScopeBrace("else if (options.IsSignatureMode)"))
+                {
                 }
 
                 using (var scopeElse = ssb.ScopeBrace("else"))
