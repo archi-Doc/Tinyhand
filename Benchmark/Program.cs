@@ -50,7 +50,7 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<CompareByteSpanTest>();
+        DebugRun<SerializeIdentifierTest>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
