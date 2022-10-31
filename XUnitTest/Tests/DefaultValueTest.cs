@@ -230,6 +230,10 @@ public partial class DefaultValueTest
         [Key(3)]
         [DefaultValue(0)]
         public long AddedMember { get; set; }
+
+        [Key(4)]
+        [DefaultValue(null)]
+        public byte[]? AddedBytes { get; set; } = null;
     }
 
     [Fact]
