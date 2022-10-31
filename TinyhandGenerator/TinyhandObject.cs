@@ -434,7 +434,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.DefaultValueLocation = x.Location;
                 if (x.ConstructorArguments.Length > 0)
                 {
-                    this.DefaultValue = x.ConstructorArguments[0];
+                    this.DefaultValue = x.ConstructorArguments[0] ?? "null";
                 }
             }
             else if (x.FullName == MaxLengthAttributeMock.FullName)
@@ -1019,7 +1019,17 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
         if (this.DefaultValue != null)
         {
-            if (VisceralDefaultValue.IsDefaultableType(this.TypeObject.SimpleName))
+            if (this.TypeObject.Array_Rank > 0)
+            {
+                if (this.DefaultValue is not "null")
+                {// Only null is supported.
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
+                }
+
+                this.IsDefaultable = true;
+                this.DefaultValue = null;
+            }
+            else if (VisceralDefaultValue.IsDefaultableType(this.TypeObject.SimpleName))
             {// Memeber is defaultable
                 this.DefaultValue = VisceralDefaultValue.ConvertDefaultValue(this.DefaultValue, this.TypeObject.SimpleName);
                 if (this.DefaultValue != null)
@@ -1031,6 +1041,10 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 {// Type does not match.
                     this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
                 }
+            }
+            else if (this.TypeObject.Array_Rank > 0)
+            {
+                this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
             }
             else if (this.TypeObject.Kind == VisceralObjectKind.Enum)
             {// Enum
