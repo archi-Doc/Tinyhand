@@ -251,6 +251,24 @@ public interface ITinyhandClone<T>
 }
 
 /// <summary>
+/// Interface for custom reconstruct methods.
+/// If this interface is implemented, Tinyhand use it instead of the generated code.
+/// </summary>
+public interface ITinyhandDefault
+{
+    /// <summary>
+    /// Determines whether the object state is default or not.
+    /// </summary>
+    /// <returns>Returns <see langword="true"/> if the object state is default.</returns>
+    bool IsDefault();
+
+    /// <summary>
+    /// Set the object state to default.
+    /// </summary>
+    void SetDefault();
+}
+
+/// <summary>
 /// You can serialize/deserialize derived types via the base type by adding TinyhandUnionAttribute to the base type.<br/>
 /// The base type must be an abstract class or interface.<br/>
 /// Specify Key (an identifier of the subtype) and SubType (the derived or implementing type).

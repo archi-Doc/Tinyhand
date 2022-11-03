@@ -55,8 +55,9 @@ public enum TinyhandObjectFlag
     HasExplicitOnAfterDeserialize = 1 << 22, // ITinyhandSerializationCallback.OnAfterDeserialize()
     HasITinyhandSerialize = 1 << 23, // Has ITinyhandSerialize interface
     HasITinyhandReconstruct = 1 << 24, // Has ITinyhandReconstruct interface
-    HasITinyhandClone = 1 << 25, // Has ITinyhandClone interface
-    CanCreateInstance = 1 << 26, // Can create an instance
+    HasITinyhandDefault = 1 << 25, // Has ITinyhandDefault interface
+    HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
+    CanCreateInstance = 1 << 27, // Can create an instance
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -144,6 +145,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public MethodCondition MethodCondition_Deserialize { get; private set; }
 
     public MethodCondition MethodCondition_Reconstruct { get; private set; }
+
+    public MethodCondition MethodCondition_IsDefault { get; private set; }
+
+    public MethodCondition MethodCondition_SetDefault { get; private set; }
 
     public MethodCondition MethodCondition_Clone { get; private set; }
 
@@ -528,6 +533,30 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         else if (this.Generics_Kind == VisceralGenericsKind.OpenGeneric)
         {
             this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
+        }
+
+        // Method condition (Default)
+        if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandDefault"))
+        {// ITinyhandDefault implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandDefault;
+
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandDefault.IsDefault"))
+            {
+                this.MethodCondition_IsDefault = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_IsDefault = MethodCondition.Declared;
+            }
+
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandDefault.SetDefault"))
+            {
+                this.MethodCondition_SetDefault = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_SetDefault = MethodCondition.Declared;
+            }
         }
 
         // Method condition (Clone)
