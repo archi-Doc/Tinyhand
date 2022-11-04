@@ -98,23 +98,21 @@ public partial class DefaultTestClassSkip2
 }
 
 [TinyhandObject]
-public partial class DefaultTestClassName : ITinyhandDefault
+public partial class DefaultTestClassName : ITinyhandDefault<string>
 {
     public DefaultTestClassName()
     {
     }
 
-    public void SetDefaultValue(object? defaultValue)
+    public void SetDefaultValue(string defaultValue)
     {
-        if (defaultValue is string name)
-        {
-            this.Name = name;
-        }
+        this.Name = defaultValue;
     }
 
     public bool CanSkipSerialization()
         => false;
 
+    [Key(0)]
     public string Name { get; private set; }
 }
 
@@ -139,17 +137,14 @@ public partial struct DefaultTestStruct
 }
 
 [TinyhandObject]
-public partial struct DefaultTestStructDouble : ITinyhandDefault
+public partial struct DefaultTestStructDouble : ITinyhandDefault<double>
 {
     public bool CanSkipSerialization()
         => false;
 
-    public void SetDefaultValue(object? defaultValue)
+    public void SetDefaultValue(double defaultValue)
     {
-        if (defaultValue is double d)
-        {
-            this.Double = d;
-        }
+        this.Double = defaultValue;
     }
 
     public double Double { get; private set; }

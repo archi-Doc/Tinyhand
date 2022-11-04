@@ -254,13 +254,14 @@ public interface ITinyhandClone<T>
 /// <summary>
 /// Interface for handling default value.
 /// </summary>
-public interface ITinyhandDefault
+/// <typeparam name="TDefault">The type of the default value.</typeparam>
+public interface ITinyhandDefault<TDefault>
 {
     /// <summary>
     /// Sets the default value (<see cref="DefaultValueAttribute"/>).
     /// </summary>
     /// <param name="defaultValue">The default value.</param>
-    void SetDefaultValue(object? defaultValue);
+    void SetDefaultValue(TDefault defaultValue);
 
     /// <summary>
     /// Determines if serialization of this object can be omitted.

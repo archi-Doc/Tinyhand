@@ -55,7 +55,6 @@ public enum TinyhandObjectFlag
     HasExplicitOnAfterDeserialize = 1 << 22, // ITinyhandSerializationCallback.OnAfterDeserialize()
     HasITinyhandSerialize = 1 << 23, // Has ITinyhandSerialize interface
     HasITinyhandReconstruct = 1 << 24, // Has ITinyhandReconstruct interface
-    HasITinyhandDefault = 1 << 25, // Has ITinyhandDefault interface
     HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
     CanCreateInstance = 1 << 27, // Can create an instance
 }
@@ -146,9 +145,9 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public MethodCondition MethodCondition_Reconstruct { get; private set; }
 
-    public MethodCondition MethodCondition_IsDefault { get; private set; }
+    public MethodCondition MethodCondition_CanSkipSerialization { get; private set; }
 
-    public MethodCondition MethodCondition_SetDefault { get; private set; }
+    public MethodCondition MethodCondition_SetDefaultValue { get; private set; }
 
     public MethodCondition MethodCondition_Clone { get; private set; }
 
@@ -536,26 +535,25 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         // Method condition (Default)
+        ...
         if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandDefault"))
         {// ITinyhandDefault implemented
-            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandDefault;
-
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandDefault.IsDefault"))
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"Tinyhand.{TinyhandBody.ITinyhandDefault}.{TinyhandBody.CanSkipSerializationMethod}"))
             {
-                this.MethodCondition_IsDefault = MethodCondition.ExplicitlyDeclared;
+                this.MethodCondition_CanSkipSerialization = MethodCondition.ExplicitlyDeclared;
             }
             else
             {
-                this.MethodCondition_IsDefault = MethodCondition.Declared;
+                this.MethodCondition_CanSkipSerialization = MethodCondition.Declared;
             }
 
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandDefault.SetDefault"))
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"Tinyhand.{TinyhandBody.ITinyhandDefault}.{TinyhandBody.SetDefaultValueMethod}"))
             {
-                this.MethodCondition_SetDefault = MethodCondition.ExplicitlyDeclared;
+                this.MethodCondition_SetDefaultValue = MethodCondition.ExplicitlyDeclared;
             }
             else
             {
-                this.MethodCondition_SetDefault = MethodCondition.Declared;
+                this.MethodCondition_SetDefaultValue = MethodCondition.Declared;
             }
         }
 
@@ -1105,18 +1103,19 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 }
             }
             else
-            {// Other (SetDefaultMethod is required)
+            {// Other (ITinyhandDefault is required)
                 this.IsDefaultable = false;
                 this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
-                if (!this.TypeObject.AllMembers.Any(x => x.Kind == VisceralObjectKind.Method
-                && x.IsPublic
-                && x.SimpleName == TinyhandBody.SetDefaultMethod
-                && x.Method_Parameters.Length == 1
-                && x.Method_Parameters[0] == this.DefaultValueTypeName))
-                {// SetDefault(type value) is required.
+                /*if (!this.TypeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandDefault))
+                {// ITinyhandDefault is required.
                     this.DefaultValue = null;
-                    this.Body.ReportDiagnostic(TinyhandBody.Warning_SetDefaultMethod, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultInterface, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
                 }
+                else if(VisceralDefaultValue.ConvertDefaultValue(this.DefaultValue, this.TypeObject.SimpleName) == null)
+                {
+                    this.DefaultValue = null;
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
+                }*/
             }
         }
 
@@ -2021,7 +2020,14 @@ ModuleInitializerClass_Added:
 
         if (defaultValue != null)
         {
-            ssb.AppendLine($"v2.SetDefault({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
+            {
+                ssb.AppendLine($"v2.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            }
+            else if (this.MethodCondition_SetDefaultValue == MethodCondition.ExplicitlyDeclared)
+            {
+                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})v2).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            }
         }
 
         this.GenerateFormatter_DeserializeCore(ssb, info, "v2");
@@ -2071,7 +2077,14 @@ ModuleInitializerClass_Added:
 
         if (defaultValue != null)
         {
-            ssb.AppendLine($"v2.SetDefault({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
+            {
+                ssb.AppendLine($"v2.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            }
+            else if (this.MethodCondition_SetDefaultValue == MethodCondition.ExplicitlyDeclared)
+            {
+                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})v2).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            }
         }
 
         this.GenerateFormatter_ReconstructCore(ssb, info, "v2");
