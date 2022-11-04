@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Tinyhand.IO;
 
 namespace Tinyhand;
@@ -251,21 +252,21 @@ public interface ITinyhandClone<T>
 }
 
 /// <summary>
-/// Interface for custom reconstruct methods.
-/// If this interface is implemented, Tinyhand use it instead of the generated code.
+/// Interface for handling default value.
 /// </summary>
 public interface ITinyhandDefault
 {
     /// <summary>
-    /// Determines whether the object state is default or not.
+    /// Sets the default value (<see cref="DefaultValueAttribute"/>).
     /// </summary>
-    /// <returns>Returns <see langword="true"/> if the object state is default.</returns>
-    bool IsDefault();
+    /// <param name="defaultValue">The default value.</param>
+    void SetDefaultValue(object? defaultValue);
 
     /// <summary>
-    /// Set the object state to default.
+    /// Determines if serialization of this object can be omitted.
     /// </summary>
-    void SetDefault();
+    /// <returns><see langword="true"/>; Skip serializing this object.</returns>
+    bool CanSkipSerialization();
 }
 
 /// <summary>
