@@ -1297,8 +1297,7 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
                 {
                     this.interfaces = ImmutableArray<string>.Empty;
                 }
-                else
-                if (this.symbol is ITypeSymbol typeSymbol)
+                else if (this.symbol is ITypeSymbol typeSymbol)
                 {
                     var builder = ImmutableArray.CreateBuilder<string>();
                     if (typeSymbol.BaseType is INamedTypeSymbol baseType &&
@@ -2822,6 +2821,19 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
 
             return false;
         }
+    }
+
+    public T? TryGetInterface(string fullName)
+    {
+        if (this.symbol is ITypeSymbol typeSymbol)
+        {
+            foreach (var x in typeSymbol.Interfaces)
+            {
+                ...var st = x.ToDisplayString(NullableFlowState.NotNull, SymbolDisplayFormat.MinimallyQualifiedFormat);
+            }
+        }
+
+        return null;
     }
 
     private ImmutableArray<VisceralAttribute> SymbolToAttribute(ISymbol symbol)

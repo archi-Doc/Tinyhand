@@ -535,7 +535,13 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         // Method condition (Default)
-        .....
+        // .....
+        var defaultInterface = this.TryGetInterface($"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandDefault}");
+        if (defaultInterface != null)
+        {
+
+        }
+
         if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandDefault"))
         {// ITinyhandDefault implemented
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"Tinyhand.{TinyhandBody.ITinyhandDefault}.{TinyhandBody.CanSkipSerializationMethod}"))

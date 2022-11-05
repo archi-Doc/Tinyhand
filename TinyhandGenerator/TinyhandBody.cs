@@ -24,6 +24,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly int MaxIntegerKey = 5_000;
     public static readonly int MaxStringKeySizeInBytes = 512;
     public static readonly string SetMembersMethod = "SetMembers";
+    public static readonly string Namespace = "Tinyhand";
     public static readonly string ITinyhandDefault = "ITinyhandDefault";
     public static readonly string SetDefaultValueMethod = "SetDefaultValue";
     public static readonly string CanSkipSerializationMethod = "CanSkipSerialization";
