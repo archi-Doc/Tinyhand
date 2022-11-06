@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Arc.IO;
@@ -189,6 +190,30 @@ public static partial class TinyhandSerializer
         try
         {
             DefaultOptions.Resolver.GetFormatter<T>().Serialize(ref writer, value, DefaultOptions);
+            return writer.FlushAndGetArray();
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    public static byte[] SerializeB<T>(T value)
+        where T : ITinyhandObject<T>
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        var writer = new TinyhandWriter(initialBuffer);
+        try
+        {
+            T.Serialize(ref writer, ref Unsafe.AsRef(value), DefaultOptions);
             return writer.FlushAndGetArray();
         }
         catch (Exception ex)
