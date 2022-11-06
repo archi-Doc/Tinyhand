@@ -2829,7 +2829,10 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         {
             foreach (var x in typeSymbol.Interfaces)
             {
-                ...var st = x.ToDisplayString(NullableFlowState.NotNull, SymbolDisplayFormat.MinimallyQualifiedFormat);
+                if (this.Body.TryGet(x, out var obj))
+                {
+                }
+                // ...var st = x.ToDisplayString(NullableFlowState.NotNull, SymbolDisplayFormat.MinimallyQualifiedFormat);
             }
         }
 
