@@ -12,6 +12,8 @@ using Arc.IO;
 using MessagePack.LZ4;
 using Tinyhand.IO;
 
+[module: System.Runtime.CompilerServices.SkipLocalsInit]
+
 #pragma warning disable SA1618 // Generic type parameters should be documented
 
 namespace Tinyhand;
