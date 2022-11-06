@@ -23,8 +23,11 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public const string GeneratorName = "TinyhandGenerator";
     public static readonly int MaxIntegerKey = 5_000;
     public static readonly int MaxStringKeySizeInBytes = 512;
-    public static readonly string SetDefaultMethod = "SetDefault";
     public static readonly string SetMembersMethod = "SetMembers";
+    public static readonly string Namespace = "Tinyhand";
+    public static readonly string ITinyhandDefault = "ITinyhandDefault";
+    public static readonly string SetDefaultValueMethod = "SetDefaultValue";
+    public static readonly string CanSkipSerializationMethod = "CanSkipSerialization";
 
     public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
         id: "TG001", title: "Not a partial class/struct", messageFormat: "'{0}' must be a partial class/struct",
@@ -126,8 +129,8 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG025", title: "Key ignored", messageFormat: "KeyAttribute is ignored since ITinyhandSerialize is implemented",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Warning_SetDefaultMethod = new DiagnosticDescriptor(
-        id: "TG026", title: "SetDefault Method", messageFormat: "To receive the default value, an implementation of 'public SetDefault({0})' method is required",
+    public static readonly DiagnosticDescriptor Warning_DefaultInterface = new DiagnosticDescriptor(
+        id: "TG026", title: "ITinyhandDefault", messageFormat: "To receive the default value, an implementation of 'ITinyhandDefault' interface is required",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_TinyhandObjectRequiredToReuse = new DiagnosticDescriptor(

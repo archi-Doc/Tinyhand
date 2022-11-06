@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using Tinyhand;
@@ -221,7 +222,7 @@ public partial class MaxLengthClass
 }
 
 [TinyhandObject]
-public partial class MaxLengthClass2 : MaxLengthClass
+public partial class MaxLengthClass2 : MaxLengthClass, ITinyhandDefault<int>
 {
     [Key(5, PropertyName = "Byte")]
     [MaxLength(4)]
@@ -234,6 +235,21 @@ public partial class MaxLengthClass2 : MaxLengthClass
     [Key(7, PropertyName = "ByteList", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
     [MaxLength(3, 2)]
     private List<byte[]> _byteList = default!;
+
+    public bool CanSkipSerialization()
+        => false;
+
+    public void SetDefaultValue(int defaultValue)
+    {
+    }
+}
+
+[TinyhandObject]
+public partial class MaxLengthClass3
+{
+    [Key(0)]
+    [DefaultValue(1)]
+    MaxLengthClass2? Class { get; set; }
 }
 
 class Program

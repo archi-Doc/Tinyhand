@@ -55,8 +55,8 @@ public enum TinyhandObjectFlag
     HasExplicitOnAfterDeserialize = 1 << 22, // ITinyhandSerializationCallback.OnAfterDeserialize()
     HasITinyhandSerialize = 1 << 23, // Has ITinyhandSerialize interface
     HasITinyhandReconstruct = 1 << 24, // Has ITinyhandReconstruct interface
-    HasITinyhandClone = 1 << 25, // Has ITinyhandClone interface
-    CanCreateInstance = 1 << 26, // Can create an instance
+    HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
+    CanCreateInstance = 1 << 27, // Can create an instance
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -98,6 +98,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public string? DefaultValueTypeName { get; private set; }
 
     public Location? DefaultValueLocation { get; private set; }
+
+    public TinyhandObject? DefaultInterface { get; private set; }
 
     public bool IsDefaultable { get; private set; }
 
@@ -144,6 +146,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public MethodCondition MethodCondition_Deserialize { get; private set; }
 
     public MethodCondition MethodCondition_Reconstruct { get; private set; }
+
+    public MethodCondition MethodCondition_CanSkipSerialization { get; private set; }
+
+    public MethodCondition MethodCondition_SetDefaultValue { get; private set; }
 
     public MethodCondition MethodCondition_Clone { get; private set; }
 
@@ -473,7 +479,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         // Method condition (Serialize/Deserialize)
         this.MethodCondition_Serialize = MethodCondition.MemberMethod;
         this.MethodCondition_Deserialize = MethodCondition.MemberMethod;
-        if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandSerialize"))
+        if (this.Interfaces.Any(x => x.FullName == "Tinyhand.ITinyhandSerialize"))
         {// ITinyhandSerialize implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
 
@@ -508,7 +514,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
         // Method condition (Reconstruct)
         this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
-        if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandReconstruct"))
+        if (this.Interfaces.Any(x => x.FullName == "Tinyhand.ITinyhandReconstruct"))
         {// ITinyhandReconstruct implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandReconstruct;
 
@@ -530,10 +536,36 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
         }
 
+        // Method condition (Default)
+        var defaultInterface = this.Interfaces.FirstOrDefault(x => x.FullName.StartsWith($"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandDefault}") &&
+        x.SimpleName == TinyhandBody.ITinyhandDefault);
+        if (defaultInterface != null)
+        {// ITinyhandDefault implemented
+            this.DefaultInterface = defaultInterface;
+
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{this.DefaultInterface.FullName}.{TinyhandBody.CanSkipSerializationMethod}"))
+            {
+                this.MethodCondition_CanSkipSerialization = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_CanSkipSerialization = MethodCondition.Declared;
+            }
+
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{this.DefaultInterface.FullName}.{TinyhandBody.SetDefaultValueMethod}"))
+            {
+                this.MethodCondition_SetDefaultValue = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_SetDefaultValue = MethodCondition.Declared;
+            }
+        }
+
         // Method condition (Clone)
         var cloneInterface = $"Tinyhand.ITinyhandClone<{this.FullName}>";
         this.MethodCondition_Clone = MethodCondition.MemberMethod;
-        if (this.Interfaces.Any(x => x == cloneInterface))
+        if (this.Interfaces.Any(x => x.FullName == cloneInterface))
         {// ITinyhandClone implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandClone;
 
@@ -557,7 +589,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         // ITinyhandSerializationCallback
-        if (this.Interfaces.Any(x => x == "Tinyhand.ITinyhandSerializationCallback"))
+        if (this.Interfaces.Any(x => x.FullName == "Tinyhand.ITinyhandSerializationCallback"))
         {
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializationCallback;
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnBeforeSerialize"))
@@ -1076,17 +1108,22 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 }
             }
             else
-            {// Other (SetDefaultMethod is required)
+            {// Other (ITinyhandDefault is required)
                 this.IsDefaultable = false;
                 this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
-                if (!this.TypeObject.AllMembers.Any(x => x.Kind == VisceralObjectKind.Method
-                && x.IsPublic
-                && x.SimpleName == TinyhandBody.SetDefaultMethod
-                && x.Method_Parameters.Length == 1
-                && x.Method_Parameters[0] == this.DefaultValueTypeName))
-                {// SetDefault(type value) is required.
+                if (this.TypeObject.DefaultInterface is { } defaultInterface &&
+                    defaultInterface.Generics_Arguments.Length > 0)
+                {
+                    if (VisceralDefaultValue.ConvertDefaultValue(this.DefaultValue, defaultInterface.Generics_Arguments[0].SimpleName) == null)
+                    {// Type unmatched
+                        this.DefaultValue = null;
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultValueType, this.DefaultValueLocation ?? this.Location);
+                    }
+                }
+                else
+                {// ITinyhandDefault is required.
                     this.DefaultValue = null;
-                    this.Body.ReportDiagnostic(TinyhandBody.Warning_SetDefaultMethod, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultInterface, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
                 }
             }
         }
@@ -1992,7 +2029,14 @@ ModuleInitializerClass_Added:
 
         if (defaultValue != null)
         {
-            ssb.AppendLine($"v2.SetDefault({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
+            {
+                ssb.AppendLine($"v2.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            }
+            else if (this.MethodCondition_SetDefaultValue == MethodCondition.ExplicitlyDeclared)
+            {
+                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})v2).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            }
         }
 
         this.GenerateFormatter_DeserializeCore(ssb, info, "v2");
@@ -2040,12 +2084,20 @@ ModuleInitializerClass_Added:
             }
         }
 
+        this.GenerateFormatter_ReconstructCore(ssb, info, "v2");
+
         if (defaultValue != null)
         {
-            ssb.AppendLine($"v2.SetDefault({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
+            {
+                ssb.AppendLine($"v2.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            }
+            else if (this.MethodCondition_SetDefaultValue == MethodCondition.ExplicitlyDeclared)
+            {
+                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})v2).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+            }
         }
 
-        this.GenerateFormatter_ReconstructCore(ssb, info, "v2");
         ssb.AppendLine($"{ssb.FullObject} = v2;");
     }
 
@@ -3145,15 +3197,26 @@ ModuleInitializerClass_Added:
 
                 skipDefaultValueScope = ssb.ScopeBrace("else");
             }
-            else if (withNullable.Object.AllMembers.Any(a => a.Kind == VisceralObjectKind.Method &&
-            a.SimpleName == "CompareDefaultValue" && a.Method_Parameters.Length == 1 && a.Method_Parameters[0] == x.DefaultValueTypeName) == true)
+            else if (withNullable.Object.DefaultInterface is { } defaultInterface)
             {
-                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject}.CompareDefaultValue({VisceralDefaultValue.DefaultValueToString(x.DefaultValue)}))"))
+                if (withNullable.Object.MethodCondition_CanSkipSerialization == MethodCondition.Declared)
                 {
-                    ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");
-                }
+                    using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject}{withNullable.Object.QuestionMarkIfReferenceType}.{TinyhandBody.CanSkipSerializationMethod}() == true)"))
+                    {
+                        ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");
+                    }
 
-                skipDefaultValueScope = ssb.ScopeBrace("else");
+                    skipDefaultValueScope = ssb.ScopeBrace("else");
+                }
+                else if (withNullable.Object.MethodCondition_CanSkipSerialization == MethodCondition.ExplicitlyDeclared)
+                {
+                    using (var scopeDefault = ssb.ScopeBrace($"if ((({defaultInterface.FullName}){ssb.FullObject}{withNullable.Object.QuestionMarkIfReferenceType}).{TinyhandBody.CanSkipSerializationMethod}() == true)"))
+                    {
+                        ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");
+                    }
+
+                    skipDefaultValueScope = ssb.ScopeBrace("else");
+                }
             }
         }
 

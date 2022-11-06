@@ -1221,6 +1221,70 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
+    private ImmutableArray<T> interfaces;
+
+    public ImmutableArray<T> Interfaces
+    {
+        get
+        {
+            if (this.interfaces.IsDefault)
+            {
+                if (this.IsSystem)
+                {
+                    this.interfaces = ImmutableArray<T>.Empty;
+                }
+                else
+                if (this.symbol is ITypeSymbol typeSymbol)
+                {
+                    var builder = ImmutableArray.CreateBuilder<T>();
+                    if (typeSymbol.BaseType is INamedTypeSymbol baseType &&
+                        baseType.TypeKind == TypeKind.Error &&
+                        baseType.ToString() == "INotifyPropertyChanged")
+                    {
+                        if (this.Body.Add(baseType) is { } obj)
+                        {
+                            builder.Add(obj);
+                        }
+                    }
+
+                    foreach (var x in typeSymbol.Interfaces)
+                    {
+                        if (this.Body.Add(x) is { } obj)
+                        {
+                            builder.Add(obj);
+                        }
+                    }
+
+                    this.interfaces = builder.ToImmutable();
+                }
+                else if (this.type != null)
+                {
+                    var builder = ImmutableArray.CreateBuilder<T>();
+                    foreach (var x in this.type.GetInterfaces())
+                    {
+                        if (this.Body.Add(x) is { } obj)
+                        {
+                            builder.Add(obj);
+                        }
+                    }
+
+                    this.interfaces = builder.ToImmutable();
+                }
+                else
+                {
+                    this.interfaces = ImmutableArray<T>.Empty;
+                }
+            }
+
+            return this.interfaces;
+        }
+
+        protected set
+        {
+            this.interfaces = value;
+        }
+    }
+
     private ImmutableArray<T> allInterfaceObjects;
 
     public ImmutableArray<T> AllInterfaceObjects
@@ -1282,61 +1346,6 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         protected set
         {
             this.allInterfaceObjects = value;
-        }
-    }
-
-    private ImmutableArray<string> interfaces;
-
-    public ImmutableArray<string> Interfaces
-    {
-        get
-        {
-            if (this.interfaces.IsDefault)
-            {
-                if (this.IsSystem)
-                {
-                    this.interfaces = ImmutableArray<string>.Empty;
-                }
-                else
-                if (this.symbol is ITypeSymbol typeSymbol)
-                {
-                    var builder = ImmutableArray.CreateBuilder<string>();
-                    if (typeSymbol.BaseType is INamedTypeSymbol baseType &&
-                        baseType.TypeKind == TypeKind.Error &&
-                        baseType.ToString() == "INotifyPropertyChanged")
-                    {
-                        builder.Add("System.ComponentModel.INotifyPropertyChanged");
-                    }
-
-                    foreach (var x in typeSymbol.Interfaces)
-                    {
-                        builder.Add(this.Body.SymbolToFullName(x));
-                    }
-
-                    this.interfaces = builder.ToImmutable();
-                }
-                else if (this.type != null)
-                {
-                    var builder = ImmutableArray.CreateBuilder<string>();
-                    foreach (var x in this.type.GetInterfaces())
-                    {
-                        builder.Add(VisceralHelper.TypeToFullName(x));
-                    }
-
-                    this.interfaces = builder.ToImmutable();
-                }
-                else
-                {
-                    this.interfaces = ImmutableArray<string>.Empty;
-                }
-            }
-
-            return this.interfaces;
-        }
-
-        protected set
-        {
-            this.interfaces = value;
         }
     }
 
