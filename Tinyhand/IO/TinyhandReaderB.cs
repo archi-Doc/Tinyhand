@@ -9,6 +9,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 using Arc.IO;
 
@@ -192,8 +193,17 @@ public ref partial struct TinyhandReaderB
         if (this.remaining >= byteLength)
         {
             // Fast path: all bytes to decode appear in the same span.
-            // string value = Encoding.UTF8.GetString((byte*)this.b, byteLength);
-            var value = string.Empty;
+            string value = Encoding.UTF8.GetString(MemoryMarshal.CreateReadOnlySpan(ref this.b, byteLength));
+            /*string value;
+            fixed (byte* p = &this.b)
+            {
+                value = string.Create(7, ((IntPtr)p, byteLength), static (dest, state) =>
+                {
+                    var span = MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>((byte*)state.Item1), state.Item2);
+                    Utf8.ToUtf16(span, dest, out _, out _, replaceInvalidSequences: false);
+                });
+            }*/
+
             this.TryAdvance(byteLength);
             return value;
         }
@@ -384,6 +394,7 @@ public ref partial struct TinyhandReaderB
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ThrowInsufficientBufferUnless(bool condition)
     {
         if (!condition)
@@ -424,7 +435,7 @@ public ref partial struct TinyhandReaderB
     }
 }
 
-/* public ref partial struct TinyhandReaderB
+/*public ref partial struct TinyhandReaderB
 {
     private ReadOnlySpan<byte> span;
 
@@ -584,7 +595,7 @@ public ref partial struct TinyhandReaderB
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string? ReadString()
+    public unsafe string? ReadString()
     {
         if (this.TryReadNil())
         {
@@ -596,7 +607,17 @@ public ref partial struct TinyhandReaderB
         if (this.span.Length >= byteLength)
         {
             // Fast path: all bytes to decode appear in the same span.
-            string value = Encoding.UTF8.GetString(this.span.Slice(0, byteLength));
+            // string value = Encoding.UTF8.GetString(MemoryMarshal.CreateReadOnlySpan(ref this.b, byteLength));
+            string value;
+            fixed (byte* p = this.span)
+            {
+                value = string.Create(7, ((IntPtr)p, byteLength), static (dest, state) =>
+                {
+                    var span = MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>((byte*)state.Item1), state.Item2);
+                    Utf8.ToUtf16(span, dest, out _, out _, replaceInvalidSequences: false);
+                });
+            }
+
             this.TryAdvance(byteLength);
             return value;
         }
@@ -826,5 +847,4 @@ public ref partial struct TinyhandReaderB
             return false;
         }
     }
-}
-*/
+}*/
