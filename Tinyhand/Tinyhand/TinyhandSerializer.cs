@@ -500,6 +500,21 @@ public static partial class TinyhandSerializer
         }
     }
 
+    public static void DeserializeB<T>(byte[] buffer, ref T value)
+        where T : ITinyhandObject<T>
+    {
+        var reader = new TinyhandReaderB(buffer);
+
+        try
+        {
+            T.Deserialize(ref reader, ref value, DefaultOptions);
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+        }
+    }
+
     /// <summary>
     /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
     /// </summary>

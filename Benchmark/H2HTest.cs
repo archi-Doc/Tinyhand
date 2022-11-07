@@ -14,6 +14,7 @@ using ProtoBuf;
 using MemoryPack;
 using Tinyhand;
 using Tinyhand.IO;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable SA1401 // Fields should be private
 
@@ -74,51 +75,84 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
         writer.WriteNil();
         writer.WriteNil();
         writer.WriteNil();
-        global::Tinyhand.Formatters.Builtin.SerializeInt32Array(ref writer, value.B);
+        SerializeInt32Array(ref writer, value.B);
     }
 
-    static void ITinyhandObject<ObjectH2H>.Deserialize(ref TinyhandReader reader, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt32Array(ref TinyhandWriter writer, int[]? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
+            {
+                writer.Write(value[i]);
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static int[]? DeserializeInt32Array(ref TinyhandReaderB reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new int[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new int[len];
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = reader.ReadInt32();
+            }
+
+            return array;
+        }
+    }
+
+    static void ITinyhandObject<ObjectH2H>.Deserialize(ref TinyhandReaderB reader, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
     {
         value ??= new();
         var numberOfData = reader.ReadArrayHeader();
-        options.Security.DepthStep(ref reader);
-        try
+        if (numberOfData-- > 0 && !reader.TryReadNil())
         {
-            if (numberOfData-- > 0 && !reader.TryReadNil())
-            {
-                value.X = reader.ReadInt32();
-            }
-            if (numberOfData-- > 0 && !reader.TryReadNil())
-            {
-                value.Y = reader.ReadInt32();
-            }
-            if (numberOfData-- > 0 && !reader.TryReadNil())
-            {
-                value.Z = reader.ReadInt32();
-            }
-            if (numberOfData-- > 0 && !reader.TryReadNil())
-            {
-                value.A = reader.ReadString() ?? string.Empty;
-            }
-            else
-            {
-                value.A = string.Empty;
-            }
-            if (numberOfData-- > 0) reader.Skip();
-            if (numberOfData-- > 0) reader.Skip();
-            if (numberOfData-- > 0) reader.Skip();
-            if (numberOfData-- > 0) reader.Skip();
-            if (numberOfData-- > 0 && !reader.TryReadNil())
-            {
-                value.B = global::Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader) ?? new int[0];
-            }
-            else
-            {
-                value.B = new int[0];
-            }
-            while (numberOfData-- > 0) reader.Skip();
+            value.X = reader.ReadInt32();
         }
-        finally { reader.Depth--; }
+        if (numberOfData-- > 0 && !reader.TryReadNil())
+        {
+            value.Y = reader.ReadInt32();
+        }
+        if (numberOfData-- > 0 && !reader.TryReadNil())
+        {
+            value.Z = reader.ReadInt32();
+        }
+        if (numberOfData-- > 0 && !reader.TryReadNil())
+        {
+            // reader.Skip();
+            value.A = reader.ReadString() ?? string.Empty;
+        }
+        else
+        {
+            value.A = string.Empty;
+        }
+        if (numberOfData-- > 0) reader.Skip();
+        if (numberOfData-- > 0) reader.Skip();
+        if (numberOfData-- > 0) reader.Skip();
+        if (numberOfData-- > 0) reader.Skip();
+        if (numberOfData-- > 0 && !reader.TryReadNil())
+        {
+            value.B = DeserializeInt32Array(ref reader) ?? new int[0];
+        }
+        else
+        {
+            value.B = new int[0];
+        }
+        while (numberOfData-- > 0) reader.Skip();
     }
 }
 
@@ -206,6 +240,7 @@ public class H2HBenchmark
     byte[] data = default!;
     byte[] data3 = default!;
     byte[] data4 = default!;
+    byte[] data5 = default!;
     byte[] utf8 = default!;
 
     ObjectH2H2 h2h2 = default!;
@@ -234,6 +269,7 @@ public class H2HBenchmark
 
         this.data3 = this.SerializeProtoBuf();
         this.data4 = MemoryPackSerializer.Serialize(this.h2h);
+        this.data5 = TinyhandSerializer.SerializeB(this.h2h);
     }
 
     [GlobalCleanup]
@@ -257,19 +293,19 @@ public class H2HBenchmark
         return MessagePack.MessagePackSerializer.Serialize(this.h2h);
     }
 
-    [Benchmark]
+    // [Benchmark]
     public byte[] SerializeMemoryPack()
     {
         return MemoryPackSerializer.Serialize(this.h2h);
     }
 
-    [Benchmark]
+    // [Benchmark]
     public byte[] SerializeTinyhand()
     {
         return Tinyhand.TinyhandSerializer.Serialize(this.h2h);
     }
 
-    [Benchmark]
+    // [Benchmark]
     public byte[] SerializeTinyhandB()
     {
         return Tinyhand.TinyhandSerializer.SerializeB(this.h2h);
@@ -299,10 +335,19 @@ public class H2HBenchmark
         return MemoryPackSerializer.Deserialize<ObjectH2H>(this.data4);
 
     }
+
     [Benchmark]
     public ObjectH2H? DeserializeTinyhand()
     {
         return Tinyhand.TinyhandSerializer.Deserialize<ObjectH2H>(this.data);
+    }
+
+    [Benchmark]
+    public ObjectH2H? DeserializeTinyhandB()
+    {
+        var value = new ObjectH2H();
+        Tinyhand.TinyhandSerializer.DeserializeB<ObjectH2H>(this.data5, ref value);
+        return value;
     }
 
     /*[Benchmark]

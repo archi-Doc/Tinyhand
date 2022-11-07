@@ -329,6 +329,19 @@ public ref partial struct TinyhandReader
         }
     }
 
+    public int ReadInt32B()
+    {
+        this.reader.TryRead(out byte code);
+
+        if (code != MessagePackCode.Int32)
+        {
+            throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+
+        this.reader.TryRead(out int intResult);
+        return checked((int)intResult);
+    }
+
     /// <summary>
     /// Reads an <see cref="ulong"/> value from:
     /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,

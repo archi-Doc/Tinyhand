@@ -52,7 +52,7 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<SerializeIdentifierTest>();
+        DebugRun<H2HBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
@@ -144,8 +144,8 @@ public class BenchmarkConfig : BenchmarkDotNet.Configs.ManualConfig
 
         // this.AddJob(Job.ShortRun.With(BenchmarkDotNet.Environments.Platform.X64).WithWarmupCount(1).WithIterationCount(1));
         // this.AddJob(BenchmarkDotNet.Jobs.Job.MediumRun.WithGcForce(true).WithId("GcForce medium"));
-        this.AddJob(BenchmarkDotNet.Jobs.Job.ShortRun);
-        // this.AddJob(BenchmarkDotNet.Jobs.Job.MediumRun);
+        // this.AddJob(BenchmarkDotNet.Jobs.Job.ShortRun);
+        this.AddJob(BenchmarkDotNet.Jobs.Job.MediumRun);
         // this.AddJob(BenchmarkDotNet.Jobs.Job.LongRun);
     }
 }
