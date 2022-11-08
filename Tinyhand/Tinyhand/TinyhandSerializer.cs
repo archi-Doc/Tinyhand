@@ -328,7 +328,7 @@ public static partial class TinyhandSerializer
 
             try
             {
-                foreach (var segment in byteSequence.GetReadOnlySequence())
+                foreach (var segment in byteSequence.ToReadOnlySequence())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await stream.WriteAsync(segment, cancellationToken).ConfigureAwait(false);
@@ -588,7 +588,7 @@ public static partial class TinyhandSerializer
                 {
                     if (TryDecompress(ref reader, byteSequence))
                     {
-                        var r = reader.Clone(byteSequence.GetReadOnlySequence());
+                        var r = reader.Clone(byteSequence.ToReadOnlySpan());
                         return options.Resolver.GetFormatter<T>().Deserialize(ref r, options);
                     }
                     else
@@ -640,7 +640,7 @@ public static partial class TinyhandSerializer
                 {
                     if (TryDecompress(ref reader, byteSequence))
                     {
-                        var r = reader.Clone(byteSequence.GetReadOnlySequence());
+                        var r = reader.Clone(byteSequence.ToReadOnlySpan());
                         return options.Resolver.GetFormatterExtra<T>().Deserialize(reuse, ref r, options);
                     }
                     else
@@ -703,7 +703,7 @@ public static partial class TinyhandSerializer
             }
             while (bytesRead > 0);
 
-            return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence.GetReadOnlySequence(), cancellationToken);
+            return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -747,7 +747,7 @@ public static partial class TinyhandSerializer
             }
             while (bytesRead > 0);
 
-            return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence.GetReadOnlySequence(), cancellationToken);
+            return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -761,49 +761,52 @@ public static partial class TinyhandSerializer
 
     internal static bool TryDecompress(ref TinyhandReader reader, IBufferWriter<byte> writer)
     {
-        if (!reader.End)
+        if (reader.End)
         {
-            // Try to find LZ4BlockArray
-            if (reader.NextMessagePackType == MessagePackType.Array)
+            return false;
+        }
+
+        if (reader.NextMessagePackType != MessagePackType.Array)
+        {
+            return false;
+        }
+
+        var peekReader = reader.Fork();
+        var arrayLength = peekReader.ReadArrayHeader();
+        if (arrayLength != 0 && peekReader.NextMessagePackType == MessagePackType.Extension)
+        {
+            ExtensionHeader header = peekReader.ReadExtensionFormatHeader();
+            if (header.TypeCode == Tinyhand.MessagePackExtensionCodes.Lz4BlockArray)
             {
-                var peekReader = reader.Fork();
-                var arrayLength = peekReader.ReadArrayHeader();
-                if (arrayLength != 0 && peekReader.NextMessagePackType == MessagePackType.Extension)
+                // switch peekReader as original reader.
+                reader = peekReader;
+
+                // Read from [Ext(98:int,int...), bin,bin,bin...]
+                var sequenceCount = arrayLength - 1;
+                var uncompressedLengths = ArrayPool<int>.Shared.Rent(sequenceCount);
+                try
                 {
-                    ExtensionHeader header = peekReader.ReadExtensionFormatHeader();
-                    if (header.TypeCode == Tinyhand.MessagePackExtensionCodes.Lz4BlockArray)
+                    for (int i = 0; i < sequenceCount; i++)
                     {
-                        // switch peekReader as original reader.
-                        reader = peekReader;
-
-                        // Read from [Ext(98:int,int...), bin,bin,bin...]
-                        var sequenceCount = arrayLength - 1;
-                        var uncompressedLengths = ArrayPool<int>.Shared.Rent(sequenceCount);
-                        try
-                        {
-                            for (int i = 0; i < sequenceCount; i++)
-                            {
-                                uncompressedLengths[i] = reader.ReadInt32();
-                            }
-
-                            for (int i = 0; i < sequenceCount; i++)
-                            {
-                                var uncompressedLength = uncompressedLengths[i];
-                                var lz4Block = reader.ReadBytes();
-
-                                var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
-                                var actualUncompressedLength = LZ4Operation(lz4Block.Value, uncompressedSpan, LZ4Codec.Decode);
-                                Debug.Assert(actualUncompressedLength == uncompressedLength, "Unexpected length of uncompressed data.");
-                                writer.Advance(actualUncompressedLength);
-                            }
-
-                            return true;
-                        }
-                        finally
-                        {
-                            ArrayPool<int>.Shared.Return(uncompressedLengths);
-                        }
+                        uncompressedLengths[i] = reader.ReadInt32();
                     }
+
+                    for (int i = 0; i < sequenceCount; i++)
+                    {
+                        var uncompressedLength = uncompressedLengths[i];
+                        var lz4Block = reader.ReadBytes();
+
+                        var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
+                        var actualUncompressedLength = LZ4Codec.Decode(lz4Block, uncompressedSpan);
+                        Debug.Assert(actualUncompressedLength == uncompressedLength, "Unexpected length of uncompressed data.");
+                        writer.Advance(actualUncompressedLength);
+                    }
+
+                    return true;
+                }
+                finally
+                {
+                    ArrayPool<int>.Shared.Return(uncompressedLengths);
                 }
             }
         }
@@ -827,14 +830,14 @@ public static partial class TinyhandSerializer
         return false;
     }
 
-    private static T? DeserializeFromSequenceAndRewindStreamIfPossible<T>(Stream streamToRewind, TinyhandSerializerOptions? options, ReadOnlySequence<byte> sequence, CancellationToken cancellationToken)
+    private static T? DeserializeFromSequenceAndRewindStreamIfPossible<T>(Stream streamToRewind, TinyhandSerializerOptions? options, ByteSequence sequence, CancellationToken cancellationToken)
     {
         if (streamToRewind is null)
         {
             throw new ArgumentNullException(nameof(streamToRewind));
         }
 
-        var reader = new TinyhandReader(sequence)
+        var reader = new TinyhandReader(sequence.ToReadOnlySpan())
         {
             CancellationToken = cancellationToken,
         };
@@ -844,46 +847,11 @@ public static partial class TinyhandSerializer
         if (streamToRewind.CanSeek && !reader.End)
         {
             // Reverse the stream as many bytes as we left unread.
-            int bytesNotRead = checked((int)reader.Sequence.Slice(reader.Position).Length);
+            int bytesNotRead = reader.Remaining;
             streamToRewind.Seek(-bytesNotRead, SeekOrigin.Current);
         }
 
         return result;
-    }
-
-    /// <summary>
-    /// Performs LZ4 compression or decompression.
-    /// </summary>
-    /// <param name="input">The input for the operation.</param>
-    /// <param name="output">The buffer to write the result of the operation.</param>
-    /// <param name="lz4Operation">The LZ4 codec transformation.</param>
-    /// <returns>The number of bytes written to the <paramref name="output"/>.</returns>
-    private static int LZ4Operation(in ReadOnlySequence<byte> input, Span<byte> output, LZ4Transform lz4Operation)
-    {
-        ReadOnlySpan<byte> inputSpan;
-        byte[]? rentedInputArray = null;
-        if (input.IsSingleSegment)
-        {
-            inputSpan = input.First.Span;
-        }
-        else
-        {
-            rentedInputArray = ArrayPool<byte>.Shared.Rent((int)input.Length);
-            input.CopyTo(rentedInputArray);
-            inputSpan = rentedInputArray.AsSpan(0, (int)input.Length);
-        }
-
-        try
-        {
-            return lz4Operation(inputSpan, output);
-        }
-        finally
-        {
-            if (rentedInputArray != null)
-            {
-                ArrayPool<byte>.Shared.Return(rentedInputArray);
-            }
-        }
     }
 
     private static void ToLZ4BinaryCore(scoped in ReadOnlySequence<byte> msgpackUncompressedData, ref TinyhandWriter writer, TinyhandCompression compression)

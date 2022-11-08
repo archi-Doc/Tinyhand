@@ -16,11 +16,43 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
     private ByteVault? firstVault;
     private ByteVault? lastVault;
 
-    public ReadOnlySequence<byte> GetReadOnlySequence()
+    public ReadOnlySequence<byte> ToReadOnlySequence()
     {
         return this.firstVault == null ?
             ReadOnlySequence<byte>.Empty :
             new ReadOnlySequence<byte>(this.firstVault, 0, this.lastVault!, this.lastVault!.Size);
+    }
+
+    public ReadOnlyMemory<byte> ToReadOnlyMemory()
+    {
+        if (this.firstVault == null)
+        {
+            return default;
+        }
+        else if (this.firstVault == this.lastVault)
+        {// Single vault
+            return new ReadOnlyMemory<byte>(this.firstVault.Array, 0, this.firstVault.Size);
+        }
+        else
+        {// Multiple vaults
+            return new ReadOnlySequence<byte>(this.firstVault, 0, this.lastVault!, this.lastVault!.Size).ToArray();
+        }
+    }
+
+    public ReadOnlySpan<byte> ToReadOnlySpan()
+    {
+        if (this.firstVault == null)
+        {
+            return default;
+        }
+        else if (this.firstVault == this.lastVault)
+        {// Single vault
+            return new ReadOnlySpan<byte>(this.firstVault.Array, 0, this.firstVault.Size);
+        }
+        else
+        {// Multiple vaults
+            return new ReadOnlySequence<byte>(this.firstVault, 0, this.lastVault!, this.lastVault!.Size).ToArray();
+        }
     }
 
     public void Advance(int count)

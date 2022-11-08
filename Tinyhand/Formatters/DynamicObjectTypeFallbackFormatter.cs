@@ -99,7 +99,7 @@ public sealed class DynamicObjectTypeFallbackFormatter : ITinyhandFormatter<obje
     {
         var w = default(TinyhandWriter);
         this.Serialize(ref w, value, options);
-        var r = new TinyhandReader(w.FlushAndGetReadOnlySequence());
+        var r = new TinyhandReader(w);
         return this.Deserialize(ref r, options);
     }
 }

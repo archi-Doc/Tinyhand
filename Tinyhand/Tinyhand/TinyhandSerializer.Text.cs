@@ -141,7 +141,7 @@ public static partial class TinyhandSerializer
 
             TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
 
-            var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
+            var reader = new TinyhandReader(writer) { CancellationToken = cancellationToken };
 
             try
             {
@@ -211,7 +211,7 @@ public static partial class TinyhandSerializer
 
             TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
 
-            var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
+            var reader = new TinyhandReader(writer) { CancellationToken = cancellationToken };
 
             try
             {

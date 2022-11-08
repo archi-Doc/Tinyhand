@@ -65,7 +65,7 @@ public static class TinyhandTreeConverter
         {
             if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
             {
-                var r = reader.Clone(byteSequence.GetReadOnlySequence());
+                var r = reader.Clone(byteSequence.ToReadOnlySpan());
                 while (!r.End)
                 {
                     FromReaderToUtf8(ref r, ref writer, options, omitTopLevelBracket); // r.ConvertToUtf8(ref writer);
@@ -136,43 +136,28 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.String:
-                var seq = reader.ReadStringSequence();
-                if (seq == null)
+                var span = reader.ReadStringSpan();
+                var utf8 = span.ToArray();
+
+                if (convertToIdentifier && IsValidIdentifier(utf8))
                 {
-                    writer.WriteSpan(TinyhandConstants.NullSpan);
+                    writer.WriteSpan(utf8);
                 }
                 else
                 {
-                    var utf8 = seq.Value.ToArray();
-
-                    if (convertToIdentifier && IsValidIdentifier(utf8))
-                    {
-                        writer.WriteSpan(utf8);
-                    }
-                    else
-                    {
-                        writer.WriteUInt8(TinyhandConstants.Quote);
-                        writer.WriteEscapedUtf8(utf8);
-                        writer.WriteUInt8(TinyhandConstants.Quote);
-                    }
+                    writer.WriteUInt8(TinyhandConstants.Quote);
+                    writer.WriteEscapedUtf8(utf8);
+                    writer.WriteUInt8(TinyhandConstants.Quote);
                 }
 
                 return;
 
             case MessagePackType.Binary:
-                var bytes = reader.ReadBytes();
-                if (bytes == null)
-                {
-                    writer.WriteSpan(TinyhandConstants.NullSpan);
-                }
-                else
-                {
-                    writer.WriteUInt8((byte)'b');
-                    writer.WriteUInt8(TinyhandConstants.Quote);
-                    // writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
-                    writer.WriteSpan(Arc.Crypto.Base64.Default.FromByteArrayToUtf8(bytes.Value.ToArray()));
-                    writer.WriteUInt8(TinyhandConstants.Quote);
-                }
+                writer.WriteUInt8((byte)'b');
+                writer.WriteUInt8(TinyhandConstants.Quote);
+                // writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
+                writer.WriteSpan(Arc.Crypto.Base64.Default.FromByteArrayToUtf8(reader.ReadBytesToArray()));
+                writer.WriteUInt8(TinyhandConstants.Quote);
 
                 return;
 
@@ -754,7 +739,7 @@ public static class TinyhandTreeConverter
         {
             if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
             {
-                var r = reader.Clone(byteSequence.GetReadOnlySequence());
+                var r = reader.Clone(byteSequence.ToReadOnlySpan());
                 FromReaderToElement(ref r, out element, options);
             }
             else
@@ -808,13 +793,8 @@ public static class TinyhandTreeConverter
                 }
 
             case MessagePackType.String:
-                var seq = reader.ReadStringSequence();
-                if (seq == null)
-                {
-                    return new Value_Null();
-                }
-
-                var utf8 = seq.Value.ToArray();
+                var span = reader.ReadStringSpan();
+                var utf8 = span.ToArray();
                 if (identifierFlag)
                 {
                     if (IsValidIdentifier(utf8))
@@ -832,13 +812,7 @@ public static class TinyhandTreeConverter
                 }
 
             case MessagePackType.Binary:
-                var bytes = reader.ReadBytes();
-                if (bytes == null)
-                {
-                    return new Value_Null();
-                }
-
-                return new Value_Binary(bytes.Value.ToArray());
+                return new Value_Binary(reader.ReadBytesToArray());
 
             case MessagePackType.Array:
                 {
@@ -893,7 +867,7 @@ public static class TinyhandTreeConverter
                 }
                 else
                 {
-                    var data = reader.ReadRaw((long)extHeader.Length);
+                    var data = reader.ReadRaw((int)extHeader.Length);
                     return new Value_String("[" + extHeader.TypeCode + ",\"" + Convert.ToBase64String(data.ToArray()) + "\"]");
                 }
 

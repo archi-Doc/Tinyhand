@@ -75,6 +75,8 @@ public ref struct TinyhandWriter
 
     public ReadOnlySequence<byte> FlushAndGetReadOnlySequence() => this.writer.FlushAndGetReadOnlySequence();
 
+    public ReadOnlySpan<byte> FlushAndGetReadOnlySpan() => this.writer.FlushAndGetReadOnlySpan();
+
     public void Flush() => this.writer.Flush();
 
     public Span<byte> GetSpan(int length) => this.writer.GetSpan(length);

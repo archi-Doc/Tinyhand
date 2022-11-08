@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -29,6 +30,15 @@ public ref partial struct TinyhandReader
         this.length = span.Length;
     }
 
+    public TinyhandReader(TinyhandWriter writer)
+        : this()
+    {
+        var span = writer.FlushAndGetReadOnlySpan();
+        this.b = ref MemoryMarshal.GetReference(span);
+        this.remaining = span.Length;
+        this.length = span.Length;
+    }
+
     /// <summary>
     /// Gets or sets the cancellation token for this deserialization operation.
     /// </summary>
@@ -45,7 +55,7 @@ public ref partial struct TinyhandReader
     /// </summary>
     /// <param name="span">Span.</param>
     /// <returns>The new reader.</returns>
-    public TinyhandReader Clone(in ReadOnlySpan<byte> span) => new TinyhandReader(span)
+    public TinyhandReader Clone(ReadOnlySpan<byte> span) => new TinyhandReader(span)
     {
         CancellationToken = this.CancellationToken,
         Depth = this.Depth,
@@ -85,6 +95,11 @@ public ref partial struct TinyhandReader
     }
 
     /// <summary>
+    /// Gets the number of bytes remaining.
+    /// </summary>
+    public int Remaining => this.remaining;
+
+    /// <summary>
     /// Gets the number of bytes consumed by the reader.
     /// </summary>
     public int Consumed => this.length - this.remaining;
@@ -115,23 +130,6 @@ public ref partial struct TinyhandReader
         ThrowInsufficientBufferUnless(this.remaining >= count);
         this.remaining -= count;
         this.b = ref Unsafe.Add(ref this.b, count);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryReadCode(out byte code)
-    {
-        if (this.remaining > 0)
-        {
-            code = this.b;
-            this.remaining--;
-            this.b = ref Unsafe.Add(ref this.b, 1);
-            return true;
-        }
-        else
-        {
-            code = 0;
-            return false;
-        }
     }
 
     /// <summary>
@@ -237,7 +235,7 @@ public ref partial struct TinyhandReader
     /// <returns>A nil value.</returns>
     public Nil ReadNil()
     {
-        ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
+        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
 
         return code == MessagePackCode.Nil
             ? Nil.Default
@@ -311,7 +309,7 @@ public ref partial struct TinyhandReader
         // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
         // We allow for each primitive to be the minimal 1 byte in size.
         // Formatters that know each element is larger can optionally add a stronger check.
-        ThrowInsufficientBufferUnless(this.remaining >= count);
+        ThrowInsufficientBufferUnless(this.Remaining >= count);
 
         return count;
     }
@@ -334,7 +332,7 @@ public ref partial struct TinyhandReader
     public bool TryReadArrayHeader(out int count)
     {
         count = -1;
-        if (!this.TryReadCode(out byte code))
+        if (!this.TryRead(out byte code))
         {
             return false;
         }
@@ -342,7 +340,7 @@ public ref partial struct TinyhandReader
         switch (code)
         {
             case MessagePackCode.Array16:
-                if (!this.TryReadUnmanaged(out short shortValue))
+                if (!this.TryReadBigEndian(out short shortValue))
                 {
                     return false;
                 }
@@ -350,7 +348,7 @@ public ref partial struct TinyhandReader
                 count = unchecked((ushort)shortValue);
                 break;
             case MessagePackCode.Array32:
-                if (!this.TryReadUnmanaged(out int intValue))
+                if (!this.TryReadBigEndian(out int intValue))
                 {
                     return false;
                 }
@@ -377,6 +375,11 @@ public ref partial struct TinyhandReader
     /// some built-in code between <see cref="MessagePackCode.MinFixMap"/> and <see cref="MessagePackCode.MaxFixMap"/>.
     /// </summary>
     /// <returns>The number of key=value pairs in the map.</returns>
+    /// <exception cref="EndOfStreamException">
+    /// Thrown if the header cannot be read in the bytes left in the span
+    /// or if it is clear that there are insufficient bytes remaining after the header to include all the elements the header claims to be there.
+    /// </exception>
+    /// <exception cref="TinyhandException">Thrown if a code other than an map header is encountered.</exception>
     public int ReadMapHeader()
     {
         ThrowInsufficientBufferUnless(this.TryReadMapHeader(out int count));
@@ -384,7 +387,7 @@ public ref partial struct TinyhandReader
         // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
         // We allow for each primitive to be the minimal 1 byte in size, and we have a key=value map, so that's 2 bytes.
         // Formatters that know each element is larger can optionally add a stronger check.
-        ThrowInsufficientBufferUnless(this.remaining >= count * 2);
+        ThrowInsufficientBufferUnless(this.Remaining >= count * 2);
 
         return count;
     }
@@ -409,7 +412,7 @@ public ref partial struct TinyhandReader
         // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
         // We allow for each primitive to be the minimal 1 byte in size, and we have a key=value map, so that's 2 bytes.
         // Formatters that know each element is larger can optionally add a stronger check.
-        ThrowInsufficientBufferUnless(this.remaining >= count * 2);
+        ThrowInsufficientBufferUnless(this.Remaining >= count * 2);
 
         return count;
     }
@@ -431,7 +434,7 @@ public ref partial struct TinyhandReader
     public bool TryReadMapHeader(out int count)
     {
         count = -1;
-        if (!this.TryReadCode(out byte code))
+        if (!this.TryRead(out byte code))
         {
             return false;
         }
@@ -439,7 +442,7 @@ public ref partial struct TinyhandReader
         switch (code)
         {
             case MessagePackCode.Map16:
-                if (!this.TryReadUnmanaged(out short shortValue))
+                if (!this.TryReadBigEndian(out short shortValue))
                 {
                     return false;
                 }
@@ -447,7 +450,7 @@ public ref partial struct TinyhandReader
                 count = unchecked((ushort)shortValue);
                 break;
             case MessagePackCode.Map32:
-                if (!this.TryReadUnmanaged(out int intValue))
+                if (!this.TryReadBigEndian(out int intValue))
                 {
                     return false;
                 }
@@ -484,7 +487,7 @@ public ref partial struct TinyhandReader
     public bool TryReadMapHeader2(out int count)
     {
         count = -1;
-        if (!this.TryReadCode(out byte code))
+        if (!this.TryRead(out byte code))
         {
             return false;
         }
@@ -494,7 +497,7 @@ public ref partial struct TinyhandReader
         switch (code)
         {
             case MessagePackCode.Map16:
-                if (!this.TryReadUnmanaged(out shortValue))
+                if (!this.TryReadBigEndian(out shortValue))
                 {
                     return false;
                 }
@@ -503,7 +506,7 @@ public ref partial struct TinyhandReader
                 break;
 
             case MessagePackCode.Map32:
-                if (!this.TryReadUnmanaged(out intValue))
+                if (!this.TryReadBigEndian(out intValue))
                 {
                     return false;
                 }
@@ -512,7 +515,7 @@ public ref partial struct TinyhandReader
                 break;
 
             case MessagePackCode.Array16:
-                if (!this.TryReadUnmanaged(out shortValue))
+                if (!this.TryReadBigEndian(out shortValue))
                 {
                     return false;
                 }
@@ -526,7 +529,7 @@ public ref partial struct TinyhandReader
                 break;
 
             case MessagePackCode.Array32:
-                if (!this.TryReadUnmanaged(out intValue))
+                if (!this.TryReadBigEndian(out intValue))
                 {
                     return false;
                 }
@@ -563,7 +566,7 @@ public ref partial struct TinyhandReader
     /// <returns>The value.</returns>
     public bool ReadBoolean()
     {
-        ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
+        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
         switch (code)
         {
             case MessagePackCode.True:
@@ -601,39 +604,39 @@ public ref partial struct TinyhandReader
     /// <returns>The value.</returns>
     public unsafe float ReadSingle()
     {
-        ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
+        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
 
         switch (code)
         {
             case MessagePackCode.Float32:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out float floatValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out float floatValue));
                 return floatValue;
             case MessagePackCode.Float64:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out double doubleValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out double doubleValue));
                 return (float)doubleValue;
             case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteValue));
+                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteValue));
                 return sbyteValue;
             case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortValue));
                 return shortValue;
             case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intValue));
                 return intValue;
             case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longValue));
                 return longValue;
             case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteValue));
+                ThrowInsufficientBufferUnless(this.TryRead(out byte byteValue));
                 return byteValue;
             case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortValue));
                 return ushortValue;
             case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintValue));
                 return uintValue;
             case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongValue));
                 return ulongValue;
             default:
                 if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -667,39 +670,39 @@ public ref partial struct TinyhandReader
     /// <returns>The value.</returns>
     public unsafe double ReadDouble()
     {
-        ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
+        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
 
         switch (code)
         {
             case MessagePackCode.Float64:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out double doubleValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out double doubleValue));
                 return doubleValue;
             case MessagePackCode.Float32:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out float floatValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out float floatValue));
                 return floatValue;
             case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteValue));
+                ThrowInsufficientBufferUnless(this.TryRead(out byte byteValue));
                 return unchecked((sbyte)byteValue);
             case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortValue));
                 return shortValue;
             case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intValue));
                 return intValue;
             case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longValue));
                 return longValue;
             case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadCode(out byteValue));
+                ThrowInsufficientBufferUnless(this.TryRead(out byteValue));
                 return byteValue;
             case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out shortValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out shortValue));
                 return unchecked((ushort)shortValue);
             case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out intValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out intValue));
                 return unchecked((uint)intValue);
             case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out longValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out longValue));
                 return unchecked((ulong)longValue);
             default:
                 if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -711,7 +714,7 @@ public ref partial struct TinyhandReader
                     return code;
                 }
 
-                /*this.reader.Rewind(1);
+                /*this.Rewind(1);
                 var span = this.ReadStringSpan();
                 if (span.Length == 3)
                 {// 3: NaN
@@ -783,18 +786,18 @@ public ref partial struct TinyhandReader
         switch (header.Length)
         {
             case 4:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intValue));
                 return DateTimeConstants.UnixEpoch.AddSeconds(unchecked((uint)intValue));
             case 8:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longValue));
                 ulong ulongValue = unchecked((ulong)longValue);
                 long nanoseconds = (long)(ulongValue >> 34);
                 ulong seconds = ulongValue & 0x00000003ffffffffL;
                 return DateTimeConstants.UnixEpoch.AddSeconds(seconds).AddTicks(nanoseconds / DateTimeConstants.NanosecondsPerTick);
             case 12:
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out intValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out intValue));
                 nanoseconds = unchecked((uint)intValue);
-                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out longValue));
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out longValue));
                 return DateTimeConstants.UnixEpoch.AddSeconds(longValue).AddTicks(nanoseconds / DateTimeConstants.NanosecondsPerTick);
             default:
                 throw new TinyhandException($"Length of extension was {header.Length}. Either 4 or 8 were expected.");
@@ -934,7 +937,7 @@ public ref partial struct TinyhandReader
     public bool TryReadExtensionFormatHeader(out ExtensionHeader extensionHeader)
     {
         extensionHeader = default;
-        if (!this.TryReadCode(out byte code))
+        if (!this.TryRead(out byte code))
         {
             return false;
         }
@@ -958,7 +961,7 @@ public ref partial struct TinyhandReader
                 length = 16;
                 break;
             case MessagePackCode.Ext8:
-                if (!this.TryReadCode(out byte byteLength))
+                if (!this.TryRead(out byte byteLength))
                 {
                     return false;
                 }
@@ -966,7 +969,7 @@ public ref partial struct TinyhandReader
                 length = byteLength;
                 break;
             case MessagePackCode.Ext16:
-                if (!this.TryReadUnmanaged(out short shortLength))
+                if (!this.TryReadBigEndian(out short shortLength))
                 {
                     return false;
                 }
@@ -974,7 +977,7 @@ public ref partial struct TinyhandReader
                 length = unchecked((ushort)shortLength);
                 break;
             case MessagePackCode.Ext32:
-                if (!this.TryReadUnmanaged(out int intLength))
+                if (!this.TryReadBigEndian(out int intLength))
                 {
                     return false;
                 }
@@ -985,53 +988,13 @@ public ref partial struct TinyhandReader
                 throw ThrowInvalidCode(code, MessagePackType.Extension);
         }
 
-        if (!this.TryReadCode(out byte typeCode))
+        if (!this.TryRead(out byte typeCode))
         {
             return false;
         }
 
         extensionHeader = new ExtensionHeader(unchecked((sbyte)typeCode), length);
         return true;
-    }
-
-    /*/// <summary>
-    /// Reads an extension format header and data, based on one of these codes:
-    /// <see cref="MessagePackCode.FixExt1"/>,
-    /// <see cref="MessagePackCode.FixExt2"/>,
-    /// <see cref="MessagePackCode.FixExt4"/>,
-    /// <see cref="MessagePackCode.FixExt8"/>,
-    /// <see cref="MessagePackCode.FixExt16"/>,
-    /// <see cref="MessagePackCode.Ext8"/>,
-    /// <see cref="MessagePackCode.Ext16"/>, or
-    /// <see cref="MessagePackCode.Ext32"/>.
-    /// </summary>
-    /// <returns>
-    /// The extension format.
-    /// The data is a slice from the original sequence passed to this reader's constructor.
-    /// </returns>
-    public ExtensionResult ReadExtensionFormat()
-    {
-        ExtensionHeader header = this.ReadExtensionFormatHeader();
-        try
-        {
-            var span = this.ReadRaw((int)header.Length);
-            MemoryMarshal.CreateSpan(ref this.b, (int)header.Length);
-            return new ExtensionResult(header.TypeCode, span);
-        }
-        catch (ArgumentOutOfRangeException ex)
-        {
-            throw ThrowNotEnoughBytesException(ex);
-        }
-    }*/
-
-    public ReadOnlySpan<byte> GetSpanFromSequence(scoped in ReadOnlySequence<byte> sequence)
-    {
-        if (sequence.IsSingleSegment)
-        {
-            return sequence.First.Span;
-        }
-
-        return sequence.ToArray();
     }
 
     public ReadOnlySpan<byte> ReadStringSpan()
@@ -1077,24 +1040,6 @@ public ref partial struct TinyhandReader
             expected);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe bool TryReadUnmanaged<T>(out T value)
-        where T : unmanaged
-    {
-        if (this.remaining >= sizeof(T))
-        {
-            value = Unsafe.ReadUnaligned<T>(ref this.b);
-            this.remaining -= sizeof(T);
-            this.b = ref Unsafe.Add(ref this.b, sizeof(T));
-            return true;
-        }
-        else
-        {
-            value = default;
-            return false;
-        }
-    }
-
     private int GetBytesLength()
     {
         ThrowInsufficientBufferUnless(this.TryGetBytesLength(out int length));
@@ -1103,7 +1048,7 @@ public ref partial struct TinyhandReader
 
     private bool TryGetBytesLength(out int length)
     {
-        if (!this.TryReadCode(out byte code))
+        if (!this.TryRead(out byte code))
         {
             length = 0;
             return false;
@@ -1113,7 +1058,7 @@ public ref partial struct TinyhandReader
         switch (code)
         {
             case MessagePackCode.Bin8:
-                if (this.TryReadCode(out byte byteLength))
+                if (this.TryRead(out byte byteLength))
                 {
                     length = byteLength;
                     return true;
@@ -1122,7 +1067,7 @@ public ref partial struct TinyhandReader
                 break;
             case MessagePackCode.Bin16:
             case MessagePackCode.Str16: // OldSpec compatibility
-                if (this.TryReadUnmanaged(out short shortLength))
+                if (this.TryReadBigEndian(out short shortLength))
                 {
                     length = unchecked((ushort)shortLength);
                     return true;
@@ -1131,7 +1076,7 @@ public ref partial struct TinyhandReader
                 break;
             case MessagePackCode.Bin32:
             case MessagePackCode.Str32: // OldSpec compatibility
-                if (this.TryReadUnmanaged(out length))
+                if (this.TryReadBigEndian(out length))
                 {
                     return true;
                 }
@@ -1160,7 +1105,7 @@ public ref partial struct TinyhandReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryGetStringLengthInBytes(out int length)
     {
-        if (!this.TryReadCode(out byte code))
+        if (!this.TryRead(out byte code))
         {
             length = 0;
             return false;
@@ -1191,7 +1136,7 @@ public ref partial struct TinyhandReader
         switch (code)
         {
             case MessagePackCode.Str8:
-                if (this.TryReadCode(out byte byteValue))
+                if (this.TryRead(out byte byteValue))
                 {
                     length = byteValue;
                     return true;
@@ -1203,7 +1148,7 @@ public ref partial struct TinyhandReader
                 }
 
             case MessagePackCode.Str16:
-                if (this.TryReadUnmanaged(out short shortValue))
+                if (this.TryReadBigEndian(out short shortValue))
                 {
                     length = unchecked((ushort)shortValue);
                     return true;
@@ -1215,7 +1160,7 @@ public ref partial struct TinyhandReader
                 }
 
             case MessagePackCode.Str32:
-                if (this.TryReadUnmanaged(out int intValue))
+                if (this.TryReadBigEndian(out int intValue))
                 {
                     length = intValue;
                     return true;
@@ -1255,5 +1200,175 @@ public ref partial struct TinyhandReader
         }
 
         return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private unsafe bool TryRead<T>(out T value)
+        where T : unmanaged
+    {
+        if (this.remaining >= sizeof(T))
+        {
+            value = Unsafe.ReadUnaligned<T>(ref this.b);
+            this.remaining -= sizeof(T);
+            this.b = ref Unsafe.Add(ref this.b, sizeof(T));
+            return true;
+        }
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryRead(out byte code)
+    {
+        if (this.remaining > 0)
+        {
+            code = this.b;
+            this.remaining--;
+            this.b = ref Unsafe.Add(ref this.b, 1);
+            return true;
+        }
+        else
+        {
+            code = 0;
+            return false;
+        }
+    }
+
+    private bool TryRead(out sbyte value)
+    {
+        if (this.TryRead(out byte byteValue))
+        {
+            value = unchecked((sbyte)byteValue);
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private bool TryReadBigEndian(out short value)
+    {
+        if (!BitConverter.IsLittleEndian)
+        {
+            return this.TryRead(out value);
+        }
+
+        return this.TryReadReverseEndianness(out value);
+    }
+
+    private bool TryReadReverseEndianness(out short value)
+    {
+        if (this.TryRead(out value))
+        {
+            value = BinaryPrimitives.ReverseEndianness(value);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryReadBigEndian(out ushort value)
+    {
+        if (this.TryReadBigEndian(out short intValue))
+        {
+            value = unchecked((ushort)intValue);
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private bool TryReadBigEndian(out int value)
+    {
+        if (!BitConverter.IsLittleEndian)
+        {
+            return this.TryRead(out value);
+        }
+
+        return this.TryReadReverseEndianness(out value);
+    }
+
+    private bool TryReadReverseEndianness(out int value)
+    {
+        if (this.TryRead(out value))
+        {
+            value = BinaryPrimitives.ReverseEndianness(value);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryReadBigEndian(out uint value)
+    {
+        if (this.TryReadBigEndian(out int intValue))
+        {
+            value = unchecked((uint)intValue);
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private bool TryReadBigEndian(out long value)
+    {
+        if (!BitConverter.IsLittleEndian)
+        {
+            return this.TryRead(out value);
+        }
+
+        return this.TryReadReverseEndianness(out value);
+    }
+
+    private bool TryReadReverseEndianness(out long value)
+    {
+        if (this.TryRead(out value))
+        {
+            value = BinaryPrimitives.ReverseEndianness(value);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryReadBigEndian(out ulong value)
+    {
+        if (this.TryReadBigEndian(out long longValue))
+        {
+            value = unchecked((ulong)longValue);
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private unsafe bool TryReadBigEndian(out float value)
+    {
+        if (this.TryReadBigEndian(out int intValue))
+        {
+            value = *(float*)&intValue;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    private unsafe bool TryReadBigEndian(out double value)
+    {
+        if (this.TryReadBigEndian(out long longValue))
+        {
+            value = *(double*)&longValue;
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 }

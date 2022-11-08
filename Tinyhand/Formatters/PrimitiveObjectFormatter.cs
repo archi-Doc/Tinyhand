@@ -267,7 +267,7 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                 return reader.ReadString();
             case MessagePackType.Binary:
                 // We must copy the sequence returned by ReadBytes since the reader's sequence is only valid during deserialization.
-                return reader.ReadBytes()?.ToArray();
+                return reader.ReadBytesToArray();
             case MessagePackType.Extension:
                 ExtensionHeader ext = reader.ReadExtensionFormatHeader();
                 if (ext.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
