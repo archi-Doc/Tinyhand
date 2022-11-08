@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 
 #pragma warning disable SA1615 // Element return value should be documented
@@ -18,20 +19,6 @@ public ref partial struct TinyhandReaderB
 {
     private ref byte b;
     private int remaining;
-
-    public TinyhandReaderB(byte[] byteArray)
-        : this()
-    {
-        this.b = ref MemoryMarshal.GetReference(byteArray.AsSpan());
-        this.remaining = byteArray.Length;
-    }
-
-    public TinyhandReaderB(ReadOnlyMemory<byte> memory)
-        : this()
-    {
-        this.b = ref MemoryMarshal.GetReference(memory.Span);
-        this.remaining = memory.Length;
-    }
 
     public TinyhandReaderB(ReadOnlySpan<byte> span)
         : this()
@@ -891,7 +878,7 @@ public ref partial struct TinyhandReaderB
     /// </summary>
     /// <returns>A string, or <c>null</c> if the current msgpack token is <see cref="MessagePackCode.Nil"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public string? ReadString()
+    public unsafe string? ReadString()
     {
         if (this.TryReadNil())
         {
