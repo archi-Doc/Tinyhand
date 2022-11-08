@@ -41,7 +41,7 @@ public sealed class NativeGuidFormatter : ITinyhandFormatter<Guid>
             throw new InvalidOperationException("NativeGuidFormatter only allows on little endian env.");
         }
 
-        var span = reader.ReadBytes();
+        reader.TryReadBytes(out var span);
         if (span.Length != sizeof(Guid))
         {
             throw new TinyhandException("Invalid Guid Size.");
@@ -93,7 +93,7 @@ public sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
             throw new InvalidOperationException("NativeDecimalFormatter only allows on little endian env.");
         }
 
-        var span = reader.ReadBytes();
+        reader.TryReadBytes(out var span);
         if (span.Length != sizeof(decimal))
         {
             throw new TinyhandException("Invalid decimal Size.");

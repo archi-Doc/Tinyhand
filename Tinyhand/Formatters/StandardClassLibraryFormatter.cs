@@ -487,7 +487,8 @@ public sealed class BigIntegerFormatter : ITinyhandFormatter<System.Numerics.Big
 
     public System.Numerics.BigInteger Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        return new System.Numerics.BigInteger(reader.ReadBytes());
+        reader.TryReadBytes(out var span);
+        return new System.Numerics.BigInteger(span);
     }
 
     public System.Numerics.BigInteger Reconstruct(TinyhandSerializerOptions options)

@@ -44,7 +44,11 @@ public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
 
     public IPAddress? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        var span = reader.ReadBytes();
+        if (!reader.TryReadBytes(out var span))
+        {
+            return null;
+        }
+
         return new IPAddress(span);
     }
 
@@ -88,7 +92,11 @@ public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
 
     public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        var span = reader.ReadBytes();
+        if (!reader.TryReadBytes(out var span))
+        {
+            return null;
+        }
+
         return new IPEndPoint(new IPAddress(span), reader.ReadInt32());
     }
 

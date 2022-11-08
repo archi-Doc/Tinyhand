@@ -21,8 +21,4 @@
     <Compile Remove="Generated\*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Obsolete\" />
-  </ItemGroup>
-
 </Project>

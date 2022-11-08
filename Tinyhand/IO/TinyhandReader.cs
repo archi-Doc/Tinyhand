@@ -9,7 +9,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Unicode;
 using System.Threading;
 
 #pragma warning disable SA1615 // Element return value should be documented
@@ -814,20 +813,20 @@ public ref partial struct TinyhandReader
     /// <see cref="MessagePackCode.Str32"/>,
     /// or something between <see cref="MessagePackCode.MinFixStr"/> and <see cref="MessagePackCode.MaxFixStr"/>.
     /// </summary>
-    /// <returns>
-    /// A sequence of bytes, or <c>null</c> if the read token is <see cref="MessagePackCode.Nil"/>.
-    /// The data is a slice from the original sequence passed to this reader's constructor.
-    /// </returns>
-    public ReadOnlySpan<byte> ReadBytes()
+    /// <param name="span">A read span of byte.</param>
+    /// <returns><see langword="true"/>; success.</returns>
+    public bool TryReadBytes(out ReadOnlySpan<byte> span)
     {
         if (this.TryReadNil())
         {
-            return null;
+            span = default;
+            return false;
         }
 
-        int length = this.GetBytesLength();
+        var length = this.GetBytesLength();
         ThrowInsufficientBufferUnless(this.remaining >= length);
-        return this.ReadRaw(length);
+        span = this.ReadRaw(length);
+        return true;
     }
 
     public byte[] ReadBytesToArray()
@@ -837,7 +836,7 @@ public ref partial struct TinyhandReader
             return Array.Empty<byte>();
         }
 
-        int length = this.GetBytesLength();
+        var length = this.GetBytesLength();
         ThrowInsufficientBufferUnless(this.remaining >= length);
         var span = this.ReadRaw(length);
         return span.ToArray();

@@ -794,10 +794,10 @@ public static partial class TinyhandSerializer
                     for (int i = 0; i < sequenceCount; i++)
                     {
                         var uncompressedLength = uncompressedLengths[i];
-                        var lz4Block = reader.ReadBytes();
+                        reader.TryReadBytes(out var span);
 
                         var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
-                        var actualUncompressedLength = LZ4Codec.Decode(lz4Block, uncompressedSpan);
+                        var actualUncompressedLength = LZ4Codec.Decode(span, uncompressedSpan);
                         Debug.Assert(actualUncompressedLength == uncompressedLength, "Unexpected length of uncompressed data.");
                         writer.Advance(actualUncompressedLength);
                     }
