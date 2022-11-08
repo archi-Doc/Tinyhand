@@ -96,7 +96,7 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static int[]? DeserializeInt32Array(ref TinyhandReaderB reader)
+    public static int[]? DeserializeInt32Array(ref TinyhandReader reader)
     {
         if (reader.TryReadNil())
         {
@@ -115,7 +115,7 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
         }
     }
 
-    static void ITinyhandObject<ObjectH2H>.Deserialize(ref TinyhandReaderB reader, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
+    static void ITinyhandObject<ObjectH2H>.Deserialize(ref TinyhandReader reader, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
     {
         value ??= new();
         var numberOfData = reader.ReadArrayHeader();

@@ -362,45 +362,6 @@ public static partial class TinyhandSerializer
     /// Deserializes a value of a given type from a sequence of bytes.
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
-    /// <param name="byteSequence">The sequence to deserialize from.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>The deserialized value.</returns>
-    /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? Deserialize<T>(in ReadOnlySequence<byte> byteSequence, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        var reader = new TinyhandReader(byteSequence)
-        {
-            CancellationToken = cancellationToken,
-        };
-
-        return Deserialize<T>(ref reader, options);
-    }
-
-    /// <summary>
-    /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes. An instance to reuse must have a TinyhandObject attribute.
-    /// </summary>
-    /// <typeparam name="T">The type of value to deserialize.</typeparam>
-    /// <param name="reuse">The existing instance (TinyhandObject attribute required) to reuse.</param>
-    /// <param name="byteSequence">The sequence to deserialize from.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>The deserialized value.</returns>
-    /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? DeserializeWith<T>(T reuse, in ReadOnlySequence<byte> byteSequence, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        var reader = new TinyhandReader(byteSequence)
-        {
-            CancellationToken = cancellationToken,
-        };
-
-        return DeserializeWith<T>(reuse, ref reader, options);
-    }
-
-    /// <summary>
-    /// Deserializes a value of a given type from a sequence of bytes.
-    /// </summary>
-    /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="buffer">The buffer to deserialize from.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
@@ -408,7 +369,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var reader = new TinyhandReader(buffer)
+        var reader = new TinyhandReader(buffer.Span)
         {
             CancellationToken = cancellationToken,
         };
@@ -452,7 +413,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeWith<T>(T reuse, ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        var reader = new TinyhandReader(buffer)
+        var reader = new TinyhandReader(buffer.Span)
         {
             CancellationToken = cancellationToken,
         };
@@ -503,7 +464,7 @@ public static partial class TinyhandSerializer
     public static void DeserializeB<T>(byte[] buffer, ref T value)
         where T : ITinyhandObject<T>
     {
-        var reader = new TinyhandReaderB(buffer);
+        var reader = new TinyhandReader(buffer);
 
         try
         {
@@ -547,7 +508,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer, out int bytesRead, TinyhandSerializerOptions? options, CancellationToken cancellationToken = default)
     {
-        var reader = new TinyhandReader(buffer)
+        var reader = new TinyhandReader(buffer.Span)
         {
             CancellationToken = cancellationToken,
         };
@@ -596,7 +557,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeWith<T>(T reuse, ReadOnlyMemory<byte> buffer, TinyhandSerializerOptions? options, out int bytesRead, CancellationToken cancellationToken = default)
     {
-        var reader = new TinyhandReader(buffer)
+        var reader = new TinyhandReader(buffer.Span)
         {
             CancellationToken = cancellationToken,
         };
@@ -805,7 +766,7 @@ public static partial class TinyhandSerializer
             // Try to find LZ4BlockArray
             if (reader.NextMessagePackType == MessagePackType.Array)
             {
-                var peekReader = reader.CreatePeekReader();
+                var peekReader = reader.Fork();
                 var arrayLength = peekReader.ReadArrayHeader();
                 if (arrayLength != 0 && peekReader.NextMessagePackType == MessagePackType.Extension)
                 {
@@ -829,10 +790,6 @@ public static partial class TinyhandSerializer
                             {
                                 var uncompressedLength = uncompressedLengths[i];
                                 var lz4Block = reader.ReadBytes();
-                                if (lz4Block == null)
-                                {
-                                    continue;
-                                }
 
                                 var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
                                 var actualUncompressedLength = LZ4Operation(lz4Block.Value, uncompressedSpan, LZ4Codec.Decode);

@@ -26,6 +26,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="IO\Obsolete\**" />
+    <EmbeddedResource Remove="IO\Obsolete\**" />
+    <None Remove="IO\Obsolete\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\TinyhandGenerator\bin\$(Configuration)\netstandard2.0\TinyhandGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
@@ -62,7 +68,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ValueTupleFormatter.cs</LastGenOutput>
     </None>
-    <None Update="IO\TinyhandReaderB.Integer.tt">
+    <None Update="IO\TinyhandReader.Integer.tt">
       <LastGenOutput>TinyhandReaderB.Integer.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
@@ -101,11 +107,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>TinyhandReader.Integer.tt</DependentUpon>
-    </Compile>
-    <Compile Update="IO\TinyhandReaderB.Integer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TinyhandReaderB.Integer.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

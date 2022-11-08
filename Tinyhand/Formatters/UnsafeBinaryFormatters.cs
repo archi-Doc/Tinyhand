@@ -41,16 +41,15 @@ public sealed class NativeGuidFormatter : ITinyhandFormatter<Guid>
             throw new InvalidOperationException("NativeGuidFormatter only allows on little endian env.");
         }
 
-        var seq = reader.ReadBytes();
-        ReadOnlySequence<byte> valueSequence = seq.HasValue ? seq.Value : default;
-        if (valueSequence.Length != sizeof(Guid))
+        var span = reader.ReadBytes();
+        if (span.Length != sizeof(Guid))
         {
             throw new TinyhandException("Invalid Guid Size.");
         }
 
         Guid result;
         var resultSpan = new Span<byte>(&result, sizeof(Guid));
-        valueSequence.CopyTo(resultSpan);
+        span.CopyTo(resultSpan);
         return result;
     }
 
@@ -94,16 +93,15 @@ public sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
             throw new InvalidOperationException("NativeDecimalFormatter only allows on little endian env.");
         }
 
-        var seq = reader.ReadBytes();
-        ReadOnlySequence<byte> valueSequence = seq.HasValue ? seq.Value : default;
-        if (valueSequence.Length != sizeof(decimal))
+        var span = reader.ReadBytes();
+        if (span.Length != sizeof(decimal))
         {
             throw new TinyhandException("Invalid decimal Size.");
         }
 
         decimal result;
         var resultSpan = new Span<byte>(&result, sizeof(decimal));
-        valueSequence.CopyTo(resultSpan);
+        span.CopyTo(resultSpan);
         return result;
     }
 

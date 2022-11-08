@@ -266,7 +266,7 @@ public static class TinyhandTreeConverter
                 }
                 else
                 {
-                    var data = reader.ReadRaw((long)extHeader.Length);
+                    var data = reader.ReadRaw((int)extHeader.Length);
                     st = "[" + extHeader.TypeCode + ",\"" + Convert.ToBase64String(data.ToArray()) + "\"]";
                 }
 

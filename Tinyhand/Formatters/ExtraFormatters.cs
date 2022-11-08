@@ -44,15 +44,8 @@ public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
 
     public IPAddress? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        var seq = reader.ReadBytes();
-        if (seq.HasValue)
-        {
-            return new IPAddress(seq.Value.ToArray());
-        }
-        else
-        {
-            return null;
-        }
+        var span = reader.ReadBytes();
+        return new IPAddress(span);
     }
 
     public IPAddress Reconstruct(TinyhandSerializerOptions options)
@@ -95,15 +88,8 @@ public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
 
     public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        var seq = reader.ReadBytes();
-        if (seq.HasValue)
-        {
-            return new IPEndPoint(new IPAddress(seq.Value.ToArray()), reader.ReadInt32());
-        }
-        else
-        {
-            return null;
-        }
+        var span = reader.ReadBytes();
+        return new IPEndPoint(new IPAddress(span), reader.ReadInt32());
     }
 
     public IPEndPoint Reconstruct(TinyhandSerializerOptions options)
