@@ -9,7 +9,7 @@ using Arc.IO;
 
 namespace Tinyhand.IO
 {
-    public ref partial struct TinyhandReader
+    public ref partial struct TinyhandReaderB
     {
         /// <summary>
         /// Reads an <see cref="byte"/> value from:
@@ -21,33 +21,33 @@ namespace Tinyhand.IO
         /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
         public byte ReadUInt8()
         {
-            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+            ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
 
             switch (code)
             {
                 case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
                     return checked((byte)byteResult);
                 case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteResult));
                     return checked((byte)sbyteResult);
                 case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortResult));
                     return checked((byte)ushortResult);
                 case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortResult));
                     return checked((byte)shortResult);
                 case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintResult));
                     return checked((byte)uintResult);
                 case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intResult));
                     return checked((byte)intResult);
                 case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongResult));
                     return checked((byte)ulongResult);
                 case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longResult));
                     return checked((byte)longResult);
                 default:
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -74,33 +74,33 @@ namespace Tinyhand.IO
         /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
         public sbyte ReadInt8()
         {
-            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+            ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
 
             switch (code)
             {
                 case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
                     return checked((sbyte)byteResult);
                 case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteResult));
                     return checked((sbyte)sbyteResult);
                 case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortResult));
                     return checked((sbyte)ushortResult);
                 case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortResult));
                     return checked((sbyte)shortResult);
                 case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintResult));
                     return checked((sbyte)uintResult);
                 case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intResult));
                     return checked((sbyte)intResult);
                 case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongResult));
                     return checked((sbyte)ulongResult);
                 case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longResult));
                     return checked((sbyte)longResult);
                 default:
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -127,33 +127,33 @@ namespace Tinyhand.IO
         /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
         public ushort ReadUInt16()
         {
-            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+            ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
 
             switch (code)
             {
                 case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
                     return checked((ushort)byteResult);
                 case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteResult));
                     return checked((ushort)sbyteResult);
                 case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortResult));
                     return checked((ushort)ushortResult);
                 case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortResult));
                     return checked((ushort)shortResult);
                 case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintResult));
                     return checked((ushort)uintResult);
                 case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intResult));
                     return checked((ushort)intResult);
                 case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongResult));
                     return checked((ushort)ulongResult);
                 case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longResult));
                     return checked((ushort)longResult);
                 default:
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -180,33 +180,33 @@ namespace Tinyhand.IO
         /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
         public short ReadInt16()
         {
-            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+            ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
 
             switch (code)
             {
                 case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
                     return checked((short)byteResult);
                 case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteResult));
                     return checked((short)sbyteResult);
                 case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortResult));
                     return checked((short)ushortResult);
                 case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortResult));
                     return checked((short)shortResult);
                 case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintResult));
                     return checked((short)uintResult);
                 case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intResult));
                     return checked((short)intResult);
                 case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongResult));
                     return checked((short)ulongResult);
                 case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longResult));
                     return checked((short)longResult);
                 default:
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -233,33 +233,33 @@ namespace Tinyhand.IO
         /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
         public uint ReadUInt32()
         {
-            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+            ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
 
             switch (code)
             {
                 case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
                     return checked((uint)byteResult);
                 case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteResult));
                     return checked((uint)sbyteResult);
                 case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortResult));
                     return checked((uint)ushortResult);
                 case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortResult));
                     return checked((uint)shortResult);
                 case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintResult));
                     return checked((uint)uintResult);
                 case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intResult));
                     return checked((uint)intResult);
                 case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongResult));
                     return checked((uint)ulongResult);
                 case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longResult));
                     return checked((uint)longResult);
                 default:
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -286,33 +286,33 @@ namespace Tinyhand.IO
         /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
         public int ReadInt32()
         {
-            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+            ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
 
             switch (code)
             {
                 case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
                     return checked((int)byteResult);
                 case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteResult));
                     return checked((int)sbyteResult);
                 case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortResult));
                     return checked((int)ushortResult);
                 case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortResult));
                     return checked((int)shortResult);
                 case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintResult));
                     return checked((int)uintResult);
                 case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intResult));
                     return checked((int)intResult);
                 case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongResult));
                     return checked((int)ulongResult);
                 case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longResult));
                     return checked((int)longResult);
                 default:
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -339,33 +339,33 @@ namespace Tinyhand.IO
         /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
         public ulong ReadUInt64()
         {
-            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+            ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
 
             switch (code)
             {
                 case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
                     return checked((ulong)byteResult);
                 case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteResult));
                     return checked((ulong)sbyteResult);
                 case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortResult));
                     return checked((ulong)ushortResult);
                 case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortResult));
                     return checked((ulong)shortResult);
                 case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintResult));
                     return checked((ulong)uintResult);
                 case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intResult));
                     return checked((ulong)intResult);
                 case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongResult));
                     return checked((ulong)ulongResult);
                 case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longResult));
                     return checked((ulong)longResult);
                 default:
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -392,33 +392,33 @@ namespace Tinyhand.IO
         /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
         public long ReadInt64()
         {
-            ThrowInsufficientBufferUnless(this.reader.TryRead(out byte code));
+            ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
 
             switch (code)
             {
                 case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out byte byteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
                     return checked((long)byteResult);
                 case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.reader.TryRead(out sbyte sbyteResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteResult));
                     return checked((long)sbyteResult);
                 case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ushort ushortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortResult));
                     return checked((long)ushortResult);
                 case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out short shortResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortResult));
                     return checked((long)shortResult);
                 case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out uint uintResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintResult));
                     return checked((long)uintResult);
                 case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out int intResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intResult));
                     return checked((long)intResult);
                 case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out ulong ulongResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongResult));
                     return checked((long)ulongResult);
                 case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.reader.TryReadBigEndian(out long longResult));
+                    ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longResult));
                     return checked((long)longResult);
                 default:
                     if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)

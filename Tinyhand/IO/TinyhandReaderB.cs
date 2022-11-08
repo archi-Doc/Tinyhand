@@ -77,8 +77,8 @@ public ref partial struct TinyhandReaderB
     {
         get
         {
-            ThrowInsufficientBufferUnless(this.TryPeekCode(out byte code));
-            return code;
+            ThrowInsufficientBufferUnless(this.remaining > 0);
+            return this.b;
         }
     }
 
@@ -106,26 +106,12 @@ public ref partial struct TinyhandReaderB
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryPeekCode(out byte code)
-    {
-        if (this.remaining > 0)
-        {
-            code = this.b;
-            return true;
-        }
-        else
-        {
-            code = 0;
-            return false;
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryReadCode(out byte code)
     {
         if (this.remaining > 0)
         {
             code = this.b;
+            this.remaining--;
             this.b = ref Unsafe.Add(ref this.b, 1);
             return true;
         }
@@ -344,7 +330,7 @@ public ref partial struct TinyhandReaderB
         switch (code)
         {
             case MessagePackCode.Array16:
-                if (!this.TryReadRaw(out short shortValue))
+                if (!this.TryReadUnmanaged(out short shortValue))
                 {
                     return false;
                 }
@@ -352,7 +338,7 @@ public ref partial struct TinyhandReaderB
                 count = unchecked((ushort)shortValue);
                 break;
             case MessagePackCode.Array32:
-                if (!this.TryReadRaw(out int intValue))
+                if (!this.TryReadUnmanaged(out int intValue))
                 {
                     return false;
                 }
@@ -441,7 +427,7 @@ public ref partial struct TinyhandReaderB
         switch (code)
         {
             case MessagePackCode.Map16:
-                if (!this.TryReadRaw(out short shortValue))
+                if (!this.TryReadUnmanaged(out short shortValue))
                 {
                     return false;
                 }
@@ -449,7 +435,7 @@ public ref partial struct TinyhandReaderB
                 count = unchecked((ushort)shortValue);
                 break;
             case MessagePackCode.Map32:
-                if (!this.TryReadRaw(out int intValue))
+                if (!this.TryReadUnmanaged(out int intValue))
                 {
                     return false;
                 }
@@ -496,7 +482,7 @@ public ref partial struct TinyhandReaderB
         switch (code)
         {
             case MessagePackCode.Map16:
-                if (!this.TryReadRaw(out shortValue))
+                if (!this.TryReadUnmanaged(out shortValue))
                 {
                     return false;
                 }
@@ -505,7 +491,7 @@ public ref partial struct TinyhandReaderB
                 break;
 
             case MessagePackCode.Map32:
-                if (!this.TryReadRaw(out intValue))
+                if (!this.TryReadUnmanaged(out intValue))
                 {
                     return false;
                 }
@@ -514,7 +500,7 @@ public ref partial struct TinyhandReaderB
                 break;
 
             case MessagePackCode.Array16:
-                if (!this.TryReadRaw(out shortValue))
+                if (!this.TryReadUnmanaged(out shortValue))
                 {
                     return false;
                 }
@@ -528,7 +514,7 @@ public ref partial struct TinyhandReaderB
                 break;
 
             case MessagePackCode.Array32:
-                if (!this.TryReadRaw(out intValue))
+                if (!this.TryReadUnmanaged(out intValue))
                 {
                     return false;
                 }
@@ -608,34 +594,34 @@ public ref partial struct TinyhandReaderB
         switch (code)
         {
             case MessagePackCode.Float32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out float floatValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out float floatValue));
                 return floatValue;
             case MessagePackCode.Float64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out double doubleValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out double doubleValue));
                 return (float)doubleValue;
             case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out sbyte sbyteValue));
                 return sbyteValue;
             case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortValue));
                 return shortValue;
             case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intValue));
                 return intValue;
             case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longValue));
                 return longValue;
             case MessagePackCode.UInt8:
                 ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteValue));
                 return byteValue;
             case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ushort ushortValue));
                 return ushortValue;
             case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out uint uintValue));
                 return uintValue;
             case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out ulong ulongValue));
                 return ulongValue;
             default:
                 if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -674,34 +660,34 @@ public ref partial struct TinyhandReaderB
         switch (code)
         {
             case MessagePackCode.Float64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out double doubleValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out double doubleValue));
                 return doubleValue;
             case MessagePackCode.Float32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out float floatValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out float floatValue));
                 return floatValue;
             case MessagePackCode.Int8:
                 ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteValue));
                 return unchecked((sbyte)byteValue);
             case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out short shortValue));
                 return shortValue;
             case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intValue));
                 return intValue;
             case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longValue));
                 return longValue;
             case MessagePackCode.UInt8:
                 ThrowInsufficientBufferUnless(this.TryReadCode(out byteValue));
                 return byteValue;
             case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out shortValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out shortValue));
                 return unchecked((ushort)shortValue);
             case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out intValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out intValue));
                 return unchecked((uint)intValue);
             case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out longValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out longValue));
                 return unchecked((ulong)longValue);
             default:
                 if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
@@ -785,18 +771,18 @@ public ref partial struct TinyhandReaderB
         switch (header.Length)
         {
             case 4:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out int intValue));
                 return DateTimeConstants.UnixEpoch.AddSeconds(unchecked((uint)intValue));
             case 8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out long longValue));
                 ulong ulongValue = unchecked((ulong)longValue);
                 long nanoseconds = (long)(ulongValue >> 34);
                 ulong seconds = ulongValue & 0x00000003ffffffffL;
                 return DateTimeConstants.UnixEpoch.AddSeconds(seconds).AddTicks(nanoseconds / DateTimeConstants.NanosecondsPerTick);
             case 12:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out intValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out intValue));
                 nanoseconds = unchecked((uint)intValue);
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out longValue));
+                ThrowInsufficientBufferUnless(this.TryReadUnmanaged(out longValue));
                 return DateTimeConstants.UnixEpoch.AddSeconds(longValue).AddTicks(nanoseconds / DateTimeConstants.NanosecondsPerTick);
             default:
                 throw new TinyhandException($"Length of extension was {header.Length}. Either 4 or 8 were expected.");
@@ -968,7 +954,7 @@ public ref partial struct TinyhandReaderB
                 length = byteLength;
                 break;
             case MessagePackCode.Ext16:
-                if (!this.TryReadRaw(out short shortLength))
+                if (!this.TryReadUnmanaged(out short shortLength))
                 {
                     return false;
                 }
@@ -976,7 +962,7 @@ public ref partial struct TinyhandReaderB
                 length = unchecked((ushort)shortLength);
                 break;
             case MessagePackCode.Ext32:
-                if (!this.TryReadRaw(out int intLength))
+                if (!this.TryReadUnmanaged(out int intLength))
                 {
                     return false;
                 }
@@ -1047,443 +1033,6 @@ public ref partial struct TinyhandReaderB
     }
 
     /// <summary>
-    /// Reads an <see cref="byte"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public byte ReadUInt8()
-    {
-        ThrowInsufficientBufferUnless(this.TryReadCode(out byte code));
-
-        switch (code)
-        {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
-                return checked((byte)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteResult));
-                return checked((byte)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortResult));
-                return checked((byte)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortResult));
-                return checked((byte)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintResult));
-                return checked((byte)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intResult));
-                return checked((byte)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongResult));
-                return checked((byte)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longResult));
-                return checked((byte)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((byte)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (byte)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-    }
-
-    /// <summary>
-    /// Reads an <see cref="sbyte"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public sbyte ReadInt8()
-    {
-        ThrowInsufficientBufferUnless(this.TryReadRaw(out byte code));
-
-        switch (code)
-        {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
-                return checked((sbyte)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteResult));
-                return checked((sbyte)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortResult));
-                return checked((sbyte)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortResult));
-                return checked((sbyte)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintResult));
-                return checked((sbyte)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intResult));
-                return checked((sbyte)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongResult));
-                return checked((sbyte)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longResult));
-                return checked((sbyte)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((sbyte)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (sbyte)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-    }
-
-    /// <summary>
-    /// Reads an <see cref="ushort"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public ushort ReadUInt16()
-    {
-        ThrowInsufficientBufferUnless(this.TryReadRaw(out byte code));
-
-        switch (code)
-        {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadCode(out byte byteResult));
-                return checked((ushort)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteResult));
-                return checked((ushort)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortResult));
-                return checked((ushort)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortResult));
-                return checked((ushort)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintResult));
-                return checked((ushort)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intResult));
-                return checked((ushort)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongResult));
-                return checked((ushort)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longResult));
-                return checked((ushort)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((ushort)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (ushort)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-    }
-
-    /// <summary>
-    /// Reads an <see cref="short"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public short ReadInt16()
-    {
-        ThrowInsufficientBufferUnless(this.TryReadRaw(out byte code));
-
-        switch (code)
-        {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out byte byteResult));
-                return checked((short)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteResult));
-                return checked((short)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortResult));
-                return checked((short)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortResult));
-                return checked((short)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintResult));
-                return checked((short)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intResult));
-                return checked((short)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongResult));
-                return checked((short)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longResult));
-                return checked((short)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((short)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (short)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-    }
-
-    /// <summary>
-    /// Reads an <see cref="uint"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public uint ReadUInt32()
-    {
-        ThrowInsufficientBufferUnless(this.TryReadRaw(out byte code));
-
-        switch (code)
-        {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out byte byteResult));
-                return checked((uint)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteResult));
-                return checked((uint)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortResult));
-                return checked((uint)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortResult));
-                return checked((uint)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintResult));
-                return checked((uint)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intResult));
-                return checked((uint)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongResult));
-                return checked((uint)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longResult));
-                return checked((uint)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((uint)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (uint)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-    }
-
-    /// <summary>
-    /// Reads an <see cref="int"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public int ReadInt32()
-    {
-        ThrowInsufficientBufferUnless(this.TryReadRaw(out byte code));
-
-        switch (code)
-        {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out byte byteResult));
-                return checked((int)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteResult));
-                return checked((int)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortResult));
-                return checked((int)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortResult));
-                return checked((int)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintResult));
-                return checked((int)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intResult));
-                return checked((int)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongResult));
-                return checked((int)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longResult));
-                return checked((int)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((int)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (int)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-    }
-
-    public int ReadInt32B()
-    {
-        this.TryReadRaw(out byte code);
-
-        if (code != MessagePackCode.Int32)
-        {
-            throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-
-        this.TryReadRaw(out int intResult);
-        return checked((int)intResult);
-    }
-
-    /// <summary>
-    /// Reads an <see cref="ulong"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public ulong ReadUInt64()
-    {
-        ThrowInsufficientBufferUnless(this.TryReadRaw(out byte code));
-
-        switch (code)
-        {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out byte byteResult));
-                return checked((ulong)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteResult));
-                return checked((ulong)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortResult));
-                return checked((ulong)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortResult));
-                return checked((ulong)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintResult));
-                return checked((ulong)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intResult));
-                return checked((ulong)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongResult));
-                return checked((ulong)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longResult));
-                return checked((ulong)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((ulong)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (ulong)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-    }
-
-    /// <summary>
-    /// Reads an <see cref="long"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public long ReadInt64()
-    {
-        ThrowInsufficientBufferUnless(this.TryReadRaw(out byte code));
-
-        switch (code)
-        {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out byte byteResult));
-                return checked((long)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out sbyte sbyteResult));
-                return checked((long)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ushort ushortResult));
-                return checked((long)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out short shortResult));
-                return checked((long)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out uint uintResult));
-                return checked((long)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out int intResult));
-                return checked((long)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out ulong ulongResult));
-                return checked((long)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadRaw(out long longResult));
-                return checked((long)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((long)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (long)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
-        }
-    }
-
-    /// <summary>
     /// Throws an exception indicating that there aren't enough bytes remaining in the buffer to store
     /// the promised data.
     /// </summary>
@@ -1517,7 +1066,7 @@ public ref partial struct TinyhandReaderB
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe bool TryReadRaw<T>(out T value)
+    private unsafe bool TryReadUnmanaged<T>(out T value)
         where T : unmanaged
     {
         if (this.remaining >= sizeof(T))
@@ -1561,7 +1110,7 @@ public ref partial struct TinyhandReaderB
                 break;
             case MessagePackCode.Bin16:
             case MessagePackCode.Str16: // OldSpec compatibility
-                if (this.TryReadRaw(out short shortLength))
+                if (this.TryReadUnmanaged(out short shortLength))
                 {
                     length = unchecked((ushort)shortLength);
                     return true;
@@ -1570,7 +1119,7 @@ public ref partial struct TinyhandReaderB
                 break;
             case MessagePackCode.Bin32:
             case MessagePackCode.Str32: // OldSpec compatibility
-                if (this.TryReadRaw(out length))
+                if (this.TryReadUnmanaged(out length))
                 {
                     return true;
                 }
@@ -1642,7 +1191,7 @@ public ref partial struct TinyhandReaderB
                 }
 
             case MessagePackCode.Str16:
-                if (this.TryReadRaw(out short shortValue))
+                if (this.TryReadUnmanaged(out short shortValue))
                 {
                     length = unchecked((ushort)shortValue);
                     return true;
@@ -1654,7 +1203,7 @@ public ref partial struct TinyhandReaderB
                 }
 
             case MessagePackCode.Str32:
-                if (this.TryReadRaw(out int intValue))
+                if (this.TryReadUnmanaged(out int intValue))
                 {
                     length = intValue;
                     return true;
