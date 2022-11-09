@@ -204,7 +204,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static byte[] SerializeB<T>(T value)
+    public static byte[] SerializeB<T>(scoped in T? value)
         where T : ITinyhandObject<T>
     {
         if (initialBuffer == null)
@@ -461,7 +461,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static void DeserializeB<T>(byte[] buffer, ref T value)
+    public static void DeserializeB<T>(byte[] buffer, ref T? value)
         where T : ITinyhandObject<T>
     {
         var reader = new TinyhandReader(buffer);

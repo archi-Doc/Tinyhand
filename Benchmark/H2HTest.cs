@@ -15,10 +15,47 @@ using MemoryPack;
 using Tinyhand;
 using Tinyhand.IO;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Options;
 
 #pragma warning disable SA1401 // Fields should be private
 
 namespace Benchmark.H2HTest;
+
+public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
+    where T : ITinyhandObject<T>
+{
+    public void Serialize(ref TinyhandWriter writer, T? v, TinyhandSerializerOptions options)
+    {
+        if (v == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        T.Serialize(ref writer, ref v, options);
+    }
+
+    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+            return default;
+        }
+
+        var v = default(T);
+        T.Deserialize(ref reader, ref v, options);
+        return v;
+    }
+
+    public T Reconstruct(TinyhandSerializerOptions options)
+    {
+        return default(T)!;
+    }
+    public T? Clone(T? value, TinyhandSerializerOptions options)
+    {
+        return default(T);
+    }
+}
 
 [ProtoContract]
 [MessagePack.MessagePackObject]
@@ -267,7 +304,12 @@ public class H2HBenchmark
 
         // var c = JsonSerializer.Deserialize<ObjectH2H2>(System.Text.Encoding.UTF8.GetBytes("{ \"X\":0,\"Y\":0,\"Z\":0,\"A\":\"H2Htest\",\"B\":[0,1,2,3,4,5,6,7,8,9]}"));
 
-        this.data3 = this.SerializeProtoBuf();
+        using (var ms = new MemoryStream())
+        {
+            ProtoBuf.Serializer.Serialize(ms, this.h2h);
+            this.data3 = ms.ToArray();
+        }
+
         this.data4 = MemoryPackSerializer.Serialize(this.h2h);
         this.data5 = TinyhandSerializer.SerializeB(this.h2h);
     }
@@ -277,7 +319,7 @@ public class H2HBenchmark
     {
     }
 
-    [Benchmark]
+    /*[Benchmark]
     public byte[] SerializeProtoBuf()
     {
         using (var ms = new MemoryStream())
@@ -327,24 +369,46 @@ public class H2HBenchmark
     public ObjectH2H DeserializeMessagePack()
     {
         return MessagePack.MessagePackSerializer.Deserialize<ObjectH2H>(this.data);
-    }
+    }*/
 
-    [Benchmark]
+    // [Benchmark]
     public ObjectH2H? DeserializeMemoryPack()
     {
         return MemoryPackSerializer.Deserialize<ObjectH2H>(this.data4);
     }
 
     [Benchmark]
+    public ObjectH2H? DeserializeTinyhand0()
+    {
+        /*var reader = new TinyhandReader(this.data);
+        var formatter = TinyhandSerializerOptions.Standard.Resolver.GetFormatter<ObjectH2H>();
+        return formatter.Deserialize(ref reader, TinyhandSerializerOptions.Standard);*/
+
+        var reader = new TinyhandReader(this.data);
+        var v = new ObjectH2H();
+        v.Deserialize(ref reader, TinyhandSerializerOptions.Standard);
+        return v;
+    }
+
+    [Benchmark]
     public ObjectH2H? DeserializeTinyhand()
     {
+        /*var reader = new TinyhandReader(this.data);
+        var formatter = TinyhandSerializerOptions.Standard.Resolver.GetFormatter<ObjectH2H>();
+        return formatter.Deserialize(ref reader, TinyhandSerializerOptions.Standard);*/
+
+        /*var reader = new TinyhandReader(this.data);
+        var v = new ObjectH2H();
+        v.Deserialize(ref reader, TinyhandSerializerOptions.Standard);
+        return v;*/
+
         return Tinyhand.TinyhandSerializer.Deserialize<ObjectH2H>(this.data);
     }
 
     [Benchmark]
     public ObjectH2H? DeserializeTinyhandB()
     {
-        var value = new ObjectH2H();
+        ObjectH2H? value = default;
         Tinyhand.TinyhandSerializer.DeserializeB<ObjectH2H>(this.data5, ref value);
         return value;
     }
