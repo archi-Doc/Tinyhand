@@ -25,36 +25,20 @@ public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
     where T : ITinyhandObject<T>
 {
     public void Serialize(ref TinyhandWriter writer, T? v, TinyhandSerializerOptions options)
-    {
-        if (v == null)
-        {
-            writer.WriteNil();
-            return;
-        }
-
-        T.Serialize(ref writer, ref v, options);
-    }
+        => T.Serialize(ref writer, ref v, options);
 
     public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-
         var v = default(T);
         T.Deserialize(ref reader, ref v, options);
         return v;
     }
 
     public T Reconstruct(TinyhandSerializerOptions options)
-    {
-        return default(T)!;
-    }
+        => T.Reconstruct(options);
+
     public T? Clone(T? value, TinyhandSerializerOptions options)
-    {
-        return default(T);
-    }
+        => T.Clone(ref value, options);
 }
 
 [ProtoContract]
@@ -154,6 +138,11 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
 
     static void ITinyhandObject<ObjectH2H>.Deserialize(ref TinyhandReader reader, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
     {
+        if (reader.TryReadNil())
+        {
+            return;
+        }
+
         value ??= new();
         var numberOfData = reader.ReadArrayHeader();
         if (numberOfData-- > 0 && !reader.TryReadNil())
@@ -190,6 +179,17 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
             value.B = new int[0];
         }
         while (numberOfData-- > 0) reader.Skip();
+    }
+
+    static ObjectH2H ITinyhandObject<ObjectH2H>.Reconstruct(TinyhandSerializerOptions options)
+    {
+        var v = new ObjectH2H();
+        return v;
+    }
+
+    public static ObjectH2H? Clone(ref ObjectH2H? value, TinyhandSerializerOptions options)
+    {
+        return value;
     }
 }
 
