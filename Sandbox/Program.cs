@@ -309,14 +309,6 @@ class Program
         Console.WriteLine("Sandbox");
         Console.WriteLine();
 
-        // Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatter(new TinyhandObjectFormatter<GenericTestClass<int>>());
-        GeneratedResolver.Instance.SetFormatterGenerator(typeof(Sandbox.GenericTestClass<>.NestedClass<,>), x =>
-        {
-            var ft = typeof(Sandbox.GenericTestClass<>.NestedClass<,>).MakeGenericType(x);
-            var formatter = Activator.CreateInstance(typeof(ITinyhandObject<>).MakeGenericType(ft));
-            return ((ITinyhandFormatter)formatter!, (ITinyhandFormatterExtra)null!);
-        });
-
         var ft = typeof(Sandbox.GenericTestClass<>.NestedClass<,>).MakeGenericType(new Type[] { typeof(int), typeof(string), typeof(double), });
         var formatter = Activator.CreateInstance(typeof(TinyhandObjectFormatter<>).MakeGenericType(ft));
 

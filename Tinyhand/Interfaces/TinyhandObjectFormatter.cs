@@ -5,7 +5,7 @@ using Tinyhand.IO;
 namespace Tinyhand;
 
 public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
-    where T : ITinyhandObject<T>
+    where T : ITinyhandSerialize<T>, ITinyhandReconstruct<T>, ITinyhandClone<T>
 {
     public void Serialize(ref TinyhandWriter writer, T? v, TinyhandSerializerOptions options)
         => T.Serialize(ref writer, ref v, options);

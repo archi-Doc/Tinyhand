@@ -113,8 +113,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public int FormatterNumber { get; private set; } = -1;
 
-    public int FormatterExtraNumber { get; private set; } = -1;
-
     public TinyhandObject? ClosedGenericHint { get; private set; }
 
     public string? SetterDelegateIdentifier { get; private set; }
@@ -473,13 +471,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     private void ConfigureObject()
     {
         // Method condition (Serialize/Deserialize)
-        this.MethodCondition_Serialize = MethodCondition.MemberMethod;
-        this.MethodCondition_Deserialize = MethodCondition.MemberMethod;
-        if (this.Interfaces.Any(x => x.FullName == "Tinyhand.ITinyhandSerialize"))
+        this.MethodCondition_Serialize = MethodCondition.StaticMethod;
+        this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
+        var serializeInterface = $"Tinyhand.ITinyhandSerialize<{this.FullName}>";
+        if (this.Interfaces.Any(x => x.FullName == serializeInterface))
         {// ITinyhandSerialize implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
 
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerialize.Serialize"))
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{serializeInterface}.Serialize"))
             {
                 this.MethodCondition_Serialize = MethodCondition.ExplicitlyDeclared;
             }
@@ -488,7 +487,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.MethodCondition_Serialize = MethodCondition.Declared;
             }
 
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerialize.Deserialize"))
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{serializeInterface}.Deserialize"))
             {
                 this.MethodCondition_Deserialize = MethodCondition.ExplicitlyDeclared;
             }
@@ -497,24 +496,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.MethodCondition_Deserialize = MethodCondition.Declared;
             }
         }
-        else if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
-        {
-            this.MethodCondition_Serialize = MethodCondition.StaticMethod;
-            this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
-        }
-        else if (this.Generics_Kind == VisceralGenericsKind.OpenGeneric)
-        {
-            this.MethodCondition_Serialize = MethodCondition.MemberMethod;
-            this.MethodCondition_Deserialize = MethodCondition.MemberMethod;
-        }
 
         // Method condition (Reconstruct)
-        this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
-        if (this.Interfaces.Any(x => x.FullName == "Tinyhand.ITinyhandReconstruct"))
+        this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
+        if (this.Interfaces.Any(x => x.FullName == $"Tinyhand.ITinyhandReconstruct<{this.FullName}>"))
         {// ITinyhandReconstruct implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandReconstruct;
 
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandReconstruct.Reconstruct"))
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"Tinyhand.ITinyhandReconstruct<{this.FullName}>.Reconstruct"))
             {
                 this.MethodCondition_Reconstruct = MethodCondition.ExplicitlyDeclared;
             }
@@ -522,14 +511,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             {
                 this.MethodCondition_Reconstruct = MethodCondition.Declared;
             }
-        }
-        else if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
-        {
-            this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
-        }
-        else if (this.Generics_Kind == VisceralGenericsKind.OpenGeneric)
-        {
-            this.MethodCondition_Reconstruct = MethodCondition.MemberMethod;
         }
 
         // Method condition (Default)
@@ -560,12 +541,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
         // Method condition (Clone)
         var cloneInterface = $"Tinyhand.ITinyhandClone<{this.FullName}>";
-        this.MethodCondition_Clone = MethodCondition.MemberMethod;
+        this.MethodCondition_Clone = MethodCondition.StaticMethod;
         if (this.Interfaces.Any(x => x.FullName == cloneInterface))
         {// ITinyhandClone implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandClone;
 
-            cloneInterface += ".DeepClone";
+            cloneInterface += ".Clone";
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == cloneInterface))
             {
                 this.MethodCondition_Clone = MethodCondition.ExplicitlyDeclared;
@@ -574,14 +555,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             {
                 this.MethodCondition_Clone = MethodCondition.Declared;
             }
-        }
-        else if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric)
-        {
-            this.MethodCondition_Clone = MethodCondition.StaticMethod;
-        }
-        else if (this.Generics_Kind == VisceralGenericsKind.OpenGeneric)
-        {
-            this.MethodCondition_Clone = MethodCondition.MemberMethod;
         }
 
         // ITinyhandSerializationCallback
@@ -1403,10 +1376,14 @@ ModuleInitializerClass_Added:
             {
                 if (x.Generics_Kind != VisceralGenericsKind.OpenGeneric)
                 {// Formatter
-                    var name = string.Format(classFormat, x.FormatterNumber);
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {name}());");
-                    name = string.Format(classFormat, x.FormatterExtraNumber);
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterExtra<{x.FullName}>(new {name}());");
+                    if (x.Union == null)
+                    {
+                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new TinyhandObjectFormatter<{x.FullName}>());");
+                    }
+                    else
+                    {
+                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {string.Format(classFormat, x.FormatterNumber)}());");
+                    }
                 }
                 else
                 {// Formatter generator
@@ -1414,15 +1391,24 @@ ModuleInitializerClass_Added:
                     generic.count = x.Generics_Arguments.Length;
                     var genericBrace = generic.count == 0 ? string.Empty : generic.count == 1 ? "<>" : $"<{new string(',', generic.count - 1)}>";
                     var getGenericType = generic.count == 0 ? ".GetGenericTypeDefinition()" : string.Empty;
+
                     ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(typeof({generic.name}), x =>");
                     ssb.AppendLine("{");
                     ssb.IncrementIndent();
-                    // ssb.AppendLine($"if (x.Length != {x.CountGenericsArguments()}) return (null!, null!);");
-                    var name = string.Format(classFormat, x.FormatterNumber);
-                    ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof({name}{genericBrace}){getGenericType}.MakeGenericType(x));");
-                    name = string.Format(classFormat, x.FormatterExtraNumber);
-                    ssb.AppendLine($"var formatterExtra = Activator.CreateInstance(typeof({name}{genericBrace}){getGenericType}.MakeGenericType(x));");
-                    ssb.AppendLine($"return ((ITinyhandFormatter)formatter!, (ITinyhandFormatterExtra)formatterExtra!);");
+
+                    if (x.Union == null)
+                    {
+                        ssb.AppendLine($"var ft = typeof({generic.name}).MakeGenericType(x);");
+                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(TinyhandObjectFormatter<>).MakeGenericType(ft));");
+                    }
+                    else
+                    {
+                        var name = string.Format(classFormat, x.FormatterNumber);
+                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof({name}{genericBrace}){getGenericType}.MakeGenericType(x));");
+                    }
+
+                    ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
+
                     ssb.DecrementIndent();
                     ssb.AppendLine("});");
                 }
@@ -1433,6 +1419,11 @@ ModuleInitializerClass_Added:
 
         foreach (var x in list2)
         {
+            if (x.Union == null)
+            {
+                continue;
+            }
+
             var genericArguments = string.Empty;
             if (x.Generics_Kind == VisceralGenericsKind.OpenGeneric && x.Generics_Arguments.Length != 0)
             {
@@ -1458,57 +1449,29 @@ ModuleInitializerClass_Added:
                 using (var s = ssb.ScopeBrace($"public void Serialize(ref TinyhandWriter writer, {x.FullName + x.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"))
                 using (var value = ssb.ScopeObject("v"))
                 {
-                    if (x.Union != null)
-                    {// Union
-                        x.Union.GenerateFormatter_Serialize2(ssb, info);
-                    }
-                    else
-                    {
-                        x.GenerateFormatter_Serialize(ssb, info);
-                    }
+                    x.Union.GenerateFormatter_Serialize2(ssb, info); // x.GenerateFormatter_Serialize(ssb, info);
                 }
 
                 // Deserialize
                 using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
                 {
-                    if (x.Union != null)
-                    {// Union
-                        x.Union.GenerateFormatter_Deserialize(ssb, info, null);
-                    }
-                    else
-                    {
-                        x.GenerateFormatter_Deserialize(ssb, info);
-                    }
+                    x.Union.GenerateFormatter_Deserialize(ssb, info, null); // x.GenerateFormatter_Deserialize(ssb, info);
                 }
 
                 // Reconstruct
                 using (var r = ssb.ScopeBrace($"public {x.FullName} Reconstruct(TinyhandSerializerOptions options)"))
                 {
-                    if (x.Union != null)
-                    {// Union
-                        ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");");
-                    }
-                    else
-                    {
-                        x.GenerateFormatter_Reconstruct(ssb, info);
-                    }
+                    ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");"); // x.GenerateFormatter_Reconstruct(ssb, info);
                 }
 
                 // Clone
                 using (var r = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Clone({x.FullName + x.QuestionMarkIfReferenceType} value, TinyhandSerializerOptions options)"))
                 {
-                    if (x.Union != null)
-                    {// Union
-                        ssb.AppendLine("throw new TinyhandException(\"Clone() is not supported in abstract class or interface.\");");
-                    }
-                    else
-                    {
-                        x.GenerateFormatter_Clone(ssb, info);
-                    }
+                    ssb.AppendLine("throw new TinyhandException(\"Clone() is not supported in abstract class or interface.\");"); // x.GenerateFormatter_Clone(ssb, info);
                 }
             }
 
-            name = string.Format(classFormat, x.FormatterExtraNumber) + genericArguments;
+            /*name = string.Format(classFormat, x.FormatterExtraNumber) + genericArguments;
             using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatterExtra<{x.FullName}>"))
             {
                 // Deserialize
@@ -1529,7 +1492,7 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine("return reuse;");
                     }
                 }
-            }
+            }*/
         }
     }
 
@@ -1544,7 +1507,7 @@ ModuleInitializerClass_Added:
             if (this.Union != null)
             {
                 this.FormatterNumber = info.FormatterCount++;
-                this.FormatterExtraNumber = info.FormatterCount++;
+                // this.FormatterExtraNumber = info.FormatterCount++;
             }
 
             return;
@@ -1553,24 +1516,24 @@ ModuleInitializerClass_Added:
         var interfaceString = string.Empty;
         if (this.ObjectAttribute != null)
         {
-            if (this.MethodCondition_Serialize == MethodCondition.MemberMethod)
+            if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
             {
-                interfaceString = " : ITinyhandSerialize";
+                interfaceString = $" : ITinyhandSerialize<{this.RegionalName}>";
             }
 
-            if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
+            if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
             {
                 if (interfaceString == string.Empty)
                 {
-                    interfaceString = " : ITinyhandReconstruct";
+                    interfaceString = $" : ITinyhandReconstruct<{this.RegionalName}>";
                 }
                 else
                 {
-                    interfaceString += ", ITinyhandReconstruct";
+                    interfaceString += $", ITinyhandReconstruct<{this.RegionalName}>";
                 }
             }
 
-            if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
+            if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
             {
                 if (interfaceString == string.Empty)
                 {
@@ -1580,15 +1543,6 @@ ModuleInitializerClass_Added:
                 {
                     interfaceString += $", ITinyhandClone<{this.RegionalName}>";
                 }
-            }
-
-            if (interfaceString == string.Empty)
-            {
-                interfaceString = $" : ITinyhandObject<{this.RegionalName}>";
-            }
-            else
-            {
-                interfaceString += $", ITinyhandObject<{this.RegionalName}>";
             }
         }
 
@@ -1921,7 +1875,7 @@ ModuleInitializerClass_Added:
     internal void GenerateSerialize_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {// static abstract
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static void ITinyhandObject<{this.RegionalName}>.Serialize(ref TinyhandWriter writer, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static void ITinyhandSerialize<{this.RegionalName}>.Serialize(ref TinyhandWriter writer, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -2200,7 +2154,7 @@ ModuleInitializerClass_Added:
     internal void GenerateDeserialize_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandObject<{this.RegionalName}>.Deserialize(ref TinyhandReader reader, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandSerialize<{this.RegionalName}>.Deserialize(ref TinyhandReader reader, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -2274,7 +2228,7 @@ ModuleInitializerClass_Added:
     internal void GenerateReconstruct_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName} ITinyhandObject<{this.RegionalName}>.Reconstruct(TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName} ITinyhandReconstruct<{this.RegionalName}>.Reconstruct(TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -2345,7 +2299,7 @@ ModuleInitializerClass_Added:
     internal void GenerateClone_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName}{this.QuestionMarkIfReferenceType} ITinyhandObject<{this.RegionalName}>.Clone(scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName}{this.QuestionMarkIfReferenceType} ITinyhandClone<{this.RegionalName}>.Clone(scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var sourceObject = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -2551,23 +2505,36 @@ ModuleInitializerClass_Added:
     internal void GenerateMethod(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         this.FormatterNumber = info.FormatterCount++;
-        this.FormatterExtraNumber = info.FormatterCount++;
-
-        // tempcode
+        // this.FormatterExtraNumber = info.FormatterCount++;
 
         // Serialize/Deserialize/Reconstruct/Clone
-        this.GenerateSerialize_Method(ssb, info);
+        /*this.GenerateSerialize_Method(ssb, info);
         this.GenerateDeserialize_Method(ssb, info);
         this.GenerateReconstruct_Method(ssb, info);
-        this.GenerateClone_Method(ssb, info);
+        this.GenerateClone_Method(ssb, info);*/
 
         // Serialize/Deserialize/Reconstruct/Clone
         if (this.Generics_Kind != VisceralGenericsKind.ClosedGeneric)
         {
-            this.GenerateSerialize_Method2(ssb, info);
-            this.GenerateDeserialize_Method2(ssb, info);
-            this.GenerateReconstruct_Method2(ssb, info);
-            this.GenerateClone_Method2(ssb, info);
+            if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
+            {
+                this.GenerateSerialize_Method2(ssb, info);
+            }
+
+            if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
+            {
+                this.GenerateDeserialize_Method2(ssb, info);
+            }
+
+            if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
+            {
+                this.GenerateReconstruct_Method2(ssb, info);
+            }
+
+            if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
+            {
+                this.GenerateClone_Method2(ssb, info);
+            }
         }
 
         this.GenerateAddProperty(ssb, info);

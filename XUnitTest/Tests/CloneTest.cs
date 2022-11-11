@@ -26,7 +26,7 @@ public partial class CloneTestClass2 : ITinyhandClone<CloneTestClass2>
 
     public int Y { get; set; } = 10;
 
-    public CloneTestClass2 DeepClone(TinyhandSerializerOptions options)
+    public static CloneTestClass2? Clone(ref CloneTestClass2? value, TinyhandSerializerOptions options)
     {
         return new() { X = 2, };
     }
@@ -39,7 +39,7 @@ public partial class CloneTestClass3 : ITinyhandClone<CloneTestClass3>
 
     public int Y { get; set; } = 10;
 
-    CloneTestClass3 ITinyhandClone<CloneTestClass3>.DeepClone(TinyhandSerializerOptions options)
+    public static CloneTestClass3? Clone(ref CloneTestClass3? value, TinyhandSerializerOptions options)
     {
         return new() { X = 3, };
     }

@@ -195,19 +195,6 @@ public class H2HBenchmark
         return MemoryPackSerializer.Deserialize<ObjectH2H>(this.data4);
     }
 
-    [Benchmark]
-    public ObjectH2H? DeserializeTinyhand0()
-    {
-        /*var reader = new TinyhandReader(this.data);
-        var formatter = TinyhandSerializerOptions.Standard.Resolver.GetFormatter<ObjectH2H>();
-        return formatter.Deserialize(ref reader, TinyhandSerializerOptions.Standard);*/
-
-        var reader = new TinyhandReader(this.data);
-        var v = new ObjectH2H();
-        v.Deserialize(ref reader, TinyhandSerializerOptions.Standard);
-        return v;
-    }
-
     // [Benchmark]
     public ObjectH2H? DeserializeTinyhand()
     {

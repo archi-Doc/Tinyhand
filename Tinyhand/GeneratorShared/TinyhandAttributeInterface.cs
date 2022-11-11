@@ -225,20 +225,22 @@ public interface ITinyhandSerializationCallback
 /// Interface for custom serialize/deserialize methods.
 /// If this interface is implemented, Tinyhand use it instead of the generated code.
 /// </summary>
-public interface ITinyhandSerialize
+/// <typeparam name="T">The type to be serialized.</typeparam>
+public interface ITinyhandSerialize<T>
 {
-    void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options);
+    static abstract void Serialize(ref TinyhandWriter writer, scoped ref T? value, TinyhandSerializerOptions options);
 
-    void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
+    static abstract void Deserialize(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions options);
 }
 
 /// <summary>
 /// Interface for custom reconstruct methods.
 /// If this interface is implemented, Tinyhand use it instead of the generated code.
 /// </summary>
-public interface ITinyhandReconstruct
+/// <typeparam name="T">The type to be reconstructed.</typeparam>
+public interface ITinyhandReconstruct<T>
 {
-    void Reconstruct(TinyhandSerializerOptions options);
+    static abstract T Reconstruct(TinyhandSerializerOptions options);
 }
 
 /// <summary>
@@ -248,7 +250,7 @@ public interface ITinyhandReconstruct
 /// <typeparam name="T">The type to be cloned.</typeparam>
 public interface ITinyhandClone<T>
 {
-    T DeepClone(TinyhandSerializerOptions options);
+    static abstract T? Clone(scoped ref T? value, TinyhandSerializerOptions options);
 }
 
 /// <summary>

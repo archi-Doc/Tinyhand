@@ -33,11 +33,6 @@ public sealed class StandardResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
-    public ITinyhandFormatterExtra<T>? TryGetFormatterExtra<T>()
-    {
-        return FormatterExtraCache<T>.Formatter;
-    }
-
     private static class FormatterCache<T>
     {
         public static readonly ITinyhandFormatter<T>? Formatter;
@@ -59,24 +54,6 @@ public sealed class StandardResolver : IFormatterResolver
                         Formatter = f;
                         return;
                     }
-                }
-            }
-        }
-    }
-
-    private static class FormatterExtraCache<T>
-    {
-        public static readonly ITinyhandFormatterExtra<T>? Formatter;
-
-        static FormatterExtraCache()
-        {
-            foreach (var x in Resolvers)
-            {
-                var f = x.TryGetFormatterExtra<T>();
-                if (f != null)
-                {
-                    Formatter = f;
-                    return;
                 }
             }
         }

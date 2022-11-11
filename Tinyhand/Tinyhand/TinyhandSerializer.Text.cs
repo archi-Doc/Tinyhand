@@ -177,7 +177,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    /// <summary>
+    /*/// <summary>
     /// Deserializes a value of a given type from a sequence of bytes (UTF-8).
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -245,7 +245,7 @@ public static partial class TinyhandSerializer
         {
             writer.Dispose();
         }
-    }
+    }*/
 
     public static T? DeserializeFromElement<T>(Element element, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
@@ -304,7 +304,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromUtf8<T>(ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeFromUtf8<T>(utf8.Span, options, cancellationToken);
 
-    /// <summary>
+    /*/// <summary>
     /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes (UTF-8).
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -326,7 +326,7 @@ public static partial class TinyhandSerializer
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? DeserializeWithFromUtf8<T>(T reuse, ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeWithFromUtf8<T>(reuse, utf8.Span, options, cancellationToken);
+    public static T? DeserializeWithFromUtf8<T>(T reuse, ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeWithFromUtf8<T>(reuse, utf8.Span, options, cancellationToken);*/
 
     /// <summary>
     /// Deserializes a value of a given type from a string (UTF-16).
@@ -362,7 +362,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    /// <summary>
+    /*/// <summary>
     /// Reuse an existing instance and deserializes a value of a given type from a string (UTF-16).
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -395,7 +395,7 @@ public static partial class TinyhandSerializer
                 ArrayPool<byte>.Shared.Return(tempArray);
             }
         }
-    }
+    }*/
 
     /*private static bool OmitTopLevelBracket<T>(TinyhandSerializerOptions options)
     {
