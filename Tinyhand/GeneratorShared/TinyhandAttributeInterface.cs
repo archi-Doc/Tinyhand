@@ -240,7 +240,7 @@ public interface ITinyhandSerialize<T>
 /// <typeparam name="T">The type to be reconstructed.</typeparam>
 public interface ITinyhandReconstruct<T>
 {
-    static abstract T Reconstruct(TinyhandSerializerOptions options);
+    static abstract void Reconstruct(scoped ref T? value, TinyhandSerializerOptions options);
 }
 
 /// <summary>

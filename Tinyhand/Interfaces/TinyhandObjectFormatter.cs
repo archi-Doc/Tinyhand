@@ -2,7 +2,7 @@
 
 using Tinyhand.IO;
 
-namespace Tinyhand;
+namespace Tinyhand.Formatters;
 
 public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
     where T : ITinyhandSerialize<T>, ITinyhandReconstruct<T>, ITinyhandClone<T>
@@ -18,7 +18,11 @@ public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
     }
 
     public T Reconstruct(TinyhandSerializerOptions options)
-        => T.Reconstruct(options);
+    {
+        var v = default(T);
+        T.Reconstruct(ref v, options);
+        return v!;
+    }
 
     public T? Clone(T? value, TinyhandSerializerOptions options)
         => T.Clone(ref value, options);

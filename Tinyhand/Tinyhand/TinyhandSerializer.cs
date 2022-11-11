@@ -79,6 +79,34 @@ public static partial class TinyhandSerializer
     /// </remarks>
     public static TinyhandSerializerOptions DefaultOptions { get; set; } = TinyhandSerializerOptions.Standard;
 
+    public static void SerializeObject<T>(ref TinyhandWriter writer, scoped ref T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>
+    {
+        options = options ?? DefaultOptions;
+        T.Serialize(ref writer, ref value, options);
+    }
+
+    public static void DeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>
+    {
+        options = options ?? DefaultOptions;
+        T.Deserialize(ref reader, ref value, options);
+    }
+
+    public static void ReconstructObject<T>(scoped ref T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandReconstruct<T>
+    {
+        options = options ?? DefaultOptions;
+        T.Reconstruct(ref value, options);
+    }
+
+    public static T? CloneObject<T>(scoped ref T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandClone<T>
+    {
+        options = options ?? DefaultOptions;
+        return T.Clone(ref value, options);
+    }
+
     /// <summary>
     /// Creates a deep copy of the object.
     /// </summary>

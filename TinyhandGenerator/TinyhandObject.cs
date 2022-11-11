@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Tinyhand.Coders;
@@ -2039,10 +2040,11 @@ ModuleInitializerClass_Added:
 
     internal void GenerateFormatter_ReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
     {
-        if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
+        ssb.AppendLine($"TinyhandSerializer.ReconstructObject<{this.FullName}>(ref {name}, options);");
+
+        /*if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
         {// Static method
-            // ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref {name}, options);");
-            ssb.AppendLine($"{name}.Reconstruct(options);");
+            ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref {name}, options);");
         }
         else if (this.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
         {// Explicitly declared (Interface.Method())
@@ -2051,7 +2053,7 @@ ModuleInitializerClass_Added:
         else
         {// Member method
             ssb.AppendLine($"{name}.Reconstruct(options);");
-        }
+        }*/
     }
 
     internal void GenerateFormatter_Reconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -2093,7 +2095,7 @@ ModuleInitializerClass_Added:
             }
         }
 
-        ssb.AppendLine($"{ssb.FullObject} = v2;");
+        ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
     internal void GenerateFormatter_Clone(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -2228,20 +2230,21 @@ ModuleInitializerClass_Added:
     internal void GenerateReconstruct_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName} ITinyhandReconstruct<{this.RegionalName}>.Reconstruct(TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandReconstruct<{this.RegionalName}>.Reconstruct(scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
-            ssb.AppendLine($"var {ssb.FullObject} = {this.NewInstanceCode()};");
+            if (this.Kind.IsReferenceType())
+            {
+                ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
+            }
 
             foreach (var x in this.Members)
             {
                 this.GenerateReconstructCore(ssb, info, x);
             }
-
-            ssb.AppendLine($"return {ssb.FullObject};");
         }
     }
 
