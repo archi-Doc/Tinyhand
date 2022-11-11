@@ -468,7 +468,8 @@ public static partial class TinyhandSerializer
 
         try
         {
-            T.Deserialize(ref reader, ref value, DefaultOptions);
+            value = default; // tempcode
+            // T.Deserialize(ref reader, ref value, DefaultOptions);
         }
         catch (Exception ex)
         {

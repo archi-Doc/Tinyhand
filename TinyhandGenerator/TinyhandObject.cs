@@ -1585,6 +1585,15 @@ ModuleInitializerClass_Added:
                     interfaceString += $", ITinyhandClone<{this.RegionalName}>";
                 }
             }
+
+            if (interfaceString == string.Empty)
+            {
+                interfaceString = $" : ITinyhandObject<{this.RegionalName}>";
+            }
+            else
+            {
+                interfaceString += $", ITinyhandObject<{this.RegionalName}>";
+            }
         }
 
         using (var cls = ssb.ScopeBrace($"{this.AccessibilityName} partial {this.KindName} {this.LocalName}{interfaceString}"))
@@ -1639,7 +1648,7 @@ ModuleInitializerClass_Added:
                 // Prepare Secondary
                 x.Generate_PrepareSecondary();
 
-                x.Generate2(ssb, info);
+                x.GenerateMethod(ssb, info);
             }
 
             /*if (this.ObjectAttribute != null && info.UseMemberNotNull)
@@ -1913,6 +1922,40 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal void GenerateSerialize_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
+    {// static abstract
+        info.GeneratingStaticMethod = true;
+        var methodCode = $"static void ITinyhandObject<{this.RegionalName}>.Serialize(ref TinyhandWriter writer, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var objectCode = "v";
+
+        using (var m = ssb.ScopeBrace(methodCode))
+        using (var v = ssb.ScopeObject(objectCode))
+        {
+            if (this.Kind.IsReferenceType())
+            {
+                using (var scopeNullCheck = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
+                {
+                    ssb.AppendLine("writer.WriteNil();");
+                    ssb.AppendLine("return;");
+                }
+
+                ssb.AppendLine();
+            }
+
+            // ITinyhandSerializationCallback.OnBeforeSerialize
+            this.Generate_OnBeforeSerialize(ssb, info);
+
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
+            {// String Key
+                this.GenerateSerializerStringKey(ssb, info);
+            }
+            else
+            {// Int Key
+                this.GenerateSerializerIntKey(ssb, info);
+            }
+        }
+    }
+
     internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (this.Kind.IsReferenceType())
@@ -2142,6 +2185,40 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
+            {// String Key
+                this.GenerateDeserializerStringKey(ssb, info);
+            }
+            else
+            {// Int Key
+                this.GenerateDeserializerIntKey(ssb, info);
+            }
+
+            // ITinyhandSerializationCallback.OnAfterDeserialize
+            this.Generate_OnAfterDeserialize(ssb, info);
+        }
+    }
+
+    internal void GenerateDeserialize_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        info.GeneratingStaticMethod = true;
+        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandObject<{this.RegionalName}>.Deserialize(ref TinyhandReader reader, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var objectCode = "v";
+
+        using (var m = ssb.ScopeBrace(methodCode))
+        using (var v = ssb.ScopeObject(objectCode))
+        {
+            if (this.Kind.IsReferenceType())
+            {
+                using (var scopeNillCheck = ssb.ScopeBrace($"if (reader.TryReadNil())"))
+                {
+                    ssb.AppendLine("return;");
+                }
+
+                ssb.AppendLine();
+                ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
+            }
+
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
             {// String Key
                 this.GenerateDeserializerStringKey(ssb, info);
@@ -2418,16 +2495,27 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void Generate2(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateMethod(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         this.FormatterNumber = info.FormatterCount++;
         this.FormatterExtraNumber = info.FormatterCount++;
+
+        // tempcode
 
         // Serialize/Deserialize/Reconstruct/Clone
         this.GenerateSerialize_Method(ssb, info);
         this.GenerateDeserialize_Method(ssb, info);
         this.GenerateReconstruct_Method(ssb, info);
         this.GenerateClone_Method(ssb, info);
+
+        // Serialize/Deserialize/Reconstruct/Clone
+        if (this.Generics_Kind != VisceralGenericsKind.ClosedGeneric)
+        {
+            this.GenerateSerialize_Method2(ssb, info);
+            this.GenerateDeserialize_Method2(ssb, info);
+            // this.GenerateReconstruct_Method2(ssb, info);
+            // this.GenerateClone_Method2(ssb, info);
+        }
 
         this.GenerateAddProperty(ssb, info);
 

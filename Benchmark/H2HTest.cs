@@ -21,26 +21,6 @@ using Microsoft.Extensions.Options;
 
 namespace Benchmark.H2HTest;
 
-public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
-    where T : ITinyhandObject<T>
-{
-    public void Serialize(ref TinyhandWriter writer, T? v, TinyhandSerializerOptions options)
-        => T.Serialize(ref writer, ref v, options);
-
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-    {
-        var v = default(T);
-        T.Deserialize(ref reader, ref v, options);
-        return v;
-    }
-
-    public T Reconstruct(TinyhandSerializerOptions options)
-        => T.Reconstruct(options);
-
-    public T? Clone(T? value, TinyhandSerializerOptions options)
-        => T.Clone(ref value, options);
-}
-
 [ProtoContract]
 [MessagePack.MessagePackObject]
 [TinyhandObject]
@@ -48,6 +28,11 @@ public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
 public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
 {
     public const int ArrayN = 10;
+
+    /*static ObjectH2H()
+    {
+        Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatter(new TinyhandObjectFormatter<ObjectH2H>());
+    }*/
 
     public ObjectH2H()
     {
@@ -79,7 +64,7 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
     [Key(8)]
     public int[] B { get; set; } = new int[0];
 
-    static void ITinyhandObject<ObjectH2H>.Serialize(ref TinyhandWriter writer, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
+    /*static void ITinyhandObject<ObjectH2H>.Serialize(ref TinyhandWriter writer, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
@@ -97,7 +82,7 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
         writer.WriteNil();
         writer.WriteNil();
         SerializeInt32Array(ref writer, value.B);
-    }
+    }*/
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void SerializeInt32Array(ref TinyhandWriter writer, int[]? value)
@@ -136,7 +121,7 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
         }
     }
 
-    static void ITinyhandObject<ObjectH2H>.Deserialize(ref TinyhandReader reader, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
+    /*static void ITinyhandObject<ObjectH2H>.Deserialize(ref TinyhandReader reader, scoped ref ObjectH2H? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
@@ -190,7 +175,7 @@ public partial class ObjectH2H : ITinyhandObject<ObjectH2H>
     public static ObjectH2H? Clone(ref ObjectH2H? value, TinyhandSerializerOptions options)
     {
         return value;
-    }
+    }*/
 }
 
 [MessagePack.MessagePackObject(true)]

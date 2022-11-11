@@ -30,8 +30,6 @@ public class Program
         var td = 1;
         var te = new InitOnly.InitIntClass();
 
-        // Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatter(new TinyhandObjectFormatter<ObjectH2H>()); // tempcode
-
         Stopwatch.Restart();
         var b = MessagePack.MessagePackSerializer.Serialize(td);
         Stopwatch.Lap("MessagePack startup");

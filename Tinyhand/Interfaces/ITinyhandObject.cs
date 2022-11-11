@@ -10,7 +10,7 @@ public interface ITinyhandObject<T>
 
     static abstract void Deserialize(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions options);
 
-    static abstract T Reconstruct(TinyhandSerializerOptions options);
+    // static abstract T Reconstruct(TinyhandSerializerOptions options);
 
-    static abstract T? Clone(scoped ref T? value, TinyhandSerializerOptions options);
+    // static abstract T? Clone(scoped ref T? value, TinyhandSerializerOptions options);
 }
