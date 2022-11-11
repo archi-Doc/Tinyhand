@@ -204,7 +204,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static byte[] SerializeB<T>(scoped in T? value)
+    public static byte[] SerializeObject<T>(scoped in T? value)
         where T : ITinyhandObject<T>
     {
         if (initialBuffer == null)
@@ -461,15 +461,31 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static void DeserializeB<T>(byte[] buffer, ref T? value)
+    public static void DeserializeObject<T>(byte[] buffer, ref T? value)
         where T : ITinyhandObject<T>
     {
         var reader = new TinyhandReader(buffer);
 
         try
         {
-            value = default; // tempcode
-            // T.Deserialize(ref reader, ref value, DefaultOptions);
+            T.Deserialize(ref reader, ref value, DefaultOptions);
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+        }
+    }
+
+    public static T? DeserializeObject<T>(byte[] buffer)
+        where T : ITinyhandObject<T>
+    {
+        var reader = new TinyhandReader(buffer);
+
+        try
+        {
+            var value = default(T);
+            T.Deserialize(ref reader, ref value, DefaultOptions);
+            return value;
         }
         catch (Exception ex)
         {

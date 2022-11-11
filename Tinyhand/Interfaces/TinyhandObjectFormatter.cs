@@ -13,13 +13,13 @@ public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
     public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
         var v = default(T);
-        // T.Deserialize(ref reader, ref v, options);
+        T.Deserialize(ref reader, ref v, options);
         return v;
     }
 
     public T Reconstruct(TinyhandSerializerOptions options)
-        => default!; // T.Reconstruct(options);
+        => T.Reconstruct(options);
 
     public T? Clone(T? value, TinyhandSerializerOptions options)
-        => default; // T.Clone(ref value, options);
+        => T.Clone(ref value, options);
 }

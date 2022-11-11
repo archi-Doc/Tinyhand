@@ -2273,6 +2273,26 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal void GenerateReconstruct_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        info.GeneratingStaticMethod = true;
+        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName} ITinyhandObject<{this.RegionalName}>.Reconstruct(TinyhandSerializerOptions options)";
+        var objectCode = "v";
+
+        using (var m = ssb.ScopeBrace(methodCode))
+        using (var v = ssb.ScopeObject(objectCode))
+        {
+            ssb.AppendLine($"var {ssb.FullObject} = {this.NewInstanceCode()};");
+
+            foreach (var x in this.Members)
+            {
+                this.GenerateReconstructCore(ssb, info, x);
+            }
+
+            ssb.AppendLine($"return {ssb.FullObject};");
+        }
+    }
+
     internal void GenerateClone_Method(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         string methodCode;
@@ -2299,6 +2319,41 @@ ModuleInitializerClass_Added:
         using (var v = ssb.ScopeObject("value"))
         {// this.x = value.x;
             if (this.MethodCondition_Clone == MethodCondition.StaticMethod && this.Kind.IsReferenceType())
+            {
+                ssb.AppendLine($"if (v == null) return null;");
+            }
+
+            ssb.AppendLine($"var value = {this.NewInstanceCode()};");
+            foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
+            {
+                string sourceName;
+                if (x.RequiresGetter)
+                {
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    sourceName = $"{prefix}{x.GetterDelegateIdentifier}!({sourceObject})";
+                }
+                else
+                {
+                    sourceName = sourceObject + "." + x.SimpleNameOrAddedProperty;
+                }
+
+                this.GenerateCloneCore(ssb, info, x, sourceName);
+            }
+
+            ssb.AppendLine($"return value;");
+        }
+    }
+
+    internal void GenerateClone_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        info.GeneratingStaticMethod = true;
+        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName}{this.QuestionMarkIfReferenceType} ITinyhandObject<{this.RegionalName}>.Clone(scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var sourceObject = "v";
+
+        using (var m = ssb.ScopeBrace(methodCode))
+        using (var v = ssb.ScopeObject("value"))
+        {// this.x = value.x;
+            if (this.Kind.IsReferenceType())
             {
                 ssb.AppendLine($"if (v == null) return null;");
             }
@@ -2513,8 +2568,8 @@ ModuleInitializerClass_Added:
         {
             this.GenerateSerialize_Method2(ssb, info);
             this.GenerateDeserialize_Method2(ssb, info);
-            // this.GenerateReconstruct_Method2(ssb, info);
-            // this.GenerateClone_Method2(ssb, info);
+            this.GenerateReconstruct_Method2(ssb, info);
+            this.GenerateClone_Method2(ssb, info);
         }
 
         this.GenerateAddProperty(ssb, info);
