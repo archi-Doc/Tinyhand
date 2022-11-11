@@ -111,10 +111,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public VisceralIdentifier Identifier { get; private set; } = VisceralIdentifier.Default;
 
-    public int GenericsNumber { get; private set; }
-
-    public string GenericsNumberString => this.GenericsNumber > 1 ? this.GenericsNumber.ToString() : string.Empty;
-
     public int FormatterNumber { get; private set; } = -1;
 
     public int FormatterExtraNumber { get; private set; } = -1;
@@ -701,7 +697,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         if (!cf.ConstructedObjects.Contains(this))
         {
             cf.ConstructedObjects.Add(this);
-            this.GenericsNumber = cf.ConstructedObjects.Count;
+            // this.GenericsNumber = cf.ConstructedObjects.Count;
         }
     }
 
@@ -1640,10 +1636,10 @@ ModuleInitializerClass_Added:
                     }
                 }
 
-                if (x.GenericsNumber > 1)
+                /*if (x.GenericsNumber > 1)
                 {
                     ssb.AppendLine();
-                }
+                }*/
 
                 // Prepare Secondary
                 x.Generate_PrepareSecondary();
@@ -1981,7 +1977,8 @@ ModuleInitializerClass_Added:
     {
         if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
         {// Static method
-            ssb.AppendLine($"{this.FullName}.Deserialize{this.GenericsNumberString}(ref {name}, ref reader, options);");
+            // ssb.AppendLine($"{this.FullName}.Deserialize{this.GenericsNumberString}(ref {name}, ref reader, options);");
+            ssb.AppendLine($"{name}.Deserialize(ref reader, options);");
         }
         else if (this.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared)
         {// Explicitly declared (Interface.Method())
@@ -2090,7 +2087,8 @@ ModuleInitializerClass_Added:
     {
         if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
         {// Static method
-            ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref {name}, options);");
+            // ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref {name}, options);");
+            ssb.AppendLine($"{name}.Reconstruct(options);");
         }
         else if (this.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
         {// Explicitly declared (Interface.Method())
@@ -2148,7 +2146,7 @@ ModuleInitializerClass_Added:
     {
         if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
         {// Static method
-            ssb.AppendLine($"return {this.FullName}.DeepClone{this.GenericsNumberString}(ref value, options);");
+            ssb.AppendLine($"return {this.FullName}.DeepClone(ref value, options);"); // {this.GenericsNumberString}
         }
         else if (this.MethodCondition_Clone == MethodCondition.ExplicitlyDeclared)
         {// Explicitly declared (Interface.Method())
@@ -2174,7 +2172,7 @@ ModuleInitializerClass_Added:
         else if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
         {
             info.GeneratingStaticMethod = true;
-            methodCode = $"public static {this.UnsafeDeserializeString}void Deserialize{this.GenericsNumberString}(scoped ref {this.RegionalName} v, ref TinyhandReader reader, TinyhandSerializerOptions options)";
+            methodCode = $"public static {this.UnsafeDeserializeString}void Deserialize(scoped ref {this.RegionalName} v, ref TinyhandReader reader, TinyhandSerializerOptions options)"; // {this.GenericsNumberString}
             objectCode = "v";
         }
         else
@@ -2255,7 +2253,7 @@ ModuleInitializerClass_Added:
         else if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
         {
             info.GeneratingStaticMethod = true;
-            methodCode = $"public static {this.UnsafeDeserializeString}void Reconstruct{this.GenericsNumberString}(ref {this.RegionalName} v, TinyhandSerializerOptions options)";
+            methodCode = $"public static {this.UnsafeDeserializeString}void Reconstruct(ref {this.RegionalName} v, TinyhandSerializerOptions options)"; // {this.GenericsNumberString}
             objectCode = "v";
         }
         else
@@ -2307,7 +2305,7 @@ ModuleInitializerClass_Added:
         else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
         {
             info.GeneratingStaticMethod = true;
-            methodCode = $"public static {this.UnsafeDeserializeString}{this.FullName + this.QuestionMarkIfReferenceType} DeepClone{this.GenericsNumberString}(ref {this.RegionalName + this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+            methodCode = $"public static {this.UnsafeDeserializeString}{this.FullName + this.QuestionMarkIfReferenceType} DeepClone(ref {this.RegionalName + this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"; // {this.GenericsNumberString}
             sourceObject = "v";
         }
         else

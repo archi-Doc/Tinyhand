@@ -186,7 +186,10 @@ public class TinyhandUnion
         var errorFlag = false;
         foreach (var x in this.UnionList)
         {
-            if (this.Object.Body.TryGet(x.SubType!, out var obj) && obj.ObjectAttribute != null)
+            if (x.SubType is INamedTypeSymbol nts &&
+                this.Object.Body.TryGet(nts, out var obj) &&
+                this.Object.Body.TryGet(nts.ConstructedFrom, out var obj2) &&
+                obj2.ObjectAttribute != null)
             {
                 if (obj == this.Object)
                 {

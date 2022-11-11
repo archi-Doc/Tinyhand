@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Tinyhand;
 using Tinyhand.IO;
+using Tinyhand.Resolvers;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
@@ -252,12 +253,81 @@ public partial class MaxLengthClass3
     MaxLengthClass2? Class { get; set; }
 }
 
+[TinyhandObject]
+public partial class GenericTestClass<T>
+{
+    [KeyAsName]
+    private int id;
+
+    [KeyAsName]
+    private T value = default!;
+
+    [KeyAsName]
+    private NestedClass<double, int> nested = default!;
+
+    public GenericTestClass()
+    {
+    }
+
+    public GenericTestClass(int id, T value, NestedClass<double, int> nested)
+    {
+        this.id = id;
+        this.value = value;
+        this.nested = nested;
+    }
+
+    [TinyhandObject]
+    public partial class NestedClass<X, Y>
+    {
+        [KeyAsName]
+        private string name = default!;
+
+        [KeyAsName]
+        private X xvalue = default!;
+
+        [KeyAsName]
+        private Y yvalue = default!;
+
+        public NestedClass()
+        {
+        }
+
+        public NestedClass(string name, X xvalue, Y yvalue)
+        {
+            this.name = name;
+            this.xvalue = xvalue;
+            this.yvalue = yvalue;
+        }
+    }
+}
+
+
 class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        // Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatter(new TinyhandObjectFormatter<GenericTestClass<int>>());
+        GeneratedResolver.Instance.SetFormatterGenerator(typeof(Sandbox.GenericTestClass<>.NestedClass<,>), x =>
+        {
+            var ft = typeof(Sandbox.GenericTestClass<>.NestedClass<,>).MakeGenericType(x);
+            var formatter = Activator.CreateInstance(typeof(ITinyhandObject<>).MakeGenericType(ft));
+            return ((ITinyhandFormatter)formatter!, (ITinyhandFormatterExtra)null!);
+        });
+
+        var ft = typeof(Sandbox.GenericTestClass<>.NestedClass<,>).MakeGenericType(new Type[] { typeof(int), typeof(string), typeof(double), });
+        var formatter = Activator.CreateInstance(typeof(TinyhandObjectFormatter<>).MakeGenericType(ft));
+
+        var gc = new GenericTestClass<int>();
+        var gc2 = TinyhandSerializer.Deserialize<GenericTestClass<int>>(TinyhandSerializer.Serialize(gc));
+
+        var ntc = new GenericTestClass<string>.NestedClass<int, double>("test", 1, 100d);
+        var ntc2 = TinyhandSerializer.Deserialize<GenericTestClass<string>.NestedClass<int, double>>(TinyhandSerializer.Serialize(ntc));
+
+        var ntc3 = new GenericTestClass<string>.NestedClass<int, long>("test2", 2, 200);
+        var ntc4 = TinyhandSerializer.Deserialize<GenericTestClass<string>.NestedClass<int, long>>(TinyhandSerializer.Serialize(ntc3));
 
         var pk = new PublicKey(2, new byte[] { 0, 1, });
         pk.Test(new byte[] { });

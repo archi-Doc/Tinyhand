@@ -59,7 +59,7 @@ public class GenericsTest
     {
         var t = TinyhandSerializer.Reconstruct<GenericsTestClass<string>>();
         t.Int.Is(12);
-        t.TValue.Is(string.Empty);
+        // t.TValue.Is(string.Empty); // Disable closed generic
         t.NestedClass.String.Is("TH");
         t.NestedClass2.String.Is(string.Empty);
 
