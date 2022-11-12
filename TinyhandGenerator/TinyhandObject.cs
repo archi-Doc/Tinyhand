@@ -1984,7 +1984,7 @@ ModuleInitializerClass_Added:
             }
         }
 
-        ssb.AppendLine($"TinyhandRaw.Deserialize(ref reader, ref v2, options);");
+        ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref v2, options);");
         ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
@@ -2022,7 +2022,7 @@ ModuleInitializerClass_Added:
             }
         }
 
-        ssb.AppendLine($"TinyhandRaw.Reconstruct(ref v2, options);");
+        ssb.AppendLine($"TinyhandSerializer.ReconstructObject(ref v2, options);");
 
         if (defaultValue != null)
         {
@@ -3065,7 +3065,7 @@ ModuleInitializerClass_Added:
             if (withNullable.Object.ObjectAttribute != null)
             {// TinyhandObject.
                 InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = TinyhandRaw.Clone({sourceObject}, options)!;");
+                ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject({sourceObject}, options)!;");
                 InitSetter_End();
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
@@ -3296,7 +3296,7 @@ ModuleInitializerClass_Added:
         {// TinyhandObject
             using (ssb.ScopeBrace(string.Empty))
             {
-                ssb.AppendLine($"TinyhandRaw.Serialize(ref writer, {ssb.FullObject}, options);");
+                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
             }
         }
         else

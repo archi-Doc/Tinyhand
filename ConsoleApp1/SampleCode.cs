@@ -265,7 +265,7 @@ public class ReuseTest
         // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
 
         var reader = new Tinyhand.IO.TinyhandReader(TinyhandSerializer.Serialize(t));
-        TinyhandRaw.Deserialize(ref reader, ref t); // Same as above
+        TinyhandSerializer.DeserializeObject(ref reader, ref t); // Same as above
     }
 }
 
