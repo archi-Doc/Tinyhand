@@ -1942,34 +1942,15 @@ ModuleInitializerClass_Added:
         }
     }
 
-    /*internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.Kind.IsReferenceType())
-        {// Reference type
-            ssb.AppendLine("if (reader.TryReadNil()) return default;");
-        }
-
-        ssb.AppendLine($"var v = {this.NewInstanceCode()};");
-        this.GenerateFormatter_DeserializeCore(ssb, info, "v");
-        ssb.AppendLine("return v;");
-    }*/
-
     internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
         /*if (this.Kind == VisceralObjectKind.Interface)
         {
             if (!reuseInstance)
             {// New Instance
-                // this.GenerateFormatter_DeserializeCore(ssb, info, "v2");
-                // ssb.AppendLine($"{ssb.FullObject} = v2!;");
-                ssb.AppendLine($"TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, ref v2, options);");
-                ssb.AppendLine($"{ssb.FullObject} = v2!;");
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Deserialize(ref reader, options)!;");
             }
             else
             {// Reuse Instance
-                // tempcode
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Deserialize(ref reader, options)!;");
             }
 
             return;
@@ -3313,14 +3294,10 @@ ModuleInitializerClass_Added:
         }
         else if(withNullable.Object.ObjectAttribute != null)
         {// TinyhandObject
-            if (x.HasNullableAnnotation)
+            using (ssb.ScopeBrace(string.Empty))
             {
-                ssb.AppendLine($"if ({ssb.FullObject} == null) writer.WriteNil();");
-                ssb.AppendLine($"else options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {ssb.FullObject}, options);");
-            }
-            else
-            {
-                ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {ssb.FullObject}, options);");
+                ssb.AppendLine($"var v2 = {ssb.FullObject};");
+                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, ref v2, options);");
             }
         }
         else
