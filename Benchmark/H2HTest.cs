@@ -24,7 +24,7 @@ namespace Benchmark.H2HTest;
 [ProtoContract]
 [MessagePack.MessagePackObject]
 [TinyhandObject]
-[MemoryPackable(GenerateType.VersionTolerant)]
+[MemoryPackable] // GenerateType.VersionTolerant
 public partial class ObjectH2H
 {
     public const int ArrayN = 10;
