@@ -20,6 +20,8 @@ public partial class CustomFormatterClass : ITinyhandSerialize<Tinyhand.Tests.Cu
 
     static void ITinyhandSerialize<CustomFormatterClass>.Deserialize(ref TinyhandReader reader, scoped ref CustomFormatterClass? value, TinyhandSerializerOptions options)
     {
+        value ??= new CustomFormatterClass();
+
         if (!reader.TryReadNil())
         {
             value.ID = reader.ReadInt32();
@@ -59,6 +61,8 @@ public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize<CustomF
 
     public static void Deserialize(ref TinyhandReader reader, scoped ref CustomFormatterGenericClass<T>? value, TinyhandSerializerOptions options)
     {
+        value ??= new CustomFormatterGenericClass<T>();
+
         if (!reader.TryReadNil())
         {
             value.ID = reader.ReadInt32();

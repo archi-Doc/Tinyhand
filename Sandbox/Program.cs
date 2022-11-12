@@ -13,6 +13,21 @@ using Tinyhand.Resolvers;
 
 namespace Sandbox;
 
+public interface IUnionTestInterface : ITinyhandSerialize<IUnionTestInterface>
+{
+    static void ITinyhandSerialize<IUnionTestInterface>.Serialize(ref TinyhandWriter writer, scoped ref IUnionTestInterface? value, TinyhandSerializerOptions options)
+    {
+
+    }
+
+    static void ITinyhandSerialize<IUnionTestInterface>.Deserialize(ref TinyhandReader reader, scoped ref IUnionTestInterface? value, TinyhandSerializerOptions options)
+    {
+
+    }
+
+    void Print();
+}
+
 [TinyhandGenerateHash("strings.tinyhand")]
 public partial class Hashed
 {
