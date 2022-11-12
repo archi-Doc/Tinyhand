@@ -287,7 +287,7 @@ public class TinyhandUnion
             using (ssb.ScopeBrace(t))
             {
                 ssb.AppendLine("writer.Write(" + x.Key.ToString() + ");");
-                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, Unsafe.As<{x.Value.FullName}>({ssb.FullObject}), options);");
+                ssb.AppendLine($"TinyhandRaw.Serialize(ref writer, Unsafe.As<{x.Value.FullName}>({ssb.FullObject}), options);");
             }
         }
 
@@ -320,7 +320,7 @@ public class TinyhandUnion
                 ssb.IncrementIndent();
 
                 ssb.AppendLine($"var {name} = Unsafe.As<{x.Value.FullName + x.Value.QuestionMarkIfReferenceType}>({ssb.FullObject});");
-                ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
+                ssb.AppendLine($"TinyhandRaw.Deserialize(ref reader, ref {name}, options);");
                 ssb.AppendLine($"{ssb.FullObject} = Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>({name});");
                 ssb.AppendLine("return;");
 

@@ -132,7 +132,7 @@ public class H2HBenchmark
         this.data5 = TinyhandSerializer.SerializeObject(this.h2h);
 
         ObjectH2H2? test = default;
-        TinyhandSerializer.ReconstructObject(ref test);
+        TinyhandRaw.Reconstruct(ref test);
         var test2 = test;
     }
 
