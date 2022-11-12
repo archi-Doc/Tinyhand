@@ -79,11 +79,11 @@ public static partial class TinyhandSerializer
     /// </remarks>
     public static TinyhandSerializerOptions DefaultOptions { get; set; } = TinyhandSerializerOptions.Standard;
 
-    public static void SerializeObject<T>(ref TinyhandWriter writer, scoped ref T? value, TinyhandSerializerOptions? options = null)
+    public static void SerializeObject<T>(ref TinyhandWriter writer, in T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerialize<T>
     {
         options = options ?? DefaultOptions;
-        T.Serialize(ref writer, ref value, options);
+        T.Serialize(ref writer, ref Unsafe.AsRef(value), options);
     }
 
     public static void DeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
@@ -101,7 +101,7 @@ public static partial class TinyhandSerializer
     }
 
     [return: NotNullIfNotNull("value")]
-    public static T? CloneObject<T>(scoped in T? value, TinyhandSerializerOptions? options = null)
+    public static T? CloneObject<T>(in T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandClone<T>
     {
         options = options ?? DefaultOptions;
@@ -241,7 +241,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static byte[] SerializeObject<T>(scoped in T? value)
+    public static byte[] SerializeObject<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
         if (initialBuffer == null)

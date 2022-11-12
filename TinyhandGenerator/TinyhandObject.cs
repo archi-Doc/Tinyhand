@@ -3296,8 +3296,7 @@ ModuleInitializerClass_Added:
         {// TinyhandObject
             using (ssb.ScopeBrace(string.Empty))
             {
-                ssb.AppendLine($"var v2 = {ssb.FullObject};");
-                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, ref v2, options);");
+                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
             }
         }
         else

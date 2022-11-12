@@ -13,11 +13,6 @@ using BenchmarkDotNet.Attributes;
 using ProtoBuf;
 using MemoryPack;
 using Tinyhand;
-using Tinyhand.IO;
-using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Options;
-
-#pragma warning disable SA1401 // Fields should be private
 
 namespace Benchmark.H2HTest;
 

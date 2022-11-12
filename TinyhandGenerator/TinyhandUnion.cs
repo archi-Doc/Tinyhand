@@ -287,7 +287,7 @@ public class TinyhandUnion
             using (ssb.ScopeBrace(t))
             {
                 ssb.AppendLine("writer.Write(" + x.Key.ToString() + ");");
-                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, ref Unsafe.AsRef(Unsafe.As<{x.Value.FullName}>({ssb.FullObject}))!, options);");
+                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, Unsafe.As<{x.Value.FullName}>({ssb.FullObject}), options);");
             }
         }
 
