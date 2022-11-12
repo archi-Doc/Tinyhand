@@ -58,6 +58,7 @@ public enum TinyhandObjectFlag
     HasITinyhandReconstruct = 1 << 24, // Has ITinyhandReconstruct interface
     HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
     CanCreateInstance = 1 << 27, // Can create an instance
+    InterfaceImplemented = 1 << 28, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -111,8 +112,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public List<TinyhandObject>? ConstructedObjects { get; private set; } // The opposite of ConstructedFrom
 
     public VisceralIdentifier Identifier { get; private set; } = VisceralIdentifier.Default;
-
-    public int FormatterNumber { get; private set; } = -1;
 
     public TinyhandObject? ClosedGenericHint { get; private set; }
 
@@ -1335,8 +1334,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
     public static void GenerateLoader(ScopingStringBuilder ssb, GeneratorInformation info, List<TinyhandObject> list)
     {// list: Primary TinyhandObject
-        var classFormat = "__gen__tf__{0:D4}";
-        var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null && x.FormatterNumber >= 0).ToArray();
+        var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null).ToArray();
 
         if (list2.Length > 0 && list2[0].ContainingObject is { } containingObject)
         {// Add ModuleInitializerClass
@@ -1373,18 +1371,11 @@ ModuleInitializerClass_Added:
 
         using (var m = ssb.ScopeBrace("internal static void __gen__th()"))
         {
-            foreach (var x in list2)
+            foreach (var x in list2.Where(x => x.ObjectFlag.HasFlag(TinyhandObjectFlag.InterfaceImplemented)))
             {
                 if (x.Generics_Kind != VisceralGenericsKind.OpenGeneric)
                 {// Formatter
-                    if (x.Union == null)
-                    {
-                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{x.FullName}>());");
-                    }
-                    else
-                    {
-                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter<{x.FullName}>(new {string.Format(classFormat, x.FormatterNumber)}());");
-                    }
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{x.FullName}>());");
                 }
                 else
                 {// Formatter generator
@@ -1397,17 +1388,8 @@ ModuleInitializerClass_Added:
                     ssb.AppendLine("{");
                     ssb.IncrementIndent();
 
-                    if (x.Union == null)
-                    {
-                        ssb.AppendLine($"var ft = typeof({generic.name}).MakeGenericType(x);");
-                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(ft));");
-                    }
-                    else
-                    {
-                        var name = string.Format(classFormat, x.FormatterNumber);
-                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof({name}{genericBrace}){getGenericType}.MakeGenericType(x));");
-                    }
-
+                    ssb.AppendLine($"var ft = typeof({generic.name}).MakeGenericType(x);");
+                    ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(ft));");
                     ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
 
                     ssb.DecrementIndent();
@@ -1416,7 +1398,7 @@ ModuleInitializerClass_Added:
             }
         }
 
-        ssb.AppendLine();
+        /*ssb.AppendLine();
 
         foreach (var x in list2)
         {
@@ -1471,30 +1453,7 @@ ModuleInitializerClass_Added:
                     ssb.AppendLine("throw new TinyhandException(\"Clone() is not supported in abstract class or interface.\");"); // x.GenerateFormatter_Clone(ssb, info);
                 }
             }
-
-            /*name = string.Format(classFormat, x.FormatterExtraNumber) + genericArguments;
-            using (var cls = ssb.ScopeBrace($"class {name}: ITinyhandFormatterExtra<{x.FullName}>"))
-            {
-                // Deserialize
-                using (var d = ssb.ScopeBrace($"public {x.FullName + x.QuestionMarkIfReferenceType} Deserialize({x.FullName} reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)"))
-                {
-                    if (x.Union != null)
-                    {// Union
-                        x.Union.GenerateFormatter_Deserialize(ssb, info, "reuse");
-                    }
-                    else
-                    {
-                        if (x.Kind.IsReferenceType() && x.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
-                        {// Reference type
-                            ssb.AppendLine($"reuse = reuse ?? {x.NewInstanceCode()};");
-                        }
-
-                        x.GenerateFormatter_DeserializeCore(ssb, info, "reuse");
-                        ssb.AppendLine("return reuse;");
-                    }
-                }
-            }*/
-        }
+        }*/
     }
 
     internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1503,17 +1462,12 @@ ModuleInitializerClass_Added:
         {
             return;
         }
-        else if (this.IsAbstractOrInterface)
-        {// Skip generating partial method.
-            if (this.Union != null)
-            {
-                this.FormatterNumber = info.FormatterCount++;
-                // this.FormatterExtraNumber = info.FormatterCount++;
-            }
-
+        else if (this.IsAbstractOrInterface && this.Union == null)
+        {
             return;
         }
 
+        this.ObjectFlag |= TinyhandObjectFlag.InterfaceImplemented;
         var interfaceString = string.Empty;
         if (this.ObjectAttribute != null)
         {
@@ -1882,6 +1836,12 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
+            if (this.Union != null)
+            {
+                this.Union.GenerateFormatter_Serialize2(ssb, info);
+                return;
+            }
+
             if (this.Kind.IsReferenceType())
             {
                 using (var scopeNullCheck = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
@@ -2156,6 +2116,12 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
+            if (this.Union != null)
+            {
+                this.Union.GenerateFormatter_Deserialize(ssb, info);
+                return;
+            }
+
             if (this.Kind.IsReferenceType())
             {
                 using (var scopeNillCheck = ssb.ScopeBrace($"if (reader.TryReadNil())"))
@@ -2230,6 +2196,12 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
+            if (this.Union != null)
+            {
+                ssb.AppendLine("throw new TinyhandException(\"Reconstruct() is not supported in abstract class or interface.\");");
+                return;
+            }
+
             if (this.Kind.IsReferenceType())
             {
                 ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
@@ -2302,6 +2274,12 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject("value"))
         {// this.x = value.x;
+            if (this.Union != null)
+            {
+                ssb.AppendLine("throw new TinyhandException(\"Clone() is not supported in abstract class or interface.\");");
+                return;
+            }
+
             if (this.Kind.IsReferenceType())
             {
                 ssb.AppendLine($"if (v == null) return null;");
@@ -2501,9 +2479,6 @@ ModuleInitializerClass_Added:
 
     internal void GenerateMethod(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        this.FormatterNumber = info.FormatterCount++;
-        // this.FormatterExtraNumber = info.FormatterCount++;
-
         // Serialize/Deserialize/Reconstruct/Clone
         /*this.GenerateSerialize_Method(ssb, info);
         this.GenerateDeserialize_Method(ssb, info);

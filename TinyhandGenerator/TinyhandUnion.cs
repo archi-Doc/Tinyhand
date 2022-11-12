@@ -260,7 +260,7 @@ public class TinyhandUnion
     }
 
     internal void GenerateFormatter_Serialize2(ScopingStringBuilder ssb, GeneratorInformation info)
-    {// if
+    {
         if (this.UnionDictionary == null)
         {
             return;
@@ -298,16 +298,16 @@ public class TinyhandUnion
         }
     }
 
-    internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info, string? reuseName)
+    internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (this.UnionDictionary == null)
         {
             return;
         }
 
-        ssb.AppendLine($"if (reader.TryReadNil()) {{ return default; }}");
+        ssb.AppendLine($"if (reader.TryReadNil()) {{ return; }}");
         ssb.AppendLine("if (reader.ReadArrayHeader() != 2) { throw new TinyhandException(\"Invalid Union data was detected.\"); }");
-        ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return default; }}");
+        ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return; }}");
 
         ssb.AppendLine("var key = reader.ReadInt32();");
         using (var sw = ssb.ScopeBrace("switch (key)"))
@@ -319,24 +319,10 @@ public class TinyhandUnion
                 ssb.AppendLine("case " + keyString + ":");
                 ssb.IncrementIndent();
 
-                if (reuseName != null)
-                {
-                    using (var reuseIf = ssb.ScopeBrace($"if ({reuseName} is {x.Value.FullName} {name})"))
-                    {
-                        GenerateFormatter_DeserializeCore(name);
-                    }
-
-                    using (var reuseElse = ssb.ScopeBrace("else"))
-                    {
-                        ssb.AppendLine($"var {name} = default({x.Value.FullName});");
-                        GenerateFormatter_DeserializeCore(name);
-                    }
-                }
-                else
-                {
-                    ssb.AppendLine($"var {name} = default({x.Value.FullName});");
-                    GenerateFormatter_DeserializeCore(name);
-                }
+                ssb.AppendLine($"var {name} = Unsafe.As<{x.Value.FullName + x.Value.QuestionMarkIfReferenceType}>({ssb.FullObject});");
+                ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
+                ssb.AppendLine($"{ssb.FullObject} = Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>({name});");
+                ssb.AppendLine("return;");
 
                 ssb.DecrementIndent();
             }
@@ -344,14 +330,8 @@ public class TinyhandUnion
             ssb.AppendLine("default:");
             ssb.IncrementIndent();
             ssb.AppendLine("reader.Skip();");
-            ssb.AppendLine("return default;");
+            ssb.AppendLine("return;");
             ssb.DecrementIndent();
-        }
-
-        void GenerateFormatter_DeserializeCore(string name)
-        {
-            ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
-            ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>({name});");
         }
     }
 }
