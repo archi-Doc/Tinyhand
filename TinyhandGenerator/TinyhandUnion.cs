@@ -186,7 +186,10 @@ public class TinyhandUnion
         var errorFlag = false;
         foreach (var x in this.UnionList)
         {
-            if (this.Object.Body.TryGet(x.SubType!, out var obj) && obj.ObjectAttribute != null)
+            if (x.SubType is INamedTypeSymbol nts &&
+                this.Object.Body.TryGet(nts, out var obj) &&
+                this.Object.Body.TryGet(nts.ConstructedFrom, out var obj2) &&
+                obj2.ObjectAttribute != null)
             {
                 if (obj == this.Object)
                 {
@@ -257,7 +260,7 @@ public class TinyhandUnion
     }
 
     internal void GenerateFormatter_Serialize2(ScopingStringBuilder ssb, GeneratorInformation info)
-    {// if
+    {
         if (this.UnionDictionary == null)
         {
             return;
@@ -284,7 +287,7 @@ public class TinyhandUnion
             using (ssb.ScopeBrace(t))
             {
                 ssb.AppendLine("writer.Write(" + x.Key.ToString() + ");");
-                ssb.AppendLine($"options.Resolver.GetFormatter<{x.Value.FullName}>().Serialize(ref writer, Unsafe.As<{x.Value.FullName}>({ssb.FullObject}), options);");
+                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, Unsafe.As<{x.Value.FullName}>({ssb.FullObject}), options);");
             }
         }
 
@@ -295,16 +298,16 @@ public class TinyhandUnion
         }
     }
 
-    internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info, string? reuseName)
+    internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (this.UnionDictionary == null)
         {
             return;
         }
 
-        ssb.AppendLine($"if (reader.TryReadNil()) {{ return default; }}");
+        ssb.AppendLine($"if (reader.TryReadNil()) {{ return; }}");
         ssb.AppendLine("if (reader.ReadArrayHeader() != 2) { throw new TinyhandException(\"Invalid Union data was detected.\"); }");
-        ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return default; }}");
+        ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return; }}");
 
         ssb.AppendLine("var key = reader.ReadInt32();");
         using (var sw = ssb.ScopeBrace("switch (key)"))
@@ -316,22 +319,10 @@ public class TinyhandUnion
                 ssb.AppendLine("case " + keyString + ":");
                 ssb.IncrementIndent();
 
-                if (reuseName != null)
-                {
-                    using (var reuseIf = ssb.ScopeBrace($"if ({reuseName} is {x.Value.FullName} {name})"))
-                    {
-                        ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatterExtra<{x.Value.FullName}>().Deserialize({name}, ref reader, options));");
-                    }
-
-                    using (var reuseElse = ssb.ScopeBrace("else"))
-                    {
-                        ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options));");
-                    }
-                }
-                else
-                {
-                    ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options));");
-                }
+                ssb.AppendLine($"var {name} = Unsafe.As<{x.Value.FullName + x.Value.QuestionMarkIfReferenceType}>({ssb.FullObject});");
+                ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
+                ssb.AppendLine($"{ssb.FullObject} = Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>({name});");
+                ssb.AppendLine("return;");
 
                 ssb.DecrementIndent();
             }
@@ -339,7 +330,7 @@ public class TinyhandUnion
             ssb.AppendLine("default:");
             ssb.IncrementIndent();
             ssb.AppendLine("reader.Skip();");
-            ssb.AppendLine("return default;");
+            ssb.AppendLine("return;");
             ssb.DecrementIndent();
         }
     }

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +24,7 @@ public class UnsafeFormattersTest
         var sequence = sequenceWriter.FlushAndGetReadOnlySequence();
         sequence.Length.Is(18);
 
-        var sequenceReader = new TinyhandReader(sequence);
+        var sequenceReader = new TinyhandReader(sequence.ToArray());
         Guid nguid = NativeGuidFormatter.Instance.Deserialize(ref sequenceReader, null);
         Assert.True(sequenceReader.End);
 
@@ -39,7 +40,7 @@ public class UnsafeFormattersTest
         var sequence = sequenceWriter.FlushAndGetReadOnlySequence();
         sequence.Length.Is(18);
 
-        var sequenceReader = new TinyhandReader(sequence);
+        var sequenceReader = new TinyhandReader(sequence.ToArray());
         var nd = NativeDecimalFormatter.Instance.Deserialize(ref sequenceReader, null);
         Assert.True(sequenceReader.End);
 

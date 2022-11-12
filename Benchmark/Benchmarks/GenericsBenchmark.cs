@@ -73,7 +73,7 @@ public partial class NormalIntClass
 }
 
 [TinyhandObject]
-public partial class CustomIntClass : ITinyhandSerialize
+public partial class CustomIntClass : ITinyhandSerialize<CustomIntClass>
 {
     public int X { get; set; }
 
@@ -93,35 +93,48 @@ public partial class CustomIntClass : ITinyhandSerialize
     {
     }
 
-    public void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)
+    public static void Serialize(ref TinyhandWriter writer, scoped ref CustomIntClass? value, TinyhandSerializerOptions options)
     {
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
         writer.WriteArrayHeader(3);
-        options.Resolver.GetFormatter<int>().Serialize(ref writer, this.X, options);
-        options.Resolver.GetFormatter<int>().Serialize(ref writer, this.Y, options);
-        options.Resolver.GetFormatter<int[]>().Serialize(ref writer, this.A, options);
+        options.Resolver.GetFormatter<int>().Serialize(ref writer, value.X, options);
+        options.Resolver.GetFormatter<int>().Serialize(ref writer, value.Y, options);
+        options.Resolver.GetFormatter<int[]>().Serialize(ref writer, value.A, options);
     }
 
-    public void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public static void Deserialize(ref TinyhandReader reader, scoped ref CustomIntClass? value, TinyhandSerializerOptions options)
     {
+        if (reader.TryReadNil())
+        {
+            value = default;
+            return;
+        }
+
+        value ??= new();
         var numberOfData = reader.ReadArrayHeader();
         options.Security.DepthStep(ref reader);
         try
         {
             if (numberOfData-- > 0 && !reader.TryReadNil())
             {
-                this.X = options.Resolver.GetFormatter<int>().Deserialize(ref reader, options);
+                value.X = options.Resolver.GetFormatter<int>().Deserialize(ref reader, options);
             }
             if (numberOfData-- > 0 && !reader.TryReadNil())
             {
-                this.Y = options.Resolver.GetFormatter<int>().Deserialize(ref reader, options);
+                value.Y = options.Resolver.GetFormatter<int>().Deserialize(ref reader, options);
             }
             if (numberOfData-- > 0 && !reader.TryReadNil())
             {
-                this.A = options.Resolver.GetFormatter<int[]>().Deserialize(ref reader, options)!;
+                value.A = options.Resolver.GetFormatter<int[]>().Deserialize(ref reader, options)!;
             }
             else
             {
-                this.A = new int[0];
+                value.A = new int[0];
             }
             while (numberOfData-- > 0) reader.Skip();
         }
@@ -179,7 +192,7 @@ public class NonSerializeClass
 {
 }
 
-class __gen__tf__0000<T> : ITinyhandFormatter<GenericsIntClass<T>>, ITinyhandFormatterExtra<GenericsIntClass<T>>
+class __gen__tf__0000<T> : ITinyhandFormatter<GenericsIntClass<T>>
 {
     public void Serialize(ref TinyhandWriter writer, GenericsIntClass<T>? v, TinyhandSerializerOptions options)
     {
@@ -260,12 +273,6 @@ public class GenericsBenchmark
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         var c = (GenericsIntClass<double>)Activator.CreateInstance(typeof(GenericsIntClass<>).MakeGenericType(new Type[] { typeof(double), }));
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-        Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatterGenerator(typeof(GenericsIntClass<>), x =>
-        {
-            if (x.Length != 1) return (null!, null!);
-            var formatter = Activator.CreateInstance(typeof(__gen__tf__0000<>).MakeGenericType(x));
-            return ((ITinyhandFormatter)formatter!, (ITinyhandFormatterExtra)formatter!);
-        });
         var st = TinyhandSerializer.SerializeToString(c);
     }
 

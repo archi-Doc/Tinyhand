@@ -87,12 +87,6 @@ public partial class TinyhandSerializer
         return GetOrAdd(type).Deserialize_ReadOnlyMemory_Options.Invoke(bytes, options, cancellationToken);
     }
 
-    /// <seealso cref="Deserialize{T}(in ReadOnlySequence{byte}, TinyhandSerializerOptions?, CancellationToken)"/>
-    public static object? Deserialize(Type type, ReadOnlySequence<byte> bytes, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        return GetOrAdd(type).Deserialize_ReadOnlySequence_Options_CancellationToken.Invoke(bytes, options, cancellationToken);
-    }
-
     private static async ValueTask<object?> DeserializeObjectAsync<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken) => await DeserializeAsync<T>(stream, options, cancellationToken).ConfigureAwait(false);
 
     private static CompiledMethods GetOrAdd(Type type)
@@ -128,7 +122,6 @@ public partial class TinyhandSerializer
         internal readonly Func<Stream, TinyhandSerializerOptions?, CancellationToken, ValueTask<object?>> DeserializeAsync_Stream_Options_CancellationToken;
 
         internal readonly Func<ReadOnlyMemory<byte>, TinyhandSerializerOptions?, CancellationToken, object?> Deserialize_ReadOnlyMemory_Options;
-        internal readonly Func<ReadOnlySequence<byte>, TinyhandSerializerOptions?, CancellationToken, object?> Deserialize_ReadOnlySequence_Options_CancellationToken;
 #pragma warning restore SA1401 // Fields should be private
 #pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore SA1310 // Field names should not contain underscore
@@ -334,22 +327,6 @@ public partial class TinyhandSerializer
                 var lambda = Expression.Lambda<Func<ReadOnlyMemory<byte>, TinyhandSerializerOptions?, CancellationToken, object>>(body, param1, param2, param3).Compile(PreferInterpretation);
 
                 this.Deserialize_ReadOnlyMemory_Options = lambda;
-#endif
-            }
-
-            {
-                // public static T Deserialize<T>(ReadOnlySequence<byte> bytes, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
-                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(ReadOnlySequence<byte>).MakeByRefType(), typeof(TinyhandSerializerOptions), typeof(CancellationToken) });
-#if ENABLE_IL2CPP
-                this.Deserialize_ReadOnlySequence_Options_CancellationToken = (x, y, z) => deserialize.Invoke(null, new object?[] { x, y, z });
-#else
-                var param1 = Expression.Parameter(typeof(ReadOnlySequence<byte>), "bytes");
-                var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-                var param3 = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
-                var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2, param3), typeof(object));
-                var lambda = Expression.Lambda<Func<ReadOnlySequence<byte>, TinyhandSerializerOptions?, CancellationToken, object>>(body, param1, param2, param3).Compile(PreferInterpretation);
-
-                this.Deserialize_ReadOnlySequence_Options_CancellationToken = lambda;
 #endif
             }
         }

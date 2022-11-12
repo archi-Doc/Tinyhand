@@ -389,7 +389,7 @@ public sealed class UInt8ListCoder : ITinyhandCoder
     {
         if (nilChecked)
         {
-            ssb.AppendLine($"{ssb.FullObject} = new List<byte>(reader.ReadBytes()?.ToArray());");
+            ssb.AppendLine($"{ssb.FullObject} = new List<byte>(reader.ReadBytesToArray());");
         }
         else
         {
@@ -400,7 +400,7 @@ public sealed class UInt8ListCoder : ITinyhandCoder
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"{ssb.FullObject} = new List<byte>(reader.ReadBytes()?.ToArray());");
+                ssb.AppendLine($"{ssb.FullObject} = new List<byte>(reader.ReadBytesToArray());");
             }
         }
     }
@@ -441,7 +441,7 @@ public sealed class NullableUInt8ListCoder : ITinyhandCoder
     {
         if (nilChecked)
         {
-            ssb.AppendLine($"{ssb.FullObject} = new List<byte>(reader.ReadBytes()?.ToArray());");
+            ssb.AppendLine($"{ssb.FullObject} = new List<byte>(reader.ReadBytesToArray());");
         }
         else
         {
@@ -452,7 +452,7 @@ public sealed class NullableUInt8ListCoder : ITinyhandCoder
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"{ssb.FullObject} = new List<byte>(reader.ReadBytes()?.ToArray());");
+                ssb.AppendLine($"{ssb.FullObject} = new List<byte>(reader.ReadBytesToArray());");
             }
         }
     }

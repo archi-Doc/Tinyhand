@@ -32,7 +32,7 @@ public partial class ComplexTestClass2<T, U> : ComplexTestBase<T>
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-public abstract class ComplexTestAbstract
+public abstract partial class ComplexTestAbstract
 {
 }
 

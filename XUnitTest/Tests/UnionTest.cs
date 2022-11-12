@@ -17,7 +17,7 @@ namespace Tinyhand.Tests;
 [TinyhandUnion(1, typeof(UnionTestClassB))]
 [MessagePack.Union(0, typeof(UnionTestClassA))]
 [MessagePack.Union(1, typeof(UnionTestClassB))]
-public interface IUnionTestInterface
+public partial interface IUnionTestInterface
 {
 }
 
@@ -151,7 +151,8 @@ public class UnionTest
         classA.X.Is(3);
         classA.Token.Is(0);
 
-        x2 = TinyhandSerializer.DeserializeWith<UnionTestClassX>(y, b);
+        x2 = y;
+        TinyhandSerializer.DeserializeObject<UnionTestClassX>(b, ref x2);
         x2.IUnion.IsNull();
         x2.IUnionNullable.IsNotNull();
         x2.IUnionNoReuse.IsNotNull();
@@ -162,8 +163,7 @@ public class UnionTest
         classA = (UnionTestClassA)x2.IUnionNoReuse;
         classA.X.Is(2);
         classA.Token.Is(0);
-        classA = (UnionTestClassA)x2.IUnionCantCast;
-        classA.X.Is(3);
-        classA.Token.Is(0);
+        classA = x2.IUnionCantCast as UnionTestClassA;
+        classA.IsNull();
     }
 }

@@ -19,6 +19,75 @@ namespace Tinyhand;
 
 public static partial class TinyhandSerializer
 {
+    public static T? DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>
+    {
+        var value = default(T);
+        DeserializeObjectFromUtf8(utf8, ref value, options);
+        return value;
+    }
+
+    public static void DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, scoped ref T? value, TinyhandSerializerOptions? options = null)
+    where T : ITinyhandSerialize<T>
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        options = options ?? DefaultOptions;
+
+        var writer = new TinyhandWriter(initialBuffer);
+        try
+        {
+            bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
+            if (options.Compose == TinyhandComposeOption.Strict)
+            {
+                omitTopLevelBracket = false;
+            }
+            else
+            {
+                omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
+            }
+
+            TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
+
+            var reader = new TinyhandReader(writer);
+
+            try
+            {
+                T.Deserialize(ref reader, ref value, options);
+            }
+            catch (TinyhandUnexpectedCodeException invalidCode)
+            {// Invalid code
+                var position = reader.Consumed;
+                if (position > 0)
+                {
+                    position--;
+                }
+
+                // Get the Line/BytePosition from which the exception was thrown.
+                var e = TinyhandTreeConverter.GetTextPositionFromBinaryPosition(utf8, position);
+                TinyhandException? ex = invalidCode;
+
+                if (e.LineNumber != 0)
+                {
+                    ex = new TinyhandException($"Unexpected element type, expected: {invalidCode.ExpectedType.ToString()} actual: {invalidCode.ActualType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
+                }
+
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
     /// <summary>
     /// Serializes a given value with the specified buffer writer.
     /// </summary>
@@ -141,7 +210,7 @@ public static partial class TinyhandSerializer
 
             TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
 
-            var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
+            var reader = new TinyhandReader(writer) { CancellationToken = cancellationToken };
 
             try
             {
@@ -177,7 +246,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    /// <summary>
+    /*/// <summary>
     /// Deserializes a value of a given type from a sequence of bytes (UTF-8).
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -211,7 +280,7 @@ public static partial class TinyhandSerializer
 
             TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
 
-            var reader = new TinyhandReader(writer.FlushAndGetReadOnlySequence()) { CancellationToken = cancellationToken };
+            var reader = new TinyhandReader(writer) { CancellationToken = cancellationToken };
 
             try
             {
@@ -245,7 +314,7 @@ public static partial class TinyhandSerializer
         {
             writer.Dispose();
         }
-    }
+    }*/
 
     public static T? DeserializeFromElement<T>(Element element, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
@@ -304,7 +373,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromUtf8<T>(ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeFromUtf8<T>(utf8.Span, options, cancellationToken);
 
-    /// <summary>
+    /*/// <summary>
     /// Reuse an existing instance and deserializes a value of a given type from a sequence of bytes (UTF-8).
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -326,7 +395,7 @@ public static partial class TinyhandSerializer
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? DeserializeWithFromUtf8<T>(T reuse, ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeWithFromUtf8<T>(reuse, utf8.Span, options, cancellationToken);
+    public static T? DeserializeWithFromUtf8<T>(T reuse, ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default) => DeserializeWithFromUtf8<T>(reuse, utf8.Span, options, cancellationToken);*/
 
     /// <summary>
     /// Deserializes a value of a given type from a string (UTF-16).
@@ -362,7 +431,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    /// <summary>
+    /*/// <summary>
     /// Reuse an existing instance and deserializes a value of a given type from a string (UTF-16).
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
@@ -395,7 +464,7 @@ public static partial class TinyhandSerializer
                 ArrayPool<byte>.Shared.Return(tempArray);
             }
         }
-    }
+    }*/
 
     /*private static bool OmitTopLevelBracket<T>(TinyhandSerializerOptions options)
     {

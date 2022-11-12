@@ -152,7 +152,7 @@ public ref struct ByteBufferWriter
             throw new InvalidOperationException("FlushAndGetArray() is not supported for external IBufferWriter<byte>.");
         }
 
-        return this.byteSequence.GetReadOnlySequence().ToArray();
+        return this.byteSequence.ToReadOnlySequence().ToArray();
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public ref struct ByteBufferWriter
             throw new InvalidOperationException("FlushAndGetArray() is not supported for external IBufferWriter<byte>.");
         }
 
-        rawArray = this.byteSequence.GetReadOnlySequence().ToArray();
+        rawArray = this.byteSequence.ToReadOnlySequence().ToArray();
         written = rawArray.Length;
     }
 
@@ -202,7 +202,7 @@ public ref struct ByteBufferWriter
             throw new InvalidOperationException("FlushAndGetMemory() is not supported for external IBufferWriter<byte>.");
         }
 
-        memory = this.byteSequence.GetReadOnlySequence().ToArray().AsMemory();
+        memory = this.byteSequence.ToReadOnlySequence().ToArray().AsMemory();
         useInitialBuffer = false;
     }
 
@@ -224,7 +224,28 @@ public ref struct ByteBufferWriter
             throw new InvalidOperationException("FlushAndGetReadOnlySequence() is not supported for external IBufferWriter<byte>.");
         }
 
-        return this.byteSequence.GetReadOnlySequence();
+        return this.byteSequence.ToReadOnlySequence();
+    }
+
+    /// <summary>
+    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySpan{T}" />.
+    /// </summary>
+    /// <returns>A byte array consisting of the written data.</returns>
+    public ReadOnlySpan<byte> FlushAndGetReadOnlySpan()
+    {
+        if (this.bufferWriter == null)
+        { // Initial Buffer
+            return this.initialBuffer.AsSpan(0, this.spanSize).ToArray();
+        }
+
+        this.Flush();
+
+        if (this.byteSequence == null)
+        {
+            throw new InvalidOperationException("FlushAndGetReadOnlySequence() is not supported for external IBufferWriter<byte>.");
+        }
+
+        return this.byteSequence.ToReadOnlySpan();
     }
 
     /// <summary>

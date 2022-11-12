@@ -14,6 +14,8 @@ using BenchmarkDotNet.Running;
 using Tinyhand;
 using Tinyhand.IO;
 
+[module: System.Runtime.CompilerServices.SkipLocalsInit]
+
 #pragma warning disable SA1401 // Fields should be private
 
 namespace Benchmark;
@@ -50,7 +52,7 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<SerializeIdentifierTest>();
+        DebugRun<H2HBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {

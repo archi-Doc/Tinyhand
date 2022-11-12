@@ -108,7 +108,7 @@ public sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
 
     public Memory<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new Memory<byte>(bytes.ToArray()) : default;
+        return new Memory<byte>(reader.ReadBytesToArray());
     }
 
     public Memory<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -134,7 +134,7 @@ public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
 
     public ReadOnlyMemory<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ReadOnlyMemory<byte>(bytes.ToArray()) : default;
+        return new ReadOnlyMemory<byte>(reader.ReadBytesToArray());
     }
 
     public ReadOnlyMemory<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -164,7 +164,7 @@ public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlyS
 
     public ReadOnlySequence<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ReadOnlySequence<byte>(bytes.ToArray()) : default;
+        return new ReadOnlySequence<byte>(reader.ReadBytesToArray());
     }
 
     public ReadOnlySequence<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -197,7 +197,7 @@ public sealed class ByteArraySegmentFormatter : ITinyhandFormatter<ArraySegment<
 
     public ArraySegment<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        return reader.ReadBytes() is ReadOnlySequence<byte> bytes ? new ArraySegment<byte>(bytes.ToArray()) : default;
+        return new ArraySegment<byte>(reader.ReadBytesToArray());
     }
 
     public ArraySegment<byte> Reconstruct(TinyhandSerializerOptions options)

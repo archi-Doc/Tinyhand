@@ -24,11 +24,11 @@ public sealed class GeneratedResolver : IFormatterResolver
     {
         public Type GenericType { get; }
 
-        public Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> Generator { get; set; }
+        public Func<Type[], ITinyhandFormatter> Generator { get; set; }
 
-        public Dictionary<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> FormatterCache { get; } = new();
+        public Dictionary<Type[], ITinyhandFormatter> FormatterCache { get; } = new();
 
-        public FormatterGeneratorInfo(Type genericType, Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> generator)
+        public FormatterGeneratorInfo(Type genericType, Func<Type[], ITinyhandFormatter> generator)
         {
             this.GenericType = genericType;
             this.Generator = generator;
@@ -58,15 +58,14 @@ public sealed class GeneratedResolver : IFormatterResolver
             var genericType = targetType.GetGenericTypeDefinition();
             if (this.formatterGenerator.TryGetValue(genericType, out var info))
             {
-                (ITinyhandFormatter, ITinyhandFormatterExtra) f;
                 var genericArguments = targetType.GetGenericArguments();
-                if (!info.FormatterCache.TryGetValue(genericArguments, out f))
+                if (!info.FormatterCache.TryGetValue(genericArguments, out var f))
                 {
                     f = info.Generator(genericArguments);
                     info.FormatterCache[genericArguments] = f;
                 }
 
-                return (ITinyhandFormatter<T>)f.Item1;
+                return (ITinyhandFormatter<T>)f;
             }
         }
         catch
@@ -76,7 +75,7 @@ public sealed class GeneratedResolver : IFormatterResolver
         return null;
     }
 
-    public void SetFormatterGenerator(Type genericType, Func<Type[], (ITinyhandFormatter, ITinyhandFormatterExtra)> generator)
+    public void SetFormatterGenerator(Type genericType, Func<Type[], ITinyhandFormatter> generator)
     {
         var info = new FormatterGeneratorInfo(genericType, generator);
         this.formatterGenerator.TryAdd(genericType, info);
@@ -87,57 +86,11 @@ public sealed class GeneratedResolver : IFormatterResolver
         FormatterCache<T>.Formatter = formatter;
     }
 
-    public ITinyhandFormatterExtra<T>? TryGetFormatterExtra<T>()
-    {
-        var formatter = FormatterCacheExtra<T>.Formatter;
-        if (formatter != null)
-        {
-            return formatter;
-        }
-
-        try
-        {
-            var targetType = typeof(T);
-            var genericType = targetType.GetGenericTypeDefinition();
-            if (this.formatterGenerator.TryGetValue(genericType, out var info))
-            {
-                (ITinyhandFormatter, ITinyhandFormatterExtra) f;
-                var genericArguments = targetType.GetGenericArguments();
-                if (!info.FormatterCache.TryGetValue(genericArguments, out f))
-                {
-                    f = info.Generator(genericArguments);
-                    info.FormatterCache[genericArguments] = f;
-                }
-
-                return (ITinyhandFormatterExtra<T>)f.Item2;
-            }
-        }
-        catch
-        {
-        }
-
-        return null;
-    }
-
-    public void SetFormatterExtra<T>(ITinyhandFormatterExtra<T> formatter)
-    {
-        FormatterCacheExtra<T>.Formatter = formatter;
-    }
-
     private static class FormatterCache<T>
     {
         public static ITinyhandFormatter<T>? Formatter;
 
         static FormatterCache()
-        {
-        }
-    }
-
-    private static class FormatterCacheExtra<T>
-    {
-        public static ITinyhandFormatterExtra<T>? Formatter;
-
-        static FormatterCacheExtra()
         {
         }
     }

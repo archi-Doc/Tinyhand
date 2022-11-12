@@ -98,7 +98,12 @@ public sealed class ByteArrayFormatter : ITinyhandFormatter<byte[]>
 
     public byte[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        return reader.ReadBytes()?.ToArray(); // ?? new byte[0];
+        if (!reader.TryReadBytes(out var span))
+        {
+            return null;
+        }
+
+        return span.ToArray();
     }
 
     public byte[] Reconstruct(TinyhandSerializerOptions options)
@@ -131,8 +136,12 @@ public sealed class ByteListFormatter : ITinyhandFormatter<List<byte>>
 
     public List<byte>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        var array = reader.ReadBytes()?.ToArray(); // ?? new byte[0];
-        return array == null ? null : new List<byte>(array);
+        if (!reader.TryReadBytes(out var span))
+        {
+            return null;
+        }
+
+        return new List<byte>(span.ToArray());
     }
 
     public List<byte> Reconstruct(TinyhandSerializerOptions options)

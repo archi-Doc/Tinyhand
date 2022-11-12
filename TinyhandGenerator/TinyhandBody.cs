@@ -246,7 +246,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         {
             cancellationToken.ThrowIfCancellationRequested();
             this.GenerateHeader(ssb);
-            var ns = ssb.ScopeNamespace(x.Key);
+            ssb.AppendNamespace(x.Key);
 
             rootObjects.AddRange(x.Value); // For loader generation
 
@@ -286,7 +286,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public void Prepare()
     {
         // Configure objects.
-        var array = this.FullNameToObject.ToArray();
+        var array = this.FullNameToObject.Where(x => x.Value.Generics_Kind != VisceralGenericsKind.ClosedGeneric).ToArray();
         foreach (var x in array)
         {
             x.Value.Configure();

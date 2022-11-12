@@ -6,11 +6,27 @@ using System.Linq;
 using System.Linq.Expressions;
 using Tinyhand;
 using Tinyhand.IO;
+using Tinyhand.Resolvers;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
 
 namespace Sandbox;
+
+public interface IUnionTestInterface : ITinyhandSerialize<IUnionTestInterface>
+{
+    static void ITinyhandSerialize<IUnionTestInterface>.Serialize(ref TinyhandWriter writer, scoped ref IUnionTestInterface? value, TinyhandSerializerOptions options)
+    {
+
+    }
+
+    static void ITinyhandSerialize<IUnionTestInterface>.Deserialize(ref TinyhandReader reader, scoped ref IUnionTestInterface? value, TinyhandSerializerOptions options)
+    {
+
+    }
+
+    void Print();
+}
 
 [TinyhandGenerateHash("strings.tinyhand")]
 public partial class Hashed
@@ -48,7 +64,7 @@ public partial class SerializableClass<T> : ISerializableInterface
 }
 
 [TinyhandUnion(0, typeof(SerializableClass<int>))]
-public interface ISerializableInterface : ITinyhandSerialize
+public partial interface ISerializableInterface
 {
 }
 
@@ -252,12 +268,70 @@ public partial class MaxLengthClass3
     MaxLengthClass2? Class { get; set; }
 }
 
+[TinyhandObject]
+public partial class GenericTestClass<T>
+{
+    [KeyAsName]
+    private int id;
+
+    [KeyAsName]
+    private T value = default!;
+
+    [KeyAsName]
+    private NestedClass<double, int> nested = default!;
+
+    public GenericTestClass()
+    {
+    }
+
+    public GenericTestClass(int id, T value, NestedClass<double, int> nested)
+    {
+        this.id = id;
+        this.value = value;
+        this.nested = nested;
+    }
+
+    [TinyhandObject]
+    public partial class NestedClass<X, Y>
+    {
+        [KeyAsName]
+        private string name = default!;
+
+        [KeyAsName]
+        private X xvalue = default!;
+
+        [KeyAsName]
+        private Y yvalue = default!;
+
+        public NestedClass()
+        {
+        }
+
+        public NestedClass(string name, X xvalue, Y yvalue)
+        {
+            this.name = name;
+            this.xvalue = xvalue;
+            this.yvalue = yvalue;
+        }
+    }
+}
+
+
 class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var gc = new GenericTestClass<int>();
+        var gc2 = TinyhandSerializer.Deserialize<GenericTestClass<int>>(TinyhandSerializer.Serialize(gc));
+
+        var ntc = new GenericTestClass<string>.NestedClass<int, double>("test", 1, 100d);
+        var ntc2 = TinyhandSerializer.Deserialize<GenericTestClass<string>.NestedClass<int, double>>(TinyhandSerializer.Serialize(ntc));
+
+        var ntc3 = new GenericTestClass<string>.NestedClass<int, long>("test2", 2, 200);
+        var ntc4 = TinyhandSerializer.Deserialize<GenericTestClass<string>.NestedClass<int, long>>(TinyhandSerializer.Serialize(ntc3));
 
         var pk = new PublicKey(2, new byte[] { 0, 1, });
         pk.Test(new byte[] { });

@@ -41,63 +41,15 @@ public sealed class DecimalFormatter : ITinyhandFormatter<decimal>
 
     public decimal Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        if (!(reader.ReadStringSequence() is ReadOnlySequence<byte> sequence))
+        var span = reader.ReadStringSpan();
+        if (System.Buffers.Text.Utf8Parser.TryParse(span, out decimal result, out var bytesConsumed))
         {
-            throw new TinyhandException(string.Format("Unexpected msgpack code {0} ({1}) encountered.", MessagePackCode.Nil, MessagePackCode.ToFormatName(MessagePackCode.Nil)));
-        }
-
-        if (sequence.IsSingleSegment)
-        {
-            var span = sequence.First.Span;
-            if (System.Buffers.Text.Utf8Parser.TryParse(span, out decimal result, out var bytesConsumed))
+            if (span.Length != bytesConsumed)
             {
-                if (span.Length != bytesConsumed)
-                {
-                    throw new TinyhandException("Unexpected length of string.");
-                }
-
-                return result;
+                throw new TinyhandException("Unexpected length of string.");
             }
-        }
-        else
-        {
-            // sequence.Length is not free
-            var seqLen = (int)sequence.Length;
-            if (seqLen < 128)
-            {
-                Span<byte> span = stackalloc byte[seqLen];
-                sequence.CopyTo(span);
-                if (System.Buffers.Text.Utf8Parser.TryParse(span, out decimal result, out var bytesConsumed))
-                {
-                    if (seqLen != bytesConsumed)
-                    {
-                        throw new TinyhandException("Unexpected length of string.");
-                    }
 
-                    return result;
-                }
-            }
-            else
-            {
-                var rentArray = ArrayPool<byte>.Shared.Rent(seqLen);
-                try
-                {
-                    sequence.CopyTo(rentArray);
-                    if (System.Buffers.Text.Utf8Parser.TryParse(rentArray.AsSpan(0, seqLen), out decimal result, out var bytesConsumed))
-                    {
-                        if (seqLen != bytesConsumed)
-                        {
-                            throw new TinyhandException("Unexpected length of string.");
-                        }
-
-                        return result;
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(rentArray);
-                }
-            }
+            return result;
         }
 
         throw new TinyhandException("Can't parse to decimal, input string was not in a correct format.");
@@ -196,25 +148,13 @@ public sealed class GuidFormatter : ITinyhandFormatter<Guid>
 
     public Guid Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        var seq = reader.ReadStringSequence();
-        ReadOnlySequence<byte> segment = seq.HasValue ? seq.Value : default;
-        if (segment.Length != 36)
+        var span = reader.ReadStringSpan();
+        if (span.Length != 36)
         {
             throw new TinyhandException("Unexpected length of string.");
         }
 
-        GuidBits result;
-        if (segment.IsSingleSegment)
-        {
-            result = new GuidBits(segment.First.Span);
-        }
-        else
-        {
-            Span<byte> bytes = stackalloc byte[36];
-            segment.CopyTo(bytes);
-            result = new GuidBits(bytes);
-        }
-
+        var result = new GuidBits(span);
         return result.Value;
     }
 
@@ -547,9 +487,8 @@ public sealed class BigIntegerFormatter : ITinyhandFormatter<System.Numerics.Big
 
     public System.Numerics.BigInteger Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        var seq = reader.ReadBytes();
-        ReadOnlySequence<byte> bytes = seq.HasValue ? seq.Value : default;
-        return new System.Numerics.BigInteger(bytes.ToArray());
+        reader.TryReadBytes(out var span);
+        return new System.Numerics.BigInteger(span);
     }
 
     public System.Numerics.BigInteger Reconstruct(TinyhandSerializerOptions options)

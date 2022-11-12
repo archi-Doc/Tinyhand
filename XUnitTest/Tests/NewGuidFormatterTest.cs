@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,7 +51,7 @@ public partial class NewGuidFormatterTest
             var sequence = sequenceWriter.FlushAndGetReadOnlySequence();
             sequence.Length.Is(38);
 
-            var sequenceReader = new TinyhandReader(sequence);
+            var sequenceReader = new TinyhandReader(sequence.ToArray());
             GuidFormatter.Instance.Deserialize(ref sequenceReader, null).Is(original);
             sequenceReader.End.IsTrue();
         }

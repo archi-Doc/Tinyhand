@@ -174,7 +174,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
             }
         }
 
-        this.SalvageCloseGeneric(body, generics, processed);
+        // this.SalvageCloseGeneric(body, generics, processed);
 
         context.CancellationToken.ThrowIfCancellationRequested();
         body.Prepare();
