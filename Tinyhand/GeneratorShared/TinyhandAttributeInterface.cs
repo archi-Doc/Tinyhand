@@ -223,7 +223,17 @@ public interface ITinyhandSerializationCallback
 }
 
 /// <summary>
-/// Interface for custom serialize/deserialize methods.
+/// Interface for serialize/deserialize methods.
+/// </summary>
+public interface ITinyhandSerialize
+{
+    void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options);
+
+    void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
+}
+
+/// <summary>
+/// Interface for serialize/deserialize methods.
 /// If this interface is implemented, Tinyhand use it instead of the generated code.
 /// </summary>
 /// <typeparam name="T">The type to be serialized.</typeparam>

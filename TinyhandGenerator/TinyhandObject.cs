@@ -683,13 +683,22 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             this.Identifier.Add(x.SimpleName);
         }
 
+        var partialRequired = false;
         if (!this.IsAbstractOrInterface)
-        {
+        {// Class/Struct
+            partialRequired = true;
             this.ObjectFlag |= TinyhandObjectFlag.CanCreateInstance;
+        }
+        else
+        {// Interface/Abstract
+            if (this.Union != null)
+            {
+                partialRequired = true;
+            }
         }
 
         // partial class required.
-        if (!this.IsPartial)
+        if (partialRequired && !this.IsPartial)
         {
             this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartial, this.Location, this.FullName);
         }
@@ -1498,6 +1507,15 @@ ModuleInitializerClass_Added:
                 {
                     interfaceString += $", ITinyhandClone<{this.RegionalName}>";
                 }
+            }
+
+            if (interfaceString == string.Empty)
+            {
+                interfaceString = $" : ITinyhandSerialize";
+            }
+            else
+            {
+                interfaceString += $", ITinyhandSerialize";
             }
         }
 
@@ -2494,6 +2512,12 @@ ModuleInitializerClass_Added:
             {
                 this.GenerateClone_Method2(ssb, info);
             }
+
+            // ITinyhandSerialize
+            ssb.AppendLine("void ITinyhandSerialize.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)");
+            ssb.AppendLine("    => TinyhandSerializer.DeserializeObject(ref reader, ref Unsafe.AsRef(this)!, options);");
+            ssb.AppendLine("void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)");
+            ssb.AppendLine("    => TinyhandSerializer.SerializeObject(ref writer, this, options);");
         }
 
         this.GenerateAddProperty(ssb, info);

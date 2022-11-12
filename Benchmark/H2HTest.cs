@@ -13,6 +13,7 @@ using BenchmarkDotNet.Attributes;
 using ProtoBuf;
 using MemoryPack;
 using Tinyhand;
+using Tinyhand.IO;
 
 namespace Benchmark.H2HTest;
 

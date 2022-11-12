@@ -13,19 +13,19 @@ using Tinyhand.Resolvers;
 
 namespace Sandbox;
 
-public interface IUnionTestInterface : ITinyhandSerialize<IUnionTestInterface>
+[TinyhandObject]
+public partial struct TestStruct
 {
-    static void ITinyhandSerialize<IUnionTestInterface>.Serialize(ref TinyhandWriter writer, scoped ref IUnionTestInterface? value, TinyhandSerializerOptions options)
-    {
+    [Key(0)]
+    public int X;
 
-    }
+    [Key(1)]
+    public int Y;
+}
 
-    static void ITinyhandSerialize<IUnionTestInterface>.Deserialize(ref TinyhandReader reader, scoped ref IUnionTestInterface? value, TinyhandSerializerOptions options)
-    {
-
-    }
-
-    void Print();
+[TinyhandObject]
+public abstract class AbstractClass
+{
 }
 
 [TinyhandGenerateHash("strings.tinyhand")]
@@ -323,6 +323,16 @@ class Program
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var ts = default(TestStruct);
+        ts.X = 1;
+        ts.Y = 2;
+        var tsb = TinyhandSerializer.SerializeObject(ts);
+        var ts2 = TinyhandSerializer.DeserializeObject<TestStruct>(tsb);
+        ts2 = default;
+        var reader = new TinyhandReader(tsb);
+        var ts3 = (ITinyhandSerialize)ts2;
+        ts3.Deserialize(ref reader, TinyhandSerializerOptions.Standard);
 
         var gc = new GenericTestClass<int>();
         var gc2 = TinyhandSerializer.Deserialize<GenericTestClass<int>>(TinyhandSerializer.Serialize(gc));
