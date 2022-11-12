@@ -246,7 +246,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         {
             cancellationToken.ThrowIfCancellationRequested();
             this.GenerateHeader(ssb);
-            var ns = ssb.ScopeNamespace(x.Key);
+            ssb.AppendNamespace(x.Key);
 
             rootObjects.AddRange(x.Value); // For loader generation
 

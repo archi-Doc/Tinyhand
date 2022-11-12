@@ -42,7 +42,7 @@ internal class TinyhandGenerateMemberBody : VisceralBody<TinyhandGenerateMemberO
         {
             cancellationToken.ThrowIfCancellationRequested();
             this.GenerateHeader(ssb);
-            var ns = ssb.ScopeNamespace(x.Key);
+            ssb.AppendNamespace(x.Key);
 
             var firstFlag = true;
             foreach (var y in x.Value)

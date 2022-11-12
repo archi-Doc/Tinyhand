@@ -151,7 +151,7 @@ public class UnionTest
         classA.X.Is(3);
         classA.Token.Is(0);
 
-        x2 = TinyhandSerializer.DeserializeWith<UnionTestClassX>(y, b);
+        x2 = TinyhandSerializer.DeserializeObject<UnionTestClassX>(b, ref y);
         x2.IUnion.IsNull();
         x2.IUnionNullable.IsNotNull();
         x2.IUnionNoReuse.IsNotNull();

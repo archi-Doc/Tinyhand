@@ -1379,7 +1379,7 @@ ModuleInitializerClass_Added:
                 {// Formatter
                     if (x.Union == null)
                     {
-                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new TinyhandObjectFormatter<{x.FullName}>());");
+                        ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{x.FullName}>());");
                     }
                     else
                     {
@@ -1400,7 +1400,7 @@ ModuleInitializerClass_Added:
                     if (x.Union == null)
                     {
                         ssb.AppendLine($"var ft = typeof({generic.name}).MakeGenericType(x);");
-                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(TinyhandObjectFormatter<>).MakeGenericType(ft));");
+                        ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(ft));");
                     }
                     else
                     {
@@ -3102,7 +3102,7 @@ ModuleInitializerClass_Added:
             if (withNullable.Object.ObjectAttribute != null)
             {// TinyhandObject.
                 InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject<{withNullable.FullName}>(ref {sourceObject}, options)!;");
+                ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject<{withNullable.FullName}>({sourceObject}, options)!;");
                 // ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
                 InitSetter_End();
             }

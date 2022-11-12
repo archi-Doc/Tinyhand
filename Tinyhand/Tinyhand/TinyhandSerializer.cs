@@ -101,7 +101,15 @@ public static partial class TinyhandSerializer
     }
 
     [return: NotNullIfNotNull("value")]
-    public static T? CloneObject<T>(scoped ref T? value, TinyhandSerializerOptions? options = null)
+    public static T? CloneObject<T>(scoped in T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandClone<T>
+    {
+        options = options ?? DefaultOptions;
+        return T.Clone(ref Unsafe.AsRef(value), options);
+    }
+
+    [return: NotNullIfNotNull("value")]
+    public static T? CloneObject<T>(T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandClone<T>
     {
         options = options ?? DefaultOptions;

@@ -19,6 +19,75 @@ namespace Tinyhand;
 
 public static partial class TinyhandSerializer
 {
+    public static T? DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>
+    {
+        var value = default(T);
+        DeserializeObjectFromUtf8(utf8, ref value, options);
+        return value;
+    }
+
+    public static void DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, scoped ref T? value, TinyhandSerializerOptions? options = null)
+    where T : ITinyhandSerialize<T>
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        options = options ?? DefaultOptions;
+
+        var writer = new TinyhandWriter(initialBuffer);
+        try
+        {
+            bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
+            if (options.Compose == TinyhandComposeOption.Strict)
+            {
+                omitTopLevelBracket = false;
+            }
+            else
+            {
+                omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
+            }
+
+            TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
+
+            var reader = new TinyhandReader(writer);
+
+            try
+            {
+                T.Deserialize(ref reader, ref value, options);
+            }
+            catch (TinyhandUnexpectedCodeException invalidCode)
+            {// Invalid code
+                var position = reader.Consumed;
+                if (position > 0)
+                {
+                    position--;
+                }
+
+                // Get the Line/BytePosition from which the exception was thrown.
+                var e = TinyhandTreeConverter.GetTextPositionFromBinaryPosition(utf8, position);
+                TinyhandException? ex = invalidCode;
+
+                if (e.LineNumber != 0)
+                {
+                    ex = new TinyhandException($"Unexpected element type, expected: {invalidCode.ExpectedType.ToString()} actual: {invalidCode.ActualType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
+                }
+
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+            }
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
     /// <summary>
     /// Serializes a given value with the specified buffer writer.
     /// </summary>
