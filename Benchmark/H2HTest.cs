@@ -130,6 +130,10 @@ public class H2HBenchmark
 
         this.data4 = MemoryPackSerializer.Serialize(this.h2h);
         this.data5 = TinyhandSerializer.SerializeObject(this.h2h);
+
+        ObjectH2H2? test = default;
+        TinyhandSerializer.ReconstructObject(ref test);
+        var test2 = test;
     }
 
     [GlobalCleanup]

@@ -1930,7 +1930,9 @@ ModuleInitializerClass_Added:
 
     internal void GenerateFormatter_DeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
     {
-        if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
+        ssb.AppendLine($"TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, ref {name}, options);");
+
+        /*if (this.MethodCondition_Deserialize == MethodCondition.StaticMethod)
         {// Static method
             // ssb.AppendLine($"{this.FullName}.Deserialize{this.GenericsNumberString}(ref {name}, ref reader, options);");
             ssb.AppendLine($"{name}.Deserialize(ref reader, options);");
@@ -1942,7 +1944,7 @@ ModuleInitializerClass_Added:
         else
         {// Member method
             ssb.AppendLine($"{name}.Deserialize(ref reader, options);");
-        }
+        }*/
     }
 
     internal string NewInstanceCode()
@@ -1978,7 +1980,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
+    /*internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (this.Kind.IsReferenceType())
         {// Reference type
@@ -1988,7 +1990,7 @@ ModuleInitializerClass_Added:
         ssb.AppendLine($"var v = {this.NewInstanceCode()};");
         this.GenerateFormatter_DeserializeCore(ssb, info, "v");
         ssb.AppendLine("return v;");
-    }
+    }*/
 
     internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
@@ -2035,14 +2037,12 @@ ModuleInitializerClass_Added:
         }
 
         this.GenerateFormatter_DeserializeCore(ssb, info, "v2");
-        ssb.AppendLine($"{ssb.FullObject} = v2;");
+        ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
-    internal void GenerateFormatter_ReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
+    /*internal void GenerateFormatter_ReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
     {
-        ssb.AppendLine($"TinyhandSerializer.ReconstructObject<{this.FullName}>(ref {name}, options);");
-
-        /*if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
+        if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
         {// Static method
             ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref {name}, options);");
         }
@@ -2053,15 +2053,8 @@ ModuleInitializerClass_Added:
         else
         {// Member method
             ssb.AppendLine($"{name}.Reconstruct(options);");
-        }*/
-    }
-
-    internal void GenerateFormatter_Reconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        ssb.AppendLine($"var v = {this.NewInstanceCode()};");
-        this.GenerateFormatter_ReconstructCore(ssb, info, "v");
-        ssb.AppendLine("return v;");
-    }
+        }
+    }*/
 
     internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
@@ -2081,7 +2074,7 @@ ModuleInitializerClass_Added:
             }
         }
 
-        this.GenerateFormatter_ReconstructCore(ssb, info, "v2");
+        ssb.AppendLine($"TinyhandSerializer.ReconstructObject<{this.FullName}>(ref v2, options);");
 
         if (defaultValue != null)
         {
@@ -2098,7 +2091,7 @@ ModuleInitializerClass_Added:
         ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
-    internal void GenerateFormatter_Clone(ScopingStringBuilder ssb, GeneratorInformation info)
+    /*internal void GenerateFormatter_Clone(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
         {// Static method
@@ -2112,7 +2105,7 @@ ModuleInitializerClass_Added:
         {// Member method
             ssb.AppendLine($"return value{this.QuestionMarkIfReferenceType}.DeepClone(options);");
         }
-    }
+    }*/
 
     internal void GenerateDeserialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -2230,7 +2223,7 @@ ModuleInitializerClass_Added:
     internal void GenerateReconstruct_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandReconstruct<{this.RegionalName}>.Reconstruct(scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandReconstruct<{this.RegionalName}>.Reconstruct([NotNull] scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -3109,7 +3102,8 @@ ModuleInitializerClass_Added:
             if (withNullable.Object.ObjectAttribute != null)
             {// TinyhandObject.
                 InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
+                ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject<{withNullable.FullName}>(ref {sourceObject}, options)!;");
+                // ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
                 InitSetter_End();
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)

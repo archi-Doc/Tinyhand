@@ -93,13 +93,14 @@ public static partial class TinyhandSerializer
         T.Deserialize(ref reader, ref value, options);
     }
 
-    public static void ReconstructObject<T>(scoped ref T? value, TinyhandSerializerOptions? options = null)
+    public static void ReconstructObject<T>([NotNull] scoped ref T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandReconstruct<T>
     {
         options = options ?? DefaultOptions;
         T.Reconstruct(ref value, options);
     }
 
+    [return: NotNullIfNotNull("value")]
     public static T? CloneObject<T>(scoped ref T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandClone<T>
     {

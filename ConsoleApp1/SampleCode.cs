@@ -258,13 +258,13 @@ public class ReuseTest
         // t2.ObjectToCreate.Name == "", t2.ObjectToCreate.Length == 6 // Note that Name is not a serialization target.
         // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
 
-        t2 = TinyhandSerializer.DeserializeWith<ReuseTestClass>(t, TinyhandSerializer.Serialize(t)); // Reuse ReuseTestClass
+        TinyhandSerializer.DeserializeObject<ReuseTestClass>(TinyhandSerializer.Serialize(t), ref t2); // Reuse ReuseTestClass
         // t2.Flag == true
         // t2.ObjectToCreate.Name == "", t2.ObjectToCreate.Length == 6
         // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
 
         var reader = new Tinyhand.IO.TinyhandReader(TinyhandSerializer.Serialize(t));
-        t.Deserialize(ref reader, TinyhandSerializerOptions.Standard); ; // Same as above
+        TinyhandSerializer.DeserializeObject(ref reader, ref t); // Same as above
     }
 }
 

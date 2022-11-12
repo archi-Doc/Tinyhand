@@ -21,7 +21,7 @@ public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
     {
         var v = default(T);
         T.Reconstruct(ref v, options);
-        return v!;
+        return v;
     }
 
     public T? Clone(T? value, TinyhandSerializerOptions options)

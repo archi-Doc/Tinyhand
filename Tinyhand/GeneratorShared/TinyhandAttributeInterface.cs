@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Tinyhand.IO;
 
 namespace Tinyhand;
@@ -240,7 +241,7 @@ public interface ITinyhandSerialize<T>
 /// <typeparam name="T">The type to be reconstructed.</typeparam>
 public interface ITinyhandReconstruct<T>
 {
-    static abstract void Reconstruct(scoped ref T? value, TinyhandSerializerOptions options);
+    static abstract void Reconstruct([NotNull] scoped ref T? value, TinyhandSerializerOptions options);
 }
 
 /// <summary>
