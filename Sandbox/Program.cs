@@ -64,7 +64,7 @@ public partial class SerializableClass<T> : ISerializableInterface
 }
 
 [TinyhandUnion(0, typeof(SerializableClass<int>))]
-public interface ISerializableInterface
+public partial interface ISerializableInterface
 {
 }
 

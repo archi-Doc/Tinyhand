@@ -272,7 +272,7 @@ public class ReuseTest
 // Annotate inheritance types
 [TinyhandUnion(0, typeof(UnionTestClassA))]
 [TinyhandUnion(1, typeof(UnionTestClassB))]
-public interface IUnionTestInterface
+public partial interface IUnionTestInterface
 {
     void Print();
 }

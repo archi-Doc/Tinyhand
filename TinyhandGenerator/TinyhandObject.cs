@@ -689,14 +689,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             this.ObjectFlag |= TinyhandObjectFlag.CanCreateInstance;
         }
 
+        // partial class required.
+        if (!this.IsPartial)
+        {
+            this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartial, this.Location, this.FullName);
+        }
+
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.CanCreateInstance))
         {// Type which can create an instance
-            // partial class required.
-            if (!this.IsPartial)
-            {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_NotPartial, this.Location, this.FullName);
-            }
-
             // default constructor required.
             if (this.Kind.IsReferenceType())
             {
