@@ -1907,7 +1907,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
+    /*internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (this.Kind.IsReferenceType())
         {// Reference type
@@ -1926,7 +1926,7 @@ ModuleInitializerClass_Added:
         {// Member method
             ssb.AppendLine($"{ssb.FullObject}.Serialize(ref writer, options);");
         }
-    }
+    }*/
 
     internal void GenerateFormatter_DeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
     {
@@ -2002,7 +2002,8 @@ ModuleInitializerClass_Added:
             }
             else
             {// Reuse Instance
-                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatterExtra<{this.FullName}>().Deserialize({originalName}!, ref reader, options)!;");
+                // tempcode
+                ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullName}>().Deserialize(ref reader, options)!;");
             }
 
             return;
@@ -3102,8 +3103,15 @@ ModuleInitializerClass_Added:
             if (withNullable.Object.ObjectAttribute != null)
             {// TinyhandObject.
                 InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject<{withNullable.FullName}>({sourceObject}, options)!;");
-                // ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
+                if (withNullable.Object.Kind == VisceralObjectKind.Interface)
+                {
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
+                }
+                else
+                {
+                    ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject<{withNullable.FullName}>({sourceObject}, options)!;");
+                }
+
                 InitSetter_End();
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)

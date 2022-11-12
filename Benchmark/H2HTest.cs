@@ -141,7 +141,7 @@ public class H2HBenchmark
     {
     }
 
-    /* [Benchmark]
+    /*[Benchmark]
     public byte[] SerializeProtoBuf()
     {
         using (var ms = new MemoryStream())
@@ -155,21 +155,21 @@ public class H2HBenchmark
     public byte[] SerializeMessagePack()
     {
         return MessagePack.MessagePackSerializer.Serialize(this.h2h);
-    }
+    }*/
 
     [Benchmark]
     public byte[] SerializeMemoryPack()
     {
         return MemoryPackSerializer.Serialize(this.h2h);
-    }*/
+    }
 
-    // [Benchmark]
+    [Benchmark]
     public byte[] SerializeTinyhand()
     {
         return Tinyhand.TinyhandSerializer.Serialize(this.h2h);
     }
 
-    // [Benchmark]
+    [Benchmark]
     public byte[] SerializeTinyhandObject()
     {
         return Tinyhand.TinyhandSerializer.SerializeObject(this.h2h);
@@ -193,13 +193,13 @@ public class H2HBenchmark
         return MessagePack.MessagePackSerializer.Deserialize<ObjectH2H>(this.data);
     }*/
 
-    // [Benchmark]
+    [Benchmark]
     public ObjectH2H? DeserializeMemoryPack()
     {
         return MemoryPackSerializer.Deserialize<ObjectH2H>(this.data4);
     }
 
-    // [Benchmark]
+    [Benchmark]
     public ObjectH2H? DeserializeTinyhand()
     {
         /*var reader = new TinyhandReader(this.data);

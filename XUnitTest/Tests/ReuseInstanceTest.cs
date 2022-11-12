@@ -93,7 +93,8 @@ public class ReuseInstanceTest
         t.ReuseStruct.Flag.Is(true);
         t.ReuseStructFalse.Flag.Is(false);
 
-        var t2 = TinyhandSerializer.DeserializeWith<ReuseInstanceClass>(new ReuseInstanceClass(false), TinyhandSerializer.Serialize(new ReuseInstanceClass()));
+        var t2 = new ReuseInstanceClass(false);
+        TinyhandSerializer.DeserializeObject(TinyhandSerializer.Serialize(new ReuseInstanceClass()), ref t2);
         /*var t2 = new ReuseInstanceClass(false);
         var reader = new Tinyhand.IO.TinyhandReader(TinyhandSerializer.Serialize(new ReuseInstanceClass()));
         t2.Deserialize(ref reader, TinyhandSerializerOptions.Standard);*/
@@ -102,7 +103,8 @@ public class ReuseInstanceTest
         t2.ReuseStruct.Flag.Is(false);
         t2.ReuseStructFalse.Flag.Is(false);
 
-        t2 = TinyhandSerializer.DeserializeWith<ReuseInstanceClass>(new ReuseInstanceClass(true), TinyhandSerializer.Serialize(new ReuseInstanceClass()));
+        t2 = new ReuseInstanceClass(true);
+        TinyhandSerializer.DeserializeObject(TinyhandSerializer.Serialize(new ReuseInstanceClass()), ref t2);
         t2.ReuseClass.Flag.Is(true);
         t2.ReuseClassFalse.Flag.Is(false);
         t2.ReuseStruct.Flag.Is(true);

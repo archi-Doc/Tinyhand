@@ -49,7 +49,7 @@ public partial class SerializableClass<T> : ISerializableInterface
 }
 
 [TinyhandUnion(0, typeof(SerializableClass<int>))]
-public interface ISerializableInterface : ITinyhandSerialize
+public interface ISerializableInterface
 {
 }
 
@@ -308,9 +308,6 @@ class Program
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
-
-        var ft = typeof(Sandbox.GenericTestClass<>.NestedClass<,>).MakeGenericType(new Type[] { typeof(int), typeof(string), typeof(double), });
-        var formatter = Activator.CreateInstance(typeof(TinyhandObjectFormatter<>).MakeGenericType(ft));
 
         var gc = new GenericTestClass<int>();
         var gc2 = TinyhandSerializer.Deserialize<GenericTestClass<int>>(TinyhandSerializer.Serialize(gc));

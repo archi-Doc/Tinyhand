@@ -323,17 +323,19 @@ public class TinyhandUnion
                 {
                     using (var reuseIf = ssb.ScopeBrace($"if ({reuseName} is {x.Value.FullName} {name})"))
                     {
-                        ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatterExtra<{x.Value.FullName}>().Deserialize({name}, ref reader, options));");
+                        GenerateFormatter_DeserializeCore(name);
                     }
 
                     using (var reuseElse = ssb.ScopeBrace("else"))
                     {
-                        ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options));");
+                        ssb.AppendLine($"var {name} = default({x.Value.FullName});");
+                        GenerateFormatter_DeserializeCore(name);
                     }
                 }
                 else
                 {
-                    ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>(options.Resolver.GetFormatter<{x.Value.FullName}>().Deserialize(ref reader, options));");
+                    ssb.AppendLine($"var {name} = default({x.Value.FullName});");
+                    GenerateFormatter_DeserializeCore(name);
                 }
 
                 ssb.DecrementIndent();
@@ -344,6 +346,12 @@ public class TinyhandUnion
             ssb.AppendLine("reader.Skip();");
             ssb.AppendLine("return default;");
             ssb.DecrementIndent();
+        }
+
+        void GenerateFormatter_DeserializeCore(string name)
+        {
+            ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
+            ssb.AppendLine($"return Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>({name});");
         }
     }
 }
