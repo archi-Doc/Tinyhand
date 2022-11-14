@@ -116,4 +116,9 @@ public record TinyhandSerializerOptions
     public bool IsConditionalMode => this.SerializationMode == Mode.Conditional;
 
     public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
+
+    /// <summary>
+    /// Gets a value indicating whether the option uses Standard resolver or not.
+    /// </summary>
+    public bool IsStandardResolver => this.Resolver == StandardResolver.Instance;
 }
