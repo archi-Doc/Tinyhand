@@ -125,7 +125,7 @@ class Program
 
 ## Performance
 
-Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-net) and [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp).
+Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-net), [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) and [MemoryPack](https://github.com/Cysharp/MemoryPack).
 
 Tinyhand is quite fast and since it is based on Source Generator, it does not take time for dynamic code generation.
 
