@@ -14,6 +14,7 @@ using ProtoBuf;
 using MemoryPack;
 using Tinyhand;
 using Tinyhand.IO;
+using System.Diagnostics;
 
 namespace Benchmark.H2HTest;
 
@@ -96,7 +97,6 @@ public class H2HBenchmark
     byte[] data = default!;
     byte[] data3 = default!;
     byte[] data4 = default!;
-    byte[] data5 = default!;
     byte[] utf8 = default!;
 
     ObjectH2H2 h2h2 = default!;
@@ -130,11 +130,12 @@ public class H2HBenchmark
         }
 
         this.data4 = MemoryPackSerializer.Serialize(this.h2h);
-        this.data5 = TinyhandSerializer.SerializeObject(this.h2h);
 
         ObjectH2H2? test = default;
         TinyhandSerializer.ReconstructObject(ref test);
         var test2 = test;
+
+        var d = TinyhandSerializer.SerializeObject(this.h2h);;
     }
 
     [GlobalCleanup]
@@ -142,7 +143,7 @@ public class H2HBenchmark
     {
     }
 
-    /*[Benchmark]
+    [Benchmark]
     public byte[] SerializeProtoBuf()
     {
         using (var ms = new MemoryStream())
@@ -156,7 +157,7 @@ public class H2HBenchmark
     public byte[] SerializeMessagePack()
     {
         return MessagePack.MessagePackSerializer.Serialize(this.h2h);
-    }*/
+    }
 
     [Benchmark]
     public byte[] SerializeMemoryPack()
@@ -167,19 +168,7 @@ public class H2HBenchmark
     [Benchmark]
     public byte[] SerializeTinyhand()
     {
-        return Tinyhand.TinyhandSerializer.Serialize(this.h2h);
-    }
-
-    [Benchmark]
-    public byte[] SerializeTinyhandObject()
-    {
-        return Tinyhand.TinyhandSerializer.SerializeObject(this.h2h);
-    }
-
-    /*[Benchmark]
-    public byte[] SerializeTinyhandUtf8()
-    {
-        return Tinyhand.TinyhandSerializer.SerializeToUtf8(this.h2h);
+        return Tinyhand.TinyhandSerializer.SerializeObject(this.h2h); // Serialize
     }
 
     [Benchmark]
@@ -192,7 +181,7 @@ public class H2HBenchmark
     public ObjectH2H DeserializeMessagePack()
     {
         return MessagePack.MessagePackSerializer.Deserialize<ObjectH2H>(this.data);
-    }*/
+    }
 
     [Benchmark]
     public ObjectH2H? DeserializeMemoryPack()
@@ -203,31 +192,10 @@ public class H2HBenchmark
     [Benchmark]
     public ObjectH2H? DeserializeTinyhand()
     {
-        /*var reader = new TinyhandReader(this.data);
-        var formatter = TinyhandSerializerOptions.Standard.Resolver.GetFormatter<ObjectH2H>();
-        return formatter.Deserialize(ref reader, TinyhandSerializerOptions.Standard);*/
-
-        /*var reader = new TinyhandReader(this.data);
-        var v = new ObjectH2H();
-        v.Deserialize(ref reader, TinyhandSerializerOptions.Standard);
-        return v;*/
-
-        return Tinyhand.TinyhandSerializer.Deserialize<ObjectH2H>(this.data);
+        return Tinyhand.TinyhandSerializer.DeserializeObject<ObjectH2H>(this.data); // Deserialize
     }
 
     [Benchmark]
-    public ObjectH2H? DeserializeTinyhandObject()
-    {
-        return Tinyhand.TinyhandSerializer.DeserializeObject<ObjectH2H>(this.data5);
-    }
-
-    /*[Benchmark]
-    public ObjectH2H? DeserializeTinyhandUtf8()
-    {
-        return Tinyhand.TinyhandSerializer.DeserializeFromUtf8<ObjectH2H>(this.utf8);
-    }*/
-
-    /*[Benchmark]
     public byte[] SerializeMessagePackString()
     {
         return MessagePack.MessagePackSerializer.Serialize(this.h2h2);
@@ -240,13 +208,13 @@ public class H2HBenchmark
     }
 
     [Benchmark]
-    public byte[] SerializeTinyhandStringUtf8()
+    public byte[] SerializeTinyhandUtf8()
     {
         return Tinyhand.TinyhandSerializer.SerializeToUtf8(this.h2h2);
     }
 
     [Benchmark]
-    public byte[] SerializeJsonStringUtf8()
+    public byte[] SerializeJsonUtf8()
     {
         return JsonSerializer.SerializeToUtf8Bytes(this.h2h2);
     }
@@ -264,16 +232,16 @@ public class H2HBenchmark
     }
 
     [Benchmark]
-    public ObjectH2H2? DeserializeTinyhandStringUtf8()
+    public ObjectH2H2? DeserializeTinyhandUtf8()
     {
         return Tinyhand.TinyhandSerializer.DeserializeFromUtf8<ObjectH2H2>(this.utf8b);
     }
 
     [Benchmark]
-    public ObjectH2H2? DeserializeJsonStringUtf8()
+    public ObjectH2H2? DeserializeJsonUtf8()
     {
         return JsonSerializer.Deserialize<ObjectH2H2>(this.json);
-    }*/
+    }
 }
 
 [Config(typeof(BenchmarkConfig))]
