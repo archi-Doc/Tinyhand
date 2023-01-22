@@ -20,7 +20,7 @@ public sealed class DynamicObjectTypeFallbackFormatter : ITinyhandFormatter<obje
 
     private delegate void SerializeMethod(object dynamicFormatter, ref TinyhandWriter writer, object value, TinyhandSerializerOptions options);
 
-    private static readonly Internal.ThreadsafeTypeKeyHashTable<SerializeMethod> SerializerDelegates = new();
+    private static readonly ThreadsafeTypeKeyHashTable<SerializeMethod> SerializerDelegates = new();
 
     private DynamicObjectTypeFallbackFormatter()
     {
