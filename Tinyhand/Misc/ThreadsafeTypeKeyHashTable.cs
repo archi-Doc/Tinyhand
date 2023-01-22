@@ -6,9 +6,8 @@ using System.Runtime.CompilerServices;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1214 // Readonly fields should appear before non-readonly fields
-#pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Internal;
+namespace Tinyhand;
 
 /// <summary>
 /// A dictionary where <see cref="Type"/> is the key, and a configurable <typeparamref name="TValue"/> type

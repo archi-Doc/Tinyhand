@@ -20,7 +20,7 @@ namespace Tinyhand;
 public partial class TinyhandSerializer
 {
     private static readonly Func<Type, CompiledMethods> CreateCompiledMethods;
-    private static readonly Tinyhand.Internal.ThreadsafeTypeKeyHashTable<CompiledMethods> Serializes = new(capacity: 64);
+    private static readonly ThreadsafeTypeKeyHashTable<CompiledMethods> Serializes = new(capacity: 64);
 
     static TinyhandSerializer()
     {
