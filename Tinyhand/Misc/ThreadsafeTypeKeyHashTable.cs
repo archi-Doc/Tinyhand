@@ -14,7 +14,7 @@ namespace Tinyhand;
 /// that is thread-safe to read and write, allowing concurrent reads and exclusive writes.
 /// </summary>
 /// <typeparam name="TValue">The type of value stored in the dictionary.</typeparam>
-internal class ThreadsafeTypeKeyHashTable<TValue>
+public class ThreadsafeTypeKeyHashTable<TValue>
 {
     private Entry[] buckets;
     private int size; // only use in writer lock
