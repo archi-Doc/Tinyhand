@@ -62,8 +62,6 @@ public sealed class TinyhandObjectAttributeMock
 
     public int ReservedKeys { get; set; } = -1;
 
-    public bool GenerateStaticConstructor { get; set; } = true;
-
     public TinyhandObjectAttributeMock()
     {
     }
@@ -125,12 +123,6 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.ReservedKeys = (int)val;
-        }
-
-        val = AttributeHelper.GetValue(-1, nameof(GenerateStaticConstructor), constructorArguments, namedArguments);
-        if (val != null)
-        {
-            attribute.GenerateStaticConstructor = (bool)val;
         }
 
         return attribute;

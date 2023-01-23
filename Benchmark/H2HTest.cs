@@ -20,7 +20,7 @@ namespace Benchmark.H2HTest;
 
 [ProtoContract]
 [MessagePack.MessagePackObject]
-[TinyhandObject(GenerateStaticConstructor = false)]
+[TinyhandObject]
 [MemoryPackable] // GenerateType.VersionTolerant
 public partial class ObjectH2H
 {
