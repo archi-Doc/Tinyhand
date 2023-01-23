@@ -73,6 +73,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public int ReservedKeys { get; set; } = -1;
 
+    /// <summary>
+    /// Gets or sets the generics argument for the initializer.
+    /// </summary>
+    public string InitializerGenericsArguments { get; set; } = string.Empty;
+
     public TinyhandObjectAttribute()
     {
     }

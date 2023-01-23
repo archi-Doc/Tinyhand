@@ -62,6 +62,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public int ReservedKeys { get; set; } = -1;
 
+    public string InitializerGenericsArguments { get; set; } = string.Empty;
+
     public TinyhandObjectAttributeMock()
     {
     }
@@ -123,6 +125,12 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.ReservedKeys = (int)val;
+        }
+
+        val = AttributeHelper.GetValue(-1, nameof(InitializerGenericsArguments), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.InitializerGenericsArguments = (string)val;
         }
 
         return attribute;
