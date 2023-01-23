@@ -1370,16 +1370,11 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         {// Add ModuleInitializerClass
             string? initializerClassName = null;
 
-            var args = containingObject.InitializerGenericsArguments;
-            foreach (var x in list2)
-            {
-                if (args != null)
-                {// Generics argument is specified.
-                    (initializerClassName, _) = containingObject.GetClosedGenericName(args);
-                    goto ModuleInitializerClass_Added;
-                }
-
-                args = x.InitializerGenericsArguments;
+            var args = containingObject.InitializerGenericsArguments ?? list2.Select(x => x.InitializerGenericsArguments).FirstOrDefault(y => y != null);
+            if (args != null)
+            {// Generics argument is specified.
+                (initializerClassName, _) = containingObject.GetClosedGenericName(args);
+                goto ModuleInitializerClass_Added;
             }
 
             if (containingObject.ClosedGenericHint != null)
