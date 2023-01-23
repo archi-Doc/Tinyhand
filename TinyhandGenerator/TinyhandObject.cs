@@ -151,6 +151,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public bool RequiresSetter { get; private set; }
 
+    public string[]? InitializerGenericsArguments { get; private set; }
+
     private ReconstructCondition reconstructCondition;
 
     public ReconstructCondition ReconstructCondition
@@ -789,6 +791,25 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
+        // InitializerGenericsArguments
+        if (this.ObjectAttribute?.InitializerGenericsArguments is { } genericsArguments &&
+            !string.IsNullOrEmpty(genericsArguments))
+        {
+            var args = genericsArguments.Split(new char[] { ',', }, StringSplitOptions.RemoveEmptyEntries);
+            for (var i = 0; i < args.Length; i++)
+            {
+                args[i] = args[i].Trim();
+            }
+
+            if (args.Length >= this.CountGenericsArguments())
+            {
+                this.InitializerGenericsArguments = args;
+            }
+            else
+            {
+            }
+        }
+
         // Check members.
         foreach (var x in this.Members)
         {
@@ -1348,6 +1369,19 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         if (list2.Length > 0 && list2[0].ContainingObject is { } containingObject)
         {// Add ModuleInitializerClass
             string? initializerClassName = null;
+
+            var args = containingObject.InitializerGenericsArguments;
+            foreach (var x in list2)
+            {
+                if (args != null)
+                {// Generics argument is specified.
+                    (initializerClassName, _) = containingObject.GetClosedGenericName(args);
+                    goto ModuleInitializerClass_Added;
+                }
+
+                args = x.InitializerGenericsArguments;
+            }
+
             if (containingObject.ClosedGenericHint != null)
             {// ClosedGenericHint
                 initializerClassName = containingObject.ClosedGenericHint.FullName;
@@ -3316,7 +3350,7 @@ ModuleInitializerClass_Added:
         {// Coder
             coder.CodeSerializer(ssb, info);
         }
-        else if(withNullable.Object.ObjectAttribute != null)
+        else if (withNullable.Object.ObjectAttribute != null)
         {// TinyhandObject
             using (ssb.ScopeBrace(string.Empty))
             {

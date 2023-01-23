@@ -26,7 +26,7 @@ public class Program
 
     public static void Main(string[] args)
     {
-        var tc = new Benchmark.H2HTest.ObjectH2H();
+        /*var tc = new Benchmark.H2HTest.ObjectH2H();
         var td = 1;
         var te = new InitOnly.InitIntClass();
 
@@ -47,7 +47,7 @@ public class Program
         Stopwatch.Lap("MessagePack startup3");
 
         b = Tinyhand.TinyhandSerializer.Serialize(te);
-        Stopwatch.Lap("Tinyhand startup3");
+        Stopwatch.Lap("Tinyhand startup3");*/
 
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
