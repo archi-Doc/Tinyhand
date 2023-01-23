@@ -776,6 +776,7 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
     {// Namespace.Class<T, U>.Nested<X> -> Namespace.Class<argumentName, argumentName>.Nested<argumentName>
      // Count
         var n = 0;
+        var pos = 0;
         var c = this;
         while (c != null)
         {
@@ -811,7 +812,7 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
                             sb.Append(", ");
                         }
 
-                        sb.Append(argumentName[n]);
+                        sb.Append(argumentName[pos++]);
                     }
                 }
                 else

@@ -4,6 +4,8 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
+using LP;
+using Sandbox.ZenItz;
 using Tinyhand;
 using Tinyhand.IO;
 using Tinyhand.Resolvers;
@@ -83,10 +85,10 @@ public partial class NestedStructClass<T, U>
     where T : struct
     where U : class, INestedStructClass2
 {
-    internal static Type ist => typeof(Item);
+    internal static Type ist => typeof(Item<int>);
 
-    [TinyhandObject(InitializerGenericsArguments = "int, Sandbox.INestedStructClass2")]
-    private sealed partial class Item
+    [TinyhandObject(InitializerGenericsArguments = "int, Sandbox.INestedStructClass2, double")]
+    private sealed partial class Item<Z>
     {
         public Item(int key, T value)
         {
@@ -103,6 +105,9 @@ public partial class NestedStructClass<T, U>
 
         [Key(1)]
         internal int Key;
+
+        [Key(2)]
+        internal Z Key2 = default!;
     }
 
     public NestedStructClass()
@@ -323,6 +328,10 @@ class Program
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var pt = Type.GetType("Sandbox.ZenItz.Itz`1+DefaultShip`1+Item"); // "ZenItz.Itz<>.DefaultShip<>.Item", "Sandbox.ZenItz.Itz`1+DefaultShip`1"
+        pt = typeof(ZenItz.Itz<>.DefaultShip<>);
+        pt = Type.GetType("Sandbox.ZenItz.Itz`1+DefaultShip`1");
 
         var ts = default(TestStruct);
         ts.X = 1;
