@@ -80,12 +80,23 @@ public interface INestedStructClass2
 }
 
 public partial class NestedStructClass<T, U>
+{
+    private sealed partial class Item
+    {
+        /*static Item()
+        {
+        }*/
+    }
+}
+
+[TinyhandObject(GenerateStaticConstructor = true)]
+public partial class NestedStructClass<T, U>
     where T : struct
     where U : class, INestedStructClass2
 {
     internal static Type ist => typeof(Item);
 
-    [TinyhandObject]
+    [TinyhandObject(GenerateStaticConstructor = true)]
     private sealed partial class Item
     {
         public Item(int key, T value)

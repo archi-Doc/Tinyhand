@@ -73,6 +73,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public int ReservedKeys { get; set; } = -1;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to generate static constructor for the formatter initialization.
+    /// </summary>
+    public bool GenerateStaticConstructor { get; set; } = true;
+
     public TinyhandObjectAttribute()
     {
     }
