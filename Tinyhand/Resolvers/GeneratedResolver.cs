@@ -24,11 +24,11 @@ public sealed class GeneratedResolver : IFormatterResolver
     {
         public Type GenericType { get; }
 
-        public Func<Type[], ITinyhandFormatter> Generator { get; set; }
+        public Func<Type, Type[], ITinyhandFormatter> Generator { get; set; }
 
         public Dictionary<Type[], ITinyhandFormatter> FormatterCache { get; } = new();
 
-        public FormatterGeneratorInfo(Type genericType, Func<Type[], ITinyhandFormatter> generator)
+        public FormatterGeneratorInfo(Type genericType, Func<Type, Type[], ITinyhandFormatter> generator)
         {
             this.GenericType = genericType;
             this.Generator = generator;
@@ -50,7 +50,17 @@ public sealed class GeneratedResolver : IFormatterResolver
         var targetType = typeof(T);
         if (!targetType.IsGenericType)
         {
-            return null;
+            if (this.formatterGenerator.TryGetValue(targetType, out var info))
+            {
+                var key = Array.Empty<Type>();
+                if (!info.FormatterCache.TryGetValue(key, out var f))
+                {
+                    f = info.Generator(targetType, key);
+                    info.FormatterCache[key] = f;
+                }
+
+                return (ITinyhandFormatter<T>)f;
+            }
         }
 
         try
@@ -61,7 +71,7 @@ public sealed class GeneratedResolver : IFormatterResolver
                 var genericArguments = targetType.GetGenericArguments();
                 if (!info.FormatterCache.TryGetValue(genericArguments, out var f))
                 {
-                    f = info.Generator(genericArguments);
+                    f = info.Generator(genericType, genericArguments);
                     info.FormatterCache[genericArguments] = f;
                 }
 
@@ -75,7 +85,7 @@ public sealed class GeneratedResolver : IFormatterResolver
         return null;
     }
 
-    public void SetFormatterGenerator(Type genericType, Func<Type[], ITinyhandFormatter> generator)
+    public void SetFormatterGenerator(Type genericType, Func<Type, Type[], ITinyhandFormatter> generator)
     {
         var info = new FormatterGeneratorInfo(genericType, generator);
         this.formatterGenerator.TryAdd(genericType, info);

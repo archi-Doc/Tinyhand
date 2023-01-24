@@ -1411,29 +1411,61 @@ ModuleInitializerClass_Added:
         {
             foreach (var x in list2.Where(x => x.ObjectFlag.HasFlag(TinyhandObjectFlag.InterfaceImplemented)))
             {
-                x.GenerateLoaderCore(ssb, info);
+                x.GenerateLoaderCore(ssb, info, false);
             }
         }
     }
 
-    internal void GenerateLoaderCore(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateLoaderCore(ScopingStringBuilder ssb, GeneratorInformation info, bool checkAccessibility)
     {
+        var isAccessible = true;
+        if (checkAccessibility && this.ContainsNonPublic())
+        {
+            isAccessible = false;
+        }
+
         if (this.Generics_Kind != VisceralGenericsKind.OpenGeneric)
-        {// Formatter
-            ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{this.FullName}>());");
+        {// FormatterContainsNonPublic
+            if (isAccessible)
+            {
+                ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{this.FullName}>());");
+            }
+            else
+            {
+                var fullName = this.GetGenericsName();
+                ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(Type.GetType(\"{fullName}\")!, static (x, y) =>");
+                ssb.AppendLine("{");
+                ssb.IncrementIndent();
+
+                ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(x));");
+                ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
+
+                ssb.DecrementIndent();
+                ssb.AppendLine("});");
+            }
         }
         else
         {// Formatter generator
-            var generic = this.GetClosedGenericName(null);
-            generic.count = this.Generics_Arguments.Length;
-            var genericBrace = generic.count == 0 ? string.Empty : generic.count == 1 ? "<>" : $"<{new string(',', generic.count - 1)}>";
-            var getGenericType = generic.count == 0 ? ".GetGenericTypeDefinition()" : string.Empty;
+            string typeName;
+            if (isAccessible)
+            {
+                var generic = this.GetClosedGenericName(null);
+                generic.count = this.Generics_Arguments.Length;
+                var genericBrace = generic.count == 0 ? string.Empty : generic.count == 1 ? "<>" : $"<{new string(',', generic.count - 1)}>";
+                var getGenericType = generic.count == 0 ? ".GetGenericTypeDefinition()" : string.Empty;
+                typeName = $"typeof({generic.name})";
+            }
+            else
+            {
+                var fullName = this.GetGenericsName();
+                typeName = $"Type.GetType(\"{fullName}\")!";
+            }
 
-            ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(typeof({generic.name}), x =>");
+            ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator({typeName}, static (x, y) =>");
             ssb.AppendLine("{");
             ssb.IncrementIndent();
 
-            ssb.AppendLine($"var ft = typeof({generic.name}).MakeGenericType(x);");
+            ssb.AppendLine($"var ft = x.MakeGenericType(y);");
             ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(ft));");
             ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
 
@@ -3479,5 +3511,62 @@ ModuleInitializerClass_Added:
 
             ssb.Append("};\r\n", false);
         }
+    }
+
+    internal bool ContainsNonPublic()
+    {
+        var x = this;
+        while (x != null)
+        {
+            if (!x.IsPublic)
+            {
+                return true;
+            }
+
+            x = x.ContainingObject;
+        }
+
+        return false;
+    }
+
+    internal string GetGenericsName()
+    {
+        var n = 0;
+        var c = this;
+        while (c != null)
+        {
+            n++;
+            c = c.ContainingObject;
+        }
+
+        var array = new TinyhandObject[n];
+        c = this;
+        while (c != null)
+        {
+            array[--n] = (TinyhandObject)c;
+            c = c.ContainingObject;
+        }
+
+        var sb = new StringBuilder();
+        sb.Append(array[0].Namespace);
+        sb.Append(".");
+
+        for (n = 0; n < array.Length; n++)
+        {
+            if (n > 0)
+            {
+                sb.Append("+");
+            }
+
+            var length = array[n].Generics_Arguments.Length;
+            sb.Append(array[n].SimpleName);
+            if (length != 0)
+            {
+                sb.Append("`");
+                sb.Append(length.ToString());
+            }
+        }
+
+        return sb.ToString();
     }
 }
