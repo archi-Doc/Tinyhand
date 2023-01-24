@@ -2025,7 +2025,7 @@ ModuleInitializerClass_Added:
             }
         }
 
-        ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref v2, options);");
+        ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref v2!, options);");
         ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
