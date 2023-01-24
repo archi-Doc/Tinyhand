@@ -279,7 +279,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        this.GenerateLoader(generator, info, rootObjects);
+        this.GenerateLoader(generator, info, rootObjects, this.Namespaces);
         this.FlushDiagnostic();
     }
 
@@ -345,7 +345,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         ssb.AppendLine();
     }
 
-    private void GenerateLoader(IGeneratorInformation generator, GeneratorInformation info, List<TinyhandObject> rootObjects)
+    private void GenerateLoader(IGeneratorInformation generator, GeneratorInformation info, List<TinyhandObject> rootObjects, Dictionary<string, List<TinyhandObject>> namespaces)
     {
         var ssb = new ScopingStringBuilder();
         this.GenerateHeader(ssb);
@@ -356,7 +356,23 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
             {
                 info.FinalizeBlock(ssb);
 
-                TinyhandObject.GenerateLoader(ssb, info, rootObjects);
+                if (!info.FlatLoader)
+                {
+                    TinyhandObject.GenerateLoader(ssb, info, rootObjects);
+                }
+                else
+                {// FlatLoader
+                    using (var m = ssb.ScopeBrace("internal static void __gen__th()"))
+                    {
+                        foreach (var x in namespaces.Values)
+                        {
+                            foreach (var y in x)
+                            {
+                                y.GenerateFlatLoader(ssb, info);
+                            }
+                        }
+                    }
+                }
             }
         }
 

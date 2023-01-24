@@ -15,6 +15,21 @@ using Tinyhand.Resolvers;
 
 namespace Sandbox;
 
+public partial class NestParent
+{
+    [TinyhandObject]
+    public partial class NestContract
+    {
+        [Key(0)]
+        public int MyProperty { get; set; }
+    }
+
+    public class NestContractless
+    {
+        public int MyProperty { get; set; }
+    }
+}
+
 [TinyhandObject]
 public partial struct TestStruct
 {
@@ -87,7 +102,7 @@ public partial class NestedStructClass<T, U>
 {
     internal static Type ist => typeof(Item<int>);
 
-    [TinyhandObject(InitializerGenericsArguments = "int, Sandbox.INestedStructClass2, double")]
+    [TinyhandObject]
     private sealed partial class Item<Z>
     {
         public Item(int key, T value)
@@ -328,6 +343,9 @@ class Program
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var ship = new ZenItz.Itz<int>.DefaultShip<Payload>();
+        ship.Test();
 
         var pt = Type.GetType("Sandbox.ZenItz.Itz`1+DefaultShip`1+Item"); // "ZenItz.Itz<>.DefaultShip<>.Item", "Sandbox.ZenItz.Itz`1+DefaultShip`1"
         pt = typeof(ZenItz.Itz<>.DefaultShip<>);

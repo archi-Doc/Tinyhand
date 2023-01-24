@@ -14,8 +14,10 @@ public interface IPayload
 }
 
 [TinyhandObject]
-public partial class InitializationPayload : IPayload
+public partial class Payload : IPayload
 {
+    [Key(0)]
+    public int X { get; set; }
 }
 
 public partial class Itz<TIdentifier>
@@ -47,13 +49,31 @@ public partial class Itz<TIdentifier>
         {
         }
 
-        [TinyhandObject(InitializerGenericsArguments = "int, Sandbox.ZenItz.InitializationPayload")]
+        public void Test()
+        {
+            var item = new Item(4, default!);
+            var b = TinyhandSerializer.SerializeObject(item);
+        }
+
+        [TinyhandObject]
         private sealed partial class Item
         {
             public Item()
             {
-                var pt = typeof(ZenItz.Itz<>.DefaultShip<>.Item);
             }
+
+            public Item(int id, TPayload payload)
+            {
+                var pt = typeof(ZenItz.Itz<>.DefaultShip<>.Item);
+                Id = id;
+                Payload = payload;
+            }
+
+            [Key(0)]
+            public int Id { get; set; }
+
+            [Key(1)]
+            TPayload Payload { get; set; } = default!;
         }
     }
 }

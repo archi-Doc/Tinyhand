@@ -20,6 +20,8 @@ public class GeneratorInformation
 
     public bool GeneratingStaticMethod { get; set; }
 
+    public bool FlatLoader { get; } = true;
+
     public bool TryGetBlock(string blockKey, out GeneratorBlock block) => this.keyToBlock.TryGetValue(blockKey, out block);
 
     public bool CreateBlock(string blockKey, out GeneratorBlock block)
