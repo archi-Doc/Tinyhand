@@ -715,10 +715,15 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
 
     public string[] GetSafeGenericNameList()
     {
-        var list = new string[this.Generics_Arguments.Length];
-        for (var i = 0; i < this.Generics_Arguments.Length; i++)
+        var length = this.CountGenericsArguments();
+        var list = new string[length];
+        var n = 0;
+        for (var i = 0; i < this.ContainingObjectArray.Length; i++)
         {
-            list[i] = GetSafeGenericName(this.Generics_Arguments[i].symbol);
+            for (var j = 0; j < this.ContainingObjectArray[i].Generics_Arguments.Length; j++)
+            {
+                list[n++] = GetSafeGenericName(this.ContainingObjectArray[i].Generics_Arguments[j].symbol);
+            }
         }
 
         return list;
@@ -774,38 +779,20 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
 
     public (string name, int count) GetClosedGenericName(string[]? argumentName)
     {// Namespace.Class<T, U>.Nested<X> -> Namespace.Class<argumentName, argumentName>.Nested<argumentName>
-     // Count
-        var n = 0;
         var pos = 0;
-        var c = this;
-        while (c != null)
-        {
-            n++;
-            c = c.ContainingObject;
-        }
-
-        // Array
-        var array = new T[n];
-        c = this;
-        while (c != null)
-        {
-            array[--n] = (T)c;
-            c = c.ContainingObject;
-        }
-
         var genericCount = 0;
-        var sb = new StringBuilder(array[0].Namespace);
-        for (var i = 0; i < array.Length; i++)
+        var sb = new StringBuilder(this.ContainingObjectArray[0].Namespace);
+        for (var i = 0; i < this.ContainingObjectArray.Length; i++)
         {
             sb.Append(".");
-            sb.Append(array[i].SimpleName);
-            if (array[i].Generics_Arguments.Length > 0)
+            sb.Append(this.ContainingObjectArray[i].SimpleName);
+            if (this.ContainingObjectArray[i].Generics_Arguments.Length > 0)
             {
-                var length = array[i].Generics_Arguments.Length;
+                var length = this.ContainingObjectArray[i].Generics_Arguments.Length;
                 sb.Append("<");
                 if (argumentName != null)
                 {
-                    for (n = 0; n < length; n++)
+                    for (var n = 0; n < length; n++)
                     {
                         if (n != 0)
                         {
@@ -817,7 +804,7 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
                 }
                 else
                 {
-                    for (n = 1; n < length; n++)
+                    for (var n = 1; n < length; n++)
                     {
                         sb.Append(",");
                     }
@@ -1428,6 +1415,37 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         {
             this.containingObjectFlag = true;
             this.containingObject = value;
+        }
+    }
+
+    private T[]? containingObjectArray;
+
+    public T[] ContainingObjectArray
+    {
+        get
+        {
+            if (this.containingObjectArray == null)
+            {
+                var n = 0;
+                var c = this;
+                while (c != null)
+                {
+                    n++;
+                    c = c.ContainingObject;
+                }
+
+                var array = new T[n];
+                c = this;
+                while (c != null)
+                {
+                    array[--n] = (T)c;
+                    c = c.ContainingObject;
+                }
+
+                this.containingObjectArray = array;
+            }
+
+            return this.containingObjectArray;
         }
     }
 

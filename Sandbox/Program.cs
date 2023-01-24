@@ -87,7 +87,7 @@ public partial class NestedStructClass<T, U>
 {
     internal static Type ist => typeof(Item<int>);
 
-    [TinyhandObject(InitializerGenericsArguments = "int, Sandbox.INestedStructClass2, double")]
+    [TinyhandObject]
     private sealed partial class Item<Z>
     {
         public Item(int key, T value)

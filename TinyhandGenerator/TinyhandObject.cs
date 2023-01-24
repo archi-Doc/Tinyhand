@@ -151,8 +151,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public bool RequiresSetter { get; private set; }
 
-    public string[]? InitializerGenericsArguments { get; private set; }
-
     private ReconstructCondition reconstructCondition;
 
     public ReconstructCondition ReconstructCondition
@@ -791,25 +789,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
-        // InitializerGenericsArguments
-        if (this.ObjectAttribute?.InitializerGenericsArguments is { } genericsArguments &&
-            !string.IsNullOrEmpty(genericsArguments))
-        {
-            var args = genericsArguments.Split(new char[] { ',', }, StringSplitOptions.RemoveEmptyEntries);
-            for (var i = 0; i < args.Length; i++)
-            {
-                args[i] = args[i].Trim();
-            }
-
-            if (args.Length >= this.CountGenericsArguments())
-            {
-                this.InitializerGenericsArguments = args;
-            }
-            else
-            {
-            }
-        }
-
         // Check members.
         foreach (var x in this.Members)
         {
@@ -1369,13 +1348,6 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         if (list2.Length > 0 && list2[0].ContainingObject is { } containingObject)
         {// Add ModuleInitializerClass
             string? initializerClassName = null;
-
-            var args = containingObject.InitializerGenericsArguments ?? list2.Select(x => x.InitializerGenericsArguments).FirstOrDefault(y => y != null);
-            if (args != null)
-            {// Generics argument is specified.
-                (initializerClassName, _) = containingObject.GetClosedGenericName(args);
-                goto ModuleInitializerClass_Added;
-            }
 
             if (containingObject.ClosedGenericHint != null)
             {// ClosedGenericHint
@@ -3531,35 +3503,19 @@ ModuleInitializerClass_Added:
 
     internal string GetGenericsName()
     {
-        var n = 0;
-        var c = this;
-        while (c != null)
-        {
-            n++;
-            c = c.ContainingObject;
-        }
-
-        var array = new TinyhandObject[n];
-        c = this;
-        while (c != null)
-        {
-            array[--n] = (TinyhandObject)c;
-            c = c.ContainingObject;
-        }
-
         var sb = new StringBuilder();
-        sb.Append(array[0].Namespace);
+        sb.Append(this.ContainingObjectArray[0].Namespace);
         sb.Append(".");
 
-        for (n = 0; n < array.Length; n++)
+        for (var n = 0; n < this.ContainingObjectArray.Length; n++)
         {
             if (n > 0)
             {
                 sb.Append("+");
             }
 
-            var length = array[n].Generics_Arguments.Length;
-            sb.Append(array[n].SimpleName);
+            var length = this.ContainingObjectArray[n].Generics_Arguments.Length;
+            sb.Append(this.ContainingObjectArray[n].SimpleName);
             if (length != 0)
             {
                 sb.Append("`");

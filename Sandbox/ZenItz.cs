@@ -47,7 +47,7 @@ public partial class Itz<TIdentifier>
         {
         }
 
-        [TinyhandObject(InitializerGenericsArguments = "int, Sandbox.ZenItz.InitializationPayload")]
+        [TinyhandObject]
         private sealed partial class Item
         {
             public Item()
