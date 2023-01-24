@@ -2852,6 +2852,47 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
+    public bool ContainsNonPublicObject()
+    {
+        var x = this;
+        while (x != null)
+        {
+            if (!x.IsPublic)
+            {
+                return true;
+            }
+
+            x = x.ContainingObject;
+        }
+
+        return false;
+    }
+
+    public string GetGenericsName()
+    {
+        var sb = new StringBuilder();
+        sb.Append(this.ContainingObjectArray[0].Namespace);
+        sb.Append(".");
+
+        for (var n = 0; n < this.ContainingObjectArray.Length; n++)
+        {
+            if (n > 0)
+            {
+                sb.Append("+");
+            }
+
+            var length = this.ContainingObjectArray[n].Generics_Arguments.Length;
+            sb.Append(this.ContainingObjectArray[n].SimpleName);
+            if (length != 0)
+            {
+                sb.Append("`");
+                sb.Append(length.ToString());
+            }
+        }
+
+        return sb.ToString();
+    }
+
     private ImmutableArray<VisceralAttribute> SymbolToAttribute(ISymbol symbol)
     {
         var builder = ImmutableArray.CreateBuilder<VisceralAttribute>();

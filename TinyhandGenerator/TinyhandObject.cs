@@ -1391,7 +1391,7 @@ ModuleInitializerClass_Added:
     internal void GenerateLoaderCore(ScopingStringBuilder ssb, GeneratorInformation info, bool checkAccessibility)
     {
         var isAccessible = true;
-        if (checkAccessibility && this.ContainsNonPublic())
+        if (checkAccessibility && this.ContainsNonPublicObject())
         {
             isAccessible = false;
         }
@@ -1443,6 +1443,34 @@ ModuleInitializerClass_Added:
 
             ssb.DecrementIndent();
             ssb.AppendLine("});");
+        }
+    }
+
+    internal void GenerateFlatLoader(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        if (this.ObjectAttribute == null)
+        {
+        }
+        else if (this.ConstructedObjects == null)
+        {
+        }
+        else if (this.IsAbstractOrInterface && this.Union == null)
+        {
+        }
+        else if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.InterfaceImplemented))
+        {
+        }
+        else
+        {
+            this.GenerateLoaderCore(ssb, info, true);
+        }
+
+        if (this.Children?.Count > 0)
+        {
+            foreach (var x in this.Children)
+            {
+                x.GenerateFlatLoader(ssb, info);
+            }
         }
     }
 
@@ -1581,8 +1609,11 @@ ModuleInitializerClass_Added:
                     x.Generate(ssb, info);
                 }
 
-                ssb.AppendLine();
-                GenerateLoader(ssb, info, this.Children);
+                if (!info.FlatLoader)
+                {
+                    ssb.AppendLine();
+                    GenerateLoader(ssb, info, this.Children);
+                }
             }
         }
     }
@@ -3483,46 +3514,5 @@ ModuleInitializerClass_Added:
 
             ssb.Append("};\r\n", false);
         }
-    }
-
-    internal bool ContainsNonPublic()
-    {
-        var x = this;
-        while (x != null)
-        {
-            if (!x.IsPublic)
-            {
-                return true;
-            }
-
-            x = x.ContainingObject;
-        }
-
-        return false;
-    }
-
-    internal string GetGenericsName()
-    {
-        var sb = new StringBuilder();
-        sb.Append(this.ContainingObjectArray[0].Namespace);
-        sb.Append(".");
-
-        for (var n = 0; n < this.ContainingObjectArray.Length; n++)
-        {
-            if (n > 0)
-            {
-                sb.Append("+");
-            }
-
-            var length = this.ContainingObjectArray[n].Generics_Arguments.Length;
-            sb.Append(this.ContainingObjectArray[n].SimpleName);
-            if (length != 0)
-            {
-                sb.Append("`");
-                sb.Append(length.ToString());
-            }
-        }
-
-        return sb.ToString();
     }
 }
