@@ -1422,9 +1422,6 @@ ModuleInitializerClass_Added:
             if (isAccessible)
             {
                 var generic = this.GetClosedGenericName(null);
-                generic.count = this.Generics_Arguments.Length;
-                var genericBrace = generic.count == 0 ? string.Empty : generic.count == 1 ? "<>" : $"<{new string(',', generic.count - 1)}>";
-                var getGenericType = generic.count == 0 ? ".GetGenericTypeDefinition()" : string.Empty;
                 typeName = $"typeof({generic.name})";
             }
             else
