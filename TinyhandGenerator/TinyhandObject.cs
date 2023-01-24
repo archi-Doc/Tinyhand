@@ -1983,19 +1983,33 @@ ModuleInitializerClass_Added:
             return;
         }*/
 
-        if (!reuseInstance)
-        {// New Instance
-            ssb.AppendLine($"var v2 = {this.NewInstanceCode()};");
-        }
-        else
-        {// Reuse Instance
-            if (this.Kind.IsReferenceType())
-            {// Reference type
-                ssb.AppendLine($"var v2 = {originalName} ?? {this.NewInstanceCode()};");
+        if (this.Kind == VisceralObjectKind.TypeParameter)
+        {
+            if (!reuseInstance)
+            {// New Instance
+                ssb.AppendLine($"{this.FullName} v2 = default!;");
             }
             else
-            {// Value type
+            {// Reuse Instance
                 ssb.AppendLine($"var v2 = {originalName};");
+            }
+        }
+        else
+        {
+            if (!reuseInstance)
+            {// New Instance
+                ssb.AppendLine($"var v2 = {this.NewInstanceCode()};");
+            }
+            else
+            {// Reuse Instance
+                if (this.Kind.IsReferenceType())
+                {// Reference type
+                    ssb.AppendLine($"var v2 = {originalName} ?? {this.NewInstanceCode()};");
+                }
+                else
+                {// Value type
+                    ssb.AppendLine($"var v2 = {originalName};");
+                }
             }
         }
 
@@ -2676,7 +2690,7 @@ ModuleInitializerClass_Added:
             {
                 InitSetter_Start();
 
-                if (withNullable.Object.ObjectAttribute != null)
+                if (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint())
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 }
@@ -2792,7 +2806,7 @@ ModuleInitializerClass_Added:
             {
                 InitSetter_Start();
 
-                if (withNullable.Object.ObjectAttribute != null)
+                if (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint())
                 {
                     withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 }
@@ -3325,8 +3339,9 @@ ModuleInitializerClass_Added:
         {// Coder
             coder.CodeSerializer(ssb, info);
         }
-        else if (withNullable.Object.ObjectAttribute != null)
-        {// TinyhandObject
+        else if (withNullable.Object.ObjectAttribute != null ||
+            withNullable.Object.HasITinyhandSerializeConstraint())
+        {// TinyhandObject or Type parameter with ITinyhandSerialize constraint.
             using (ssb.ScopeBrace(string.Empty))
             {
                 ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
@@ -3511,5 +3526,15 @@ ModuleInitializerClass_Added:
 
             ssb.Append("};\r\n", false);
         }
+    }
+
+    internal bool HasITinyhandSerializeConstraint()
+    {
+        if (this.symbol is ITypeParameterSymbol tps)
+        {
+            return tps.ConstraintTypes.Any(x => x.Name == "ITinyhandSerialize");
+        }
+
+        return false;
     }
 }
