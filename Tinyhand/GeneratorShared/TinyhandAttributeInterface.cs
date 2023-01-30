@@ -73,6 +73,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public int ReservedKeys { get; set; } = -1;
 
+    /// <summary>
+    /// Gets or sets the name of the member used for lock statememt during serialization and deserialization [default is <see cref="string.Empty"/>].
+    /// </summary>
+    public string LockObject { get; set; } = string.Empty;
+
     public TinyhandObjectAttribute()
     {
     }

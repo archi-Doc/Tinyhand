@@ -15,6 +15,19 @@ using Tinyhand.Resolvers;
 
 namespace Sandbox;
 
+[TinyhandObject(LockObject = "syncObject")]
+public partial class LockObjectClass
+{
+    public LockObjectClass()
+    {
+    }
+
+    [Key(0)]
+    public int X { get; set; }
+
+    private object syncObject = new();
+}
+
 public partial class NestParent
 {
     [TinyhandObject]

@@ -28,6 +28,8 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string ITinyhandDefault = "ITinyhandDefault";
     public static readonly string SetDefaultValueMethod = "SetDefaultValue";
     public static readonly string CanSkipSerializationMethod = "CanSkipSerialization";
+    public static readonly string LockObject = "__lockObject__";
+    public static readonly string LockTaken = "__lockTaken__";
 
     public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
         id: "TG001", title: "Not a partial class/struct", messageFormat: "'{0}' must be a partial class/struct",
@@ -220,6 +222,18 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly DiagnosticDescriptor Warning_MaxLengthAttribute2 = new DiagnosticDescriptor(
         id: "TG048", title: "Max length2", messageFormat: "To enable MaxLengthAttribute, AddProperty must be specified",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_LockObject = new DiagnosticDescriptor(
+        id: "TG049", title: "LockObject", messageFormat: "Member specified in LockObject is not found",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_LockObject2 = new DiagnosticDescriptor(
+        id: "TG050", title: "LockObject2", messageFormat: "Member specified in LockObject must be a reference type",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_LockObject3 = new DiagnosticDescriptor(
+        id: "TG051", title: "LockObject3", messageFormat: "Member specified in LockObject is not accessible",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public TinyhandBody(GeneratorExecutionContext context)
         : base(context)

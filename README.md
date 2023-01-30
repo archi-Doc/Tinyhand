@@ -29,6 +29,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Text Serialization](#text-serialization)
   - [Max length](#max-length)
   - [Versioning](#versioning)
+  - [Lock object](#lock-object)
   - [Serialization Callback](#serialization-callback)
   - [Deep copy](#deep-copy)
   - [Built-in supported types](#built-in-supported-types)
@@ -745,6 +746,42 @@ public static class VersioningTest
         var v21 = TinyhandSerializer.Deserialize<VersioningClass1>(TinyhandSerializer.Serialize(v2))!;
         Console.WriteLine("Serialize v2 and deserialize as v1:");
         Console.WriteLine(v21.ToString());// Version 1, ID: 2 (Name ignored)
+    }
+}
+```
+
+
+
+### Lock object
+
+To acquire a mutual-exclusion lock during serialization and deserialization, add a `LockObject` property.
+
+```csharp
+[TinyhandObject(LockObject = "syncObject")]
+public partial class LockObjectClass
+{
+    [Key(0)]
+    public int X { get; set; }
+
+    private object syncObject = new();
+}
+```
+
+Generated code is
+
+```csharp
+static void ITinyhandSerialize<LockObjectClass>.Serialize(ref TinyhandWriter writer, scoped ref LockObjectClass? v, TinyhandSerializerOptions options)
+{
+    if (v == null)
+    {
+        writer.WriteNil();
+        return;
+    }
+
+    lock (v.syncObject)
+    {
+        if (!options.IsSignatureMode) writer.WriteArrayHeader(1);
+        writer.Write(v.X);
     }
 }
 ```
