@@ -789,6 +789,28 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
+        // LockObject
+        var lockObjectName = this.ObjectAttribute?.LockObject;
+        if (!string.IsNullOrEmpty(lockObjectName))
+        {
+            var lockObject = this.AllMembers.FirstOrDefault(x => x.SimpleName == lockObjectName);
+            if (lockObject == null)
+            {// Not found
+                this.Body.ReportDiagnostic(TinyhandBody.Error_LockObject, this.Location);
+            }
+            else if (lockObject.TypeObject is { } typeObject)
+            {
+                if (!typeObject.Kind.IsReferenceType())
+                {// Not reference type
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_LockObject2, this.Location);
+                }
+                else if (!lockObject.IsReadableFrom(this))
+                {// Not accessible
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_LockObject3, this.Location);
+                }
+            }
+        }
+
         // Check members.
         foreach (var x in this.Members)
         {
@@ -1880,6 +1902,9 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine();
             }
 
+            // LockObject
+            var lockScope = string.IsNullOrEmpty(this.ObjectAttribute?.LockObject) ? null : ssb.ScopeBrace($"lock({ssb.FullObject}.{this.ObjectAttribute!.LockObject})");
+
             // ITinyhandSerializationCallback.OnBeforeSerialize
             this.Generate_OnBeforeSerialize(ssb, info);
 
@@ -1891,6 +1916,8 @@ ModuleInitializerClass_Added:
             {// Int Key
                 this.GenerateSerializerIntKey(ssb, info);
             }
+
+            lockScope?.Dispose();
         }
     }
 
@@ -2158,6 +2185,16 @@ ModuleInitializerClass_Added:
                 }
 
                 ssb.AppendLine();
+            }
+
+            // LockObject
+            if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+            {
+                this.GenerateDeserialize_LockPrepare(ssb, info);
+            }
+
+            if (this.Kind.IsReferenceType())
+            {
                 ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
             }
 
@@ -2172,6 +2209,32 @@ ModuleInitializerClass_Added:
 
             // ITinyhandSerializationCallback.OnAfterDeserialize
             this.Generate_OnAfterDeserialize(ssb, info);
+        }
+    }
+
+    internal void GenerateDeserialize_LockPrepare(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        var lockObject = this.ObjectAttribute?.LockObject;
+        if (!string.IsNullOrEmpty(lockObject))
+        {
+            ssb.AppendLine($"var {TinyhandBody.LockObject} = {ssb.FullObject}{(this.Kind.IsReferenceType() ? "?" : string.Empty)}.{lockObject};");
+            ssb.AppendLine($"var {TinyhandBody.LockTaken} = false;");
+        }
+    }
+
+    internal void GenerateDeserialize_LockEnter(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {
+            ssb.AppendLine($"if ({TinyhandBody.LockObject} != null) System.Threading.Monitor.Enter({TinyhandBody.LockObject}, ref {TinyhandBody.LockTaken});");
+        }
+    }
+
+    internal void GenerateDeserialize_LockExit(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {
+            ssb.AppendLine($"if ({TinyhandBody.LockTaken}) System.Threading.Monitor.Exit({TinyhandBody.LockObject}!);");
         }
     }
 
@@ -3216,6 +3279,11 @@ ModuleInitializerClass_Added:
 
         using (var security = ssb.ScopeSecurityDepth())
         {
+            if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+            {// LockObject
+                this.GenerateDeserialize_LockEnter(ssb, info);
+            }
+
             foreach (var x in this.IntKey_Array)
             {
                 this.GenerateDeserializeCore(ssb, info, x);
@@ -3226,7 +3294,18 @@ ModuleInitializerClass_Added:
             this.GenerateReconstructRemaining(ssb, info);
         }
 
-        ssb.RestoreSecurityDepth();
+        if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {// LockObject
+            using (var finallyScope = ssb.ScopeBrace("finally"))
+            {
+                this.GenerateDeserialize_LockExit(ssb, info);
+                ssb.AppendLine("reader.Depth--;");
+            }
+        }
+        else
+        {
+            ssb.AppendLine("finally { reader.Depth--; }");
+        }
     }
 
     internal void GenerateDeserializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -3251,6 +3330,11 @@ ModuleInitializerClass_Added:
 
         using (var security = ssb.ScopeSecurityDepth())
         {
+            if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+            {// LockObject
+                this.GenerateDeserialize_LockEnter(ssb, info);
+            }
+
             using (var loop = ssb.ScopeBrace("while (numberOfData-- > 0)"))
             {
                 ssb.AppendLine("var utf8 = reader.ReadStringSpan();");
@@ -3273,7 +3357,18 @@ ModuleInitializerClass_Added:
             this.GenerateReconstructRemaining(ssb, info);
         }
 
-        ssb.RestoreSecurityDepth();
+        if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {// LockObject
+            using (var finallyScope = ssb.ScopeBrace("finally"))
+            {
+                this.GenerateDeserialize_LockExit(ssb, info);
+                ssb.AppendLine("reader.Depth--;");
+            }
+        }
+        else
+        {
+            ssb.AppendLine("finally { reader.Depth--; }");
+        }
     }
 
     internal void GenerateSerializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, bool skipDefaultValue)
@@ -3536,5 +3631,28 @@ ModuleInitializerClass_Added:
         }
 
         return false;
+    }
+
+    internal bool IsReadableFrom(TinyhandObject obj)
+    {
+        if (this.ContainingObject != obj)
+        {
+            if (this.Kind == VisceralObjectKind.Field)
+            {
+                if (this.Field_IsPrivate)
+                {
+                    return false;
+                }
+            }
+            else if (this.Kind == VisceralObjectKind.Property)
+            {
+                if (this.Property_IsPrivateGetter)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }
