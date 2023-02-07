@@ -17,6 +17,16 @@ public static class HashedString
     public const int MaxStringLength = 16 * 1024; // The maximum length of a string.
     public const int MaxTinyhandLength = 4 * 1024 * 1024; // The maximum length of tinyhand file.
 
+    /// <summary>
+    /// Get a string that matches the value of enum.
+    /// </summary>
+    /// <typeparam name="T">The type of enum.</typeparam>
+    /// <param name="enumValue">The enum value.</param>
+    /// <returns>The matched string. If no string is found, the return value is the error message.</returns>
+    public static string FromEnum<T>(T enumValue)
+        where T : Enum
+        => GetOrAlternative($"{typeof(T).Name}.{enumValue.ToString()}", ErrorMessage);
+
     public static ulong IdentifierToHash(string identifier) => FarmHash.Hash64(identifier);
 
     public static string ShortNameToCultureName(string name) => name switch
