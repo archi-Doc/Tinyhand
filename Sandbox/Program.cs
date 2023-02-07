@@ -43,15 +43,19 @@ public partial class NestParent
     }
 }
 
-[TinyhandObject]
-public partial struct TestStruct
+public partial interface Nested
 {
-    [Key(0)]
-    public int X;
+    [TinyhandObject]
+    public partial struct TestStruct
+    {
+        [Key(0)]
+        public int X;
 
-    [Key(1)]
-    public int Y;
+        [Key(1)]
+        public int Y;
+    }
 }
+
 
 [TinyhandObject]
 public abstract class AbstractClass
@@ -364,11 +368,11 @@ class Program
         pt = typeof(ZenItz.Itz<>.DefaultShip<>);
         pt = Type.GetType("Sandbox.ZenItz.Itz`1+DefaultShip`1");
 
-        var ts = default(TestStruct);
+        var ts = default(Nested.TestStruct);
         ts.X = 1;
         ts.Y = 2;
         var tsb = TinyhandSerializer.SerializeObject(ts);
-        var ts2 = TinyhandSerializer.DeserializeObject<TestStruct>(tsb);
+        var ts2 = TinyhandSerializer.DeserializeObject<Nested.TestStruct>(tsb);
         ts2 = default;
         var reader = new TinyhandReader(tsb);
         var ts3 = (ITinyhandSerialize)ts2;

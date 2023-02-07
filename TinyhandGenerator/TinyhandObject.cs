@@ -1501,6 +1501,23 @@ ModuleInitializerClass_Added:
         }
         else if (this.IsAbstractOrInterface && this.Union == null)
         {
+            if (this.Children?.Count > 0)
+            {// Generate children and loader.
+                using (var cls = ssb.ScopeBrace($"{this.AccessibilityName} partial {this.KindName} {this.LocalName}"))
+                {
+                    foreach (var x in this.Children)
+                    {
+                        x.Generate(ssb, info);
+                    }
+
+                    if (!info.FlatLoader)
+                    {
+                        ssb.AppendLine();
+                        GenerateLoader(ssb, info, this.Children);
+                    }
+                }
+            }
+
             return;
         }
 
