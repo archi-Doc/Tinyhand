@@ -46,6 +46,9 @@ public partial class NestParent
 public partial interface Nested
 {
     [TinyhandObject]
+    public partial record TestRecord([property: Key(0)] int X);
+
+    [TinyhandObject]
     public partial struct TestStruct
     {
         [Key(0)]
