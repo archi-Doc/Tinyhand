@@ -97,7 +97,7 @@ public class EnumCoder : ITinyhandCoder
     {
         if (info.EnumAsString)
         {
-            ssb.AppendLine($"{{ Enum.TryParse<{this.enumTypeObject.FullName}>(reader.ReadString(), out var ev); {ssb.FullObject} = ev; }}");
+            ssb.AppendLine($"{{ Enum.TryParse<{this.enumTypeObject.FullName}>(reader.ReadString(), true, out var ev); {ssb.FullObject} = ev; }}");
         }
         else
         {
