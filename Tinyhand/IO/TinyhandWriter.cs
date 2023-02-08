@@ -1066,7 +1066,7 @@ public ref struct TinyhandWriter
     public void WriteIdentifier(ReadOnlySpan<byte> utf8)
     {// code[1], length[1 or 2 or 4], extcode, utf8length[2 or 4], utf16length[2 or 4], utf8
         if (utf8.Length <= (ushort.MaxValue - 4))
-        {xx
+        {
             var spanLength = 8 + utf8.Length;
             Span<byte> span = this.writer.GetSpan(spanLength);
             span[0] = MessagePackCode.Ext16;
