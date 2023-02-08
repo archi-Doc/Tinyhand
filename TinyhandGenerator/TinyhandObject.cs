@@ -1564,6 +1564,9 @@ ModuleInitializerClass_Added:
             }
         }
 
+        // Prepare generator information
+        info.EnumAsString = this.ObjectAttribute?.EnumAsString == true;
+
         using (var cls = ssb.ScopeBrace($"{this.AccessibilityName} partial {this.KindName} {this.LocalName}{interfaceString}"))
         {
             // Prepare Primary
