@@ -78,6 +78,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public string LockObject { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to serialize/deserialize objects of Enum type as strings [default is <see langword="false"/>].
+    /// </summary>
+    public bool EnumAsString { get; set; } = false;
+
     public TinyhandObjectAttribute()
     {
     }

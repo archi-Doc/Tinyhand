@@ -64,6 +64,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public string LockObject { get; set; } = string.Empty;
 
+    public bool EnumAsString { get; set; } = false;
+
     public TinyhandObjectAttributeMock()
     {
     }
@@ -131,6 +133,12 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.LockObject = (string)val;
+        }
+
+        val = AttributeHelper.GetValue(-1, nameof(EnumAsString), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.EnumAsString = (bool)val;
         }
 
         return attribute;

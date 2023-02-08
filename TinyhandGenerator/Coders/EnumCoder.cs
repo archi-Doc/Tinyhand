@@ -31,6 +31,7 @@ public class EnumCoder : ITinyhandCoder
     {
         this.SerializeFormat = "writer.WriteNil();";
         this.DeserializeFormat = "reader.Skip();";
+        this.enumTypeObject = enumType;
 
         var underlying = enumType.Enum_UnderlyingTypeObject;
         if (underlying == null)
@@ -80,14 +81,28 @@ public class EnumCoder : ITinyhandCoder
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.Append("{ ");
-        ssb.Append(string.Format(this.SerializeFormat, ssb.FullObject), false);
-        ssb.AppendLine(" }", false);
+        if (info.EnumAsString)
+        {// Serialize as string
+            ssb.AppendLine($"writer.Write({ssb.FullObject}.ToString());");
+        }
+        else
+        {
+            ssb.Append("{ ");
+            ssb.Append(string.Format(this.SerializeFormat, ssb.FullObject), false);
+            ssb.AppendLine(" }", false);
+        }
     }
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine(string.Format(this.DeserializeFormat, ssb.FullObject));
+        if (info.EnumAsString)
+        {
+            ssb.AppendLine($"{{ Enum.TryParse<{this.enumTypeObject.FullName}>(reader.ReadString(), out var ev); {ssb.FullObject} = ev; }}");
+        }
+        else
+        {
+            ssb.AppendLine(string.Format(this.DeserializeFormat, ssb.FullObject));
+        }
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -103,4 +118,6 @@ public class EnumCoder : ITinyhandCoder
     public string SerializeFormat { get; }
 
     public string DeserializeFormat { get; }
+
+    private TinyhandObject enumTypeObject;
 }
