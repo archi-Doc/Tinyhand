@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 
 #pragma warning disable SA1615 // Element return value should be documented
@@ -884,6 +885,10 @@ public ref partial struct TinyhandReader
         {
             return null;
         }
+        else if (this.NextCode == MessagePackCode.Ext32)
+        {
+            return this.ReadIdentifierUtf16();
+        }
 
         var byteLength = this.GetStringLengthInBytes();
         var span = this.ReadRaw(byteLength);
@@ -1004,6 +1009,50 @@ public ref partial struct TinyhandReader
         }
 
         return result;
+    }
+
+    public ReadOnlySpan<byte> ReadIdentifierUtf8()
+    {
+        if (this.NextCode == MessagePackCode.Ext32)
+        {// code[1], length[4], extcode[1], utf8
+            this.Advance(1);
+            if (!this.TryReadBigEndian(out int length))
+            {
+                return default;
+            }
+
+            if (!this.TryRead(out byte code) || code != MessagePackExtensionCodes.Identifier)
+            {
+                throw ThrowInvalidCode(code, MessagePackType.Extension);
+            }
+
+            return this.ReadRaw(length);
+        }
+
+        this.TryReadStringSpan(out var result);
+        return result;
+    }
+
+    public string? ReadIdentifierUtf16()
+    {
+        if (this.NextCode == MessagePackCode.Ext32)
+        {// code[1], length[4], extcode[1], utf8
+            this.Advance(1);
+            if (!this.TryReadBigEndian(out int length))
+            {
+                return default;
+            }
+
+            if (!this.TryRead(out byte code) || code != MessagePackExtensionCodes.Identifier)
+            {
+                throw ThrowInvalidCode(code, MessagePackType.Extension);
+            }
+
+            var span = this.ReadRaw(length);
+            return Encoding.UTF8.GetString(span);
+        }
+
+        return this.ReadString();
     }
 
     /// <summary>

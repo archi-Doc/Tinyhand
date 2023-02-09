@@ -15,5 +15,5 @@ internal static class MessagePackExtensionCodes
     /// <summary>
     /// Identifier(UTF8/16) extension.
     /// </summary>
-    internal const sbyte Identifier = 99;
+    internal const sbyte Identifier = 97;
 }

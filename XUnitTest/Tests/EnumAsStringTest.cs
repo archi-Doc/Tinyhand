@@ -25,6 +25,13 @@ public partial class EnumAsStringClass2
     public string X { get; set; } = default!;
 }
 
+[TinyhandObject(EnumAsString = true)]
+public partial class EnumAsStringClass3
+{
+    [KeyAsName]
+    public TestEnum X { get; set; }
+}
+
 public class EnumAsStringClassTest
 {
     [Fact]
@@ -35,6 +42,8 @@ public class EnumAsStringClassTest
 
         var td = new EnumAsStringClass2();
         td.X = TestEnum.Test.ToString();
+
+        var st = TinyhandSerializer.SerializeToString(new EnumAsStringClass3());
 
         var tc2 = TinyhandSerializer.Deserialize<EnumAsStringClass>(TinyhandSerializer.Serialize(tc));
         tc2.IsStructuralEqual(tc);
@@ -57,4 +66,3 @@ public class EnumAsStringClassTest
         tc2.IsStructuralEqual(tc);
     }
 }
-

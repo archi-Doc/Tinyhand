@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 using Arc.IO;
 
@@ -1064,33 +1065,34 @@ public ref struct TinyhandWriter
     }
 
     public void WriteIdentifier(ReadOnlySpan<byte> utf8)
-    {// code[1], length[1 or 2 or 4], extcode, utf8length[2 or 4], utf16length[2 or 4], utf8
-        if (utf8.Length <= (ushort.MaxValue - 4))
-        {
-            var spanLength = 8 + utf8.Length;
-            Span<byte> span = this.writer.GetSpan(spanLength);
-            span[0] = MessagePackCode.Ext16;
-            WriteBigEndian((ushort)(utf8.Length + 4), span.Slice(1));
-            span[3] = unchecked((byte)MessagePackExtensionCodes.Identifier);
+    {// code[1], length[4], extcode[1], utf8
+        var spanLength = 6 + utf8.Length;
+        Span<byte> span = this.writer.GetSpan(spanLength);
 
-            WriteBigEndian((ushort)utf8.Length, span.Slice(4)); // utf8 length
-            WriteBigEndian((ushort)0, span.Slice(6)); // utf16 length
-            utf8.CopyTo(span.Slice(8));
-            this.writer.Advance(spanLength);
-        }
-        else
-        {
-            var spanLength = 12 + utf8.Length;
-            Span<byte> span = this.writer.GetSpan(spanLength);
-            span[0] = MessagePackCode.Ext32;
-            WriteBigEndian((uint)(utf8.Length + 4), span.Slice(1));
-            span[5] = unchecked((byte)MessagePackExtensionCodes.Identifier);
+        span[0] = MessagePackCode.Ext32;
+        WriteBigEndian((uint)utf8.Length, span.Slice(1));
+        span[5] = unchecked((byte)MessagePackExtensionCodes.Identifier);
 
-            WriteBigEndian((uint)utf8.Length, span.Slice(6)); // utf8 length
-            WriteBigEndian(0U, span.Slice(10)); // utf16 length
-            utf8.CopyTo(span.Slice(14));
-            this.writer.Advance(spanLength);
+        utf8.CopyTo(span.Slice(6));
+        this.writer.Advance(spanLength);
+    }
+
+    public void WriteIdentifier(string utf16)
+    {// code[1], length[4], extcode[1], utf8
+        var source = utf16.AsSpan();
+        var maxByteCount = (source.Length + 1) * 3;
+
+        Span<byte> span = this.writer.GetSpan(maxByteCount + 6);
+        var status = Utf8.FromUtf16(source, span.Slice(6), out var _, out var bytesWritten, replaceInvalidSequences: false);
+        if (status != OperationStatus.Done)
+        {
         }
+
+        span[0] = MessagePackCode.Ext32;
+        WriteBigEndian((uint)bytesWritten, span.Slice(1));
+        span[5] = unchecked((byte)MessagePackExtensionCodes.Identifier);
+
+        this.writer.Advance(bytesWritten + 6);
     }
 
     private static void WriteBigEndian(short value, Span<byte> span) => WriteBigEndian(unchecked((ushort)value), span);

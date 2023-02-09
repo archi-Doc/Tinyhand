@@ -245,9 +245,15 @@ public static class TinyhandTreeConverter
                 var extHeader = reader.ReadExtensionFormatHeader();
                 string st;
                 if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
-                {
+                {// DateTime
                     var dt = reader.ReadDateTime(extHeader);
                     st = dt.ToString("o", CultureInfo.InvariantCulture);
+                }
+                else if (extHeader.TypeCode == MessagePackExtensionCodes.Identifier)
+                {// Identifier
+                    var identifier = reader.ReadRaw((int)extHeader.Length);
+                    writer.WriteSpan(identifier);
+                    return;
                 }
                 else
                 {
@@ -861,9 +867,14 @@ public static class TinyhandTreeConverter
             case MessagePackType.Extension:
                 ExtensionHeader extHeader = reader.ReadExtensionFormatHeader();
                 if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
-                {
+                {// DateTime
                     var dt = reader.ReadDateTime(extHeader);
                     return new Value_String(dt.ToString("o", CultureInfo.InvariantCulture));
+                }
+                else if (extHeader.TypeCode == MessagePackExtensionCodes.Identifier)
+                {// Identifier
+                    var identifier = reader.ReadRaw((int)extHeader.Length);
+                    return new Value_Identifier(false, identifier.ToArray());
                 }
                 else
                 {

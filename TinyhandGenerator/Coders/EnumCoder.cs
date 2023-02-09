@@ -83,7 +83,7 @@ public class EnumCoder : ITinyhandCoder
     {
         if (info.EnumAsString)
         {// Serialize as string
-            ssb.AppendLine($"writer.Write({ssb.FullObject}.ToString());");
+            ssb.AppendLine($"writer.WriteIdentifier({ssb.FullObject}.ToString());"); // Write
         }
         else
         {
@@ -97,7 +97,7 @@ public class EnumCoder : ITinyhandCoder
     {
         if (info.EnumAsString)
         {
-            ssb.AppendLine($"{{ Enum.TryParse<{this.enumTypeObject.FullName}>(reader.ReadString(), true, out var ev); {ssb.FullObject} = ev; }}");
+            ssb.AppendLine($"{{ Enum.TryParse<{this.enumTypeObject.FullName}>(reader.ReadIdentifierUtf16(), true, out var ev); {ssb.FullObject} = ev; }}"); // ReadString
         }
         else
         {
