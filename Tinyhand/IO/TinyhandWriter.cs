@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 using Arc.IO;
 
@@ -1061,6 +1062,37 @@ public ref struct TinyhandWriter
     {
         this.WriteExtensionFormatHeader(extensionData.Header);
         this.WriteSequence(extensionData.Data);
+    }
+
+    public void WriteIdentifier(ReadOnlySpan<byte> utf8)
+    {// code[1], length[4], extcode[1], utf8
+        var spanLength = 6 + utf8.Length;
+        Span<byte> span = this.writer.GetSpan(spanLength);
+
+        span[0] = MessagePackCode.Ext32;
+        WriteBigEndian((uint)utf8.Length, span.Slice(1));
+        span[5] = unchecked((byte)MessagePackExtensionCodes.Identifier);
+
+        utf8.CopyTo(span.Slice(6));
+        this.writer.Advance(spanLength);
+    }
+
+    public void WriteIdentifier(string utf16)
+    {// code[1], length[4], extcode[1], utf8
+        var source = utf16.AsSpan();
+        var maxByteCount = (source.Length + 1) * 3;
+
+        Span<byte> span = this.writer.GetSpan(maxByteCount + 6);
+        var status = Utf8.FromUtf16(source, span.Slice(6), out var _, out var bytesWritten, replaceInvalidSequences: false);
+        if (status != OperationStatus.Done)
+        {
+        }
+
+        span[0] = MessagePackCode.Ext32;
+        WriteBigEndian((uint)bytesWritten, span.Slice(1));
+        span[5] = unchecked((byte)MessagePackExtensionCodes.Identifier);
+
+        this.writer.Advance(bytesWritten + 6);
     }
 
     private static void WriteBigEndian(short value, Span<byte> span) => WriteBigEndian(unchecked((ushort)value), span);

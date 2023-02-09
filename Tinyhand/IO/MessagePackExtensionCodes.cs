@@ -11,4 +11,9 @@ internal static class MessagePackExtensionCodes
     /// The LZ4 array block compression extension.
     /// </summary>
     internal const sbyte Lz4BlockArray = 98;
+
+    /// <summary>
+    /// Identifier(UTF8/16) extension.
+    /// </summary>
+    internal const sbyte Identifier = 97;
 }

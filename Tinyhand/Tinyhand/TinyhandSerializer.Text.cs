@@ -19,6 +19,45 @@ namespace Tinyhand;
 
 public static partial class TinyhandSerializer
 {
+    /// <summary>
+    /// Serializes a given value with the specified buffer writer.
+    /// </summary>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <returns>A byte array with the serialized value (UTF-8).</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    public static byte[] SerializeObjectToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        options = options ?? DefaultOptions;
+        var binary = SerializeObject(value, options);
+        bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
+        if (options.Compose == TinyhandComposeOption.Strict)
+        {
+            omitTopLevelBracket = false;
+        }
+        else
+        {
+            omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
+        }
+
+        var writer = new TinyhandRawWriter(initialBuffer);
+        try
+        {
+            TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
+            return writer.FlushAndGetArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
     public static T? DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerialize<T>
     {
