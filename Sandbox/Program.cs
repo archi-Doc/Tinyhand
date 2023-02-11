@@ -56,6 +56,9 @@ public partial interface Nested
 
         [Key(1)]
         public int Y;
+
+        [Key(2)]
+        public TestRecord[] Records;
     }
 }
 

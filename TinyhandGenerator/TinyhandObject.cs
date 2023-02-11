@@ -652,14 +652,16 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         // Add default coder (options.Resolver.GetFormatter<T>()...)
         if (this.TypeObjectWithNullable != null)
         {
-            FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
-            if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
+            ObjectResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+            // FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+
+            /*if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
                 this.ContainingObject != null &&
                 this.ContainingObject.OriginalDefinition is { } od)
             {// Requires Class<T>.NestedClass<int> formatter.
                 var typeName = od.FullName + "." + this.LocalName;
                 FormatterResolver.Instance.AddFormatter(this.Kind, typeName);
-            }
+            }*/
         }
 
         if (cf.ConstructedObjects == null)

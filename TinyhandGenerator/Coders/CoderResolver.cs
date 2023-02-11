@@ -21,6 +21,7 @@ public sealed class CoderResolver : ICoderResolver
         ArrayResolver.Instance,
         ListResolver.Instance,
         EnumResolver.Instance,
+        ObjectResolver.Instance,
         FormatterResolver.Instance,
     };
 
@@ -42,6 +43,11 @@ public sealed class CoderResolver : ICoderResolver
         }
 
         if (BuiltinCoder.Instance.TryGetCoder(withNullable) != null)
+        {
+            return true;
+        }
+
+        if (ObjectResolver.Instance.IsCoderOrFormatterAvailable(withNullable))
         {
             return true;
         }

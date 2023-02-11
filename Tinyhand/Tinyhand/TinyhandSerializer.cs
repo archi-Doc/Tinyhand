@@ -93,6 +93,14 @@ public static partial class TinyhandSerializer
         T.Deserialize(ref reader, ref value, options);
     }
 
+    public static T? DeserializeObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        where T : ITinyhandSerialize<T>
+    {
+        var value = default(T);
+        T.Deserialize(ref reader, ref value, options);
+        return value;
+    }
+
     /// <summary>
     /// Create a new instance of the given type.
     /// </summary>
@@ -116,6 +124,14 @@ public static partial class TinyhandSerializer
     {
         options = options ?? DefaultOptions;
         T.Reconstruct(ref obj, options);
+    }
+
+    public static T ReconstructObject<T>(TinyhandSerializerOptions options)
+        where T : ITinyhandReconstruct<T>
+    {
+        var obj = default(T);
+        T.Reconstruct(ref obj, options);
+        return obj;
     }
 
     /// <summary>
@@ -513,6 +529,19 @@ public static partial class TinyhandSerializer
         {
             throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
         }
+    }
+
+    public static T DeserializeAndReconstructObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        where T : ITinyhandSerialize<T>, ITinyhandReconstruct<T>
+    {
+        var value = default(T);
+        T.Deserialize(ref reader, ref value, options);
+        if (value == null)
+        {
+            T.Reconstruct(ref value, options);
+        }
+
+        return value;
     }
 
     /// <summary>
