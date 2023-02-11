@@ -652,8 +652,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         // Add default coder (options.Resolver.GetFormatter<T>()...)
         if (this.TypeObjectWithNullable != null)
         {
-            ObjectResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
-            // FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+            // ObjectResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+            FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
 
             /*if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
                 this.ContainingObject != null &&

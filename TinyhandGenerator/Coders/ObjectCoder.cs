@@ -33,12 +33,12 @@ public sealed class ObjectResolver : ICoderResolver
         return value;
     }
 
-    public ITinyhandCoder AddFormatter(string fullNameWithNullable, bool nonNullableReference = false)
+    public ITinyhandCoder AddFormatter(string fullName, bool nonNullableReference = false)
     {
-        if (!this.stringToCoder.TryGetValue(fullNameWithNullable, out var coder))
+        if (!this.stringToCoder.TryGetValue(fullName, out var coder))
         {
-            coder = new ObjectCoder(fullNameWithNullable, nonNullableReference);
-            this.stringToCoder[fullNameWithNullable] = coder;
+            coder = new ObjectCoder(fullName, nonNullableReference);
+            this.stringToCoder[fullName] = coder;
         }
 
         return coder;
@@ -55,7 +55,7 @@ public sealed class ObjectResolver : ICoderResolver
         {// Reference type
             var fullName = withNullable.FullNameWithNullable.TrimEnd('?');
             var c = this.AddFormatter(fullName, true); // T (non-nullable)
-            var c2 = this.AddFormatter(fullName + "?"); // T?
+            var c2 = this.AddFormatter(fullName); // T?
 
             if (withNullable.Nullable == NullableAnnotation.NotAnnotated)
             {// T
@@ -77,13 +77,13 @@ public sealed class ObjectResolver : ICoderResolver
 
 internal class ObjectCoder : ITinyhandCoder
 {
-    public ObjectCoder(string fullNameWithNullable, bool nonNullableReference)
+    public ObjectCoder(string fullName, bool nonNullableReference)
     {
-        this.FullNameWithNullable = fullNameWithNullable;
+        this.FullName = fullName;
         this.NonNullableReference = nonNullableReference;
     }
 
-    public string FullNameWithNullable { get; }
+    public string FullName { get; }
 
     public bool NonNullableReference { get; }
 
@@ -97,21 +97,25 @@ internal class ObjectCoder : ITinyhandCoder
     {
         if (!this.NonNullableReference)
         {// Value type or Nullable reference type
-            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, options);");
+            ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, options);");
+            // ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, options);");
         }
         else
         {// Non-nullable reference type
-            ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader);");
+            ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, options);");
+            // ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader);");
         }
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Reconstruct(options);");
+        ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.ReconstructObject<{this.FullName}>(options);");
+        // ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Reconstruct(options);");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
     {
-        ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
+        ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject<{this.FullName}>({sourceObject}, options);");
+        // ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
     }
 }
