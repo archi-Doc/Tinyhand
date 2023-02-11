@@ -515,6 +515,24 @@ public static partial class TinyhandSerializer
         }
     }
 
+    public static T? DeserializeAndReconstructObject<T>(ReadOnlySpan<byte> buffer)
+        where T : ITinyhandSerialize<T>
+    {
+        var reader = new TinyhandReader(buffer);
+
+        try
+        {
+            var value = default(T);
+            T.Deserialize(ref reader, ref value, DefaultOptions);
+            value ??= TinyhandSerializer.Reconstruct<T>();
+            return value;
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+        }
+    }
+
     /// <summary>
     /// Deserializes a value of a given type from a sequence of bytes.
     /// </summary>
