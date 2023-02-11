@@ -536,12 +536,12 @@ public static partial class TinyhandSerializer
     {
         var value = default(T);
         T.Deserialize(ref reader, ref value, options);
-        if (value != null)
+        if (value == null)
         {
             T.Reconstruct(ref value, options);
         }
 
-        return value!;
+        return value;
     }
 
     /// <summary>

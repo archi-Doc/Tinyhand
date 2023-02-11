@@ -33,12 +33,12 @@ public sealed class ObjectResolver : ICoderResolver
         return value;
     }
 
-    public ITinyhandCoder AddFormatter(string fullName, bool nonNullableReference = false)
+    public ITinyhandCoder AddFormatter(string fullNameWithNullable, bool nonNullableReference = false)
     {
-        if (!this.stringToCoder.TryGetValue(fullName, out var coder))
+        if (!this.stringToCoder.TryGetValue(fullNameWithNullable, out var coder))
         {
-            coder = new ObjectCoder(fullName, nonNullableReference);
-            this.stringToCoder[fullName] = coder;
+            coder = new ObjectCoder(fullNameWithNullable, nonNullableReference);
+            this.stringToCoder[fullNameWithNullable] = coder;
         }
 
         return coder;
@@ -55,7 +55,7 @@ public sealed class ObjectResolver : ICoderResolver
         {// Reference type
             var fullName = withNullable.FullNameWithNullable.TrimEnd('?');
             var c = this.AddFormatter(fullName, true); // T (non-nullable)
-            var c2 = this.AddFormatter(fullName); // T?
+            var c2 = this.AddFormatter(fullName + "?"); // T?
 
             if (withNullable.Nullable == NullableAnnotation.NotAnnotated)
             {// T
@@ -77,13 +77,16 @@ public sealed class ObjectResolver : ICoderResolver
 
 internal class ObjectCoder : ITinyhandCoder
 {
-    public ObjectCoder(string fullName, bool nonNullableReference)
+    public ObjectCoder(string fullNameWithNullable, bool nonNullableReference)
     {
-        this.FullName = fullName;
+        this.FullNameWithNullable = fullNameWithNullable;
+        this.FullName = fullNameWithNullable.TrimEnd('?');
         this.NonNullableReference = nonNullableReference;
     }
 
     public string FullName { get; }
+
+    public string FullNameWithNullable { get; }
 
     public bool NonNullableReference { get; }
 
