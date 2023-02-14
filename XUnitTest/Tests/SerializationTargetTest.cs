@@ -60,6 +60,21 @@ public partial class SerializationTargetClass2
     }
 }
 
+public partial class SerializationGenericClass<T>
+{
+    public T Value { get; set; }
+
+    [TinyhandObject(ExplicitKeyOnly = true)] // ExplicitKeyOnly
+    public partial class TestClass
+    {
+        [Key(0)]
+        [DefaultValue(1)]
+        public int A; // Serialize
+
+        public SerializationGenericClass<T> Parent { get; set; }
+    }
+}
+
 [TinyhandObject(ExplicitKeyOnly = true)] // ExplicitKeyOnly
 public partial class SerializationTargetClass3
 {
@@ -77,12 +92,20 @@ public partial class SerializationTargetClass3
     [DefaultValue(1)]
     private int D; // Serialize
 
+    [DefaultValue(1)]
+    public int E { get; set; }
+
+    [DefaultValue(1)]
+    public int F { get; private set; }
+
     public void Test(SerializationTargetClass3 target)
     {
         this.A.Is(target.A);
         this.B.IsNot(target.B);
         this.C.IsNot(target.C);
         this.D.Is(target.D);
+        this.E.IsNot(target.E);
+        this.F.IsNot(target.F);
     }
 }
 

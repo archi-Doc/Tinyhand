@@ -15,6 +15,21 @@ using Tinyhand.Resolvers;
 
 namespace Sandbox;
 
+public partial class SerializationGenericClass<T>
+{
+    public T Value { get; set; } = default!;
+
+    [TinyhandObject(ExplicitKeyOnly = true)] // ExplicitKeyOnly
+    public partial class TestClass
+    {
+        [Key(0)]
+        [DefaultValue(1)]
+        public int A; // Serialize
+
+        public SerializationGenericClass<T> Parent { get; set; } = default!;
+    }
+}
+
 [TinyhandObject(LockObject = "syncObject")]
 public partial class LockObjectClass
 {

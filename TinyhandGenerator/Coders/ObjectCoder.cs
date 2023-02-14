@@ -118,7 +118,7 @@ internal class ObjectCoder : ITinyhandCoder
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
     {
-        ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject<{this.FullName}>({sourceObject}, options);");
+        ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject<{this.FullName}>({sourceObject}, options)!;");
         // ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
     }
 }

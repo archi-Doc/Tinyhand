@@ -751,7 +751,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            x.ObjectFlag |= TinyhandObjectFlag.CloneTarget;
             if (this.ObjectAttribute?.ExplicitKeyOnly == true)
             {// Explicit key only
                 if (x.KeyAttribute == null)
@@ -764,7 +763,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            x.ObjectFlag |= TinyhandObjectFlag.Target;
+            x.ObjectFlag |= TinyhandObjectFlag.Target | TinyhandObjectFlag.CloneTarget;
         }
 
         // Key, SerializeTarget
