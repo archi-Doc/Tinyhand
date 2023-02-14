@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using Arc.Threading;
 using Tinyhand;
 
 namespace XUnitTest.Tests;
@@ -35,4 +36,22 @@ public partial struct LockObjectStruct
     public int X { get; set; }
 
     private object syncObject = new();
+}
+
+[TinyhandObject(LockObject = "semaphore")]
+public partial class LockObjectClass3
+{
+    [Key(0)]
+    public int X { get; set; }
+
+    protected SemaphoreLock semaphore = new();
+}
+
+[TinyhandObject(LockObject = "semaphore")]
+public partial class LockObjectClass4
+{
+    [Key(0)]
+    public int X { get; set; }
+
+    protected ILockable? semaphore = new SemaphoreLock();
 }

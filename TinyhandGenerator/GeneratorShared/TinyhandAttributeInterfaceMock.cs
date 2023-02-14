@@ -143,6 +143,8 @@ public sealed class TinyhandObjectAttributeMock
 
         return attribute;
     }
+
+    public bool LockObjectIsLockable { get; set; }
 }
 
 public class KeyAttributeMock

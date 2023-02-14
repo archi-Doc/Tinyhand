@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Tinyhand.Coders;
+using static Arc.Visceral.ScopingStringBuilder;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1204 // Static elements should appear before instance elements
@@ -802,13 +803,18 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
             else if (lockObject.TypeObject is { } typeObject)
             {
-                if (!typeObject.Kind.IsReferenceType())
+                if (!lockObject.IsReadableFrom(this))
+                {// Not accessible
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_LockObject3, this.Location);
+                }
+                else if (!typeObject.Kind.IsReferenceType())
                 {// Not reference type
                     this.Body.ReportDiagnostic(TinyhandBody.Error_LockObject2, this.Location);
                 }
-                else if (!lockObject.IsReadableFrom(this))
-                {// Not accessible
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_LockObject3, this.Location);
+                else if (typeObject.FullName == TinyhandBody.ILockable ||
+                    typeObject.AllInterfaces.Any(x => x == TinyhandBody.ILockable))
+                {// ILockable
+                    this.ObjectAttribute!.LockObjectIsLockable = true;
                 }
             }
         }
@@ -1925,7 +1931,21 @@ ModuleInitializerClass_Added:
             }
 
             // LockObject
-            var lockScope = string.IsNullOrEmpty(this.ObjectAttribute?.LockObject) ? null : ssb.ScopeBrace($"lock({ssb.FullObject}.{this.ObjectAttribute!.LockObject})");
+            IScope? lockScope = null;
+            if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+            {
+                ssb.AppendLine($"var {TinyhandBody.LockTaken} = false;");
+                lockScope = ssb.ScopeBrace("try");
+
+                if (this.ObjectAttribute!.LockObjectIsLockable)
+                {
+                    ssb.AppendLine($"{TinyhandBody.LockTaken} = {ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Enter();");
+                }
+                else
+                {
+                    ssb.AppendLine($"System.Threading.Monitor.Enter({ssb.FullObject}.{this.ObjectAttribute!.LockObject}!, ref {TinyhandBody.LockTaken});");
+                }
+            }
 
             // ITinyhandSerializationCallback.OnBeforeSerialize
             this.Generate_OnBeforeSerialize(ssb, info);
@@ -1939,7 +1959,21 @@ ModuleInitializerClass_Added:
                 this.GenerateSerializerIntKey(ssb, info);
             }
 
-            lockScope?.Dispose();
+            if (lockScope != null)
+            {
+                lockScope.Dispose();
+                using (var finallyScope = ssb.ScopeBrace("finally"))
+                {
+                    if (this.ObjectAttribute!.LockObjectIsLockable)
+                    {
+                        ssb.AppendLine($"if ({TinyhandBody.LockTaken}) {ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Exit();");
+                    }
+                    else
+                    {
+                        ssb.AppendLine($"if ({TinyhandBody.LockTaken}) System.Threading.Monitor.Exit({ssb.FullObject}.{this.ObjectAttribute!.LockObject}!);");
+                    }
+                }
+            }
         }
     }
 
@@ -2248,7 +2282,14 @@ ModuleInitializerClass_Added:
     {
         if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
         {
-            ssb.AppendLine($"if ({TinyhandBody.LockObject} != null) System.Threading.Monitor.Enter({TinyhandBody.LockObject}, ref {TinyhandBody.LockTaken});");
+            if (this.ObjectAttribute!.LockObjectIsLockable)
+            {
+                ssb.AppendLine($"if ({TinyhandBody.LockObject} != null) {TinyhandBody.LockTaken} = {TinyhandBody.LockObject}.Enter();");
+            }
+            else
+            {
+                ssb.AppendLine($"if ({TinyhandBody.LockObject} != null) System.Threading.Monitor.Enter({TinyhandBody.LockObject}, ref {TinyhandBody.LockTaken});");
+            }
         }
     }
 
@@ -2256,7 +2297,14 @@ ModuleInitializerClass_Added:
     {
         if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
         {
-            ssb.AppendLine($"if ({TinyhandBody.LockTaken}) System.Threading.Monitor.Exit({TinyhandBody.LockObject}!);");
+            if (this.ObjectAttribute!.LockObjectIsLockable)
+            {
+                ssb.AppendLine($"if ({TinyhandBody.LockTaken}) {TinyhandBody.LockObject}!.Exit();");
+            }
+            else
+            {
+                ssb.AppendLine($"if ({TinyhandBody.LockTaken}) System.Threading.Monitor.Exit({TinyhandBody.LockObject}!);");
+            }
         }
     }
 
