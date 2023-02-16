@@ -216,15 +216,19 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     {
         get
         {
-            if (this.TypeObject?.Kind.IsReferenceType() == true)
+            if (this.TypeObject is { } typeObject)
             {
-                if (this.symbol is IFieldSymbol fs)
+                if (typeObject.Kind.IsReferenceType() ||
+                    typeObject.Kind == VisceralObjectKind.Error)
                 {
-                    return (Arc.Visceral.NullableAnnotation)fs.NullableAnnotation;
-                }
-                else if (this.symbol is IPropertySymbol ps)
-                {
-                    return (Arc.Visceral.NullableAnnotation)ps.NullableAnnotation;
+                    if (this.symbol is IFieldSymbol fs)
+                    {
+                        return (Arc.Visceral.NullableAnnotation)fs.NullableAnnotation;
+                    }
+                    else if (this.symbol is IPropertySymbol ps)
+                    {
+                        return (Arc.Visceral.NullableAnnotation)ps.NullableAnnotation;
+                    }
                 }
             }
 
@@ -1305,10 +1309,6 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
             // Avoid reconstruct "T?"
             if (this.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.Annotated)
-            {
-                this.ReconstructState = ReconstructState.Dont;
-            }
-            else if (this.TypeObject?.Kind == VisceralObjectKind.Error)
             {
                 this.ReconstructState = ReconstructState.Dont;
             }
