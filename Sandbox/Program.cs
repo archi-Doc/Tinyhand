@@ -9,6 +9,7 @@ using Sandbox.ZenItz;
 using Tinyhand;
 using Tinyhand.IO;
 using Tinyhand.Resolvers;
+using ValueLink;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
@@ -43,6 +44,15 @@ public partial class LockObjectClass
     private object syncObject = new();
 }
 
+[ValueLinkObject]
+[TinyhandObject]
+public partial class TestItem
+{
+    [Key(0)]
+    [Link(Primary = true, Type = ChainType.Ordered)]
+    public int X { get; set; }
+}
+
 public partial class NestParent
 {
     [TinyhandObject]
@@ -50,6 +60,9 @@ public partial class NestParent
     {
         [Key(0)]
         public int MyProperty { get; set; }
+
+        [Key(1)]
+        public TestItem.GoshujinClass? Class1 { get; set; } = default!;
     }
 
     public class NestContractless

@@ -1303,8 +1303,12 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.ReconstructState = ReconstructState.Dont;
             }
 
-            // Avoid reconstruct T?
+            // Avoid reconstruct "T?"
             if (this.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.Annotated)
+            {
+                this.ReconstructState = ReconstructState.Dont;
+            }
+            else if (this.TypeObject?.Kind == VisceralObjectKind.Error)
             {
                 this.ReconstructState = ReconstructState.Dont;
             }
