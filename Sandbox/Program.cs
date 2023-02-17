@@ -51,6 +51,9 @@ public partial class TestItem
     [Key(0)]
     [Link(Primary = true, Type = ChainType.Ordered)]
     public int X { get; set; }
+
+    [Key(2)]
+    public GoshujinClass? Class2 { get; set; } = default!; // Error
 }
 
 public partial class NestParent
