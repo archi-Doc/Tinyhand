@@ -777,7 +777,7 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
-    public (string name, int count) GetClosedGenericName(string[]? argumentName)
+    public (string Name, int Count) GetClosedGenericName(string[]? argumentName)
     {// Namespace.Class<T, U>.Nested<X> -> Namespace.Class<argumentName, argumentName>.Nested<argumentName>
         var pos = 0;
         var genericCount = 0;
@@ -2749,7 +2749,7 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
-    public (Accessibility getter, Accessibility setter) Property_Accessibility
+    public (Accessibility Getter, Accessibility Setter) Property_Accessibility
     {
         get
         {

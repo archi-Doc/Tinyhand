@@ -797,6 +797,22 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
         // LockObject
         var lockObjectName = this.ObjectAttribute?.LockObject;
+        if (string.IsNullOrEmpty(lockObjectName) && this.ObjectAttribute is not null)
+        {// Try to get the lock object of base objects.
+            var baseObject = this.BaseObject;
+            while (baseObject != null)
+            {
+                if (!string.IsNullOrEmpty(baseObject.ObjectAttribute?.LockObject))
+                {
+                    lockObjectName = baseObject.ObjectAttribute!.LockObject!;
+                    this.ObjectAttribute.LockObject = baseObject.ObjectAttribute!.LockObject!;
+                    break;
+                }
+
+                baseObject = baseObject.BaseObject;
+            }
+        }
+
         if (!string.IsNullOrEmpty(lockObjectName))
         {
             var lockObject = this.AllMembers.FirstOrDefault(x => x.SimpleName == lockObjectName);
@@ -1455,7 +1471,7 @@ ModuleInitializerClass_Added:
             if (isAccessible)
             {
                 var generic = this.GetClosedGenericName(null);
-                typeName = $"typeof({generic.name})";
+                typeName = $"typeof({generic.Name})";
             }
             else
             {

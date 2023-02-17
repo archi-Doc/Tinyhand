@@ -26,16 +26,15 @@ public partial class LockObjectClass2 : LockObjectClass
 }
 
 [TinyhandObject]
-public partial class LockObjectClass3 : LockObjectClass2
+public partial class LockObjectClass2b : LockObjectClass2
 {
-    public LockObjectClass3()
+    public LockObjectClass2b()
     {
     }
 
     [Key(2)]
     public int Z { get; set; }
 }
-
 
 [TinyhandObject(LockObject = "syncObject")]
 public partial struct LockObjectStruct
@@ -66,4 +65,9 @@ public partial class LockObjectClass4
     public int X { get; set; }
 
     protected ILockable? semaphore = new SemaphoreLock();
+}
+
+[TinyhandObject]
+public partial class LockObjectClass5 : LockObjectClass4
+{
 }
