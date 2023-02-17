@@ -25,6 +25,18 @@ public partial class LockObjectClass2 : LockObjectClass
     public int Y { get; set; }
 }
 
+[TinyhandObject]
+public partial class LockObjectClass3 : LockObjectClass2
+{
+    public LockObjectClass3()
+    {
+    }
+
+    [Key(2)]
+    public int Z { get; set; }
+}
+
+
 [TinyhandObject(LockObject = "syncObject")]
 public partial struct LockObjectStruct
 {
