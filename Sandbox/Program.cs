@@ -31,8 +31,14 @@ public partial class SerializationGenericClass<T>
     }
 }
 
+[TinyhandObject]
+public partial class LockObjectClass2 : LockObjectClass<LockObjectClass2>
+{
+}
+
 [TinyhandObject(LockObject = "syncObject")]
-public partial class LockObjectClass
+public abstract partial class LockObjectClass<T>
+    where T : LockObjectClass<T>
 {
     public LockObjectClass()
     {
@@ -41,7 +47,7 @@ public partial class LockObjectClass
     [Key(0)]
     public int X { get; set; }
 
-    private object syncObject = new();
+    protected object syncObject = new();
 }
 
 [ValueLinkObject]

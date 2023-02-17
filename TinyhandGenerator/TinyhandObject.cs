@@ -799,7 +799,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         var lockObjectName = this.ObjectAttribute?.LockObject;
         if (string.IsNullOrEmpty(lockObjectName) && this.ObjectAttribute is not null)
         {// Try to get the lock object of base objects.
-            var baseObject = this.BaseObject;
+            var baseObject = this.BaseObject?.OriginalDefinition;
             while (baseObject != null)
             {
                 if (!string.IsNullOrEmpty(baseObject.ObjectAttribute?.LockObject))
@@ -809,7 +809,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     break;
                 }
 
-                baseObject = baseObject.BaseObject;
+                baseObject = baseObject.BaseObject?.OriginalDefinition;
             }
         }
 
