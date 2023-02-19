@@ -83,6 +83,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public bool EnumAsString { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to use formatter resolvers instead of static abstract methods [default is <see langword="false"/>].
+    /// </summary>
+    public bool UseResolver { get; set; } = false;
+
     public TinyhandObjectAttribute()
     {
     }

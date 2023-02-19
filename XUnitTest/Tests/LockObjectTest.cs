@@ -25,7 +25,7 @@ public partial class LockObjectClass2 : LockObjectClass
     public int Y { get; set; }
 }
 
-[TinyhandObject]
+[TinyhandObject(UseResolver = true)]
 public partial class LockObjectClass2b : LockObjectClass2
 {
     public LockObjectClass2b()
@@ -34,6 +34,18 @@ public partial class LockObjectClass2b : LockObjectClass2
 
     [Key(2)]
     public int Z { get; set; }
+}
+
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class LockObjectCollection
+{
+    public LockObjectCollection()
+    {
+    }
+
+    public LockObjectClass2 Class2 { get; set; } = default!;
+
+    public LockObjectClass2b Class2b { get; set; } = default!;
 }
 
 [TinyhandObject(LockObject = "syncObject")]

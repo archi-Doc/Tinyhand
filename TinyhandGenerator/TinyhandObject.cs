@@ -657,8 +657,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         // Add default coder (options.Resolver.GetFormatter<T>()...)
         if (this.TypeObjectWithNullable != null)
         {
-            ObjectResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
-            // FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+            if (this.TypeObjectWithNullable.Object.ObjectAttribute?.UseResolver == false)
+            {
+                ObjectResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+            }
+            else
+            {
+                FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+            }
 
             /*if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
                 this.ContainingObject != null &&
@@ -2842,7 +2848,8 @@ ModuleInitializerClass_Added:
             {
                 InitSetter_Start();
 
-                if (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint())
+                if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
+                    (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 }
@@ -2958,7 +2965,8 @@ ModuleInitializerClass_Added:
             {
                 InitSetter_Start();
 
-                if (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint())
+                if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
+                    (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {
                     withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 }
@@ -3086,7 +3094,8 @@ ModuleInitializerClass_Added:
 
             // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if ({ssb.FullObject} == null)" : string.Empty;
 
-            if (withNullable.Object.ObjectAttribute != null)
+            if (withNullable.Object.ObjectAttribute != null &&
+                withNullable.Object.ObjectAttribute.UseResolver == false)
             {// TinyhandObject. For the purpose of default value and instance reuse.
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
@@ -3194,7 +3203,8 @@ ModuleInitializerClass_Added:
 
                 if (x.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated || x.ReconstructState == ReconstructState.Do)
                 {// T
-                    if (withNullable.Object.ObjectAttribute != null)
+                    if (withNullable.Object.ObjectAttribute != null &&
+                        withNullable.Object.ObjectAttribute.UseResolver == false)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     }
@@ -3261,7 +3271,8 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject;
         using (var d = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
-            if (withNullable.Object.ObjectAttribute != null)
+            if (withNullable.Object.ObjectAttribute != null &&
+                withNullable.Object.ObjectAttribute.UseResolver == false)
             {// TinyhandObject.
                 InitSetter_Start(true);
                 ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject({sourceObject}, options)!;");
@@ -3523,8 +3534,9 @@ ModuleInitializerClass_Added:
         {// Coder
             coder.CodeSerializer(ssb, info);
         }
-        else if (withNullable.Object.ObjectAttribute != null ||
-            withNullable.Object.HasITinyhandSerializeConstraint())
+        else if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
+            (withNullable.Object.ObjectAttribute != null ||
+            withNullable.Object.HasITinyhandSerializeConstraint()))
         {// TinyhandObject or Type parameter with ITinyhandSerialize constraint.
             using (ssb.ScopeBrace(string.Empty))
             {

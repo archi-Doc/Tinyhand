@@ -66,6 +66,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool EnumAsString { get; set; } = false;
 
+    public bool UseResolver { get; set; } = false;
+
     public TinyhandObjectAttributeMock()
     {
     }
@@ -139,6 +141,12 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.EnumAsString = (bool)val;
+        }
+
+        val = AttributeHelper.GetValue(-1, nameof(UseResolver), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.UseResolver = (bool)val;
         }
 
         return attribute;
