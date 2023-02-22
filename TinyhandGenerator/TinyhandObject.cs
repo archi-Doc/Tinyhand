@@ -51,6 +51,7 @@ public enum TinyhandObjectFlag
     ReconstructTarget = 1 << 7,
     ReuseInstanceTarget = 1 << 8,
     CloneTarget = 1 << 9,
+    HiddenMember = 1 << 10,
 
     HasITinyhandSerializationCallback = 1 << 20, // Has ITinyhandSerializationCallback interface
     HasExplicitOnBeforeSerialize = 1 << 21, // ITinyhandSerializationCallback.OnBeforeSerialize()
@@ -1317,6 +1318,22 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute2, this.Location);
             }
         }
+
+        // Hidden members
+        var parentObject = parent;
+        while (parentObject != null && parentObject != this.ContainingObject)
+        {
+            if (parentObject.AllMembers.Any(x =>
+            (x.Kind == VisceralObjectKind.Field || x.Kind == VisceralObjectKind.Property) &&
+            x.ContainingObject == parentObject &&
+            x.SimpleName == this.SimpleName))
+            {
+                this.ObjectFlag |= TinyhandObjectFlag.HiddenMember;
+                break;
+            }
+
+            parentObject = parentObject.BaseObject;
+        }
     }
 
     private void CheckMember_Reconstruct(TinyhandObject parent)
@@ -2400,7 +2417,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateClone_Method(ScopingStringBuilder ssb, GeneratorInformation info)
+    /*internal void GenerateClone_Method(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         string methodCode;
         string sourceObject;
@@ -2441,7 +2458,7 @@ ModuleInitializerClass_Added:
                 }
                 else
                 {
-                    sourceName = sourceObject + "." + x.SimpleNameOrAddedProperty;
+                    sourceName = this.GetSourceName(sourceObject, x);
                 }
 
                 this.GenerateCloneCore(ssb, info, x, sourceName);
@@ -2449,7 +2466,7 @@ ModuleInitializerClass_Added:
 
             ssb.AppendLine($"return value;");
         }
-    }
+    }*/
 
     internal void GenerateClone_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -2481,8 +2498,8 @@ ModuleInitializerClass_Added:
                     sourceName = $"{prefix}{x.GetterDelegateIdentifier}!({sourceObject})";
                 }
                 else
-                {
-                    sourceName = sourceObject + "." + x.SimpleNameOrAddedProperty;
+                {// Hidden members
+                    sourceName = this.GetSourceName(sourceObject, x);
                 }
 
                 this.GenerateCloneCore(ssb, info, x, sourceName);
@@ -2829,6 +2846,33 @@ ModuleInitializerClass_Added:
         this.GenerateConstructorCore(ssb, info, false, array);
     }
 
+    internal IScope ScopeMember(ScopingStringBuilder ssb, TinyhandObject x)
+    {// ssb.ScopeObject(x.SimpleNameOrAddedProperty) -> this.ScopeMember(ssb, x)
+        if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HiddenMember) &&
+            x.ContainingObject is not null)
+        {// ((BaseClass)v).Member
+            var name = $"(({x.ContainingObject.SimpleName}){ssb.FullObject}).{x.SimpleNameOrAddedProperty}";
+            return ssb.ScopeFullObject(name);
+        }
+        else
+        {// v.Member
+            return ssb.ScopeObject(x.SimpleNameOrAddedProperty);
+        }
+    }
+
+    internal string GetSourceName(string sourceObject, TinyhandObject x)
+    {// ssb.ScopeObject(x.SimpleNameOrAddedProperty) -> this.ScopeMember(ssb, x)
+        if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HiddenMember) &&
+            x.ContainingObject is not null)
+        {// ((BaseClass)v).Member
+            return $"(({x.ContainingObject.SimpleName}){sourceObject}).{x.SimpleNameOrAddedProperty}";
+        }
+        else
+        {// v.Member
+            return sourceObject + "." + x.SimpleNameOrAddedProperty;
+        }
+    }
+
     internal void GenerateDeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
     {// Integer key
         var withNullable = x?.TypeObjectWithNullable;
@@ -2839,8 +2883,8 @@ ModuleInitializerClass_Added:
         }
 
         ScopingStringBuilder.IScope? initSetter = null;
-        var destObject = ssb.FullObject;
-        using (var m = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
+        var destObject = ssb.FullObject; // Hidden members
+        using (var m = this.ScopeMember(ssb, x))
         {
             var originalName = ssb.FullObject;
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
@@ -2935,11 +2979,11 @@ ModuleInitializerClass_Added:
                 {
                     if (withNullable.Object.IsUnmanagedType)
                     {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
                     }
                     else
                     {// Unsafe.AsRef({this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                        ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
                     }
                 }
             }
@@ -2956,8 +3000,8 @@ ModuleInitializerClass_Added:
         }
 
         ScopingStringBuilder.IScope? initSetter = null;
-        var destObject = ssb.FullObject;
-        using (var m = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
+        var destObject = ssb.FullObject; // Hidden members
+        using (var m = this.ScopeMember(ssb, x))
         {
             var originalName = ssb.FullObject;
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
@@ -3053,11 +3097,11 @@ ModuleInitializerClass_Added:
                 {
                     if (withNullable.Object.IsUnmanagedType)
                     {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
                     }
                     else
                     {// Unsafe.AsRef({this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                        ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
                     }
                 }
             }
@@ -3074,9 +3118,9 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? initSetter = null;
         ScopingStringBuilder.IScope? emptyBrace = null;
-        var destObject = ssb.FullObject;
+        var destObject = ssb.FullObject; // Hidden members
 
-        using (var c2 = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
+        using (var c2 = this.ScopeMember(ssb, x))
         {
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
@@ -3268,8 +3312,8 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? initSetter = null;
         ScopingStringBuilder.IScope? emptyBrace = null;
-        var destObject = ssb.FullObject;
-        using (var d = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
+        var destObject = ssb.FullObject; // Hidden members
+        using (var d = this.ScopeMember(ssb, x))
         {
             if (withNullable.Object.ObjectAttribute != null &&
                 withNullable.Object.ObjectAttribute.UseResolver == false)
@@ -3338,17 +3382,17 @@ ModuleInitializerClass_Added:
 
                         if (!withNullable.Object.IsUnmanagedType)
                         {// Unsafe.AsRef({this.array) = vd;
-                            ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                            ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
                         }
                         else
                         {
                             if (this.Kind == VisceralObjectKind.Struct)
                             {// *(ulong*)&value.Id0 = vd;
-                                ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{destObject}.{x.SimpleName} = vd;");
+                                ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{this.GetSourceName(destObject, x)} = vd;"); // {destObject}.{x.SimpleName}
                             }
                             else
                             {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                                ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
+                                ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
                             }
                         }
                     }
@@ -3491,7 +3535,7 @@ ModuleInitializerClass_Added:
         }
         else
         {
-            v2 = ssb.ScopeObject(x.SimpleNameOrAddedProperty);
+            v2 = this.ScopeMember(ssb, x); // Hidden members
         }
 
         ScopingStringBuilder.IScope? skipDefaultValueScope = null;
