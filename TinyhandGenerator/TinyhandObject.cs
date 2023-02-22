@@ -1317,6 +1317,22 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute2, this.Location);
             }
         }
+
+        // Hidden members
+        var parentObject = parent;
+        while (parentObject != null && parentObject != this.ContainingObject)
+        {
+            if (parentObject.AllMembers.Any(x =>
+            (x.Kind == VisceralObjectKind.Field || x.Kind == VisceralObjectKind.Property) &&
+            x.ContainingObject == parentObject &&
+            x.SimpleName == this.SimpleName))
+            {
+                this.ObjectFlag |= TinyhandObjectFlag.HiddenMember;
+                break;
+            }
+
+            parentObject = parentObject.BaseObject;
+        }
     }
 
     private void CheckMember_Reconstruct(TinyhandObject parent)
@@ -2839,7 +2855,7 @@ ModuleInitializerClass_Added:
         }
 
         ScopingStringBuilder.IScope? initSetter = null;
-        var destObject = ssb.FullObject;
+        var destObject = ssb.FullObject; // Hidden members
         using (var m = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             var originalName = ssb.FullObject;
@@ -2956,7 +2972,7 @@ ModuleInitializerClass_Added:
         }
 
         ScopingStringBuilder.IScope? initSetter = null;
-        var destObject = ssb.FullObject;
+        var destObject = ssb.FullObject; // Hidden members
         using (var m = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             var originalName = ssb.FullObject;
@@ -3074,7 +3090,7 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? initSetter = null;
         ScopingStringBuilder.IScope? emptyBrace = null;
-        var destObject = ssb.FullObject;
+        var destObject = ssb.FullObject; // Hidden members
 
         using (var c2 = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
@@ -3268,7 +3284,7 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? initSetter = null;
         ScopingStringBuilder.IScope? emptyBrace = null;
-        var destObject = ssb.FullObject;
+        var destObject = ssb.FullObject; // Hidden members
         using (var d = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             if (withNullable.Object.ObjectAttribute != null &&
@@ -3491,7 +3507,7 @@ ModuleInitializerClass_Added:
         }
         else
         {
-            v2 = ssb.ScopeObject(x.SimpleNameOrAddedProperty);
+            v2 = ssb.ScopeObject(x.SimpleNameOrAddedProperty); // Hidden members
         }
 
         ScopingStringBuilder.IScope? skipDefaultValueScope = null;
