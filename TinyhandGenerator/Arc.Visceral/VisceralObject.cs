@@ -2732,6 +2732,23 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
+    public bool Field_IsPublic
+    {
+        get
+        {
+            if (this.symbol is IFieldSymbol fs)
+            {
+                return fs.DeclaredAccessibility == Accessibility.Public;
+            }
+            else if (this.memberInfo is FieldInfo fi)
+            {
+                return fi.IsPublic;
+            }
+
+            return false;
+        }
+    }
+
     public Accessibility Field_Accessibility
     {
         get
@@ -2796,6 +2813,40 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
             else if (this.memberInfo is PropertyInfo pi)
             {
                 return pi.SetMethod.IsPrivate;
+            }
+
+            return false;
+        }
+    }
+
+    public bool Property_IsPublicGetter
+    {
+        get
+        {
+            if (this.symbol is IPropertySymbol ps)
+            {
+                return ps.GetMethod?.DeclaredAccessibility == Accessibility.Public;
+            }
+            else if (this.memberInfo is PropertyInfo pi)
+            {
+                return pi.GetMethod.IsPublic;
+            }
+
+            return false;
+        }
+    }
+
+    public bool Property_IsPublicSetter
+    {
+        get
+        {
+            if (this.symbol is IPropertySymbol ps)
+            {
+                return ps.SetMethod?.DeclaredAccessibility == Accessibility.Public;
+            }
+            else if (this.memberInfo is PropertyInfo pi)
+            {
+                return pi.SetMethod.IsPublic;
             }
 
             return false;
