@@ -24,7 +24,7 @@ public partial class HiddenMemberClass
     public int X { get; set; }
 
     [Key(1)]
-    public int Y { get; set; }
+    public int Y { get; protected set; }
 
     [Key(2)]
     public readonly int Z;

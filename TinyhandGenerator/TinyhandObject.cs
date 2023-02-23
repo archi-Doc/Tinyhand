@@ -1238,6 +1238,22 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             this.ObjectFlag |= TinyhandObjectFlag.ReuseInstanceTarget;
         }
 
+        // Hidden members
+        var parentObject = parent;
+        while (parentObject != null && parentObject != this.ContainingObject)
+        {
+            if (parentObject.AllMembers.Any(x =>
+            (x.Kind == VisceralObjectKind.Field || x.Kind == VisceralObjectKind.Property) &&
+            x.ContainingObject == parentObject &&
+            x.SimpleName == this.SimpleName))
+            {
+                this.ObjectFlag |= TinyhandObjectFlag.HiddenMember;
+                break;
+            }
+
+            parentObject = parentObject.BaseObject;
+        }
+
         // Requires getter/setter
         if (this.IsInitOnly)
         {
@@ -1253,24 +1269,50 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
         if (this.ContainingObject != parent)
         {
-            if (this.Kind == VisceralObjectKind.Field)
-            {
-                if (this.Field_IsPrivate)
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HiddenMember))
+            {// Hidden members
+                if (this.Kind == VisceralObjectKind.Field)
                 {
-                    this.RequiresGetter = true;
-                    this.RequiresSetter = true;
+                    if (!this.Field_IsPublic)
+                    {
+                        this.RequiresGetter = true;
+                        this.RequiresSetter = true;
+                    }
+                }
+                else if (this.Kind == VisceralObjectKind.Property)
+                {
+                    if (!this.Property_IsPublicGetter)
+                    {
+                        this.RequiresGetter = true;
+                    }
+
+                    if (!this.Property_IsPublicSetter)
+                    {
+                        this.RequiresSetter = true;
+                    }
                 }
             }
-            else if (this.Kind == VisceralObjectKind.Property)
-            {
-                if (this.Property_IsPrivateGetter)
+            else
+            {// Other
+                if (this.Kind == VisceralObjectKind.Field)
                 {
-                    this.RequiresGetter = true;
+                    if (this.Field_IsPrivate)
+                    {
+                        this.RequiresGetter = true;
+                        this.RequiresSetter = true;
+                    }
                 }
-
-                if (this.Property_IsPrivateSetter)
+                else if (this.Kind == VisceralObjectKind.Property)
                 {
-                    this.RequiresSetter = true;
+                    if (this.Property_IsPrivateGetter)
+                    {
+                        this.RequiresGetter = true;
+                    }
+
+                    if (this.Property_IsPrivateSetter)
+                    {
+                        this.RequiresSetter = true;
+                    }
                 }
             }
         }
@@ -1317,22 +1359,6 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             {
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute2, this.Location);
             }
-        }
-
-        // Hidden members
-        var parentObject = parent;
-        while (parentObject != null && parentObject != this.ContainingObject)
-        {
-            if (parentObject.AllMembers.Any(x =>
-            (x.Kind == VisceralObjectKind.Field || x.Kind == VisceralObjectKind.Property) &&
-            x.ContainingObject == parentObject &&
-            x.SimpleName == this.SimpleName))
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.HiddenMember;
-                break;
-            }
-
-            parentObject = parentObject.BaseObject;
         }
     }
 
