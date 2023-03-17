@@ -19,10 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.4" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.5" />
     <PackageReference Include="MemoryPack" Version="1.9.13" />
-    <PackageReference Include="MessagePack" Version="2.4.59" />
-    <PackageReference Include="protobuf-net" Version="3.1.33" />
+    <PackageReference Include="MessagePack" Version="2.5.108" />
+    <PackageReference Include="protobuf-net" Version="3.2.16" />
   </ItemGroup>
 
   <ItemGroup>

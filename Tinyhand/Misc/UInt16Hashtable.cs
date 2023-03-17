@@ -6,11 +6,11 @@ using System.Threading;
 namespace Tinyhand;
 
 /// <summary>
-/// Represents a collection of ulong and value pairs.
+/// Represents a collection of ushort and value pairs.
 /// </summary>
 /// <typeparam name="TValue">The type of value.</typeparam>
-public class UInt64Hashtable<TValue>
-{ // HashTable for ulong
+public class UInt16Hashtable<TValue>
+{ // HashTable for ushort
     private static uint CalculateCapacity(uint collectionSize)
     {
         collectionSize *= 2;
@@ -28,13 +28,13 @@ public class UInt64Hashtable<TValue>
         return capacity;
     }
 
-    public UInt64Hashtable(uint capacity = 4)
+    public UInt16Hashtable(uint capacity = 4)
     {
         var size = CalculateCapacity(capacity);
         this.hashTable = new Item[size];
     }
 
-    public bool TryAdd(ulong key, TValue value)
+    public bool TryAdd(ushort key, TValue value)
     {
         lock (this.cs)
         {
@@ -57,7 +57,7 @@ public class UInt64Hashtable<TValue>
         }
     }
 
-    public bool TryGetValue(ulong key, [MaybeNullWhen(false)] out TValue value)
+    public bool TryGetValue(ushort key, [MaybeNullWhen(false)] out TValue value)
     {
         var table = this.hashTable;
         var hash = unchecked((int)key);
@@ -140,7 +140,7 @@ public class UInt64Hashtable<TValue>
         return true;
     }
 
-    private bool AddKeyValue(ulong key, TValue value)
+    private bool AddKeyValue(ushort key, TValue value)
     { // lock(cs) required.
         var table = this.hashTable;
         var hash = unchecked((int)key);
@@ -183,13 +183,13 @@ public class UInt64Hashtable<TValue>
     private class Item
     {
 #pragma warning disable SA1401
-        public ulong Key;
+        public ushort Key;
         public TValue Value;
         public int Hash;
         public Item? Next;
 #pragma warning restore SA1401
 
-        public Item(ulong key, TValue value, int hash)
+        public Item(ushort key, TValue value, int hash)
         {
             this.Key = key;
             this.Value = value;

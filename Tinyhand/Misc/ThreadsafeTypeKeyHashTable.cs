@@ -67,7 +67,7 @@ public class ThreadsafeTypeKeyHashTable<TValue>
                 var successAdd = this.AddToBuckets(nextBucket, key, null, valueFactory, out resultingValue);
 
                 // replace field(threadsafe for read)
-                VolatileWrite(ref this.buckets, nextBucket);
+                System.Threading.Volatile.Write(ref this.buckets, nextBucket);
 
                 if (successAdd)
                 {
@@ -98,12 +98,12 @@ public class ThreadsafeTypeKeyHashTable<TValue>
             if (newEntryOrNull != null)
             {
                 resultingValue = newEntryOrNull.Value;
-                VolatileWrite(ref buckets[h & (buckets.Length - 1)], newEntryOrNull);
+                System.Threading.Volatile.Write(ref buckets[h & (buckets.Length - 1)], newEntryOrNull);
             }
             else
             {
                 resultingValue = valueFactory(newKey);
-                VolatileWrite(ref buckets[h & (buckets.Length - 1)], new Entry(newKey, resultingValue, h));
+                System.Threading.Volatile.Write(ref buckets[h & (buckets.Length - 1)], new Entry(newKey, resultingValue, h));
             }
         }
         else
@@ -122,12 +122,12 @@ public class ThreadsafeTypeKeyHashTable<TValue>
                     if (newEntryOrNull != null)
                     {
                         resultingValue = newEntryOrNull.Value;
-                        VolatileWrite(ref searchLastEntry.Next!, newEntryOrNull);
+                        System.Threading.Volatile.Write(ref searchLastEntry.Next!, newEntryOrNull);
                     }
                     else
                     {
                         resultingValue = valueFactory(newKey);
-                        VolatileWrite(ref searchLastEntry.Next!, new Entry(newKey, resultingValue, h));
+                        System.Threading.Volatile.Write(ref searchLastEntry.Next!, new Entry(newKey, resultingValue, h));
                     }
 
                     break;
@@ -158,7 +158,7 @@ public class ThreadsafeTypeKeyHashTable<TValue>
             entry = entry.Next;
         }
 
-        value = default(TValue);
+        value = default;
         return false;
     }
 
@@ -191,30 +191,6 @@ public class ThreadsafeTypeKeyHashTable<TValue>
         return capacity;
     }
 
-    private static void VolatileWrite(ref Entry location, Entry value)
-    {
-#if !UNITY_2018_3_OR_NEWER
-        System.Threading.Volatile.Write(ref location, value);
-#elif UNITY_2018_3_OR_NEWER || NET_4_6
-        System.Threading.Volatile.Write(ref location, value);
-#else
-        System.Threading.Thread.MemoryBarrier();
-        location = value;
-#endif
-    }
-
-    private static void VolatileWrite(ref Entry[] location, Entry[] value)
-    {
-#if !UNITY_2018_3_OR_NEWER
-        System.Threading.Volatile.Write(ref location, value);
-#elif UNITY_2018_3_OR_NEWER || NET_4_6
-        System.Threading.Volatile.Write(ref location, value);
-#else
-        System.Threading.Thread.MemoryBarrier();
-        location = value;
-#endif
-    }
-
     private class Entry
     {
         public Entry(Type key, TValue value, int hash)
@@ -230,24 +206,5 @@ public class ThreadsafeTypeKeyHashTable<TValue>
         internal int Hash;
         internal Entry? Next;
 #pragma warning restore SA1401 // Fields should be private
-
-        // debug only
-        public override string ToString()
-        {
-            return this.Key + "(" + this.Count() + ")";
-        }
-
-        private int Count()
-        {
-            var count = 1;
-            Entry n = this;
-            while (n.Next != null)
-            {
-                count++;
-                n = n.Next;
-            }
-
-            return count;
-        }
     }
 }
