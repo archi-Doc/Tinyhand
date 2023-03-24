@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using LP;
+using SandboxBase;
 using Sandbox.ZenItz;
 using Tinyhand;
 using Tinyhand.IO;
@@ -15,6 +16,14 @@ using ValueLink;
 #pragma warning disable CS0169
 
 namespace Sandbox;
+
+
+[TinyhandObject]
+public partial class LockObjectClassB : LockObjectClassA
+{
+    [Key(1)]
+    public int Y { get; set; }
+}
 
 public partial class SerializationGenericClass<T>
 {
