@@ -7,9 +7,6 @@ using System.Linq;
 using System.Text;
 using Arc.Visceral;
 
-#pragma warning disable SA1202 // Elements should be ordered by access
-#pragma warning disable SA1204 // Static elements should appear before instance elements
-
 namespace Tinyhand.Generator;
 
 internal class Automata

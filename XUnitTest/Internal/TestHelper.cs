@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Tinyhand;
 using Xunit;
 
-#pragma warning disable SA1401 // Fields should be private
 #pragma warning disable SA1009
 
 namespace Tinyhand.Tests;

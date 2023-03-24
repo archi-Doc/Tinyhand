@@ -16,7 +16,6 @@ using static Arc.Visceral.ScopingStringBuilder;
 #pragma warning disable SA1204 // Static elements should appear before instance elements
 #pragma warning disable SA1310 // Field names should not contain underscore
 #pragma warning disable SA1401 // Fields should be private
-#pragma warning disable SA1405 // Debug.Assert should provide message text
 #pragma warning disable SA1602 // Enumeration items should be documented
 
 namespace Tinyhand.Generator;
@@ -877,9 +876,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         // Check members.
-        foreach (var x in this.Members)
+        if (this.Kind != VisceralObjectKind.Interface)
         {
-            x.CheckMember(this);
+            foreach (var x in this.Members)
+            {
+                x.CheckMember(this);
+            }
         }
     }
 

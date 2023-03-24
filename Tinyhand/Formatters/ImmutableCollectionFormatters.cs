@@ -7,7 +7,6 @@ using Tinyhand.Formatters;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-#pragma warning disable SA1649 // File name should match first type name
 
 namespace Tinyhand.Formatters;
 

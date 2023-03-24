@@ -11,9 +11,6 @@ using System.Threading.Tasks;
 using Tinyhand;
 
 #pragma warning disable SA1401 // Fields should be private
-#pragma warning disable SA1009
-#pragma warning disable SA1010
-#pragma warning disable SA1026
 #pragma warning disable SA1125
 
 namespace Tinyhand.Tests;

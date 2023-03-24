@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Tinyhand.Tree;
 
 #pragma warning disable CS1998
-#pragma warning disable SA1649 // File name should match first type name
 
 namespace Tinyhand;
 

@@ -7,8 +7,6 @@ using System;
 using Arc.Visceral;
 using Tinyhand.Generator;
 
-#pragma warning disable SA1649 // File name should match first type name
-
 namespace Tinyhand.Coders;
 
 public sealed class UInt8Coder : ITinyhandCoder

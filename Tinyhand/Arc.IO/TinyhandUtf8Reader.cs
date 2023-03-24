@@ -9,7 +9,6 @@ using System.Text;
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1309
 #pragma warning disable SA1513 // Closing brace should be followed by blank line
-#pragma warning disable SA1649 // File name should match first type name
 #pragma warning disable SA1602 // Enumeration items should be documented
 
 namespace Tinyhand;

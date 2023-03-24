@@ -3,7 +3,6 @@
 using System;
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
-#pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1401 // Fields should be private
 #pragma warning disable SA1516 // Elements should be separated by blank line
 

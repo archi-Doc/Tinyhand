@@ -7,8 +7,6 @@ using System.Text.Unicode;
 using Arc.IO;
 using Tinyhand;
 
-#pragma warning disable SA1011 // Closing square brackets should be spaced correctly
-
 namespace Arc.IO;
 
 public ref struct TinyhandRawWriter

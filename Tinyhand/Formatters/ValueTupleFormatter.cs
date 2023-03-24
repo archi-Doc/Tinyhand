@@ -7,8 +7,6 @@ using System;
 using System.Buffers;
 using Tinyhand.IO;
 
-#pragma warning disable SA1649 // File name should match first type name
-
 namespace Tinyhand.Formatters;
 
 public sealed class ValueTupleFormatter<T1> : ITinyhandFormatter<ValueTuple<T1>>

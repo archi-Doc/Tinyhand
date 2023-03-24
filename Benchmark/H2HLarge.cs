@@ -13,8 +13,6 @@ using ProtoBuf;
 using Tinyhand;
 using Tinyhand.IO;
 
-#pragma warning disable SA1401 // Fields should be private
-
 namespace Benchmark.H2HTest;
 
 [TinyhandObject(ImplicitKeyAsName = true)]

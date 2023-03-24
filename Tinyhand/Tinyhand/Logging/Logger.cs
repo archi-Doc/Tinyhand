@@ -6,7 +6,6 @@ using System.IO;
 using System.Text;
 using Tinyhand.Tree;
 
-#pragma warning disable SA1204 // Static elements should appear before instance elements
 #pragma warning disable SA1401 // Fields should be private
 
 namespace Tinyhand.Logging;
