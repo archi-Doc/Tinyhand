@@ -17,7 +17,6 @@ using ValueLink;
 
 namespace Sandbox;
 
-
 [TinyhandObject]
 public partial class LockObjectClassB : LockObjectClassA
 {

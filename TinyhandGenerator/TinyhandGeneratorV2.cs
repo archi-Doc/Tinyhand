@@ -135,7 +135,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         this.AssemblyId = this.AssemblyName.GetHashCode();
         this.OutputKind = compilation.Options.OutputKind;
 
-        var body = new TinyhandBody(context);
+        var body = new TinyhandBody(context, this.AssemblySymbol);
         var generateMemberBody = new TinyhandGenerateMemberBody(context);
         // receiver.Generics.Prepare(compilation);
 #pragma warning disable RS1024 // Symbols should be compared for equality
@@ -173,6 +173,15 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                 this.ProcessSymbol(body, generateMemberBody, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
             }
         }
+
+        /*foreach (var x in compilation.SourceModule.ReferencedAssemblySymbols)
+        {
+            if (x.Identity.Name == "SandboxBase")
+            {// tempcode
+                // var m = x.GetTypeByMetadataName("SandboxBase.LockObjectClassA");
+                // body.Add(m);
+            }
+        }*/
 
         // this.SalvageCloseGeneric(body, generics, processed);
 

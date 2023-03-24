@@ -237,17 +237,21 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG051", title: "LockObject3", messageFormat: "Member specified in LockObject is not accessible",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public TinyhandBody(GeneratorExecutionContext context)
+    public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
+        this.AssemblySymbol = assemblySymbol;
     }
 
-    public TinyhandBody(SourceProductionContext context)
+    public TinyhandBody(SourceProductionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
+        this.AssemblySymbol = assemblySymbol;
     }
 
     internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
+
+    internal IAssemblySymbol AssemblySymbol;
 
     // internal List<UnionToItem> UnionToList = new();
 
@@ -319,7 +323,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
             return;
         }
 
-        array = this.FullNameToObject.Where(x => x.Value.ObjectAttribute != null).ToArray();
+        array = this.FullNameToObject.Where(x => x.Value.ObjectAttribute != null && x.Value.IsSameAssembly(this.AssemblySymbol)).ToArray();
         foreach (var x in array)
         {
             x.Value.ConfigureRelation();

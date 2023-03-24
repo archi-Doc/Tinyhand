@@ -91,7 +91,7 @@ public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
             this.Prepare(context, compilation);
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            this.body = new TinyhandBody(context);
+            this.body = new TinyhandBody(context, this.AssemblySymbol);
             receiver.Generics.Prepare(compilation);
 
             // IN: type declaration
