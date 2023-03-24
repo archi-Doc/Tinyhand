@@ -2055,6 +2055,20 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
+    public bool IsSameAssembly(IAssemblySymbol assemblySymbol)
+    {
+        if (this.symbol != null)
+        {
+#pragma warning disable RS1024
+            return this.symbol.ContainingAssembly == assemblySymbol;
+#pragma warning restore RS1024
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     private bool? isReadable;
 
     public bool IsReadable
