@@ -297,6 +297,36 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
     }
 
+    public void TryConfigure()
+    {
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Configured))
+        {
+            return;
+        }
+
+        if (this.IsSystem)
+        {
+            this.ObjectFlag |= TinyhandObjectFlag.Configured;
+            return;
+        }
+
+        foreach (var x in this.AllAttributes)
+        {
+            if (x.FullName == TinyhandObjectAttributeMock.FullName)
+            {
+                this.Configure();
+                break;
+            }
+            else if (x.FullName == TinyhandUnionAttributeMock.FullName)
+            {
+                this.Configure();
+                break;
+            }
+        }
+
+        this.ObjectFlag |= TinyhandObjectFlag.Configured;
+    }
+
     public void Configure()
     {
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Configured))
@@ -809,6 +839,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             var baseObject = this.BaseObject?.OriginalDefinition;
             while (baseObject != null)
             {
+                baseObject.TryConfigure();
                 if (!string.IsNullOrEmpty(baseObject.ObjectAttribute?.LockObject))
                 {
                     lockObjectName = baseObject.ObjectAttribute!.LockObject!;
@@ -957,6 +988,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         var baseObject = this.BaseObject;
         while (baseObject != null)
         {
+            baseObject.TryConfigure();
             if (baseObject.ObjectAttribute?.ReservedKeys is int key && key >= 0)
             {
                 reservedKeys = Math.Max(reservedKeys, key);
