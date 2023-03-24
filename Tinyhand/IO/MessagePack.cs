@@ -2,7 +2,6 @@
 
 #pragma warning disable SA1600 // Elements should be documented
 #pragma warning disable SA1602 // Enumeration items should be documented
-#pragma warning disable SA1649 // File name should match first type name
 
 using System;
 using System.Buffers;

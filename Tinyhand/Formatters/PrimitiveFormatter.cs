@@ -7,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using Tinyhand.IO;
 
-#pragma warning disable SA1649 // File name should match first type name
-
 namespace Tinyhand.Formatters;
 
 public sealed class UInt8Formatter : ITinyhandFormatter<byte>

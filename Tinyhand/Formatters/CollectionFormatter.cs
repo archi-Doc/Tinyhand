@@ -10,7 +10,6 @@ using System.Linq;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-#pragma warning disable SA1202 // Elements should be ordered by access
 
 namespace Tinyhand.Formatters;
 

@@ -8,8 +8,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 
-#pragma warning disable SA1649 // File name should match first type name
-
 namespace Tinyhand.Formatters;
 
 public static partial class Builtin

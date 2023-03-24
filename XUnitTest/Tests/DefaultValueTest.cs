@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Tinyhand;
 using Xunit;
 
-#pragma warning disable SA1139
-
 namespace Tinyhand.Tests;
 
 [TinyhandObject(ImplicitKeyAsName = true)]

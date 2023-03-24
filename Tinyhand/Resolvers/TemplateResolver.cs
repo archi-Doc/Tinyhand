@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Tinyhand;
 
 #pragma warning disable CS0649
-#pragma warning disable SA1401 // Fields should be private
 
 namespace Tinyhand.Resolvers;
 

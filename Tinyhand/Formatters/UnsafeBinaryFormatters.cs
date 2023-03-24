@@ -5,7 +5,6 @@ using System.Buffers;
 using Tinyhand.IO;
 
 #pragma warning disable SA1121 // Use built-in type alias
-#pragma warning disable SA1649 // File name should match first type name
 
 namespace Tinyhand.Formatters;
 

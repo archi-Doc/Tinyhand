@@ -108,7 +108,6 @@ public partial class TinyhandSerializer
 #endif
 
 #pragma warning disable SA1310 // Field names should not contain underscore
-#pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1401 // Fields should be private
         internal readonly Func<TinyhandSerializerOptions?, object> Reconstruct_T_Options;
         internal readonly Func<object, TinyhandSerializerOptions?, CancellationToken, byte[]> Serialize_T_Options;
@@ -123,7 +122,6 @@ public partial class TinyhandSerializer
 
         internal readonly Func<ReadOnlyMemory<byte>, TinyhandSerializerOptions?, CancellationToken, object?> Deserialize_ReadOnlyMemory_Options;
 #pragma warning restore SA1401 // Fields should be private
-#pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning restore SA1310 // Field names should not contain underscore
 
         internal CompiledMethods(Type type)

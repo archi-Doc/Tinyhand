@@ -16,8 +16,6 @@ using Tinyhand.IO;
 
 [module: System.Runtime.CompilerServices.SkipLocalsInit]
 
-#pragma warning disable SA1401 // Fields should be private
-
 namespace Benchmark;
 
 public class Program

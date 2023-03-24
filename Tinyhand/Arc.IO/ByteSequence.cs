@@ -4,8 +4,6 @@ using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 
-#pragma warning disable SA1202 // Elements should be ordered by access
-
 namespace Arc.IO;
 
 public class ByteSequence : IBufferWriter<byte>, IDisposable

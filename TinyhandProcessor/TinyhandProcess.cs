@@ -14,10 +14,7 @@ using Tinyhand.Tree;
 #pragma warning disable CS1998
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 #pragma warning disable SA1201 // Elements should appear in the correct order
-#pragma warning disable SA1202 // Elements should be ordered by access
-#pragma warning disable SA1204 // Static elements should appear before instance elements
 #pragma warning disable SA1513 // Closing brace should be followed by blank line
-#pragma warning disable SA1649 // File name should match first type name
 
 namespace Tinyhand;
 

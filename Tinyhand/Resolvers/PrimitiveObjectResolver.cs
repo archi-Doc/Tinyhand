@@ -3,8 +3,6 @@
 using System.Collections.Generic;
 using Tinyhand.Formatters;
 
-#pragma warning disable SA1401 // Fields should be private
-
 namespace Tinyhand.Resolvers;
 
 /// <summary>

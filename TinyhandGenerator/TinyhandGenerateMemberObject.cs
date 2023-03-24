@@ -10,8 +10,6 @@ using System.Text;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 
-#pragma warning disable SA1202 // Elements should be ordered by access
-#pragma warning disable SA1204 // Static elements should appear before instance elements
 #pragma warning disable SA1602 // Enumeration items should be documented
 
 namespace Tinyhand.Generator;

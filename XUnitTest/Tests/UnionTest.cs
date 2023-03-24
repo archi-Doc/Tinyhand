@@ -1,15 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tinyhand;
 using Xunit;
-
-#pragma warning disable SA1139
 
 namespace Tinyhand.Tests;
 
@@ -19,6 +10,7 @@ namespace Tinyhand.Tests;
 [MessagePack.Union(1, typeof(UnionTestClassB))]
 public partial interface IUnionTestInterface
 {
+    public int Id { get; set; }
 }
 
 [TinyhandObject]
@@ -32,6 +24,10 @@ public partial class UnionTestClassA : IUnionTestInterface
     [IgnoreMember]
     [MessagePack.IgnoreMember]
     public int Token;
+
+    [Key(1)]
+    [MessagePack.Key(1)]
+    public int Id { get; set; }
 }
 
 [TinyhandObject]
@@ -45,6 +41,10 @@ public partial class UnionTestClassB : IUnionTestInterface
     [IgnoreMember]
     [MessagePack.IgnoreMember]
     public int Token;
+
+    [Key(1)]
+    [MessagePack.Key(1)]
+    public int Id { get; set; }
 }
 
 [TinyhandUnion(0, typeof(UnionTestSubA))]

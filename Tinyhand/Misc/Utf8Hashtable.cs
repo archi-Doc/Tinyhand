@@ -267,14 +267,12 @@ public class Utf8Hashtable<TValue>
 
     internal class Item
     {
-#pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 #pragma warning disable SA1401
         public byte[] Key;
         public TValue Value;
         public int Hash;
         public Item? Next;
 #pragma warning restore SA1401
-#pragma warning restore SA1307 // Accessible fields should begin with upper-case letter
 
         public Item(byte[] key, TValue value, int hash)
         {

@@ -10,9 +10,7 @@ using System.Text;
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly
 #pragma warning disable SA1201 // Elements should appear in the correct order
-#pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1405 // Debug.Assert should provide message text
-#pragma warning disable SA1503 // Braces should not be omitted
 #pragma warning disable SA1611 // Element parameters should be documented
 #pragma warning disable SA1615 // Element return value should be documented
 
