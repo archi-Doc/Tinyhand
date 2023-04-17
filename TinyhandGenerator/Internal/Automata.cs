@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Arc.Visceral;
@@ -69,7 +68,7 @@ internal class Automata
         ReadOnlySpan<byte> bytes = utf8;
         while (bytes.Length > 0)
         {
-            var key = AutomataKeyMock.GetKey(ref bytes);
+            var key = AutomataKey.GetKey(ref bytes);
 
             if (key == 0)
             {

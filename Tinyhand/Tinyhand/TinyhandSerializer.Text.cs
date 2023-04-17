@@ -580,7 +580,9 @@ public static partial class TinyhandSerializer
                 }
             }
             catch
-            {
+            {// Maybe TinyhandUnion
+                CanOmit = true;
+                return;
             }
         }
     }
