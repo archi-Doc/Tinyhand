@@ -3547,7 +3547,7 @@ ModuleInitializerClass_Added:
                     ssb.GotoSkipLabel();
                 }
 
-                ssb.AppendLine("key = global::Tinyhand.Generator.AutomataKey.GetKey(ref utf8);");
+                ssb.AppendLine("key = global::Arc.Visceral.VisceralTrieHelper.ReadKey(ref utf8);");
 
                 this.Automata.GenerateDeserialize(ssb, info);
 

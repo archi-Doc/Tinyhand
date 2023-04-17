@@ -3,11 +3,11 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Tinyhand.Generator;
+namespace Arc.Visceral;
 
-public static class AutomataKey
+public static class VisceralTrieHelper
 {
-    public static ulong GetKey(ref ReadOnlySpan<byte> span)
+    public static ulong ReadKey(ref ReadOnlySpan<byte> span)
     {
         ulong key;
 

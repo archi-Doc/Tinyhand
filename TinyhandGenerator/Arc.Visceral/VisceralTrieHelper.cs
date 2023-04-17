@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 
 namespace Arc.Visceral;
 
-internal static class AutomataKey
+internal static class VisceralTrieHelper
 {
-    public static ulong GetKey(ref ReadOnlySpan<byte> span)
+    public static ulong ReadKey(ref ReadOnlySpan<byte> span)
     {
         ulong key;
 

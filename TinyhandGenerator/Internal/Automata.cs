@@ -68,7 +68,7 @@ internal class Automata
         ReadOnlySpan<byte> bytes = utf8;
         while (bytes.Length > 0)
         {
-            var key = AutomataKey.GetKey(ref bytes);
+            var key = VisceralTrieHelper.ReadKey(ref bytes);
 
             if (key == 0)
             {
@@ -111,7 +111,7 @@ internal class Automata
         {
             var x = childrenNexts[0];
             ssb.AppendLine($"if (key != 0x{x.Key:X}) goto SkipLabel;");
-            ssb.AppendLine("key = global::Tinyhand.Generator.AutomataKey.GetKey(ref utf8);");
+            ssb.AppendLine("key = global::Arc.Visceral.VisceralTrieHelper.ReadKey(ref utf8);");
             this.GenerateDeserialize(ssb, info, x);
             return;
         }
@@ -123,7 +123,7 @@ internal class Automata
             firstFlag = false;
             using (var c = ssb.ScopeBrace(condition))
             {
-                ssb.AppendLine("key = global::Tinyhand.Generator.AutomataKey.GetKey(ref utf8);");
+                ssb.AppendLine("key = global::Arc.Visceral.VisceralTrieHelper.ReadKey(ref utf8);");
                 this.GenerateDeserialize(ssb, info, x);
             }
         }
