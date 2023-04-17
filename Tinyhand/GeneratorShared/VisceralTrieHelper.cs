@@ -3,11 +3,11 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Tinyhand.Generator;
+namespace Arc.Visceral;
 
-public static class AutomataKeyMock
+public static class VisceralTrieHelper
 {
-    public static ulong GetKey(ref ReadOnlySpan<byte> span)
+    public static ulong ReadKey(ref ReadOnlySpan<byte> span)
     {
         ulong key;
 
@@ -15,7 +15,7 @@ public static class AutomataKeyMock
         {
             if (span.Length >= 8)
             {
-                key = SafeBitConverterMock.ToUInt64(span);
+                key = SafeBitConverter.ToUInt64(span);
                 span = span.Slice(8);
             }
             else
@@ -31,7 +31,7 @@ public static class AutomataKeyMock
 
                     case 2:
                         {
-                            key = SafeBitConverterMock.ToUInt16(span);
+                            key = SafeBitConverter.ToUInt16(span);
                             span = span.Slice(2);
                             break;
                         }
@@ -39,7 +39,7 @@ public static class AutomataKeyMock
                     case 3:
                         {
                             var a = span[0];
-                            var b = SafeBitConverterMock.ToUInt16(span.Slice(1));
+                            var b = SafeBitConverter.ToUInt16(span.Slice(1));
                             key = a | (ulong)b << 8;
                             span = span.Slice(3);
                             break;
@@ -47,7 +47,7 @@ public static class AutomataKeyMock
 
                     case 4:
                         {
-                            key = SafeBitConverterMock.ToUInt32(span);
+                            key = SafeBitConverter.ToUInt32(span);
                             span = span.Slice(4);
                             break;
                         }
@@ -55,7 +55,7 @@ public static class AutomataKeyMock
                     case 5:
                         {
                             var a = span[0];
-                            var b = SafeBitConverterMock.ToUInt32(span.Slice(1));
+                            var b = SafeBitConverter.ToUInt32(span.Slice(1));
                             key = a | (ulong)b << 8;
                             span = span.Slice(5);
                             break;
@@ -63,8 +63,8 @@ public static class AutomataKeyMock
 
                     case 6:
                         {
-                            ulong a = SafeBitConverterMock.ToUInt16(span);
-                            ulong b = SafeBitConverterMock.ToUInt32(span.Slice(2));
+                            ulong a = SafeBitConverter.ToUInt16(span);
+                            ulong b = SafeBitConverter.ToUInt32(span.Slice(2));
                             key = a | (b << 16);
                             span = span.Slice(6);
                             break;
@@ -73,8 +73,8 @@ public static class AutomataKeyMock
                     case 7:
                         {
                             var a = span[0];
-                            var b = SafeBitConverterMock.ToUInt16(span.Slice(1));
-                            var c = SafeBitConverterMock.ToUInt32(span.Slice(3));
+                            var b = SafeBitConverter.ToUInt16(span.Slice(1));
+                            var c = SafeBitConverter.ToUInt32(span.Slice(3));
                             key = a | (ulong)b << 8 | (ulong)c << 24;
                             span = span.Slice(7);
                             break;
@@ -90,7 +90,7 @@ public static class AutomataKeyMock
     }
 }
 
-internal static class SafeBitConverterMock
+internal static class SafeBitConverter
 {
     internal static long ToInt64(ReadOnlySpan<byte> value)
     {
