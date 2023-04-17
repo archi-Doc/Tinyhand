@@ -90,69 +90,6 @@ public class TinyhandUnion
         return new TinyhandUnion(obj, unionList);
     }
 
-    /*public static void ProcessUnionTo(UnionToItem item)
-    {
-        var body = item.BaseObject.Body;
-        if (item.UnionTo.SubType == null || !body.TryGet(item.UnionTo.SubType, out var subObject))
-        {
-            return;
-        }
-
-        if (item.BaseObject.ObjectAttribute == null || !item.BaseObject.IsAbstractOrInterface)
-        {
-            body.AddDiagnostic(TinyhandBody.Error_UnionToError, item.UnionTo.Location);
-            return;
-        }
-
-        if (!subObject.IsDerivedOrImplementing(item.BaseObject))
-        {
-            if (item.BaseObject.Kind == Arc.Visceral.VisceralObjectKind.Interface)
-            {
-                body.ReportDiagnostic(TinyhandBody.Error_UnionNotImplementing, item.UnionTo.Location, subObject.FullName, item.BaseObject.FullName);
-                return;
-            }
-            else
-            {
-                body.ReportDiagnostic(TinyhandBody.Error_UnionNotDerived, item.UnionTo.Location, subObject.FullName, item.BaseObject.FullName);
-                return;
-            }
-        }
-
-        List<TinyhandUnionAttributeMock> list;
-        if (item.BaseObject.Union == null)
-        {
-            list = new();
-            item.BaseObject.Union = new(item.BaseObject, list);
-        }
-        else
-        {
-            list = item.BaseObject.Union.UnionList;
-        }
-
-        subObject.GetRawInformation(out var symbol, out _, out _);
-        if (symbol == null)
-        {
-            return;
-        }
-
-        foreach (var x in list)
-        {
-            if (x.Key == item.UnionTo.Key)
-            {
-                body.AddDiagnostic(TinyhandBody.Error_IntKeyConflicted, item.UnionTo.Location);
-                return;
-            }
-            else if (x.SubType == symbol)
-            {
-                body.AddDiagnostic(TinyhandBody.Error_SubtypeConflicted, item.UnionTo.Location);
-                return;
-            }
-        }
-
-        var atr = new TinyhandUnionAttributeMock(item.UnionTo.Key, symbol, item.UnionTo.Location);
-        list.Add(atr);
-    }*/
-
     public TinyhandUnion(TinyhandObject obj, List<TinyhandUnionAttributeMock> unionList)
     {
         this.Object = obj;
@@ -165,7 +102,11 @@ public class TinyhandUnion
 
     public SortedDictionary<int, TinyhandObject>? UnionDictionary { get; private set; }
 
-    internal VisceralTrieInt<TinyhandObject, TinyhandObject>? TrieInt { get; private set; }
+    public string DelegateIdentifier { get; private set; } = string.Empty;
+
+    public string TableIdentifier { get; private set; } = string.Empty;
+
+    // internal VisceralTrieInt<TinyhandObject, TinyhandObject>? TrieInt { get; private set; }
 
     public void CheckAndPrepare()
     {
@@ -213,11 +154,11 @@ public class TinyhandUnion
 
         this.UnionDictionary = unionDictionary;
 
-        this.TrieInt ??= new(this.Object);
+        /*this.TrieInt ??= new(this.Object);
         foreach (var x in this.UnionDictionary)
         {
             this.TrieInt.AddNode(x.Key, x.Value);
-        }
+        }*/
     }
 
     /*internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -252,6 +193,50 @@ public class TinyhandUnion
             ssb.DecrementIndent();
         }
     }*/
+
+    internal void GenerateTable(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        if (this.UnionDictionary == null)
+        {
+            return;
+        }
+
+        // Identifier
+        this.DelegateIdentifier = this.Object.Identifier.GetIdentifier();
+        this.TableIdentifier = this.Object.Identifier.GetIdentifier();
+        var initializeMethod = this.Object.Identifier.GetIdentifier();
+
+        // Prepare
+        var interfaceName = this.Object.RegionalName + this.Object.QuestionMarkIfReferenceType;
+
+        // Delegate
+        ssb.AppendLine($"private delegate void {this.DelegateIdentifier}(ref TinyhandWriter writer, ref {interfaceName} v, TinyhandSerializerOptions options);");
+
+        // Table
+        ssb.AppendLine($"private static ThreadsafeTypeKeyHashTable<{this.DelegateIdentifier}> {this.TableIdentifier} = {initializeMethod}();");
+
+        // initializeMethod
+        using (var scopeMethod = ssb.ScopeBrace($"private static ThreadsafeTypeKeyHashTable<{this.DelegateIdentifier}> {initializeMethod}()"))
+        {
+            ssb.AppendLine($"var table = new ThreadsafeTypeKeyHashTable<{this.DelegateIdentifier}>();");
+            foreach (var x in this.UnionDictionary)
+            {
+                ssb.AppendLine($"table.TryAdd(typeof({x.Value.FullName}), static (ref TinyhandWriter writer, ref {interfaceName} v, TinyhandSerializerOptions options) =>");
+                ssb.AppendLine("{");
+                ssb.IncrementIndent();
+
+                ssb.AppendLine("writer.Write(" + x.Key.ToString() + ");");
+                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, Unsafe.As<{x.Value.FullName}>(v), options);");
+
+                ssb.DecrementIndent();
+                ssb.AppendLine("});");
+            }
+
+            ssb.AppendLine("return table;");
+        }
+
+        ssb.AppendLine();
+    }
 
     internal void GenerateFormatter_Serialize2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -294,7 +279,7 @@ public class TinyhandUnion
 
     internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        if (this.UnionDictionary == null || this.TrieInt == null)
+        if (this.UnionDictionary == null/* || this.TrieInt == null*/)
         {
             return;
         }
@@ -303,7 +288,7 @@ public class TinyhandUnion
         ssb.AppendLine("if (reader.ReadArrayHeader() != 2) { throw new TinyhandException(\"Invalid Union data was detected.\"); }");
         ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return; }}");
 
-        var context = new VisceralTrieInt<TinyhandObject, TinyhandObject>.VisceralTrieContext(
+        /*var context = new VisceralTrieInt<TinyhandObject, TinyhandObject>.VisceralTrieContext(
             static (context, obj, node) =>
             {
                 var name = "x" + node.Index;
@@ -316,9 +301,9 @@ public class TinyhandUnion
             null);
         context.AddContinueStatement = false;
 
-        this.TrieInt.Generate(context);
+        this.TrieInt.Generate(context);*/
 
-        /*ssb.AppendLine("var key = reader.ReadInt32();");
+        ssb.AppendLine("var key = reader.ReadInt32();");
         using (var sw = ssb.ScopeBrace("switch (key)"))
         {
             foreach (var x in this.UnionDictionary)
@@ -341,6 +326,6 @@ public class TinyhandUnion
             ssb.AppendLine("reader.Skip();");
             ssb.AppendLine("return;");
             ssb.DecrementIndent();
-        }*/
+        }
     }
 }

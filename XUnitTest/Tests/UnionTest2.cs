@@ -1,5 +1,8 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
+using System.Buffers;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace Tinyhand.Tests;
@@ -59,9 +62,18 @@ public partial class UnionTestInt5 : IUnionTestInt
 
 public class UnionTest2
 {
+    private delegate void TestDelegate(ref Tinyhand.IO.TinyhandWriter writer, ref IUnionTestInt? v, TinyhandSerializerOptions options);
+
     [Fact]
     public void Test()
     {
+        var table = new ThreadsafeTypeKeyHashTable<TestDelegate>();
+        table.TryAdd(typeof(UnionTestInt0), static (ref Tinyhand.IO.TinyhandWriter writer, ref IUnionTestInt? v, TinyhandSerializerOptions options) =>
+        {
+            writer.Write(0);
+            TinyhandSerializer.SerializeObject(ref writer, Unsafe.As<Tinyhand.Tests.UnionTestInt0>(v), options);
+        });
+
         var a0 = new UnionTestInt0() { Id = 0 };
         var b0 = TinyhandSerializer.Deserialize<IUnionTestInt>(TinyhandSerializer.Serialize((IUnionTestInt)a0));
         b0.IsStructuralEqual(a0);

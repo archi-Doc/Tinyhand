@@ -1682,6 +1682,11 @@ ModuleInitializerClass_Added:
             // Prepare Primary
             this.Generate_PreparePrimary();
 
+            if (this.Union != null)
+            {
+                this.Union.GenerateTable(ssb, info);
+            }
+
             if (this.ObjectAttribute != null)
             {// Constructor/SetMembers
              // this.GenerateConstructor_Method(ssb, info);
