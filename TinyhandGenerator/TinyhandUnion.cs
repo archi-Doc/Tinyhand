@@ -2,27 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 
 #pragma warning disable RS1024 // Compare symbols correctly
 
 namespace Tinyhand.Generator;
-
-/*public class UnionToItem
-{
-    public UnionToItem(TinyhandUnionToAttributeMock unionTo, TinyhandObject baseObject)
-    {
-        this.UnionTo = unionTo;
-        this.BaseObject = baseObject;
-    }
-
-    public TinyhandUnionToAttributeMock UnionTo { get; set; }
-
-    public TinyhandObject BaseObject { get; set; }
-}*/
 
 public class TinyhandUnion
 {
@@ -179,6 +165,8 @@ public class TinyhandUnion
 
     public SortedDictionary<int, TinyhandObject>? UnionDictionary { get; private set; }
 
+    internal VisceralTrieInt<TinyhandObject, TinyhandObject>? TrieInt { get; private set; }
+
     public void CheckAndPrepare()
     {
         // Create SortedDictionary
@@ -224,9 +212,15 @@ public class TinyhandUnion
         }
 
         this.UnionDictionary = unionDictionary;
+
+        this.TrieInt ??= new(this.Object);
+        foreach (var x in this.UnionDictionary)
+        {
+            this.TrieInt.AddNode(x.Key, x.Value);
+        }
     }
 
-    internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
+    /*internal void GenerateFormatter_Serialize(ScopingStringBuilder ssb, GeneratorInformation info)
     {// switch
         if (this.UnionDictionary == null)
         {
@@ -257,7 +251,7 @@ public class TinyhandUnion
             ssb.AppendLine("break;");
             ssb.DecrementIndent();
         }
-    }
+    }*/
 
     internal void GenerateFormatter_Serialize2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -300,7 +294,7 @@ public class TinyhandUnion
 
     internal void GenerateFormatter_Deserialize(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        if (this.UnionDictionary == null)
+        if (this.UnionDictionary == null || this.TrieInt == null)
         {
             return;
         }
@@ -309,7 +303,22 @@ public class TinyhandUnion
         ssb.AppendLine("if (reader.ReadArrayHeader() != 2) { throw new TinyhandException(\"Invalid Union data was detected.\"); }");
         ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return; }}");
 
-        ssb.AppendLine("var key = reader.ReadInt32();");
+        var context = new VisceralTrieInt<TinyhandObject, TinyhandObject>.VisceralTrieContext(
+            static (context, obj, node) =>
+            {
+                var name = "x" + node.Index;
+                context.Ssb.AppendLine($"var {name} = Unsafe.As<{node.Member.FullName + node.Member.QuestionMarkIfReferenceType}>({context.Ssb.FullObject});");
+                context.Ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
+                context.Ssb.AppendLine($"{context.Ssb.FullObject} = Unsafe.As<{obj.FullName + obj.QuestionMarkIfReferenceType}>({name});");
+                context.Ssb.AppendLine("return;");
+            },
+            ssb,
+            null);
+        context.AddContinueStatement = false;
+
+        this.TrieInt.Generate(context);
+
+        /*ssb.AppendLine("var key = reader.ReadInt32();");
         using (var sw = ssb.ScopeBrace("switch (key)"))
         {
             foreach (var x in this.UnionDictionary)
@@ -332,6 +341,6 @@ public class TinyhandUnion
             ssb.AppendLine("reader.Skip();");
             ssb.AppendLine("return;");
             ssb.DecrementIndent();
-        }
+        }*/
     }
 }

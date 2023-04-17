@@ -8,16 +8,31 @@ namespace Arc.Visceral;
 
 internal class VisceralTrieInt<TObject, TMember>
 {
-    public VisceralTrieInt(TObject obj, Action<TObject, VisceralTrieContext, TMember> generateMethod)
+    public VisceralTrieInt(TObject obj)
     {
         this.Object = obj;
-        this.GenerateMethod = generateMethod;
         this.root = new Node(this, 0);
     }
 
-    public TObject Object { get; }
+    internal class VisceralTrieContext
+    {
+        public VisceralTrieContext(Action<VisceralTrieContext, TObject, Node> generateMethod, ScopingStringBuilder ssb, object? extraInfo)
+        {
+            this.GenerateMethod = generateMethod;
+            this.Ssb = ssb;
+            this.ExtraInfo = extraInfo;
+        }
 
-    public Action<TObject, VisceralTrieContext, TMember> GenerateMethod { get; }
+        public Action<VisceralTrieContext, TObject, Node> GenerateMethod { get; }
+
+        public ScopingStringBuilder Ssb { get; }
+
+        public object? ExtraInfo { get; }
+
+        public bool AddContinueStatement { get; set; } = true;
+    }
+
+    public TObject Object { get; }
 
     public (Node? node, VisceralTrieAddNodeResult result) AddNode(int key, TMember member)
     {
@@ -85,18 +100,18 @@ internal class VisceralTrieInt<TObject, TMember>
         {
             var x = valueNexts[0];
             context.Ssb.AppendLine($"if (key != {x.Key}) goto SkipLabel;");
-            this.GenerateMethod(this.Object, context, x.Member!);
+            context.GenerateMethod(context, this.Object, x);
             return;
         }
 
         var firstFlag = true;
         foreach (var x in valueNexts)
         {
-            var condition = firstFlag ? string.Format("if (key == 0x{0})", x.Key) : string.Format("else if (key == 0x{0})", x.Key);
+            var condition = firstFlag ? string.Format("if (key == {0})", x.Key) : string.Format("else if (key == {0})", x.Key);
             firstFlag = false;
             using (var c = context.Ssb.ScopeBrace(condition))
             {
-                this.GenerateMethod(this.Object, context, x.Member!);
+                context.GenerateMethod(context, this.Object, x);
             }
         }
 
@@ -124,7 +139,7 @@ internal class VisceralTrieInt<TObject, TMember>
 
         public int Index { get; private set; } = -1;
 
-        public TMember? Member { get; private set; }
+        public TMember Member { get; private set; }
 
         public SortedDictionary<int, Node>? Nexts { get; private set; }
 

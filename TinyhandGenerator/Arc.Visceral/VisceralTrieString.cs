@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 #pragma warning disable SA1602 // Enumeration items should be documented
 
@@ -16,35 +17,35 @@ internal enum VisceralTrieAddNodeResult
     NullKey,
 }
 
-internal class VisceralTrieContext
-{
-    public VisceralTrieContext(ScopingStringBuilder ssb, object? extraInfo)
-    {
-        this.Ssb = ssb;
-        this.ExtraInfo = extraInfo;
-    }
-
-    public ScopingStringBuilder Ssb { get; set; }
-
-    public object? ExtraInfo { get; }
-
-    public bool AddContinueStatement { get; set; } = true;
-}
-
 internal class VisceralTrieString<TObject, TMember>
 {
+    internal class VisceralTrieContext
+    {
+        public VisceralTrieContext(Action<TObject, TMember, VisceralTrieContext> generateMethod, ScopingStringBuilder ssb, object? extraInfo)
+        {
+            this.GenerateMethod = generateMethod;
+            this.Ssb = ssb;
+            this.ExtraInfo = extraInfo;
+        }
+
+        public Action<TObject, TMember, VisceralTrieContext> GenerateMethod { get; }
+
+        public ScopingStringBuilder Ssb { get; }
+
+        public object? ExtraInfo { get; }
+
+        public bool AddContinueStatement { get; set; } = true;
+    }
+
     public const int MaxStringKeySizeInBytes = 512;
 
-    public VisceralTrieString(TObject obj, Action<TObject, VisceralTrieContext, TMember> generateMethod)
+    public VisceralTrieString(TObject obj)
     {
         this.Object = obj;
-        this.GenerateMethod = generateMethod;
         this.root = new Node(this, 0);
     }
 
     public TObject Object { get; }
-
-    public Action<TObject, VisceralTrieContext, TMember> GenerateMethod { get; }
 
     public (Node? node, VisceralTrieAddNodeResult result, bool keyResized) AddNode(string name, TMember member)
     {
@@ -221,7 +222,7 @@ internal class VisceralTrieString<TObject, TMember>
         {
             var x = valueNexts[0];
             context.Ssb.AppendLine($"if (key != 0x{x.Key:X}) goto SkipLabel;");
-            this.GenerateMethod(this.Object, context, x.Member!);
+            context.GenerateMethod(this.Object, x.Member!, context);
             return;
         }
 
@@ -232,7 +233,7 @@ internal class VisceralTrieString<TObject, TMember>
             firstFlag = false;
             using (var c = context.Ssb.ScopeBrace(condition))
             {
-                this.GenerateMethod(this.Object, context, x.Member!);
+                context.GenerateMethod(this.Object, x.Member!, context);
             }
         }
 
