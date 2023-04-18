@@ -86,23 +86,23 @@ public class UnionTest2
         var b0 = TinyhandSerializer.Deserialize<IUnionTestInt>(TinyhandSerializer.Serialize((IUnionTestInt)a0));
         b0.IsStructuralEqual(a0);
 
-        var a1 = new UnionTestInt0() { Id = 1 };
+        var a1 = new UnionTestInt1() { Id = 1 };
         var b1 = TinyhandSerializer.Deserialize<IUnionTestInt>(TinyhandSerializer.Serialize((IUnionTestInt)a1));
         b1.IsStructuralEqual(a1);
 
-        var a2 = new UnionTestInt0() { Id = 2 };
+        var a2 = new UnionTestInt2() { Id = 2 };
         var b2 = TinyhandSerializer.Deserialize<IUnionTestInt>(TinyhandSerializer.Serialize((IUnionTestInt)a2));
         b2.IsStructuralEqual(a2);
 
-        var a3 = new UnionTestInt0() { Id = 3 };
+        var a3 = new UnionTestInt3() { Id = 3 };
         var b3 = TinyhandSerializer.Deserialize<IUnionTestInt>(TinyhandSerializer.Serialize((IUnionTestInt)a3));
         b3.IsStructuralEqual(a3);
 
-        var a4 = new UnionTestInt0() { Id = 4 };
+        var a4 = new UnionTestInt4() { Id = 4 };
         var b4 = TinyhandSerializer.Deserialize<IUnionTestInt>(TinyhandSerializer.Serialize((IUnionTestInt)a4));
         b4.IsStructuralEqual(a4);
 
-        var a5 = new UnionTestInt0() { Id = 5 };
+        var a5 = new UnionTestInt5() { Id = 5 };
         var b5 = TinyhandSerializer.Deserialize<IUnionTestInt>(TinyhandSerializer.Serialize((IUnionTestInt)a5));
         b5.IsStructuralEqual(a5);
 
@@ -111,24 +111,26 @@ public class UnionTest2
         b0 = TinyhandSerializer.Deserialize<IUnionTestInt>(TinyhandSerializer.Serialize((IUnionTestInt)a0));
         b0.IsStructuralEqual(a0);
 
-        a1 = new UnionTestInt0() { Id = 1 };
+        a1 = new UnionTestInt1() { Id = 1 };
         var c1 = TinyhandSerializer.Deserialize<IUnionTestString>(TinyhandSerializer.Serialize((IUnionTestString)a1));
         c1.IsStructuralEqual(a1);
 
-        a2 = new UnionTestInt0() { Id = 2 };
+        a2 = new UnionTestInt2() { Id = 2 };
         var c2 = TinyhandSerializer.Deserialize<IUnionTestString>(TinyhandSerializer.Serialize((IUnionTestString)a2));
         c2.IsStructuralEqual(a2);
 
-        a3 = new UnionTestInt0() { Id = 3 };
+        a3 = new UnionTestInt3() { Id = 3 };
         var c3 = TinyhandSerializer.Deserialize<IUnionTestString>(TinyhandSerializer.Serialize((IUnionTestString)a3));
         c3.IsStructuralEqual(a3);
 
-        a4 = new UnionTestInt0() { Id = 4 };
+        a4 = new UnionTestInt4() { Id = 4 };
         var c4 = TinyhandSerializer.Deserialize<IUnionTestString>(TinyhandSerializer.Serialize((IUnionTestString)a4));
         c4.IsStructuralEqual(a4);
 
-        a5 = new UnionTestInt0() { Id = 5 };
+        a5 = new UnionTestInt5() { Id = 5 };
         var c5 = TinyhandSerializer.Deserialize<IUnionTestString>(TinyhandSerializer.Serialize((IUnionTestString)a5));
         c5.IsStructuralEqual(a5);
+
+        var st = TinyhandSerializer.SerializeToString((IUnionTestString)a4);
     }
 }
