@@ -307,9 +307,14 @@ public interface ITinyhandDefault<TDefault>
 public class TinyhandUnionAttribute : Attribute
 {
     /// <summary>
-    /// Gets the distinguishing value that identifies a particular subtype.
+    /// Gets the distinguishing value(<see cref="int"/>) that identifies a particular subtype.
     /// </summary>
-    public int Key { get; private set; }
+    public int IntKey { get; private set; }
+
+    /// <summary>
+    /// Gets the distinguishing value(<see cref="string"/>) that identifies a particular subtype.
+    /// </summary>
+    public string? StringKey { get; private set; } = null;
 
     /// <summary>
     /// Gets the derived or implementing type.
@@ -319,11 +324,22 @@ public class TinyhandUnionAttribute : Attribute
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandUnionAttribute"/> class.
     /// </summary>
-    /// <param name="key">The distinguishing value that identifies a particular subtype.</param>
+    /// <param name="key">The distinguishing value(<see cref="int"/>) that identifies a particular subtype.</param>
     /// <param name="subType">The derived or implementing type.</param>
     public TinyhandUnionAttribute(int key, Type subType)
     {
-        this.Key = key;
+        this.IntKey = key;
+        this.SubType = subType;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TinyhandUnionAttribute"/> class.
+    /// </summary>
+    /// <param name="key">The distinguishing value(<see cref="string"/>) that identifies a particular subtype.</param>
+    /// <param name="subType">The derived or implementing type.</param>
+    public TinyhandUnionAttribute(string key, Type subType)
+    {
+        this.StringKey = key;
         this.SubType = subType;
     }
 }

@@ -397,10 +397,11 @@ public class TinyhandUnionAttributeMock
 
     public Location Location { get; }
 
-    /// <summary>
-    /// Gets the distinguishing value that identifies a particular subtype.
-    /// </summary>
-    public int Key { get; private set; }
+    public int IntKey { get; private set; }
+
+    public string? StringKey { get; private set; }
+
+    public bool HasStringKey => this.StringKey != null;
 
     /// <summary>
     /// Gets the derived or implementing type.
@@ -414,7 +415,7 @@ public class TinyhandUnionAttributeMock
 
     public TinyhandUnionAttributeMock(int key, ISymbol subType, Microsoft.CodeAnalysis.Location location)
     {
-        this.Key = key;
+        this.IntKey = key;
         this.SubType = subType;
         this.Location = location;
     }
@@ -428,7 +429,11 @@ public class TinyhandUnionAttributeMock
             var val = constructorArguments[0];
             if (val is int intKey)
             {
-                attribute.Key = intKey;
+                attribute.IntKey = intKey;
+            }
+            else if (val is string stringKey)
+            {
+                attribute.StringKey = stringKey;
             }
         }
 
