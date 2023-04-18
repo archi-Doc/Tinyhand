@@ -102,11 +102,11 @@ public class UnionTest
         var classA = new UnionTestClassA() { X = 10, };
         var classB = new UnionTestClassB() { Name = "test", };
 
-        TestHelper.TestWithMessagePack(classA);
-        TestHelper.TestWithMessagePack(classB);
+        TestHelper.TestWithoutMessagePack(classA); // Not compatible with MessagePack
+        TestHelper.TestWithoutMessagePack(classB);
 
-        TestHelper.TestWithMessagePack((IUnionTestInterface)classA, false);
-        TestHelper.TestWithMessagePack((IUnionTestInterface)classB, false);
+        TestHelper.TestWithoutMessagePack((IUnionTestInterface)classA, false);
+        TestHelper.TestWithoutMessagePack((IUnionTestInterface)classB, false);
     }
 
     [Fact]
@@ -115,11 +115,11 @@ public class UnionTest
         var classA = new UnionTestSubA() { Name = "10", };
         var classB = new UnionTestSubB() { Height = 1.23d, };
 
-        TestHelper.TestWithMessagePack(classA);
-        TestHelper.TestWithMessagePack(classB);
+        TestHelper.TestWithoutMessagePack(classA); // Not compatible with MessagePack
+        TestHelper.TestWithoutMessagePack(classB);
 
-        TestHelper.TestWithMessagePack((UnionTestBase)classA, false);
-        TestHelper.TestWithMessagePack((UnionTestBase)classB, false);
+        TestHelper.TestWithoutMessagePack((UnionTestBase)classA, false);
+        TestHelper.TestWithoutMessagePack((UnionTestBase)classB, false);
     }
 
     [Fact]

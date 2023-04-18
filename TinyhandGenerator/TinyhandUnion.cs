@@ -274,7 +274,7 @@ public class TinyhandUnion
         }
 
         ssb.AppendLine($"if ({ssb.FullObject} == null) {{ writer.WriteNil(); return; }}");
-        ssb.AppendLine("writer.WriteArrayHeader(2);");
+        ssb.AppendLine("writer.WriteMapHeader(1);"); // WriteArrayHeader(2) -> WriteMapHeader(1)
         ssb.AppendLine($"var type = {ssb.FullObject}.GetType();");
 
         using (ssb.ScopeBrace($"if ({this.TableIdentifier}.TryGetValue(type, out var func))"))
@@ -325,7 +325,7 @@ public class TinyhandUnion
         }
 
         ssb.AppendLine($"if (reader.TryReadNil()) {{ return; }}");
-        ssb.AppendLine("if (reader.ReadArrayHeader() != 2) { throw new TinyhandException(\"Invalid Union data was detected.\"); }");
+        ssb.AppendLine("if (reader.ReadMapHeader() != 1) { throw new TinyhandException(\"Invalid Union data was detected.\"); }"); // reader.ReadArrayHeader() != 2 -> reader.ReadMapHeader() != 1
         ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return; }}");
 
         /*var context = new VisceralTrieInt<TinyhandObject, TinyhandObject>.VisceralTrieContext(

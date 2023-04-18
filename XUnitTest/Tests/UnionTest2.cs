@@ -22,7 +22,7 @@ public partial interface IUnionTestInt
 [TinyhandUnion("1", typeof(UnionTestInt1))]
 [TinyhandUnion("2222", typeof(UnionTestInt2))]
 [TinyhandUnion("33333333", typeof(UnionTestInt3))]
-[TinyhandUnion("4444444444444444", typeof(UnionTestInt4))]
+[TinyhandUnion("a4444444444444444", typeof(UnionTestInt4))]
 [TinyhandUnion("555555555555555555555555", typeof(UnionTestInt5))]
 public partial interface IUnionTestString
 {
