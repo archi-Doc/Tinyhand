@@ -50,12 +50,13 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<H2HBenchmark>();
+        DebugRun<Union2.UnionBenchmark2>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
             typeof(ReadOnlySpanTest),
             typeof(CompareByteSpanTest),
+            typeof(Union2.UnionBenchmark2),
             typeof(UnionBenchmark),
             typeof(SerializeIdentifierTest),
             typeof(DualWriter.DualWriterBenchmark),
@@ -143,7 +144,7 @@ public class BenchmarkConfig : BenchmarkDotNet.Configs.ManualConfig
         // this.AddJob(Job.ShortRun.With(BenchmarkDotNet.Environments.Platform.X64).WithWarmupCount(1).WithIterationCount(1));
         // this.AddJob(BenchmarkDotNet.Jobs.Job.MediumRun.WithGcForce(true).WithId("GcForce medium"));
         // this.AddJob(BenchmarkDotNet.Jobs.Job.ShortRun);
-        // this.AddJob(BenchmarkDotNet.Jobs.Job.MediumRun);
-        this.AddJob(BenchmarkDotNet.Jobs.Job.LongRun);
+        this.AddJob(BenchmarkDotNet.Jobs.Job.MediumRun);
+        // this.AddJob(BenchmarkDotNet.Jobs.Job.LongRun);
     }
 }

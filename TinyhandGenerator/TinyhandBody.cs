@@ -61,7 +61,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_IntStringKeyConflict = new DiagnosticDescriptor(
-        id: "TG008", title: "Key attribute conflict", messageFormat: "Integer key and String key are exclusive, use [Key(\"1\")] instead",
+        id: "TG008", title: "Key attribute conflict", messageFormat: "Integer key and String key are exclusive",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_StringKeySizeLimit = new DiagnosticDescriptor(

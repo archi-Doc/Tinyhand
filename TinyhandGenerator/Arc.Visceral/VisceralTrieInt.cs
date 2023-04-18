@@ -139,7 +139,7 @@ internal class VisceralTrieInt<TObject, TMember>
 
         public int Index { get; private set; } = -1;
 
-        public TMember Member { get; private set; }
+        public TMember Member { get; private set; } = default!;
 
         public SortedDictionary<int, Node>? Nexts { get; private set; }
 
