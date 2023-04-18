@@ -132,4 +132,3 @@ public class UnionTest2
         c5.IsStructuralEqual(a5);
     }
 }
-

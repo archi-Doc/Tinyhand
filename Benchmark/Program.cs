@@ -50,12 +50,13 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<TypeSwitch.SwitchBenchmark>();
+        DebugRun<Union2.UnionBenchmark2>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
             typeof(ReadOnlySpanTest),
             typeof(CompareByteSpanTest),
+            typeof(Union2.UnionBenchmark2),
             typeof(UnionBenchmark),
             typeof(SerializeIdentifierTest),
             typeof(DualWriter.DualWriterBenchmark),

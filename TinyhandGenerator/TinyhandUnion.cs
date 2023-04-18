@@ -288,6 +288,7 @@ public class TinyhandUnion
             ssb.AppendLine("writer.WriteNil();");
         }
 
+        // Obsolete
         /*var firstFlag = true;
         foreach (var x in this.StringDictionary)
         {
