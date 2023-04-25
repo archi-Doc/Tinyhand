@@ -618,7 +618,8 @@ _last_literals:
         unchecked
         {
             fixed (int* dec32table = &DECODER_TABLE_32[0])
-            fixed (int* dec64table = &DECODER_TABLE_64[0])
+            {
+                fixed (int* dec64table = &DECODER_TABLE_64[0])
             {
                 // r93
                 var src_p = src;
@@ -763,6 +764,7 @@ _last_literals:
 // write overflow error detected
 _output_error:
                 return (int)-(src_p - src);
+            }
             }
         }
     }

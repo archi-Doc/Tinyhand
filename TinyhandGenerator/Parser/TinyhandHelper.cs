@@ -339,9 +339,11 @@ internal static class TinyhandHelper
             unsafe
             {
                 fixed (char* charPtr = text)
-                fixed (byte* destPtr = dest)
                 {
-                    return Utf8Encoding.GetBytes(charPtr, text.Length, destPtr, dest.Length);
+                    fixed (byte* destPtr = dest)
+                    {
+                        return Utf8Encoding.GetBytes(charPtr, text.Length, destPtr, dest.Length);
+                    }
                 }
             }
 #endif

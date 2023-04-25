@@ -34,7 +34,7 @@ internal class VisceralTrieInt<TObject, TMember>
 
     public TObject Object { get; }
 
-    public (Node? node, VisceralTrieAddNodeResult result) AddNode(int key, TMember member)
+    public (Node? Node, VisceralTrieAddNodeResult Result) AddNode(int key, TMember member)
     {
         if (this.root.Nexts?.TryGetValue(key, out var node) == true)
         {// Key collision

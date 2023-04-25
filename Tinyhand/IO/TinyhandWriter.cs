@@ -939,10 +939,12 @@ public ref struct TinyhandWriter
 
         ref byte buffer = ref this.WriteString_PrepareSpan(value.Length, out int bufferSize, out int useOffset);
         fixed (char* pValue = value)
-        fixed (byte* pBuffer = &buffer)
+        {
+            fixed (byte* pBuffer = &buffer)
         {
             int byteCount = Encoding.UTF8.GetBytes(pValue, value.Length, pBuffer + useOffset, bufferSize);
             this.WriteString_PostEncoding(pBuffer, useOffset, byteCount);
+        }
         }
     }
 
@@ -958,10 +960,12 @@ public ref struct TinyhandWriter
     {
         ref byte buffer = ref this.WriteString_PrepareSpan(value.Length, out int bufferSize, out int useOffset);
         fixed (char* pValue = value)
-        fixed (byte* pBuffer = &buffer)
+        {
+            fixed (byte* pBuffer = &buffer)
         {
             int byteCount = Encoding.UTF8.GetBytes(pValue, value.Length, pBuffer + useOffset, bufferSize);
             this.WriteString_PostEncoding(pBuffer, useOffset, byteCount);
+        }
         }
     }
 

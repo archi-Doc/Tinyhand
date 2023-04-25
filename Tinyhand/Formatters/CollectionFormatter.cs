@@ -1009,7 +1009,9 @@ internal class Lookup<TKey, TElement> : ILookup<TKey, TElement>
 
 /* NonGenerics */
 
+#pragma warning disable SA1202 // Elements should be ordered by access
 public sealed class NonGenericListFormatter<T> : ITinyhandFormatter<T>
+#pragma warning restore SA1202 // Elements should be ordered by access
     where T : class, IList, new()
 {
     public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)

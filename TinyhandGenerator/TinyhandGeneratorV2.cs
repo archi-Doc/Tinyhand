@@ -94,9 +94,9 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         return null;
     }
 
-    private void Emit(SourceProductionContext context, (Compilation compilation, ImmutableArray<CSharpSyntaxNode?> types) source)
+    private void Emit(SourceProductionContext context, (Compilation Compilation, ImmutableArray<CSharpSyntaxNode?> Types) source)
     {
-        var compilation = source.compilation;
+        var compilation = source.Compilation;
         this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
         if (this.tinyhandObjectAttributeSymbol == null)
         {
@@ -141,7 +141,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
 
         this.generatorOptionIsSet = false;
         var generics = new VisceralGenerics();
-        foreach (var x in source.types)
+        foreach (var x in source.Types)
         {
             if (x == null)
             {

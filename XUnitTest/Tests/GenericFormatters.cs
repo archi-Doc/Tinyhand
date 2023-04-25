@@ -43,13 +43,13 @@ public class GenericFormatters
     public static object[][] ValueTupleTestData = new object[][]
     {
         new object[] { ValueTuple.Create(1), null },
-        new object[] { ValueTuple.Create(1, 2), null },
-        new object[] { ValueTuple.Create(1, 2, 3), null },
-        new object[] { ValueTuple.Create(1, 2, 3, 4), null },
-        new object[] { ValueTuple.Create(1, 2, 3, 4, 5), null },
-        new object[] { ValueTuple.Create(1, 2, 3, 4, 5, 6), null },
-        new object[] { ValueTuple.Create(1, 2, 3, 4, 5, 6, 7), null },
-        new object[] { ValueTuple.Create(1, 2, 3, 4, 5, 6, 7, 8), null },
+        new object[] { (1, 2), null },
+        new object[] { (1, 2, 3), null },
+        new object[] { (1, 2, 3, 4), null },
+        new object[] { (1, 2, 3, 4, 5), null },
+        new object[] { (1, 2, 3, 4, 5, 6), null },
+        new object[] { (1, 2, 3, 4, 5, 6, 7), null },
+        new object[] { (1, 2, 3, 4, 5, 6, 7, 8), null },
     };
 
     [Theory]

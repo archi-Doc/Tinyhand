@@ -38,7 +38,7 @@ public enum ElementType
     Group,
 
     /// <summary>
-    /// Modifier
+    /// Modifier.
     /// </summary>
     Modifier,
 

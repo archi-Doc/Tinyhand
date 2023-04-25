@@ -125,9 +125,11 @@ internal static unsafe class Base64
     public static bool TryFromBase64Chars(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten)
     {
         fixed (char* inChars = &MemoryMarshal.GetReference(chars))
-        fixed (byte* outData = &MemoryMarshal.GetReference(bytes))
         {
-            return DecodeBase64Core(inChars, outData, 0, chars.Length, base64DecodeTable, out bytesWritten);
+            fixed (byte* outData = &MemoryMarshal.GetReference(bytes))
+            {
+                return DecodeBase64Core(inChars, outData, 0, chars.Length, base64DecodeTable, out bytesWritten);
+            }
         }
     }
 
@@ -141,9 +143,11 @@ internal static unsafe class Base64
     public static bool TryFromBase64Utf8(ReadOnlySpan<byte> utf8, Span<byte> bytes, out int bytesWritten)
     {
         fixed (byte* inChars = &MemoryMarshal.GetReference(utf8))
-        fixed (byte* outData = &MemoryMarshal.GetReference(bytes))
         {
-            return DecodeBase64Core(inChars, outData, 0, utf8.Length, base64DecodeTable, out bytesWritten);
+            fixed (byte* outData = &MemoryMarshal.GetReference(bytes))
+            {
+                return DecodeBase64Core(inChars, outData, 0, utf8.Length, base64DecodeTable, out bytesWritten);
+            }
         }
     }
 
@@ -157,10 +161,12 @@ internal static unsafe class Base64
     public static bool TryToBase64Utf8(ReadOnlySpan<byte> bytes, Span<byte> utf8, out int bytesWritten)
     {
         fixed (byte* inData = &MemoryMarshal.GetReference(bytes))
-        fixed (byte* outBytes = &MemoryMarshal.GetReference(utf8))
         {
-            bytesWritten = EncodeBase64Core(inData, outBytes, 0, bytes.Length, base64Utf8EncodeTable);
-            return true;
+            fixed (byte* outBytes = &MemoryMarshal.GetReference(utf8))
+            {
+                bytesWritten = EncodeBase64Core(inData, outBytes, 0, bytes.Length, base64Utf8EncodeTable);
+                return true;
+            }
         }
     }
 
@@ -174,10 +180,12 @@ internal static unsafe class Base64
     public static bool TryToBase64Chars(ReadOnlySpan<byte> bytes, Span<char> chars, out int charsWritten)
     {
         fixed (byte* inData = &MemoryMarshal.GetReference(bytes))
-        fixed (char* outChars = &MemoryMarshal.GetReference(chars))
         {
-            charsWritten = EncodeBase64Core(inData, outChars, 0, bytes.Length, base64EncodeTable);
-            return true;
+            fixed (char* outChars = &MemoryMarshal.GetReference(chars))
+            {
+                charsWritten = EncodeBase64Core(inData, outChars, 0, bytes.Length, base64EncodeTable);
+                return true;
+            }
         }
     }
 

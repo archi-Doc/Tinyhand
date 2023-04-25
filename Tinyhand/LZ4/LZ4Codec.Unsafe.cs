@@ -47,35 +47,37 @@ internal partial class LZ4Codec
         }
 
         fixed (byte* inputPtr = input)
-        fixed (byte* outputPtr = output)
         {
-            if (input.Length < LZ4_64KLIMIT)
+            fixed (byte* outputPtr = output)
             {
-                var uHashTable = HashTablePool.GetUShortHashTablePool();
-                fixed (ushort* hash1 = &uHashTable[0])
+                if (input.Length < LZ4_64KLIMIT)
                 {
-                    if (IntPtr.Size == 4)
+                    var uHashTable = HashTablePool.GetUShortHashTablePool();
+                    fixed (ushort* hash1 = &uHashTable[0])
                     {
-                        return LZ4_compress64kCtx_32(hash1, inputPtr, outputPtr, input.Length, output.Length);
-                    }
-                    else
-                    {
-                        return LZ4_compress64kCtx_64(hash1, inputPtr, outputPtr, input.Length, output.Length);
+                        if (IntPtr.Size == 4)
+                        {
+                            return LZ4_compress64kCtx_32(hash1, inputPtr, outputPtr, input.Length, output.Length);
+                        }
+                        else
+                        {
+                            return LZ4_compress64kCtx_64(hash1, inputPtr, outputPtr, input.Length, output.Length);
+                        }
                     }
                 }
-            }
-            else
-            {
-                var bHashTable = HashTablePool.GetUIntHashTablePool();
-                fixed (uint* hash2 = &bHashTable[0])
+                else
                 {
-                    if (IntPtr.Size == 4)
+                    var bHashTable = HashTablePool.GetUIntHashTablePool();
+                    fixed (uint* hash2 = &bHashTable[0])
                     {
-                        return LZ4_compressCtx_32(hash2, inputPtr, outputPtr, input.Length, output.Length);
-                    }
-                    else
-                    {
-                        return LZ4_compressCtx_64(hash2, inputPtr, outputPtr, input.Length, output.Length);
+                        if (IntPtr.Size == 4)
+                        {
+                            return LZ4_compressCtx_32(hash2, inputPtr, outputPtr, input.Length, output.Length);
+                        }
+                        else
+                        {
+                            return LZ4_compressCtx_64(hash2, inputPtr, outputPtr, input.Length, output.Length);
+                        }
                     }
                 }
             }
@@ -94,24 +96,26 @@ internal partial class LZ4Codec
         }
 
         fixed (byte* inputPtr = input)
-        fixed (byte* outputPtr = output)
         {
-            int length;
-            if (IntPtr.Size == 4)
+            fixed (byte* outputPtr = output)
             {
-                length = LZ4_uncompress_32(inputPtr, outputPtr, output.Length);
-            }
-            else
-            {
-                length = LZ4_uncompress_64(inputPtr, outputPtr, output.Length);
-            }
+                int length;
+                if (IntPtr.Size == 4)
+                {
+                    length = LZ4_uncompress_32(inputPtr, outputPtr, output.Length);
+                }
+                else
+                {
+                    length = LZ4_uncompress_64(inputPtr, outputPtr, output.Length);
+                }
 
-            if (length != input.Length)
-            {
-                throw new LZ4Exception("LZ4 block is corrupted, or invalid length has been given.");
-            }
+                if (length != input.Length)
+                {
+                    throw new LZ4Exception("LZ4 block is corrupted, or invalid length has been given.");
+                }
 
-            return output.Length;
+                return output.Length;
+            }
         }
     }
 }

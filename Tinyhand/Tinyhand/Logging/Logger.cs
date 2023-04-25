@@ -1,11 +1,11 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Tinyhand.Tree;
 
+#pragma warning disable SA1204 // Static elements should appear before instance elements
 #pragma warning disable SA1401 // Fields should be private
 
 namespace Tinyhand.Logging;
@@ -174,6 +174,6 @@ public static class LoggerHelper
         LogLevel.Warning => "Warn ",
         LogLevel.Information => "Info ",
         LogLevel.Debug => "Debug",
-        _ => string.Empty
+        _ => string.Empty,
     };
 }

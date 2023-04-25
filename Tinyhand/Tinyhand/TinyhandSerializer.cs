@@ -126,10 +126,11 @@ public static partial class TinyhandSerializer
         T.Reconstruct(ref obj, options);
     }
 
-    public static T ReconstructObject<T>(TinyhandSerializerOptions options)
+    public static T ReconstructObject<T>(TinyhandSerializerOptions? options = null)
         where T : ITinyhandReconstruct<T>
     {
         var obj = default(T);
+        options = options ?? DefaultOptions;
         T.Reconstruct(ref obj, options);
         return obj;
     }
