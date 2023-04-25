@@ -46,7 +46,7 @@ internal class VisceralTrieString<TObject, TMember>
 
     public TObject Object { get; }
 
-    public (Node? node, VisceralTrieAddNodeResult result, bool keyResized) AddNode(string name, TMember member)
+    public (Node? Node, VisceralTrieAddNodeResult Result, bool KeyResized) AddNode(string name, TMember member)
     {
         var keyResized = false;
 

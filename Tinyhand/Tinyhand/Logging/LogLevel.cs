@@ -36,12 +36,12 @@ public enum LogLevel
 public enum LogFormat
 {
     /// <summary>
-    /// [LogLevel] Message (Line/Position)
+    /// [LogLevel] Message (Line/Position).
     /// </summary>
     Log,
 
     /// <summary>
-    /// Message only
+    /// Message only.
     /// </summary>
     Message,
 }

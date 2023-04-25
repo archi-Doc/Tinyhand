@@ -1,13 +1,11 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Tinyhand.IO;
+
+#pragma warning disable SA1204 // Static elements should appear before instance elements
 
 namespace Tinyhand.Formatters;
 

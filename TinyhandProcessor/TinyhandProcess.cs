@@ -185,7 +185,7 @@ public class ProcessEnvironment : IProcessEnvironment
         PathType.RootFolder => this.RootFolder,
         PathType.SourceFolder => this.SourceFolder,
         PathType.DestinationFolder => this.DestinationFolder,
-        _ => string.Empty
+        _ => string.Empty,
     };
 
     public string CombinePath(PathType pathType, string path)
@@ -500,7 +500,9 @@ public class ProcessEnvironment : IProcessEnvironment
     }
 }
 
+#pragma warning disable SA1204 // Static elements should appear before instance elements
 public static class TinyhandProcess
+#pragma warning restore SA1204 // Static elements should appear before instance elements
 {
     public static async Task<bool> Process(Element element, string? tinyhandFile)
     {
