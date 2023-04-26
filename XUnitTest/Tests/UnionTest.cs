@@ -164,6 +164,8 @@ public class UnionTest
         classA.X.Is(2);
         classA.Token.Is(0);
         classA = x2.IUnionCantCast as UnionTestClassA;
-        classA.IsNull();
+        classA.IsNotNull();
+        classA.X.Is(3);
+        classA.Token.Is(0);
     }
 }
