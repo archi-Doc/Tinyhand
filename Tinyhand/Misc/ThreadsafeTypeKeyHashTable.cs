@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -172,6 +173,81 @@ public class ThreadsafeTypeKeyHashTable<TValue>
 
         this.TryAddInternal(key, valueFactory, out v);
         return v;
+    }
+
+    public Type[] Keys
+    {
+        get
+        {
+            var table = this.buckets;
+            var size = this.size;
+            var keys = new Type[size];
+
+            var j = 0;
+            for (var i = 0; i < table.Length; i++)
+            {
+                if (table[i] is not null)
+                {
+                    if (j >= size)
+                    {
+                        break;
+                    }
+
+                    keys[j++] = table[i].Key;
+                }
+            }
+
+            return keys;
+        }
+    }
+
+    public TValue[] Values
+    {
+        get
+        {
+            var table = this.buckets;
+            var size = this.size;
+            var values = new TValue[size];
+
+            var j = 0;
+            for (var i = 0; i < table.Length; i++)
+            {
+                if (table[i] is not null)
+                {
+                    if (j >= size)
+                    {
+                        break;
+                    }
+
+                    values[j++] = table[i].Value;
+                }
+            }
+
+            return values;
+        }
+    }
+
+    public KeyValuePair<Type, TValue>[] ToArray()
+    {
+        var table = this.buckets;
+        var size = this.size;
+        var kv = new KeyValuePair<Type, TValue>[size];
+
+        var j = 0;
+        for (var i = 0; i < table.Length; i++)
+        {
+            if (table[i] is not null)
+            {
+                if (j >= size)
+                {
+                    break;
+                }
+
+                kv[j++] = new(table[i].Key, table[i].Value);
+            }
+        }
+
+        return kv;
     }
 
     private static int CalculateCapacity(int collectionSize, float loadFactor)
