@@ -362,7 +362,8 @@ public class TinyhandUnion
                 ssb.AppendLine("case " + keyString + ":");
                 ssb.IncrementIndent();
 
-                ssb.AppendLine($"var {name} = Unsafe.As<{x.Value.FullName + x.Value.QuestionMarkIfReferenceType}>({ssb.FullObject});");
+                // ssb.AppendLine($"var {name} = Unsafe.As<{x.Value.FullName + x.Value.QuestionMarkIfReferenceType}>({ssb.FullObject});");
+                ssb.AppendLine($"var {name} = {ssb.FullObject} as {x.Value.FullName};");
                 ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
                 ssb.AppendLine($"{ssb.FullObject} = Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>({name});");
                 ssb.AppendLine("return;");
