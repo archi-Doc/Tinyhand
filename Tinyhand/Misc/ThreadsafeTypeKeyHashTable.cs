@@ -186,14 +186,16 @@ public class ThreadsafeTypeKeyHashTable<TValue>
             var j = 0;
             for (var i = 0; i < table.Length; i++)
             {
-                if (table[i] is not null)
+                var entry = table[i];
+                while (entry is not null)
                 {
                     if (j >= size)
                     {
                         break;
                     }
 
-                    keys[j++] = table[i].Key;
+                    keys[j++] = entry.Key;
+                    entry = entry.Next;
                 }
             }
 
@@ -212,14 +214,16 @@ public class ThreadsafeTypeKeyHashTable<TValue>
             var j = 0;
             for (var i = 0; i < table.Length; i++)
             {
-                if (table[i] is not null)
+                var entry = table[i];
+                while (entry is not null)
                 {
                     if (j >= size)
                     {
                         break;
                     }
 
-                    values[j++] = table[i].Value;
+                    values[j++] = entry.Value;
+                    entry = entry.Next;
                 }
             }
 
@@ -236,14 +240,16 @@ public class ThreadsafeTypeKeyHashTable<TValue>
         var j = 0;
         for (var i = 0; i < table.Length; i++)
         {
-            if (table[i] is not null)
+            var entry = table[i];
+            while (entry is not null)
             {
                 if (j >= size)
                 {
                     break;
                 }
 
-                kv[j++] = new(table[i].Key, table[i].Value);
+                kv[j++] = new(entry.Key, entry.Value);
+                entry = entry.Next;
             }
         }
 
