@@ -166,8 +166,13 @@ public ref struct TinyhandWriter
     /// Writes a <see cref="MessagePackCode.Nil"/> value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteNil()
+    public unsafe void WriteNil()
     {
+        /*fixed (byte* b = &this.writer.GetPointer(1))
+        {
+            b[0] = MessagePackCode.Nil;
+        }*/
+
         Span<byte> span = this.writer.GetSpan(1);
         span[0] = MessagePackCode.Nil;
         this.writer.Advance(1);
@@ -410,7 +415,7 @@ public ref struct TinyhandWriter
     /// </summary>
     /// <param name="value">The value to write.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(uint value)
+    public unsafe void Write(uint value)
     {
         if (value <= MessagePackRange.MaxFixPositiveInt)
         {
