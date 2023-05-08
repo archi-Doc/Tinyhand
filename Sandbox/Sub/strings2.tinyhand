@@ -13,4 +13,7 @@ Application =
         Id = "1234",
         Id2 = 33,
     }
+
+    Description9 = """test'{0}'
+Would you like to clear the journal file and proceed with loading the data?"""
 }

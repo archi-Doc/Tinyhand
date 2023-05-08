@@ -513,5 +513,7 @@ class Program
         var b2 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
         b.Clear();
         var b3 = TinyhandSerializer.Deserialize<InternalTestClass2<double>>(TinyhandSerializer.Serialize(b));
+
+        var hash = Hashed.Application.Description9;
     }
 }
