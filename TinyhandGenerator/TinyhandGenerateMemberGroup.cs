@@ -202,7 +202,7 @@ internal class TinyhandGenerateMemberGroup
         }
 
         // Get safe string
-        char* chars = stackalloc char[count];
+        char* chars = stackalloc char[count + 1];
         count = 0;
         foreach (var x in span)
         {
@@ -253,6 +253,7 @@ internal class TinyhandGenerateMemberGroup
             }
         }
 
+        chars[count++] = (char)0;
         var dest = new string(chars);
         return dest;
     }
