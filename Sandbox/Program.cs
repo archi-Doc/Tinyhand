@@ -17,6 +17,13 @@ using ValueLink;
 
 namespace Sandbox;
 
+[TinyhandObject(Journaling = true)]
+public partial class JournalingClass
+{
+    [Key(0)]
+    public int X { get; set; }
+}
+
 [TinyhandObject]
 public partial class LockObjectClassB : LockObjectClassA
 {

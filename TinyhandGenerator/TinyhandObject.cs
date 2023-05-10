@@ -60,6 +60,8 @@ public enum TinyhandObjectFlag
     HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
     CanCreateInstance = 1 << 27, // Can create an instance
     InterfaceImplemented = 1 << 28, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
+    HasITinyhandJournal = 1 << 26, // Has ITinyhandJournal interface
+    HasITinyhandCustomJournal = 1 << 26, // Has ITinyhandCustomJournal interface
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -147,6 +149,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public MethodCondition MethodCondition_SetDefaultValue { get; private set; }
 
     public MethodCondition MethodCondition_Clone { get; private set; }
+
+    public MethodCondition MethodCondition_WriteCustomRecord { get; private set; }
+
+    public MethodCondition MethodCondition_ReadCustomRecord { get; private set; }
 
     public bool RequiresGetter { get; private set; }
 
@@ -589,6 +595,41 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             else
             {
                 this.MethodCondition_Clone = MethodCondition.Declared;
+            }
+        }
+
+        // Method condition (Journal)
+        var journalInterface = $"Tinyhand.ITinyhandJournal";
+        if (this.Interfaces.Any(x => x.FullName == journalInterface))
+        {// ITinyhandJournal implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandJournal;
+        }
+
+        journalInterface = $"Tinyhand.ITinyhandCustomJournal";
+        this.MethodCondition_WriteCustomRecord = MethodCondition.MemberMethod;
+        this.MethodCondition_ReadCustomRecord = MethodCondition.MemberMethod;
+        if (this.Interfaces.Any(x => x.FullName == journalInterface))
+        {// ITinyhandJournal implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandCustomJournal;
+
+            var methodName = journalInterface + ".WriteCustomRecord";
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
+            {
+                this.MethodCondition_WriteCustomRecord = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_WriteCustomRecord = MethodCondition.Declared;
+            }
+
+            methodName = journalInterface + ".ReadCustomRecord";
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
+            {
+                this.MethodCondition_ReadCustomRecord = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_ReadCustomRecord = MethodCondition.Declared;
             }
         }
 
@@ -1664,6 +1705,18 @@ ModuleInitializerClass_Added:
                 }
             }
 
+            if (this.ObjectAttribute.Journaling && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            {
+                if (interfaceString == string.Empty)
+                {
+                    interfaceString = $" : ITinyhandJournal";
+                }
+                else
+                {
+                    interfaceString += $", ITinyhandJournal";
+                }
+            }
+
             if (interfaceString == string.Empty)
             {
                 interfaceString = $" : ITinyhandSerialize";
@@ -1735,6 +1788,11 @@ ModuleInitializerClass_Added:
                 x.Generate_PrepareSecondary();
 
                 x.GenerateMethod(ssb, info);
+
+                if (x.ObjectAttribute.Journaling && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+                {
+                    x.GenerateITinyhandJournal(ssb, info);
+                }
             }
 
             /*if (this.ObjectAttribute != null && info.UseMemberNotNull)
@@ -2742,6 +2800,74 @@ ModuleInitializerClass_Added:
         this.GenerateMemberNotNull_Attribute(ssb, info);
         using (var m = ssb.ScopeBrace($"public static void MemberNotNull()"))
         {
+        }
+    }
+
+    internal void GenerateITinyhandJournal(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine();
+        ssb.AppendLine("[IgnoreMember]");
+        ssb.AppendLine("public ITinyhandCrystal? Crystal { get; set; }");
+
+        ssb.AppendLine("[IgnoreMember]");
+        ssb.AppendLine("public uint CurrentPlane { get; set; }");
+
+        this.GenerateReadRecord(ssb, info);
+    }
+
+    internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        using (var scopeMethod = ssb.ScopeBrace("bool ITinyhandJournal.ReadRecord(ref TinyhandReader reader)"))
+        {
+            // Custom read
+            if (this.MethodCondition_ReadCustomRecord == MethodCondition.Declared ||
+                this.MethodCondition_ReadCustomRecord == MethodCondition.ExplicitlyDeclared)
+            {
+                ssb.AppendLine("var fork = reader.Fork();");
+                var readCustomRecord = this.MethodCondition_ReadCustomRecord == MethodCondition.Declared ?
+                    "if (this.ReadCustomRecord(ref fork))" : "if (((ITinyhandCustomJournal)this).ReadCustomRecord(ref fork))";
+                using (var scopeCustom = ssb.ScopeBrace(readCustomRecord))
+                {
+                    ssb.AppendLine("return true;");
+                }
+            }
+
+            ssb.AppendLine("var record = reader.Read_Record();");
+            using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
+            {
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
+                {// String Key
+                }
+                else if (this.IntKey_Array is { } intArray)
+                {// Int Key
+                    var trie = new VisceralTrieInt<TinyhandObject, TinyhandObject>(this);
+                    for (var i = 0; i < intArray.Length; i++)
+                    {
+                        if (intArray[i] is not null)
+                        {
+                            trie.AddNode(i, intArray[i]);
+                        }
+                    }
+
+                    using (var thisScope = ssb.ScopeObject("this"))
+                    {
+                        trie.Generate(new(
+                            (context, obj, node) =>
+                            {
+                                var withNullable = node.Member.TypeObjectWithNullable!;
+                                using (var m = this.ScopeMember(ssb, node.Member))
+                                {
+                                    var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
+                                    coder.CodeDeserializer(ssb, info, true);
+                                }
+                            },
+                            ssb,
+                            null));
+                    }
+                }
+            }
+
+            ssb.AppendLine("return false;");
         }
     }
 
