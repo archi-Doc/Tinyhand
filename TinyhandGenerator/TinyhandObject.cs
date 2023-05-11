@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -2835,12 +2836,29 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("var record = reader.Read_Record();");
             using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
             {
-                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
+                if (this.Automata?.NodeList is { } nodeList)
                 {// String Key
+                    var trie = new VisceralTrieString<TinyhandObject>(this);
+                    for (var i = 0; i < nodeList.Count; i++)
+                    {
+                        trie.AddNode(nodeList[i].Member.KeyAttribute.StringKey, nodeList[i].Member);
+                    }
+
+                    using (var thisScope = ssb.ScopeObject("this"))
+                    {
+                        var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
+                            ssb,
+                            (ctx, obj, node) =>
+                            {
+                                this.GenerateReadRecordCore(ssb, info, node.Member);
+                            });
+
+                        trie.Generate(context);
+                    }
                 }
                 else if (this.IntKey_Array is { } intArray)
                 {// Int Key
-                    var trie = new VisceralTrieInt<TinyhandObject, TinyhandObject>(this);
+                    var trie = new VisceralTrieInt<TinyhandObject>(this);
                     for (var i = 0; i < intArray.Length; i++)
                     {
                         if (intArray[i] is not null)
@@ -2851,23 +2869,82 @@ ModuleInitializerClass_Added:
 
                     using (var thisScope = ssb.ScopeObject("this"))
                     {
-                        trie.Generate(new(
-                            (context, obj, node) =>
-                            {
-                                var withNullable = node.Member.TypeObjectWithNullable!;
-                                using (var m = this.ScopeMember(ssb, node.Member))
-                                {
-                                    var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
-                                    coder.CodeDeserializer(ssb, info, true);
-                                }
-                            },
+                        var context = new VisceralTrieInt<TinyhandObject>.VisceralTrieContext(
                             ssb,
-                            null));
+                            (ctx, obj, node) =>
+                            {
+                                this.GenerateReadRecordCore(ssb, info, node.Member);
+                            });
+
+                        trie.Generate(context);
                     }
                 }
             }
 
             ssb.AppendLine("return false;");
+        }
+    }
+
+    internal void GenerateReadRecordCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
+    {
+        var withNullable = x?.TypeObjectWithNullable;
+        if (x == null || withNullable == null)
+        {// no object
+            return;
+        }
+
+        ScopingStringBuilder.IScope? initSetter = null;
+        var destObject = ssb.FullObject; // Hidden members
+        using (var m = this.ScopeMember(ssb, x))
+        {
+            InitSetter_Start();
+
+            var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
+            if (coder != null)
+            {// Coder
+                coder.CodeDeserializer(ssb, info, true);
+            }
+            else if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            {// ((ITinyhandJournal)this.member).ReadRecord
+                ssb.AppendLine($"return ((ITinyhandJournal){ssb.FullObject}).ReadRecord(ref reader);");
+            }
+
+            InitSetter_End();
+        }
+
+        void InitSetter_Start()
+        {
+            if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+            {// TypeName vd;
+                initSetter = ssb.ScopeFullObject("vd");
+                ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
+            }
+        }
+
+        void InitSetter_End()
+        {
+            if (initSetter != null)
+            {
+                initSetter.Dispose();
+                initSetter = null;
+
+                if (x.SetterDelegateIdentifier != null)
+                {// SetterDelegate!(obj, vd);
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
+                }
+                else if (x.IsReadOnly)
+                {
+                    if (withNullable.Object.IsUnmanagedType)
+                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
+                    }
+                    else
+                    {// Unsafe.AsRef({this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
+                    }
+                }
+            }
         }
     }
 
@@ -3202,7 +3279,7 @@ ModuleInitializerClass_Added:
 
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
-                {
+                {// TinyhandObject. For the purpose of default value and instance reuse.
                     withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 }
                 else if (coder != null)
