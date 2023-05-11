@@ -26,13 +26,21 @@ internal class VisceralTrieInt<TObject>
 
         public string Key { get; } = "key";
 
-        // public string NoMatchingKey { get; } = "NoMatchingKey";
+        public string FallbackStatement { get; } = "reader.Skip();";
 
         public Action<VisceralTrieContext, TObject, Node> GenerateMethod { get; }
 
         public object? ExtraInfo { get; }
 
         // public bool InsertContinueStatement { get; set; } = false;
+
+        public void AppendFallbackStatement()
+        {
+            if (!string.IsNullOrEmpty(this.FallbackStatement))
+            {
+                this.Ssb.AppendLine(this.FallbackStatement);
+            }
+        }
     }
 
     public TObject Object { get; }
@@ -57,7 +65,7 @@ internal class VisceralTrieInt<TObject>
         this.Generate(context);
 
         context.Ssb.AppendLine($"{context.NoMatchingKey}:", false);
-        context.Ssb.AppendLine("reader.Skip();");
+        context.AppendFallbackStatement();
     }*/
 
     public void Generate(VisceralTrieContext context)
@@ -66,7 +74,7 @@ internal class VisceralTrieInt<TObject>
 
         if (this.root.Nexts == null)
         {
-            context.Ssb.AppendLine("reader.Skip();");
+            context.AppendFallbackStatement();
             // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
         }
         else
@@ -80,7 +88,7 @@ internal class VisceralTrieInt<TObject>
         }*/
 
         /*context.Ssb.AppendLine($"{context.NoMatchingKey}:", false);
-        context.Ssb.AppendLine("reader.Skip();");*/
+        context.AppendFallbackStatement();*/
     }
 
     private void GenerateNode(VisceralTrieContext context, Node[] nexts)
@@ -131,7 +139,7 @@ internal class VisceralTrieInt<TObject>
 
         using (var ifElse = context.Ssb.ScopeBrace("else"))
         {
-            context.Ssb.AppendLine("reader.Skip();");
+            context.AppendFallbackStatement();
             // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
         }
     }

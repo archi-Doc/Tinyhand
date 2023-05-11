@@ -26,19 +26,29 @@ internal class VisceralTrieString<TObject>
             this.Ssb = ssb;
         }
 
-        public Action<VisceralTrieContext, TObject, Node> GenerateMethod { get; }
-
         public ScopingStringBuilder Ssb { get; }
 
         public string Utf8 { get; } = "utf8";
 
         public string Key { get; } = "key";
 
-        public string NoMatchingKey { get; } = "NoMatchingKey";
+        public string FallbackStatement { get; } = "reader.Skip();";
+
+        // public string NoMatchingKey { get; } = "NoMatchingKey";
+
+        public Action<VisceralTrieContext, TObject, Node> GenerateMethod { get; }
 
         public object? ExtraInfo { get; }
 
-        public bool InsertContinueStatement { get; set; } = false;
+        // public bool InsertContinueStatement { get; set; } = false;
+
+        public void AppendFallbackStatement()
+        {
+            if (!string.IsNullOrEmpty(this.FallbackStatement))
+            {
+                this.Ssb.AppendLine(this.FallbackStatement);
+            }
+        }
     }
 
     public const int MaxStringKeySizeInBytes = 512;
@@ -103,27 +113,31 @@ internal class VisceralTrieString<TObject>
         context.Ssb.AppendLine($"var {context.Utf8} = reader.ReadStringSpan();");
         using (var c = context.Ssb.ScopeBrace($"if ({context.Utf8}.Length == 0)"))
         {
-            context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+            // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+            context.AppendFallbackStatement();
         }
 
-        context.Ssb.AppendLine($"{context.Key} = global::Arc.Visceral.VisceralTrieHelper.ReadKey(ref {context.Utf8});");
+        using (var c = context.Ssb.ScopeBrace($"else"))
+        {
+            context.Ssb.AppendLine($"{context.Key} = global::Arc.Visceral.VisceralTrieHelper.ReadKey(ref {context.Utf8});");
+            this.GenerateCore(context, this.root);
+        }
 
-        this.GenerateCore(context, this.root);
-
-        if (context.InsertContinueStatement)
+        /*if (context.InsertContinueStatement)
         {
             context.Ssb.AppendLine("continue;");
         }
 
         context.Ssb.AppendLine($"{context.NoMatchingKey}:", false);
-        context.Ssb.AppendLine("reader.Skip();");
+        context.AppendFallbackStatement();*/
     }
 
     private void GenerateCore(VisceralTrieContext context, Node node)
     {
         if (node.Nexts == null)
         {
-            context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+            // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+            context.AppendFallbackStatement();
             return;
         }
 
@@ -141,20 +155,35 @@ internal class VisceralTrieString<TObject>
             {
                 if (childrenNexts.Length == 0)
                 {
-                    context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+                    // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+                    context.AppendFallbackStatement();
                 }
                 else
                 {// valueNexts = 0, childrenNexts > 0
-                    context.Ssb.AppendLine($"if (utf8.Length == 0) goto {context.NoMatchingKey};");
-                    this.GenerateChildrenNexts(context, childrenNexts);
+                    using (var c = context.Ssb.ScopeBrace($"if ({context.Utf8}.Length == 0)"))
+                    {
+                        context.AppendFallbackStatement();
+                    }
+
+                    using (var c = context.Ssb.ScopeBrace($"else"))
+                    {
+                        this.GenerateChildrenNexts(context, childrenNexts);
+                    }
                 }
             }
             else
             {
                 if (childrenNexts.Length == 0)
                 {// valueNexts > 0, childrenNexts = 0
-                    context.Ssb.AppendLine($"if (utf8.Length != 0) goto {context.NoMatchingKey};");
-                    this.GenerateValueNexts(context, valueNexts);
+                    using (var c = context.Ssb.ScopeBrace($"if ({context.Utf8}.Length != 0)"))
+                    {
+                        context.AppendFallbackStatement();
+                    }
+
+                    using (var c = context.Ssb.ScopeBrace($"else"))
+                    {
+                        this.GenerateValueNexts(context, valueNexts);
+                    }
                 }
                 else
                 {// valueNexts > 0, childrenNexts > 0
@@ -191,14 +220,14 @@ internal class VisceralTrieString<TObject>
 
     private void GenerateChildrenNexts(VisceralTrieContext context, Node[] childrenNexts)
     {// childrenNexts.Length > 0
-        if (childrenNexts.Length == 1)
+        /*if (childrenNexts.Length == 1)
         {
             var x = childrenNexts[0];
             context.Ssb.AppendLine($"if (key != 0x{x.Key:X}) goto {context.NoMatchingKey};");
             context.Ssb.AppendLine($"key = global::Arc.Visceral.VisceralTrieHelper.ReadKey(ref {context.Utf8});");
             this.GenerateCore(context, x);
             return;
-        }
+        }*/
 
         var firstFlag = true;
         foreach (var x in childrenNexts)
@@ -214,7 +243,8 @@ internal class VisceralTrieString<TObject>
 
         using (var ifElse = context.Ssb.ScopeBrace("else"))
         {
-            context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+            // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+            context.AppendFallbackStatement();
         }
 
         // ssb.GotoSkipLabel();
@@ -222,13 +252,13 @@ internal class VisceralTrieString<TObject>
 
     private void GenerateValueNexts(VisceralTrieContext context, Node[] valueNexts)
     {// valueNexts.Length > 0
-        if (valueNexts.Length == 1)
+        /*if (valueNexts.Length == 1)
         {
             var x = valueNexts[0];
             context.Ssb.AppendLine($"if ({context.Key} != 0x{x.Key:X}) goto {context.NoMatchingKey};");
             context.GenerateMethod(context, this.Object, x);
             return;
-        }
+        }*/
 
         var firstFlag = true;
         foreach (var x in valueNexts)
@@ -243,7 +273,8 @@ internal class VisceralTrieString<TObject>
 
         using (var ifElse = context.Ssb.ScopeBrace("else"))
         {
-            context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+            // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
+            context.AppendFallbackStatement();
         }
     }
 
