@@ -11,3 +11,12 @@ public partial class LockObjectClassA
 
     protected readonly SemaphoreLock semaphore = new();
 }
+
+[TinyhandObject(LockObject = "semaphore")]
+public partial class PropertyTestClass
+{
+    [Key(0, PropertyName = "Id")]
+    public int id;
+
+    protected readonly SemaphoreLock semaphore = new();
+}
