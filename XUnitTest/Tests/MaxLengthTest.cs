@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject]
+[TinyhandObject(ExplicitKeyOnly = true)]
 public partial class MaxLengthClass
 {
     [Key(0, PropertyName = "X")]
@@ -27,9 +27,12 @@ public partial class MaxLengthClass
     [Key(4, PropertyName = "StringList")]
     [MaxLength(4, 3)]
     private List<string> _stringList = default!;
+
+    // [IgnoreMember]
+    public int DataId;
 }
 
-[TinyhandObject]
+[TinyhandObject(ExplicitKeyOnly = false)]
 public partial class MaxLengthClass2 : MaxLengthClass
 {
     [Key(5, PropertyName = "Byte")]
@@ -43,6 +46,9 @@ public partial class MaxLengthClass2 : MaxLengthClass
     [Key(7, PropertyName = "ByteList")]
     [MaxLength(3, 2)]
     private List<byte[]> _byteList = default!;
+
+    [IgnoreMember]
+    public int DataId2;
 }
 
 public class MaxLengthTest
