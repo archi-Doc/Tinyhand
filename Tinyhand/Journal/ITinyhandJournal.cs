@@ -15,9 +15,9 @@ public interface ITinyhandCrystal
 
 public interface ITinyhandJournal
 {
-    ITinyhandCrystal? Crystal { get; protected set; }
+    ITinyhandCrystal? Crystal { get; set; }
 
-    uint CurrentPlane { get; protected set; }
+    uint CurrentPlane { get; set; }
 
     bool ReadRecord(ref TinyhandReader reader);
 }

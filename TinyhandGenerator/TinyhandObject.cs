@@ -2883,6 +2883,7 @@ ModuleInitializerClass_Added:
         ssb.AppendLine("[IgnoreMember]");
         ssb.AppendLine("public uint CurrentPlane { get; set; }");
 
+        ssb.AppendLine();
         this.GenerateReadRecord(ssb, info);
     }
 
