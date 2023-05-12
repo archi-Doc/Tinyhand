@@ -832,7 +832,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            if (this.ObjectAttribute?.ExplicitKeyOnly == true)
+            if (x.ContainingObject?.ObjectAttribute?.ExplicitKeyOnly == true)
             {// Explicit key only
                 if (x.KeyAttribute == null)
                 {
