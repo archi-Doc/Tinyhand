@@ -30,6 +30,9 @@ public partial class MaxLengthClass
 
     // [IgnoreMember]
     public int DataId;
+
+    [Key(8, PropertyName = "TestId")]
+    public int testId;
 }
 
 [TinyhandObject(ExplicitKeyOnly = false)]

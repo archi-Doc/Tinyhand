@@ -2659,6 +2659,7 @@ ModuleInitializerClass_Added:
                 setterAccessibility = "protected ";
             }
 
+            ssb.AppendLine("[IgnoreMember]");
             using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.PropertyName}"))
             using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
             {
