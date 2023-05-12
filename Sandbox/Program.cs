@@ -13,11 +13,19 @@ using ValueLink;
 
 namespace Sandbox;
 
+[TinyhandObject(LockObject = "semaphore")]
+public partial class PropertyTestClass2 : PropertyTestClass
+{
+}
+
 [TinyhandObject(Journaling = true)]
 public partial class JournalingClass
 {
     [Key(0)]
     public int X { get; set; }
+
+    [Key(1)]
+    public PropertyTestClass Class1 { get; set; } = new();
 }
 
 [TinyhandObject]

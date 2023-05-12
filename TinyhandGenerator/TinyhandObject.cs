@@ -49,6 +49,7 @@ public enum TinyhandObjectFlag
     ReuseInstanceTarget = 1 << 8,
     CloneTarget = 1 << 9,
     HiddenMember = 1 << 10,
+    AddPropertyTarget = 1 << 11,
 
     HasITinyhandSerializationCallback = 1 << 20, // Has ITinyhandSerializationCallback interface
     HasExplicitOnBeforeSerialize = 1 << 21, // ITinyhandSerializationCallback.OnBeforeSerialize()
@@ -1393,7 +1394,9 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         }
 
         // Add property
-        if (this.KeyAttribute != null && !string.IsNullOrEmpty(this.KeyAttribute.PropertyName))
+        if (this.KeyAttribute != null &&
+            !string.IsNullOrEmpty(this.KeyAttribute.PropertyName) &&
+            this.ContainingObject == parent)
         {
             if (this.Kind != VisceralObjectKind.Field)
             {
@@ -1407,6 +1410,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
             this.RequiresGetter = false;
             this.RequiresSetter = false;
+            this.ObjectFlag |= TinyhandObjectFlag.AddPropertyTarget;
         }
 
         // MaxLength
@@ -2642,16 +2646,15 @@ ModuleInitializerClass_Added:
 
     internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(a => !string.IsNullOrEmpty(a.KeyAttribute?.PropertyName)))
+        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.AddPropertyTarget))
         {
-            if (x.TypeObjectWithNullable is not { } withNullable ||
-                x.ContainingObject != this)
+            if (x.TypeObjectWithNullable is not { } withNullable)
             {
                 continue;
             }
 
             var journal = this.ObjectAttribute?.Journaling == true ||
-                        this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal);
+                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal);
 
             string setterAccessibility = string.Empty;
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
@@ -2914,6 +2917,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("var record = reader.Read_Record();");
             using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
             {
+                ssb.AppendLine("var options = TinyhandSerializerOptions.Standard;");
                 if (this.StringTrie is not null)
                 {// String Key
                     using (var thisScope = ssb.ScopeObject("this"))
