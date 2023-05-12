@@ -126,8 +126,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public string InIfStruct => this.Kind == VisceralObjectKind.Struct ? "in " : string.Empty;
 
-    // internal Automata? Automata { get; private set; }
-
     public TinyhandObject[]? IntKey_Array;
 
     internal VisceralTrieString<TinyhandObject>? StringTrie;
@@ -1000,7 +998,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void CheckObject_StringKey()
     {
-        // this.Automata = new Automata(this);
         this.StringTrie ??= new(this);
 
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
@@ -1022,7 +1019,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.AddDiagnostic(TinyhandBody.Warning_InvalidKeyMarker, x.KeyVisceralAttribute?.Location);
                 }*/
 
-                // this.Automata.AddNode(s, x);
                 this.StringTrie.AddNode(s, x);
             }
         }
@@ -1845,15 +1841,6 @@ ModuleInitializerClass_Added:
             }
         }
 
-        /*this.PrepareAutomata();
-        if (this.Automata != null)
-        {
-            foreach (var x in this.Automata.NodeList)
-            {
-                x.Identifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
-            }
-        }*/
-
         // Init setter delegates
         var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetter).ToArray();
         if (array.Length != 0)
@@ -1885,15 +1872,6 @@ ModuleInitializerClass_Added:
         {
             return;
         }
-
-        // Automata
-        /*if (od.Automata != null && this.Automata != null)
-        {
-            for (var n = 0; n < this.Automata.NodeList.Count; n++)
-            {
-                this.Automata.NodeList[n].Identifier = od.Automata.NodeList[n].Identifier;
-            }
-        }*/
 
         // StringTrie: Copy identifiers
         if (od.StringTrie != null && this.StringTrie != null)
@@ -3007,34 +2985,6 @@ ModuleInitializerClass_Added:
         return;
     }
 
-    /*internal void PrepareAutomata()
-    {
-        if (this.Automata == null)
-        {
-            return;
-        }
-
-        var count = 0;
-        foreach (var x in this.Automata.NodeList)
-        {
-            x.ReconstructIndex = -1;
-            if (x.Member == null)
-            {
-                continue;
-            }
-
-            if (x.Member.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated ||
-                x.Member.Kind.IsValueType() ||
-                x.Member.IsDefaultable ||
-                x.Member.ReconstructState == ReconstructState.Do)
-            {
-                x.ReconstructIndex = count++;
-            }
-        }
-
-        this.Automata.ReconstructCount = count;
-    }*/
-
     internal void PrepareTrie()
     {
         if (this.StringTrie == null)
@@ -3525,7 +3475,7 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateReconstructCore2(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, int reconstructIndex)
-    {// Called by Automata
+    {// Called by Trie
         var withNullable = x?.TypeObjectWithNullable;
         if (x == null || withNullable == null)
         {// no object
@@ -3763,69 +3713,6 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("finally { reader.Depth--; }");
         }
     }
-
-    /*internal void GenerateDeserializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.Automata == null)
-        {
-            return;
-        }
-
-        if (this.Kind.IsValueType())
-        {// Value type
-            ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
-        }
-
-        ssb.AppendLine("ulong key;");
-        if (this.Automata.ReconstructCount > 0)
-        {
-            ssb.AppendLine($"var deserializedFlag = new bool[{this.Automata.ReconstructCount}];");
-        }
-
-        ssb.AppendLine("var numberOfData = reader.ReadMapHeader2();");
-
-        using (var security = ssb.ScopeSecurityDepth())
-        {
-            if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
-            {// LockObject
-                this.GenerateDeserialize_LockEnter(ssb, info);
-            }
-
-            using (var loop = ssb.ScopeBrace("while (numberOfData-- > 0)"))
-            {
-                ssb.AppendLine("var utf8 = reader.ReadStringSpan();");
-                using (var c = ssb.ScopeBrace("if (utf8.Length == 0)"))
-                {
-                    ssb.GotoSkipLabel();
-                }
-
-                ssb.AppendLine("key = global::Arc.Visceral.VisceralTrieHelper.ReadKey(ref utf8);");
-
-                this.Automata.GenerateDeserialize(ssb, info);
-
-                ssb.AppendLine("continue;");
-                ssb.AppendLine("SkipLabel:", false);
-                ssb.ReaderSkip();
-            }
-
-            // Reconstruct
-            this.Automata.GenerateReconstruct(ssb, info);
-            this.GenerateReconstructRemaining(ssb, info);
-        }
-
-        if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
-        {// LockObject
-            using (var finallyScope = ssb.ScopeBrace("finally"))
-            {
-                this.GenerateDeserialize_LockExit(ssb, info);
-                ssb.AppendLine("reader.Depth--;");
-            }
-        }
-        else
-        {
-            ssb.AppendLine("finally { reader.Depth--; }");
-        }
-    }*/
 
     internal void GenerateDeserializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -4129,31 +4016,6 @@ ModuleInitializerClass_Added:
             }
         }
     }
-
-    /*internal void GenerateStringKeyFields(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.Automata == null || this.Automata.NodeList.Count == 0)
-        {
-            return;
-        }
-
-        ssb.AppendLine();
-        foreach (var x in this.Automata.NodeList)
-        {
-            if (x.Utf8Name == null)
-            {
-                continue;
-            }
-
-            ssb.Append($"private static ReadOnlySpan<byte> {x.Identifier} => new byte[] {{ ");
-            foreach (var y in x.Utf8Name)
-            {
-                ssb.Append($"{y}, ", false);
-            }
-
-            ssb.Append("};\r\n", false);
-        }
-    }*/
 
     internal void GenerateStringKeyFields(ScopingStringBuilder ssb, GeneratorInformation info)
     {
