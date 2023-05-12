@@ -833,14 +833,19 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            if (x.ContainingObject?.ObjectAttribute?.ExplicitKeyOnly == true)
-            {// Explicit key only
-                if (x.KeyAttribute == null)
-                {
-                    continue;
+            if (x.ContainingObject is { } containingObject)
+            {
+                containingObject.TryConfigure();
+                if (containingObject.ObjectAttribute?.ExplicitKeyOnly == true)
+                {// Explicit key only
+                    if (x.KeyAttribute == null)
+                    {
+                        continue;
+                    }
                 }
             }
-            else if (!x.IsPublic && this.ObjectAttribute?.IncludePrivateMembers != true)
+
+            if (!x.IsPublic && this.ObjectAttribute?.IncludePrivateMembers != true)
             {// Skip protected or private members if IncludePrivateMembers is false.
                 continue;
             }
