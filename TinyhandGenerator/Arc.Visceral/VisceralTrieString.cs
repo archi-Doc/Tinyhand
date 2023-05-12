@@ -298,9 +298,13 @@ internal class VisceralTrieString<TObject>
 
         public int Index { get; private set; } = -1;
 
+        public int SubIndex { get; set; } = -1;
+
         public TObject? Member { get; private set; }
 
         public byte[]? Utf8Name { get; private set; }
+
+        public string? Identifier { get; set; }
 
         public SortedDictionary<ulong, Node>? Nexts { get; private set; }
 

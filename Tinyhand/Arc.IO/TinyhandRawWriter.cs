@@ -3,8 +3,6 @@
 using System;
 using System.Buffers;
 using System.Buffers.Text;
-using System.Text.Unicode;
-using Arc.IO;
 using Tinyhand;
 
 namespace Arc.IO;

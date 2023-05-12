@@ -4,7 +4,6 @@
  *  PM> Install-Package BenchmarkDotNet
  */
 
-using System;
 using System.Buffers;
 using System.IO;
 using System.Linq;
@@ -13,8 +12,6 @@ using BenchmarkDotNet.Attributes;
 using ProtoBuf;
 using MemoryPack;
 using Tinyhand;
-using Tinyhand.IO;
-using System.Diagnostics;
 
 namespace Benchmark.H2HTest;
 

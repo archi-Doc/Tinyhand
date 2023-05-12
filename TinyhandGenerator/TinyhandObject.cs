@@ -1,13 +1,10 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Tinyhand.Coders;
@@ -129,9 +126,13 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public string InIfStruct => this.Kind == VisceralObjectKind.Struct ? "in " : string.Empty;
 
-    internal Automata? Automata { get; private set; }
+    // internal Automata? Automata { get; private set; }
 
     public TinyhandObject[]? IntKey_Array;
+
+    internal VisceralTrieString<TinyhandObject>? StringTrie;
+
+    internal int StringTrieReconstructNumber = 0;
 
     public int IntKey_Min { get; private set; } = -1;
 
@@ -999,7 +1000,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void CheckObject_StringKey()
     {
-        this.Automata = new Automata(this);
+        // this.Automata = new Automata(this);
+        this.StringTrie ??= new(this);
 
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
         {
@@ -1020,7 +1022,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.AddDiagnostic(TinyhandBody.Warning_InvalidKeyMarker, x.KeyVisceralAttribute?.Location);
                 }*/
 
-                this.Automata.AddNode(s, x);
+                // this.Automata.AddNode(s, x);
+                this.StringTrie.AddNode(s, x);
             }
         }
     }
@@ -1833,14 +1836,23 @@ ModuleInitializerClass_Added:
 
     internal void Generate_PreparePrimary()
     {// Prepare Primary TinyhandObject
-        this.PrepareAutomata();
+        this.PrepareTrie();
+        if (this.StringTrie is not null)
+        {
+            foreach (var x in this.StringTrie.NodeList)
+            {
+                x.Identifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
+            }
+        }
+
+        /*this.PrepareAutomata();
         if (this.Automata != null)
         {
             foreach (var x in this.Automata.NodeList)
             {
                 x.Identifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
             }
-        }
+        }*/
 
         // Init setter delegates
         var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetter).ToArray();
@@ -1865,7 +1877,8 @@ ModuleInitializerClass_Added:
 
     internal void Generate_PrepareSecondary()
     {// Prepare Secondary TinyhandObject
-        this.PrepareAutomata();
+        // this.PrepareAutomata();
+        this.PrepareTrie();
 
         var od = this.OriginalDefinition;
         if (od == null)
@@ -1874,11 +1887,20 @@ ModuleInitializerClass_Added:
         }
 
         // Automata
-        if (od.Automata != null && this.Automata != null)
+        /*if (od.Automata != null && this.Automata != null)
         {
             for (var n = 0; n < this.Automata.NodeList.Count; n++)
             {
                 this.Automata.NodeList[n].Identifier = od.Automata.NodeList[n].Identifier;
+            }
+        }*/
+
+        // StringTrie: Copy identifiers
+        if (od.StringTrie != null && this.StringTrie != null)
+        {
+            for (var n = 0; n < this.StringTrie.NodeList.Count; n++)
+            {
+                this.StringTrie.NodeList[n].Identifier = od.StringTrie.NodeList[n].Identifier;
             }
         }
 
@@ -2836,14 +2858,8 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("var record = reader.Read_Record();");
             using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
             {
-                if (this.Automata?.NodeList is { } nodeList)
+                if (this.StringTrie is not null)
                 {// String Key
-                    var trie = new VisceralTrieString<TinyhandObject>(this);
-                    for (var i = 0; i < nodeList.Count; i++)
-                    {
-                        trie.AddNode(nodeList[i].Member.KeyAttribute.StringKey, nodeList[i].Member);
-                    }
-
                     using (var thisScope = ssb.ScopeObject("this"))
                     {
                         var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
@@ -2853,7 +2869,7 @@ ModuleInitializerClass_Added:
                                 this.GenerateReadRecordCore(ssb, info, node.Member);
                             });
 
-                        trie.Generate(context);
+                        this.StringTrie.Generate(context);
                     }
                 }
                 else if (this.IntKey_Array is { } intArray)
@@ -2991,7 +3007,7 @@ ModuleInitializerClass_Added:
         return;
     }
 
-    internal void PrepareAutomata()
+    /*internal void PrepareAutomata()
     {
         if (this.Automata == null)
         {
@@ -3017,6 +3033,34 @@ ModuleInitializerClass_Added:
         }
 
         this.Automata.ReconstructCount = count;
+    }*/
+
+    internal void PrepareTrie()
+    {
+        if (this.StringTrie == null)
+        {
+            return;
+        }
+
+        var count = 0;
+        foreach (var x in this.StringTrie.NodeList)
+        {
+            x.SubIndex = -1;
+            if (x.Member == null)
+            {
+                continue;
+            }
+
+            if (x.Member.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated ||
+                x.Member.Kind.IsValueType() ||
+                x.Member.IsDefaultable ||
+                x.Member.ReconstructState == ReconstructState.Do)
+            {
+                x.SubIndex = count++;
+            }
+        }
+
+        this.StringTrieReconstructNumber = count;
     }
 
     internal void GenerateConstructor_Method(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -3720,7 +3764,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateDeserializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
+    /*internal void GenerateDeserializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (this.Automata == null)
         {
@@ -3766,6 +3810,81 @@ ModuleInitializerClass_Added:
 
             // Reconstruct
             this.Automata.GenerateReconstruct(ssb, info);
+            this.GenerateReconstructRemaining(ssb, info);
+        }
+
+        if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {// LockObject
+            using (var finallyScope = ssb.ScopeBrace("finally"))
+            {
+                this.GenerateDeserialize_LockExit(ssb, info);
+                ssb.AppendLine("reader.Depth--;");
+            }
+        }
+        else
+        {
+            ssb.AppendLine("finally { reader.Depth--; }");
+        }
+    }*/
+
+    internal void GenerateDeserializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        if (this.StringTrie is null)
+        {
+            return;
+        }
+
+        if (this.Kind.IsValueType())
+        {// Value type
+            ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
+        }
+
+        if (this.StringTrieReconstructNumber > 0)
+        {
+            ssb.AppendLine($"var deserializedFlag = new bool[{this.StringTrieReconstructNumber}];");
+        }
+
+        ssb.AppendLine("var numberOfData = reader.ReadMapHeader2();");
+
+        using (var security = ssb.ScopeSecurityDepth())
+        {
+            if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+            {// LockObject
+                this.GenerateDeserialize_LockEnter(ssb, info);
+            }
+
+            using (var loop = ssb.ScopeBrace("while (numberOfData-- > 0)"))
+            {
+                var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
+                    ssb,
+                    (ctx, obj, node) =>
+                    {
+                        if (node.SubIndex >= 0)
+                        {
+                            ssb.AppendLine($"deserializedFlag[{node.SubIndex}] = true;");
+                        }
+
+                        obj.GenerateDeserializeCore2(ssb, info, node.Member);
+                    });
+
+                this.StringTrie.Generate(context);
+            }
+
+            // Reconstruct
+            if (this.StringTrieReconstructNumber > 0)
+            {
+                ssb.AppendLine();
+                foreach (var x in this.StringTrie.NodeList)
+                {
+                    if (x.SubIndex < 0 || x.Member == null)
+                    {
+                        continue;
+                    }
+
+                    this.StringTrie.Object.GenerateReconstructCore2(ssb, info, x.Member, x.SubIndex);
+                }
+            }
+
             this.GenerateReconstructRemaining(ssb, info);
         }
 
@@ -3971,7 +4090,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateSerializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        if (this.Automata == null)
+        if (this.StringTrie == null)
         {
             return;
         }
@@ -3982,9 +4101,9 @@ ModuleInitializerClass_Added:
             cf = this;
         }
 
-        ssb.AppendLine($"writer.WriteMapHeader({this.Automata.NodeList.Count});");
+        ssb.AppendLine($"writer.WriteMapHeader({this.StringTrie.NodeList.Count});");
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
-        foreach (var x in this.Automata.NodeList)
+        foreach (var x in this.StringTrie.NodeList)
         {
             ssb.AppendLine($"writer.WriteString({cf.LocalName}.{x.Identifier});");
 
@@ -4011,7 +4130,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateStringKeyFields(ScopingStringBuilder ssb, GeneratorInformation info)
+    /*internal void GenerateStringKeyFields(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (this.Automata == null || this.Automata.NodeList.Count == 0)
         {
@@ -4020,6 +4139,31 @@ ModuleInitializerClass_Added:
 
         ssb.AppendLine();
         foreach (var x in this.Automata.NodeList)
+        {
+            if (x.Utf8Name == null)
+            {
+                continue;
+            }
+
+            ssb.Append($"private static ReadOnlySpan<byte> {x.Identifier} => new byte[] {{ ");
+            foreach (var y in x.Utf8Name)
+            {
+                ssb.Append($"{y}, ", false);
+            }
+
+            ssb.Append("};\r\n", false);
+        }
+    }*/
+
+    internal void GenerateStringKeyFields(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        if (this.StringTrie == null || this.StringTrie.NodeList.Count == 0)
+        {
+            return;
+        }
+
+        ssb.AppendLine();
+        foreach (var x in this.StringTrie.NodeList)
         {
             if (x.Utf8Name == null)
             {

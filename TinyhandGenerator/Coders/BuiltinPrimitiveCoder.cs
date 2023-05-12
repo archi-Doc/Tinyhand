@@ -3,7 +3,6 @@
 /* THIS (.cs) FILE IS GENERATED. DO NOT CHANGE IT.
  * CHANGE THE .tt FILE INSTEAD. */
 
-using System;
 using Arc.Visceral;
 using Tinyhand.Generator;
 

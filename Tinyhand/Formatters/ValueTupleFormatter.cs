@@ -4,7 +4,6 @@
  * CHANGE THE .tt FILE INSTEAD. */
 
 using System;
-using System.Buffers;
 using Tinyhand.IO;
 
 #pragma warning disable SA1141 // Use tuple syntax

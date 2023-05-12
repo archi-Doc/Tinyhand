@@ -3,7 +3,6 @@
 using System;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
 #pragma warning disable SA1202 // Elements should be ordered by access

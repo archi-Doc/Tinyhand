@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Xml.Linq;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1311 // Static readonly fields should begin with upper-case letter

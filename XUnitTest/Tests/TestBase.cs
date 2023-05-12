@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
 
 namespace Tinyhand.Tests;
