@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Arc.Visceral;
 
-internal class VisceralTrieInt<TObject, TMember>
+internal class VisceralTrieInt<TObject>
 {
     public VisceralTrieInt(TObject obj)
     {
@@ -16,25 +16,36 @@ internal class VisceralTrieInt<TObject, TMember>
 
     internal class VisceralTrieContext
     {
-        public VisceralTrieContext(Action<VisceralTrieContext, TObject, Node> generateMethod, ScopingStringBuilder ssb, object? extraInfo)
+        public VisceralTrieContext(ScopingStringBuilder ssb, Action<VisceralTrieContext, TObject, Node> generateMethod)
         {
-            this.GenerateMethod = generateMethod;
             this.Ssb = ssb;
-            this.ExtraInfo = extraInfo;
+            this.GenerateMethod = generateMethod;
         }
-
-        public Action<VisceralTrieContext, TObject, Node> GenerateMethod { get; }
 
         public ScopingStringBuilder Ssb { get; }
 
+        public string Key { get; } = "key";
+
+        public string FallbackStatement { get; } = "reader.Skip();";
+
+        public Action<VisceralTrieContext, TObject, Node> GenerateMethod { get; }
+
         public object? ExtraInfo { get; }
 
-        public bool AddContinueStatement { get; set; } = true;
+        // public bool InsertContinueStatement { get; set; } = false;
+
+        public void AppendFallbackStatement()
+        {
+            if (!string.IsNullOrEmpty(this.FallbackStatement))
+            {
+                this.Ssb.AppendLine(this.FallbackStatement);
+            }
+        }
     }
 
     public TObject Object { get; }
 
-    public (Node? Node, VisceralTrieAddNodeResult Result) AddNode(int key, TMember member)
+    public (Node? Node, VisceralTrieAddNodeResult Result) AddNode(int key, TObject member)
     {
         if (this.root.Nexts?.TryGetValue(key, out var node) == true)
         {// Key collision
@@ -47,26 +58,37 @@ internal class VisceralTrieInt<TObject, TMember>
         return (node, VisceralTrieAddNodeResult.Success);
     }
 
+    /*public void GenerateLoop(VisceralTrieContext context)
+    {
+        context.Ssb.AppendLine($"var {context.Key} = reader.ReadInt32();");
+
+        this.Generate(context);
+
+        context.Ssb.AppendLine($"{context.NoMatchingKey}:", false);
+        context.AppendFallbackStatement();
+    }*/
+
     public void Generate(VisceralTrieContext context)
     {
-        context.Ssb.AppendLine("var key = reader.ReadInt32();");
+        context.Ssb.AppendLine($"var {context.Key} = reader.ReadInt32();");
 
         if (this.root.Nexts == null)
         {
-            context.Ssb.AppendLine("goto SkipLabel;");
+            context.AppendFallbackStatement();
+            // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
         }
         else
         {
             this.GenerateNode(context, this.root.Nexts.Values.ToArray());
-
-            if (context.AddContinueStatement)
-            {
-                context.Ssb.AppendLine("continue;");
-            }
         }
 
-        context.Ssb.AppendLine("SkipLabel:", false);
-        context.Ssb.AppendLine("reader.Skip();");
+        /*if (context.InsertContinueStatement)
+        {
+            context.Ssb.AppendLine("continue;");
+        }*/
+
+        /*context.Ssb.AppendLine($"{context.NoMatchingKey}:", false);
+        context.AppendFallbackStatement();*/
     }
 
     private void GenerateNode(VisceralTrieContext context, Node[] nexts)
@@ -82,7 +104,7 @@ internal class VisceralTrieInt<TObject, TMember>
             var left = nexts.Take(midline).ToArray();
             var right = nexts.Skip(midline).ToArray();
 
-            using (var scopeLeft = context.Ssb.ScopeBrace($"if (key < {mid})"))
+            using (var scopeLeft = context.Ssb.ScopeBrace($"if ({context.Key} < {mid})"))
             {// left
                 this.GenerateNode(context, left);
             }
@@ -96,18 +118,18 @@ internal class VisceralTrieInt<TObject, TMember>
 
     private void GenerateValueNexts(VisceralTrieContext context, Node[] valueNexts)
     {// valueNexts.Length > 0
-        if (valueNexts.Length == 1)
+        /*if (valueNexts.Length == 1)
         {
             var x = valueNexts[0];
-            context.Ssb.AppendLine($"if (key != {x.Key}) goto SkipLabel;");
+            context.Ssb.AppendLine($"if ({context.Key} != {x.Key}) goto {context.NoMatchingKey};");
             context.GenerateMethod(context, this.Object, x);
             return;
-        }
+        }*/
 
         var firstFlag = true;
         foreach (var x in valueNexts)
         {
-            var condition = firstFlag ? string.Format("if (key == {0})", x.Key) : string.Format("else if (key == {0})", x.Key);
+            var condition = firstFlag ? string.Format("if ({0} == {1})", context.Key, x.Key) : string.Format("else if ({0} == {1})", context.Key, x.Key);
             firstFlag = false;
             using (var c = context.Ssb.ScopeBrace(condition))
             {
@@ -117,7 +139,8 @@ internal class VisceralTrieInt<TObject, TMember>
 
         using (var ifElse = context.Ssb.ScopeBrace("else"))
         {
-            context.Ssb.AppendLine("goto SkipLabel;");
+            context.AppendFallbackStatement();
+            // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
         }
     }
 
@@ -127,25 +150,25 @@ internal class VisceralTrieInt<TObject, TMember>
 
     internal class Node
     {
-        public Node(VisceralTrieInt<TObject, TMember> visceralTrie, int key)
+        public Node(VisceralTrieInt<TObject> visceralTrie, int key)
         {
             this.VisceralTrie = visceralTrie;
             this.Key = key;
         }
 
-        public VisceralTrieInt<TObject, TMember> VisceralTrie { get; }
+        public VisceralTrieInt<TObject> VisceralTrie { get; }
 
         public int Key { get; }
 
         public int Index { get; private set; } = -1;
 
-        public TMember Member { get; private set; } = default!;
+        public TObject Member { get; private set; } = default!;
 
         public SortedDictionary<int, Node>? Nexts { get; private set; }
 
         public bool HasChildren => this.Nexts != null;
 
-        public Node Add(int key, int index, TMember member)
+        public Node Add(int key, int index, TObject member)
         {// Leaf node
             var node = new Node(this.VisceralTrie, key);
             node.Index = index;

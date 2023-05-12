@@ -1,9 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Buffers;
 using System.Collections.Immutable;
-using Tinyhand.Formatters;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly

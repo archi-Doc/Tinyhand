@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using Tinyhand.Internal;
 using Tinyhand.IO;
 
 #pragma warning disable SA1202 // Elements should be ordered by access

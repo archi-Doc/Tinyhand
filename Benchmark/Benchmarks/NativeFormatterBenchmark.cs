@@ -2,10 +2,6 @@
 
 using System;
 using System.Buffers;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using Tinyhand;
 using Tinyhand.IO;

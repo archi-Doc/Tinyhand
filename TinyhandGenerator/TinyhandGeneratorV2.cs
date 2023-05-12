@@ -171,15 +171,6 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
             }
         }
 
-        /*foreach (var x in compilation.SourceModule.ReferencedAssemblySymbols)
-        {
-            if (x.Identity.Name == "SandboxBase")
-            {// tempcode
-                // var m = x.GetTypeByMetadataName("SandboxBase.LockObjectClassA");
-                // body.Add(m);
-            }
-        }*/
-
         // this.SalvageCloseGeneric(body, generics, processed);
 
         context.CancellationToken.ThrowIfCancellationRequested();

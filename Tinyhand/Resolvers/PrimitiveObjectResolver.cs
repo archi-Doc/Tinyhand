@@ -1,6 +1,5 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System.Collections.Generic;
 using Tinyhand.Formatters;
 
 namespace Tinyhand.Resolvers;

@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Linq;
 using System.Linq.Expressions;
-using LP;
 using SandboxBase;
 using Sandbox.ZenItz;
 using Tinyhand;
 using Tinyhand.IO;
-using Tinyhand.Resolvers;
 using ValueLink;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
 
 namespace Sandbox;
+
+[TinyhandObject(Journaling = true)]
+public partial class JournalingClass
+{
+    [Key(0)]
+    public int X { get; set; }
+}
 
 [TinyhandObject]
 public partial class LockObjectClassB : LockObjectClassA

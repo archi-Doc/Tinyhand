@@ -1,7 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Buffers;
 using Tinyhand.IO;
 
 #pragma warning disable SA1121 // Use built-in type alias

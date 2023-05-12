@@ -68,6 +68,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool UseResolver { get; set; } = false;
 
+    public bool Journaling { get; set; } = false;
+
     public TinyhandObjectAttributeMock()
     {
     }
@@ -147,6 +149,12 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.UseResolver = (bool)val;
+        }
+
+        val = AttributeHelper.GetValue(-1, nameof(Journaling), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.Journaling = (bool)val;
         }
 
         return attribute;

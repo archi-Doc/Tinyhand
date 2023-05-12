@@ -4,9 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Tinyhand;
-using Tinyhand.Formatters;
-using Tinyhand.Internal;
 
 namespace Tinyhand.Resolvers;
 

@@ -4,8 +4,6 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Tinyhand.Internal;
-using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 

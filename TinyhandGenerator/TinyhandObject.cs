@@ -3,10 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Tinyhand.Coders;
@@ -60,6 +58,8 @@ public enum TinyhandObjectFlag
     HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
     CanCreateInstance = 1 << 27, // Can create an instance
     InterfaceImplemented = 1 << 28, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
+    HasITinyhandJournal = 1 << 29, // Has ITinyhandJournal interface
+    HasITinyhandCustomJournal = 1 << 30, // Has ITinyhandCustomJournal interface
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -126,9 +126,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public string InIfStruct => this.Kind == VisceralObjectKind.Struct ? "in " : string.Empty;
 
-    internal Automata? Automata { get; private set; }
-
     public TinyhandObject[]? IntKey_Array;
+
+    internal VisceralTrieString<TinyhandObject>? StringTrie;
+
+    internal int StringTrieReconstructNumber = 0;
 
     public int IntKey_Min { get; private set; } = -1;
 
@@ -147,6 +149,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public MethodCondition MethodCondition_SetDefaultValue { get; private set; }
 
     public MethodCondition MethodCondition_Clone { get; private set; }
+
+    public MethodCondition MethodCondition_WriteCustomRecord { get; private set; }
+
+    public MethodCondition MethodCondition_ReadCustomRecord { get; private set; }
 
     public bool RequiresGetter { get; private set; }
 
@@ -592,6 +598,41 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
+        // Method condition (Journal)
+        var journalInterface = $"Tinyhand.ITinyhandJournal";
+        if (this.Interfaces.Any(x => x.FullName == journalInterface))
+        {// ITinyhandJournal implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandJournal;
+        }
+
+        journalInterface = $"Tinyhand.ITinyhandCustomJournal";
+        this.MethodCondition_WriteCustomRecord = MethodCondition.MemberMethod;
+        this.MethodCondition_ReadCustomRecord = MethodCondition.MemberMethod;
+        if (this.Interfaces.Any(x => x.FullName == journalInterface))
+        {// ITinyhandJournal implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandCustomJournal;
+
+            var methodName = journalInterface + ".WriteCustomRecord";
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
+            {
+                this.MethodCondition_WriteCustomRecord = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_WriteCustomRecord = MethodCondition.Declared;
+            }
+
+            methodName = journalInterface + ".ReadCustomRecord";
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
+            {
+                this.MethodCondition_ReadCustomRecord = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_ReadCustomRecord = MethodCondition.Declared;
+            }
+        }
+
         // ITinyhandSerializationCallback
         if (this.Interfaces.Any(x => x.FullName == "Tinyhand.ITinyhandSerializationCallback"))
         {
@@ -957,7 +998,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void CheckObject_StringKey()
     {
-        this.Automata = new Automata(this);
+        this.StringTrie ??= new(this);
 
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
         {
@@ -978,7 +1019,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.AddDiagnostic(TinyhandBody.Warning_InvalidKeyMarker, x.KeyVisceralAttribute?.Location);
                 }*/
 
-                this.Automata.AddNode(s, x);
+                this.StringTrie.AddNode(s, x);
             }
         }
     }
@@ -1664,6 +1705,18 @@ ModuleInitializerClass_Added:
                 }
             }
 
+            if (this.ObjectAttribute.Journaling && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            {
+                if (interfaceString == string.Empty)
+                {
+                    interfaceString = $" : ITinyhandJournal";
+                }
+                else
+                {
+                    interfaceString += $", ITinyhandJournal";
+                }
+            }
+
             if (interfaceString == string.Empty)
             {
                 interfaceString = $" : ITinyhandSerialize";
@@ -1735,6 +1788,11 @@ ModuleInitializerClass_Added:
                 x.Generate_PrepareSecondary();
 
                 x.GenerateMethod(ssb, info);
+
+                if (x.ObjectAttribute.Journaling && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+                {
+                    x.GenerateITinyhandJournal(ssb, info);
+                }
             }
 
             /*if (this.ObjectAttribute != null && info.UseMemberNotNull)
@@ -1774,10 +1832,10 @@ ModuleInitializerClass_Added:
 
     internal void Generate_PreparePrimary()
     {// Prepare Primary TinyhandObject
-        this.PrepareAutomata();
-        if (this.Automata != null)
+        this.PrepareTrie();
+        if (this.StringTrie is not null)
         {
-            foreach (var x in this.Automata.NodeList)
+            foreach (var x in this.StringTrie.NodeList)
             {
                 x.Identifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
             }
@@ -1806,7 +1864,8 @@ ModuleInitializerClass_Added:
 
     internal void Generate_PrepareSecondary()
     {// Prepare Secondary TinyhandObject
-        this.PrepareAutomata();
+        // this.PrepareAutomata();
+        this.PrepareTrie();
 
         var od = this.OriginalDefinition;
         if (od == null)
@@ -1814,12 +1873,12 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        // Automata
-        if (od.Automata != null && this.Automata != null)
+        // StringTrie: Copy identifiers
+        if (od.StringTrie != null && this.StringTrie != null)
         {
-            for (var n = 0; n < this.Automata.NodeList.Count; n++)
+            for (var n = 0; n < this.StringTrie.NodeList.Count; n++)
             {
-                this.Automata.NodeList[n].Identifier = od.Automata.NodeList[n].Identifier;
+                this.StringTrie.NodeList[n].Identifier = od.StringTrie.NodeList[n].Identifier;
             }
         }
 
@@ -2052,6 +2111,13 @@ ModuleInitializerClass_Added:
                 {
                     ssb.AppendLine($"System.Threading.Monitor.Enter({ssb.FullObject}.{this.ObjectAttribute!.LockObject}!, ref {TinyhandBody.LockTaken});");
                 }
+            }
+
+            // Update plane
+            if (this.ObjectAttribute?.Journaling == true ||
+                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            {
+                ssb.AppendLine($"{ssb.FullObject}.CurrentPlane = options.Plane;");
             }
 
             // ITinyhandSerializationCallback.OnBeforeSerialize
@@ -2584,6 +2650,9 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
+            var journal = this.ObjectAttribute?.Journaling == true ||
+                        this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal);
+
             string setterAccessibility = string.Empty;
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
             {
@@ -2594,22 +2663,82 @@ ModuleInitializerClass_Added:
             using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
             {
                 ssb.AppendLine($"get => {ssb.FullObject};");
-                if (x.MaxLengthAttribute == null)
+                using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
                 {
-                    ssb.AppendLine($"{setterAccessibility}set => {ssb.FullObject} = value;");
-                }
-                else
-                {
-                    using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
+                    // Lock
+                    var lockExpression = this.GetLockExpression("this");
+                    var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+
+                    if (x.MaxLengthAttribute == null)
                     {
-                        this.GenerateAddProperty_Setter(ssb, info, x, x.MaxLengthAttribute);
+                        ssb.AppendLine($"{ssb.FullObject} = value;");
+                    }
+                    else
+                    {
+                        this.GenerateAddProperty_MaxLength(ssb, info, x, x.MaxLengthAttribute);
+                    }
+
+                    if (journal)
+                    {
+                        this.GenerateAddProperty_Journal(ssb, info, x);
+                    }
+
+                    lockScope?.Dispose();
+
+                    if (journal)
+                    {
+                        ssb.AppendLine("this.Crystal?.TryAddToSaveQueue();");
                     }
                 }
             }
         }
     }
 
-    internal void GenerateAddProperty_Setter(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, MaxLengthAttributeMock attribute)
+    internal string? GetLockExpression(string objectName)
+    {
+        if (string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {
+            return null;
+        }
+
+        if (this.ObjectAttribute!.LockObjectIsLockable)
+        {
+            return $"using ({objectName}.{this.ObjectAttribute!.LockObject}!.Lock())";
+        }
+        else
+        {
+            return $"lock ({objectName}.{this.ObjectAttribute!.LockObject}!)";
+        }
+    }
+
+    internal void GenerateAddProperty_Journal(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x)
+    {
+        string writeKey;
+        if (x.KeyAttribute!.IntKey is not null)
+        {// Integer key
+            writeKey = $"writer.Write({x.KeyAttribute!.IntKey.ToString()});";
+        }
+        else if (this.StringTrie is not null
+            && this.StringTrie.NodeList.FirstOrDefault(y => y.Member == x) is { } node)
+        {// String key
+            writeKey = $"writer.WriteString({this.LocalName}.{node.Identifier});";
+        }
+        else
+        {
+            return;
+        }
+
+        using (var journalScope = ssb.ScopeBrace("if (this.Crystal is not null && this.Crystal.TryGetJournalWriter(JournalType.Record, this.CurrentPlane, out var writer))"))
+        {
+            ssb.AppendLine("writer.Write_Key();");
+            ssb.AppendLine(writeKey);
+            ssb.AppendLine("writer.Write_Value();");
+            ssb.AppendLine($"writer.Write({ssb.FullObject});");
+            ssb.AppendLine("this.Crystal.AddJournal(writer);");
+        }
+    }
+
+    internal void GenerateAddProperty_MaxLength(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, MaxLengthAttributeMock attribute)
     {
         ssb.AppendLine($"{ssb.FullObject} = value;");
         if (x.TypeObject is not { } typeObject)
@@ -2745,6 +2874,155 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal void GenerateITinyhandJournal(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine();
+        ssb.AppendLine("[IgnoreMember]");
+        ssb.AppendLine("public ITinyhandCrystal? Crystal { get; set; }");
+
+        ssb.AppendLine("[IgnoreMember]");
+        ssb.AppendLine("public uint CurrentPlane { get; set; }");
+
+        this.GenerateReadRecord(ssb, info);
+    }
+
+    internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        using (var scopeMethod = ssb.ScopeBrace("bool ITinyhandJournal.ReadRecord(ref TinyhandReader reader)"))
+        {
+            // Lock
+            var lockExpression = this.GetLockExpression("this");
+            var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+
+            // Custom read
+            if (this.MethodCondition_ReadCustomRecord == MethodCondition.Declared ||
+                this.MethodCondition_ReadCustomRecord == MethodCondition.ExplicitlyDeclared)
+            {
+                ssb.AppendLine("var fork = reader.Fork();");
+                var readCustomRecord = this.MethodCondition_ReadCustomRecord == MethodCondition.Declared ?
+                    "if (this.ReadCustomRecord(ref fork))" : "if (((ITinyhandCustomJournal)this).ReadCustomRecord(ref fork))";
+                using (var scopeCustom = ssb.ScopeBrace(readCustomRecord))
+                {
+                    ssb.AppendLine("return true;");
+                }
+
+                ssb.AppendLine();
+            }
+
+            ssb.AppendLine("var record = reader.Read_Record();");
+            using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
+            {
+                if (this.StringTrie is not null)
+                {// String Key
+                    using (var thisScope = ssb.ScopeObject("this"))
+                    {
+                        var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
+                            ssb,
+                            (ctx, obj, node) =>
+                            {
+                                this.GenerateReadRecordCore(ssb, info, node.Member);
+                            });
+
+                        this.StringTrie.Generate(context);
+                    }
+                }
+                else if (this.IntKey_Array is { } intArray)
+                {// Int Key
+                    var trie = new VisceralTrieInt<TinyhandObject>(this);
+                    for (var i = 0; i < intArray.Length; i++)
+                    {
+                        if (intArray[i] is not null)
+                        {
+                            trie.AddNode(i, intArray[i]);
+                        }
+                    }
+
+                    using (var thisScope = ssb.ScopeObject("this"))
+                    {
+                        var context = new VisceralTrieInt<TinyhandObject>.VisceralTrieContext(
+                            ssb,
+                            (ctx, obj, node) =>
+                            {
+                                this.GenerateReadRecordCore(ssb, info, node.Member);
+                            });
+
+                        trie.Generate(context);
+                    }
+                }
+            }
+
+            lockScope?.Dispose();
+
+            ssb.AppendLine("return false;");
+        }
+    }
+
+    internal void GenerateReadRecordCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
+    {
+        var withNullable = x?.TypeObjectWithNullable;
+        if (x == null || withNullable == null)
+        {// no object
+            return;
+        }
+
+        ScopingStringBuilder.IScope? initSetter = null;
+        var destObject = ssb.FullObject; // Hidden members
+        using (var m = this.ScopeMember(ssb, x))
+        {
+            if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            {// ((ITinyhandJournal)this.member).ReadRecord
+                ssb.AppendLine($"return ((ITinyhandJournal){ssb.FullObject}).ReadRecord(ref reader);");
+            }
+
+            InitSetter_Start();
+
+            var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
+            if (coder != null)
+            {// Coder
+                coder.CodeDeserializer(ssb, info, true);
+            }
+
+            InitSetter_End();
+
+            ssb.AppendLine("return true;");
+        }
+
+        void InitSetter_Start()
+        {
+            if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+            {// TypeName vd;
+                initSetter = ssb.ScopeFullObject("vd");
+                ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
+            }
+        }
+
+        void InitSetter_End()
+        {
+            if (initSetter != null)
+            {
+                initSetter.Dispose();
+                initSetter = null;
+
+                if (x.SetterDelegateIdentifier != null)
+                {// SetterDelegate!(obj, vd);
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
+                }
+                else if (x.IsReadOnly)
+                {
+                    if (withNullable.Object.IsUnmanagedType)
+                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
+                    }
+                    else
+                    {// Unsafe.AsRef({this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
+                    }
+                }
+            }
+        }
+    }
+
     internal void GenerateMethod(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         // Serialize/Deserialize/Reconstruct/Clone
@@ -2788,17 +3066,17 @@ ModuleInitializerClass_Added:
         return;
     }
 
-    internal void PrepareAutomata()
+    internal void PrepareTrie()
     {
-        if (this.Automata == null)
+        if (this.StringTrie == null)
         {
             return;
         }
 
         var count = 0;
-        foreach (var x in this.Automata.NodeList)
+        foreach (var x in this.StringTrie.NodeList)
         {
-            x.ReconstructIndex = -1;
+            x.SubIndex = -1;
             if (x.Member == null)
             {
                 continue;
@@ -2809,11 +3087,11 @@ ModuleInitializerClass_Added:
                 x.Member.IsDefaultable ||
                 x.Member.ReconstructState == ReconstructState.Do)
             {
-                x.ReconstructIndex = count++;
+                x.SubIndex = count++;
             }
         }
 
-        this.Automata.ReconstructCount = count;
+        this.StringTrieReconstructNumber = count;
     }
 
     internal void GenerateConstructor_Method(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -3076,7 +3354,7 @@ ModuleInitializerClass_Added:
 
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
-                {
+                {// TinyhandObject. For the purpose of default value and instance reuse.
                     withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 }
                 else if (coder != null)
@@ -3278,7 +3556,7 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateReconstructCore2(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, int reconstructIndex)
-    {// Called by Automata
+    {// Called by Trie
         var withNullable = x?.TypeObjectWithNullable;
         if (x == null || withNullable == null)
         {// no object
@@ -3519,7 +3797,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateDeserializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        if (this.Automata == null)
+        if (this.StringTrie is null)
         {
             return;
         }
@@ -3529,10 +3807,9 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
         }
 
-        ssb.AppendLine("ulong key;");
-        if (this.Automata.ReconstructCount > 0)
+        if (this.StringTrieReconstructNumber > 0)
         {
-            ssb.AppendLine($"var deserializedFlag = new bool[{this.Automata.ReconstructCount}];");
+            ssb.AppendLine($"var deserializedFlag = new bool[{this.StringTrieReconstructNumber}];");
         }
 
         ssb.AppendLine("var numberOfData = reader.ReadMapHeader2();");
@@ -3546,23 +3823,36 @@ ModuleInitializerClass_Added:
 
             using (var loop = ssb.ScopeBrace("while (numberOfData-- > 0)"))
             {
-                ssb.AppendLine("var utf8 = reader.ReadStringSpan();");
-                using (var c = ssb.ScopeBrace("if (utf8.Length == 0)"))
-                {
-                    ssb.GotoSkipLabel();
-                }
+                var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
+                    ssb,
+                    (ctx, obj, node) =>
+                    {
+                        if (node.SubIndex >= 0)
+                        {
+                            ssb.AppendLine($"deserializedFlag[{node.SubIndex}] = true;");
+                        }
 
-                ssb.AppendLine("key = global::Arc.Visceral.VisceralTrieHelper.ReadKey(ref utf8);");
+                        obj.GenerateDeserializeCore2(ssb, info, node.Member);
+                    });
 
-                this.Automata.GenerateDeserialize(ssb, info);
-
-                ssb.AppendLine("continue;");
-                ssb.AppendLine("SkipLabel:", false);
-                ssb.ReaderSkip();
+                this.StringTrie.Generate(context);
             }
 
             // Reconstruct
-            this.Automata.GenerateReconstruct(ssb, info);
+            if (this.StringTrieReconstructNumber > 0)
+            {
+                ssb.AppendLine();
+                foreach (var x in this.StringTrie.NodeList)
+                {
+                    if (x.SubIndex < 0 || x.Member == null)
+                    {
+                        continue;
+                    }
+
+                    this.StringTrie.Object.GenerateReconstructCore2(ssb, info, x.Member, x.SubIndex);
+                }
+            }
+
             this.GenerateReconstructRemaining(ssb, info);
         }
 
@@ -3768,7 +4058,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateSerializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        if (this.Automata == null)
+        if (this.StringTrie == null)
         {
             return;
         }
@@ -3779,9 +4069,9 @@ ModuleInitializerClass_Added:
             cf = this;
         }
 
-        ssb.AppendLine($"writer.WriteMapHeader({this.Automata.NodeList.Count});");
+        ssb.AppendLine($"writer.WriteMapHeader({this.StringTrie.NodeList.Count});");
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
-        foreach (var x in this.Automata.NodeList)
+        foreach (var x in this.StringTrie.NodeList)
         {
             ssb.AppendLine($"writer.WriteString({cf.LocalName}.{x.Identifier});");
 
@@ -3810,13 +4100,13 @@ ModuleInitializerClass_Added:
 
     internal void GenerateStringKeyFields(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        if (this.Automata == null || this.Automata.NodeList.Count == 0)
+        if (this.StringTrie == null || this.StringTrie.NodeList.Count == 0)
         {
             return;
         }
 
         ssb.AppendLine();
-        foreach (var x in this.Automata.NodeList)
+        foreach (var x in this.StringTrie.NodeList)
         {
             if (x.Utf8Name == null)
             {
