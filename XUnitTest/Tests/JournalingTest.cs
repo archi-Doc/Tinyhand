@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using Arc.Threading;
+using Tinyhand.IO;
 using Xunit;
 
 namespace Tinyhand.Tests;
@@ -56,6 +57,27 @@ public partial class JournalingClass2
     private int x7;
 
     protected SemaphoreLock semaphore = new();
+}
+
+[TinyhandObject(Journaling = true, LockObject = "syncObject")]
+public partial class JournalingClass3 : ITinyhandCustomJournal
+{
+    [Key(0)]
+    public int X0 { get; set; }
+
+    [Key(1)]
+    public int X1 { get; set; }
+
+    private object syncObject = new();
+
+    void ITinyhandCustomJournal.WriteCustomRecord(ref TinyhandWriter writer)
+    {
+    }
+
+    bool ITinyhandCustomJournal.ReadCustomRecord(ref TinyhandReader reader)
+    {
+        return false;
+    }
 }
 
 public class JournalingTest

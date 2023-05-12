@@ -2665,6 +2665,7 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"get => {ssb.FullObject};");
                 using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
                 {
+                    // Lock
                     var lockExpression = this.GetLockExpression("this");
                     var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
 
@@ -2889,6 +2890,10 @@ ModuleInitializerClass_Added:
     {
         using (var scopeMethod = ssb.ScopeBrace("bool ITinyhandJournal.ReadRecord(ref TinyhandReader reader)"))
         {
+            // Lock
+            var lockExpression = this.GetLockExpression("this");
+            var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+
             // Custom read
             if (this.MethodCondition_ReadCustomRecord == MethodCondition.Declared ||
                 this.MethodCondition_ReadCustomRecord == MethodCondition.ExplicitlyDeclared)
@@ -2900,6 +2905,8 @@ ModuleInitializerClass_Added:
                 {
                     ssb.AppendLine("return true;");
                 }
+
+                ssb.AppendLine();
             }
 
             ssb.AppendLine("var record = reader.Read_Record();");
@@ -2944,6 +2951,8 @@ ModuleInitializerClass_Added:
                 }
             }
 
+            lockScope?.Dispose();
+
             ssb.AppendLine("return false;");
         }
     }
@@ -2960,6 +2969,11 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeMember(ssb, x))
         {
+            if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            {// ((ITinyhandJournal)this.member).ReadRecord
+                ssb.AppendLine($"return ((ITinyhandJournal){ssb.FullObject}).ReadRecord(ref reader);");
+            }
+
             InitSetter_Start();
 
             var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
@@ -2967,12 +2981,10 @@ ModuleInitializerClass_Added:
             {// Coder
                 coder.CodeDeserializer(ssb, info, true);
             }
-            else if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
-            {// ((ITinyhandJournal)this.member).ReadRecord
-                ssb.AppendLine($"return ((ITinyhandJournal){ssb.FullObject}).ReadRecord(ref reader);");
-            }
 
             InitSetter_End();
+
+            ssb.AppendLine("return true;");
         }
 
         void InitSetter_Start()
