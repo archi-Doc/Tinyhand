@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using Arc.Threading;
 using Xunit;
 
 namespace Tinyhand.Tests;
@@ -26,9 +27,13 @@ public partial class JournalingClass
     public int X6 { get; set; }
 }
 
-[TinyhandObject(Journaling = true)]
+[TinyhandObject(Journaling = true, LockObject = "semaphore")]
 public partial class JournalingClass2
 {
+    public JournalingClass2()
+    {
+    }
+
     [KeyAsName]
     public int X0 { get; set; }
 
@@ -46,6 +51,11 @@ public partial class JournalingClass2
 
     [KeyAsName]
     public int X6 { get; set; }
+
+    [Key("X7", PropertyName = "X7")]
+    private int x7;
+
+    protected SemaphoreLock semaphore = new();
 }
 
 public class JournalingTest

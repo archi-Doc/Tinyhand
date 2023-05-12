@@ -1,6 +1,5 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-
 #pragma warning disable CS0649
 
 namespace Tinyhand.Resolvers;

@@ -58,8 +58,8 @@ public enum TinyhandObjectFlag
     HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
     CanCreateInstance = 1 << 27, // Can create an instance
     InterfaceImplemented = 1 << 28, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
-    HasITinyhandJournal = 1 << 26, // Has ITinyhandJournal interface
-    HasITinyhandCustomJournal = 1 << 26, // Has ITinyhandCustomJournal interface
+    HasITinyhandJournal = 1 << 29, // Has ITinyhandJournal interface
+    HasITinyhandCustomJournal = 1 << 30, // Has ITinyhandCustomJournal interface
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -2113,6 +2113,13 @@ ModuleInitializerClass_Added:
                 }
             }
 
+            // Update plane
+            if (this.ObjectAttribute?.Journaling == true ||
+                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            {
+                ssb.AppendLine($"{ssb.FullObject}.CurrentPlane = options.Plane;");
+            }
+
             // ITinyhandSerializationCallback.OnBeforeSerialize
             this.Generate_OnBeforeSerialize(ssb, info);
 
@@ -2643,6 +2650,9 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
+            var journal = this.ObjectAttribute?.Journaling == true ||
+                        this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal);
+
             string setterAccessibility = string.Empty;
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
             {
@@ -2653,22 +2663,81 @@ ModuleInitializerClass_Added:
             using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
             {
                 ssb.AppendLine($"get => {ssb.FullObject};");
-                if (x.MaxLengthAttribute == null)
+                using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
                 {
-                    ssb.AppendLine($"{setterAccessibility}set => {ssb.FullObject} = value;");
-                }
-                else
-                {
-                    using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
+                    var lockExpression = this.GetLockExpression("this");
+                    var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+
+                    if (x.MaxLengthAttribute == null)
                     {
-                        this.GenerateAddProperty_Setter(ssb, info, x, x.MaxLengthAttribute);
+                        ssb.AppendLine($"{ssb.FullObject} = value;");
+                    }
+                    else
+                    {
+                        this.GenerateAddProperty_MaxLength(ssb, info, x, x.MaxLengthAttribute);
+                    }
+
+                    if (journal)
+                    {
+                        this.GenerateAddProperty_Journal(ssb, info, x);
+                    }
+
+                    lockScope?.Dispose();
+
+                    if (journal)
+                    {
+                        ssb.AppendLine("this.Crystal?.TryAddToSaveQueue();");
                     }
                 }
             }
         }
     }
 
-    internal void GenerateAddProperty_Setter(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, MaxLengthAttributeMock attribute)
+    internal string? GetLockExpression(string objectName)
+    {
+        if (string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {
+            return null;
+        }
+
+        if (this.ObjectAttribute!.LockObjectIsLockable)
+        {
+            return $"using ({objectName}.{this.ObjectAttribute!.LockObject}!.Lock())";
+        }
+        else
+        {
+            return $"lock ({objectName}.{this.ObjectAttribute!.LockObject}!)";
+        }
+    }
+
+    internal void GenerateAddProperty_Journal(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x)
+    {
+        string writeKey;
+        if (x.KeyAttribute!.IntKey is not null)
+        {// Integer key
+            writeKey = $"writer.Write({x.KeyAttribute!.IntKey.ToString()});";
+        }
+        else if (this.StringTrie is not null
+            && this.StringTrie.NodeList.FirstOrDefault(y => y.Member == x) is { } node)
+        {// String key
+            writeKey = $"writer.WriteString({this.LocalName}.{node.Identifier});";
+        }
+        else
+        {
+            return;
+        }
+
+        using (var journalScope = ssb.ScopeBrace("if (this.Crystal is not null && this.Crystal.TryGetJournalWriter(JournalType.Record, this.CurrentPlane, out var writer))"))
+        {
+            ssb.AppendLine("writer.Write_Key();");
+            ssb.AppendLine(writeKey);
+            ssb.AppendLine("writer.Write_Value();");
+            ssb.AppendLine($"writer.Write({ssb.FullObject});");
+            ssb.AppendLine("this.Crystal.AddJournal(writer);");
+        }
+    }
+
+    internal void GenerateAddProperty_MaxLength(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, MaxLengthAttributeMock attribute)
     {
         ssb.AppendLine($"{ssb.FullObject} = value;");
         if (x.TypeObject is not { } typeObject)
