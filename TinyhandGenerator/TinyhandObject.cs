@@ -2911,7 +2911,7 @@ ModuleInitializerClass_Added:
             var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
 
             // Custom read
-            if (this.MethodCondition_ReadCustomRecord == MethodCondition.Declared ||
+            /*if (this.MethodCondition_ReadCustomRecord == MethodCondition.Declared ||
                 this.MethodCondition_ReadCustomRecord == MethodCondition.ExplicitlyDeclared)
             {
                 ssb.AppendLine("var fork = reader.Fork();");
@@ -2922,6 +2922,26 @@ ModuleInitializerClass_Added:
                     ssb.AppendLine("return true;");
                 }
 
+                ssb.AppendLine();
+            }*/
+
+            if (this.MethodCondition_ReadCustomRecord == MethodCondition.Declared ||
+                this.MethodCondition_ReadCustomRecord == MethodCondition.ExplicitlyDeclared ||
+                this.BaseObject is not null)
+            {// ITinyhandCustomJournal
+                using (var scopeTry = ssb.ScopeBrace("try"))
+                {
+                    using (var scopeCustom = ssb.ScopeBrace("if (this is ITinyhandCustomJournal custom)"))
+                    {
+                        ssb.AppendLine("var fork = reader.Fork();");
+                        using (var scopeCustom2 = ssb.ScopeBrace("if (custom.ReadCustomRecord(ref fork))"))
+                        {
+                            ssb.AppendLine("return true;");
+                        }
+                    }
+                }
+
+                ssb.AppendLine("catch {}");
                 ssb.AppendLine();
             }
 
