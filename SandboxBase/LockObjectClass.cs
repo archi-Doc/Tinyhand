@@ -15,6 +15,8 @@ public partial class LockObjectClassA
 [TinyhandObject(LockObject = "semaphore", ExplicitKeyOnly = true)]
 public partial class PropertyTestClass
 {
+    public uint CurrentPlane { get; set; }
+
     [Key(0, PropertyName = "Id")]
     public int id;
 
