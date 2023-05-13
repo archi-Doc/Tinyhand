@@ -2886,13 +2886,19 @@ ModuleInitializerClass_Added:
     internal void GenerateITinyhandJournal(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine();
-        ssb.AppendLine("[IgnoreMember]");
-        ssb.AppendLine("public ITinyhandCrystal? Crystal { get; set; }");
 
-        ssb.AppendLine("[IgnoreMember]");
-        ssb.AppendLine("public uint CurrentPlane { get; set; }");
+        if (!this.AllMembers.Any(x => x.SimpleName == "Crystal"))
+        {
+            ssb.AppendLine("[IgnoreMember]");
+            ssb.AppendLine("public ITinyhandCrystal? Crystal { get; set; }");
+        }
 
-        ssb.AppendLine();
+        if (!this.AllMembers.Any(x => x.SimpleName == "CurrentPlane"))
+        {
+            ssb.AppendLine("[IgnoreMember]");
+            ssb.AppendLine("public uint CurrentPlane { get; set; }");
+        }
+
         this.GenerateReadRecord(ssb, info);
     }
 

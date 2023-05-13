@@ -13,7 +13,7 @@ using ValueLink;
 
 namespace Sandbox;
 
-[TinyhandObject(LockObject = "semaphore")]
+[TinyhandObject(LockObject = "semaphore", Journaling = true)]
 public partial class PropertyTestClass2 : PropertyTestClass
 {
 }
@@ -21,6 +21,9 @@ public partial class PropertyTestClass2 : PropertyTestClass
 [TinyhandObject(Journaling = true)]
 public partial class JournalingClass
 {
+    [IgnoreMember]
+    public ITinyhandCrystal? Crystal { get; set; }
+
     [Key(0)]
     public int X { get; set; }
 
