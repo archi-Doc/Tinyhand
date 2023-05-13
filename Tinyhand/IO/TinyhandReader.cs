@@ -1266,8 +1266,9 @@ public ref partial struct TinyhandReader
         }
     }
 
+#pragma warning disable SA1202 // Elements should be ordered by access
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryRead(out byte code)
+    public bool TryRead(out byte code)
     {
         if (this.remaining > 0)
         {
@@ -1283,7 +1284,7 @@ public ref partial struct TinyhandReader
         }
     }
 
-    private bool TryRead(out sbyte value)
+    public bool TryRead(out sbyte value)
     {
         if (this.TryRead(out byte byteValue))
         {
@@ -1295,7 +1296,7 @@ public ref partial struct TinyhandReader
         return false;
     }
 
-    private bool TryReadBigEndian(out short value)
+    public bool TryReadBigEndian(out short value)
     {
         if (!BitConverter.IsLittleEndian)
         {
@@ -1305,7 +1306,7 @@ public ref partial struct TinyhandReader
         return this.TryReadReverseEndianness(out value);
     }
 
-    private bool TryReadReverseEndianness(out short value)
+    public bool TryReadReverseEndianness(out short value)
     {
         if (this.TryRead(out value))
         {
@@ -1316,7 +1317,7 @@ public ref partial struct TinyhandReader
         return false;
     }
 
-    private bool TryReadBigEndian(out ushort value)
+    public bool TryReadBigEndian(out ushort value)
     {
         if (this.TryReadBigEndian(out short intValue))
         {
@@ -1328,7 +1329,7 @@ public ref partial struct TinyhandReader
         return false;
     }
 
-    private bool TryReadBigEndian(out int value)
+    public bool TryReadBigEndian(out int value)
     {
         if (!BitConverter.IsLittleEndian)
         {
@@ -1338,7 +1339,7 @@ public ref partial struct TinyhandReader
         return this.TryReadReverseEndianness(out value);
     }
 
-    private bool TryReadReverseEndianness(out int value)
+    public bool TryReadReverseEndianness(out int value)
     {
         if (this.TryRead(out value))
         {
@@ -1349,7 +1350,7 @@ public ref partial struct TinyhandReader
         return false;
     }
 
-    private bool TryReadBigEndian(out uint value)
+    public bool TryReadBigEndian(out uint value)
     {
         if (this.TryReadBigEndian(out int intValue))
         {
@@ -1361,7 +1362,7 @@ public ref partial struct TinyhandReader
         return false;
     }
 
-    private bool TryReadBigEndian(out long value)
+    public bool TryReadBigEndian(out long value)
     {
         if (!BitConverter.IsLittleEndian)
         {
@@ -1371,7 +1372,7 @@ public ref partial struct TinyhandReader
         return this.TryReadReverseEndianness(out value);
     }
 
-    private bool TryReadReverseEndianness(out long value)
+    public bool TryReadReverseEndianness(out long value)
     {
         if (this.TryRead(out value))
         {
@@ -1382,7 +1383,7 @@ public ref partial struct TinyhandReader
         return false;
     }
 
-    private bool TryReadBigEndian(out ulong value)
+    public bool TryReadBigEndian(out ulong value)
     {
         if (this.TryReadBigEndian(out long longValue))
         {
@@ -1394,7 +1395,7 @@ public ref partial struct TinyhandReader
         return false;
     }
 
-    private unsafe bool TryReadBigEndian(out float value)
+    public unsafe bool TryReadBigEndian(out float value)
     {
         if (this.TryReadBigEndian(out int intValue))
         {
@@ -1406,7 +1407,7 @@ public ref partial struct TinyhandReader
         return false;
     }
 
-    private unsafe bool TryReadBigEndian(out double value)
+    public unsafe bool TryReadBigEndian(out double value)
     {
         if (this.TryReadBigEndian(out long longValue))
         {
