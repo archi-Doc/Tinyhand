@@ -175,7 +175,7 @@ public class KeyAttributeMock
 
     public bool Condition { get; private set; } = true;
 
-    public string PropertyName { get; set; } = string.Empty;
+    public string AddProperty { get; set; } = string.Empty;
 
     public PropertyAccessibility PropertyAccessibility { get; set; } = PropertyAccessibility.PublicSetter;
 
@@ -217,10 +217,10 @@ public class KeyAttributeMock
             attribute.Condition = (bool)v;
         }
 
-        v = AttributeHelper.GetValue(-1, nameof(PropertyName), constructorArguments, namedArguments);
+        v = AttributeHelper.GetValue(-1, nameof(AddProperty), constructorArguments, namedArguments);
         if (v != null)
         {
-            attribute.PropertyName = (string)v;
+            attribute.AddProperty = (string)v;
         }
 
         v = AttributeHelper.GetValue(-1, nameof(PropertyAccessibility), constructorArguments, namedArguments);

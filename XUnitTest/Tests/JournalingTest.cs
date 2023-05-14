@@ -53,7 +53,7 @@ public partial class JournalingClass2
     [KeyAsName]
     public int X6 { get; set; }
 
-    [Key("X7", PropertyName = "X7")]
+    [Key("X7", AddProperty = "X7")]
     private int x7;
 
     protected SemaphoreLock semaphore = new();

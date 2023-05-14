@@ -413,15 +413,15 @@ public static class DeepCopyTest
 [TinyhandObject]
 public partial record MaxLengthClass
 {
-    [Key(0, PropertyName = "Name")] // "Name" property will be created.
+    [Key(0, AddProperty = "Name")] // "Name" property will be created.
     [MaxLength(3)] // The maximum length of Name property.
     private string name = default!;
 
-    [Key(1, PropertyName = "Ids")]
+    [Key(1, AddProperty = "Ids")]
     [MaxLength(2)]
     private int[] id = default!;
 
-    [Key(2, PropertyName = "Tags")]
+    [Key(2, AddProperty = "Tags")]
     [MaxLength(2, 3)] // The maximum length of an array and length of a string.
     private string[] tags = default!;
 

@@ -292,9 +292,9 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     {
         get
         {
-            if (!string.IsNullOrEmpty(this.KeyAttribute?.PropertyName))
+            if (!string.IsNullOrEmpty(this.KeyAttribute?.AddProperty))
             {
-                return this.KeyAttribute!.PropertyName;
+                return this.KeyAttribute!.AddProperty;
             }
             else
             {
@@ -1400,7 +1400,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
 
         // Add property
         if (this.KeyAttribute != null &&
-            !string.IsNullOrEmpty(this.KeyAttribute.PropertyName) &&
+            !string.IsNullOrEmpty(this.KeyAttribute.AddProperty) &&
             this.ContainingObject == parent)
         {
             if (this.Kind != VisceralObjectKind.Field)
@@ -1408,9 +1408,9 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.Body.ReportDiagnostic(TinyhandBody.Error_AddProperty, this.KeyVisceralAttribute?.Location);
             }
 
-            if (!parent.Identifier.Add(this.KeyAttribute.PropertyName))
+            if (!parent.Identifier.Add(this.KeyAttribute.AddProperty))
             {
-                this.Body.ReportDiagnostic(TinyhandBody.Error_DuplicateKeyword, this.KeyVisceralAttribute?.Location, parent.SimpleName, this.KeyAttribute.PropertyName);
+                this.Body.ReportDiagnostic(TinyhandBody.Error_DuplicateKeyword, this.KeyVisceralAttribute?.Location, parent.SimpleName, this.KeyAttribute.AddProperty);
             }
 
             this.RequiresGetter = false;
@@ -1439,7 +1439,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute, this.Location);
             }
 
-            if (string.IsNullOrEmpty(this.KeyAttribute?.PropertyName))
+            if (string.IsNullOrEmpty(this.KeyAttribute?.AddProperty))
             {
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute2, this.Location);
             }
@@ -2668,12 +2668,15 @@ ModuleInitializerClass_Added:
             }
 
             ssb.AppendLine("[IgnoreMember]");
-            using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.PropertyName}"))
+            using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.AddProperty}"))
             using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
             {
                 ssb.AppendLine($"get => {ssb.FullObject};");
                 using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
                 {
+                    // Compare value
+                    ssb.AppendLine($"if ({ssb.FullObject} == value) return;");
+
                     // Lock
                     var lockExpression = this.GetLockExpression("this");
                     var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
@@ -3006,6 +3009,7 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
+            ssb.AppendLine("reader.Read_Value();");
             if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
             {// ((ITinyhandJournal)this.member).ReadRecord
                 ssb.AppendLine($"return ((ITinyhandJournal){ssb.FullObject}).ReadRecord(ref reader);");
