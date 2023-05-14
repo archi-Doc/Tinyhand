@@ -138,7 +138,7 @@ public class KeyAttribute : Attribute
     /// Gets or sets a name of a property that will be created from the field.<br/>
     /// <b>Valid for fields only.</b>
     /// </summary>
-    public string PropertyName { get; set; } = string.Empty;
+    public string AddProperty { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets an accessibility of a property that will be created from the field.<br/>

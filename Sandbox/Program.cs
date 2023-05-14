@@ -318,23 +318,23 @@ public partial record struct IntPayload2(int Data2) : ConsoleApp1.IItzPayload;
 [TinyhandObject]
 public partial class MaxLengthClass
 {
-    [Key(0, PropertyName = "X")]
+    [Key(0, AddProperty = "X")]
     // [MaxLength(3)]
     private int _x;
 
-    [Key(1, PropertyName = "Name")]
+    [Key(1, AddProperty = "Name")]
     [MaxLength(3)]
     private string _name = default!;
 
-    [Key(2, PropertyName = "Ids")]
+    [Key(2, AddProperty = "Ids")]
     [MaxLength(3)]
     private int[] _ids = default!;
 
-    [Key(3, PropertyName = "StringArray")]
+    [Key(3, AddProperty = "StringArray")]
     [MaxLength(3, 4)]
     private string[] _stringArray = default!;
 
-    [Key(4, PropertyName = "StringList")]
+    [Key(4, AddProperty = "StringList")]
     [MaxLength(4, 3)]
     private List<string> _stringList = default!;
 }
@@ -342,15 +342,15 @@ public partial class MaxLengthClass
 [TinyhandObject]
 public partial class MaxLengthClass2 : MaxLengthClass, ITinyhandDefault<int>
 {
-    [Key(5, PropertyName = "Byte")]
+    [Key(5, AddProperty = "Byte")]
     [MaxLength(4)]
     private byte[] _byte = default!;
 
-    [Key(6, PropertyName = "ByteArray")]
+    [Key(6, AddProperty = "ByteArray")]
     [MaxLength(2, 3)]
     private byte[][] _byteArray = default!;
 
-    [Key(7, PropertyName = "ByteList", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
+    [Key(7, AddProperty = "ByteList", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
     [MaxLength(3, 2)]
     private List<byte[]> _byteList = default!;
 

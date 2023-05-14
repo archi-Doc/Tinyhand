@@ -17,7 +17,7 @@ public partial class PropertyTestClass
 {
     public uint CurrentPlane { get; set; }
 
-    [Key(0, PropertyName = "Id")]
+    [Key(0, AddProperty = "Id")]
     public int id;
 
     // [IgnoreMember]
