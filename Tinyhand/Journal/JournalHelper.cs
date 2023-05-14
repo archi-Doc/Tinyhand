@@ -8,35 +8,35 @@ namespace Tinyhand.IO;
 public static class JournalHelper
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Locator(this TinyhandWriter writer)
+    public static void Write_Locator(ref this TinyhandWriter writer)
         => writer.Write((byte)JournalRecord.Locator);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Key(this TinyhandWriter writer)
+    public static void Write_Key(ref this TinyhandWriter writer)
         => writer.Write((byte)JournalRecord.Key);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Value(this TinyhandWriter writer)
+    public static void Write_Value(ref this TinyhandWriter writer)
         => writer.Write((byte)JournalRecord.Value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Add(this TinyhandWriter writer)
+    public static void Write_Add(ref this TinyhandWriter writer)
         => writer.Write((byte)JournalRecord.Add);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Remove(this TinyhandWriter writer)
+    public static void Write_Remove(ref this TinyhandWriter writer)
         => writer.Write((byte)JournalRecord.Remove);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Clear(this TinyhandWriter writer)
+    public static void Write_Clear(ref this TinyhandWriter writer)
         => writer.Write((byte)JournalRecord.Clear);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static JournalRecord Read_Record(this TinyhandReader reader)
+    public static JournalRecord Read_Record(ref this TinyhandReader reader)
        => (JournalRecord)reader.ReadUInt8();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Read_Locator(this TinyhandReader reader)
+    public static void Read_Locator(ref this TinyhandReader reader)
     {
         if (reader.Read_Record() != JournalRecord.Locator)
         {
@@ -45,7 +45,7 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Read_Key(this TinyhandReader reader)
+    public static void Read_Key(ref this TinyhandReader reader)
     {
         if (reader.Read_Record() != JournalRecord.Key)
         {
@@ -54,7 +54,7 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Read_Value(this TinyhandReader reader)
+    public static void Read_Value(ref this TinyhandReader reader)
     {
         if (reader.Read_Record() != JournalRecord.Value)
         {
