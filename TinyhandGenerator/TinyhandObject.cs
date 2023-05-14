@@ -3004,7 +3004,7 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? initSetter = null;
         var destObject = ssb.FullObject; // Hidden members
-        using (var m = this.ScopeMember(ssb, x))
+        using (var m = this.ScopeSimpleMember(ssb, x))
         {
             if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
             {// ((ITinyhandJournal)this.member).ReadRecord
@@ -3237,6 +3237,20 @@ ModuleInitializerClass_Added:
         else
         {// v.Member
             return ssb.ScopeObject(x.SimpleNameOrAddedProperty);
+        }
+    }
+
+    internal IScope ScopeSimpleMember(ScopingStringBuilder ssb, TinyhandObject x)
+    {// ssb.ScopeObject(x.SimpleNameOrAddedProperty) -> this.ScopeMember(ssb, x)
+        if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HiddenMember) &&
+            x.ContainingObject is not null)
+        {// ((BaseClass)v).Member
+            var name = $"(({x.ContainingObject.SimpleName}){ssb.FullObject}).{x.SimpleName}";
+            return ssb.ScopeFullObject(name);
+        }
+        else
+        {// v.Member
+            return ssb.ScopeObject(x.SimpleName);
         }
     }
 
@@ -3500,7 +3514,7 @@ ModuleInitializerClass_Added:
         ScopingStringBuilder.IScope? emptyBrace = null;
         var destObject = ssb.FullObject; // Hidden members
 
-        using (var c2 = this.ScopeMember(ssb, x))
+        using (var c2 = this.ScopeSimpleMember(ssb, x))
         {
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
@@ -3693,7 +3707,7 @@ ModuleInitializerClass_Added:
         ScopingStringBuilder.IScope? initSetter = null;
         ScopingStringBuilder.IScope? emptyBrace = null;
         var destObject = ssb.FullObject; // Hidden members
-        using (var d = this.ScopeMember(ssb, x))
+        using (var d = this.ScopeSimpleMember(ssb, x))
         {
             if (withNullable.Object.ObjectAttribute != null &&
                 withNullable.Object.ObjectAttribute.UseResolver == false)
