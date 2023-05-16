@@ -29,6 +29,9 @@ public partial class JournalingClass
 
     [Key(1)]
     public PropertyTestClass Class1 { get; set; } = new();
+
+    [Key(2)]
+    public KeyValueList<int, string> List5 { get; set; } = default!;
 }
 
 [TinyhandObject]

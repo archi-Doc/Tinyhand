@@ -46,6 +46,9 @@ public partial class ArcCollectionsTestClass
 
     [Key(11)]
     public OrderedKeyValueList<int, string> List4 { get; set; } = default!;
+
+    [Key(12)]
+    public KeyValueList<int, string> List5 { get; set; } = default!;
 }
 
 public class ArcCollectionsTest

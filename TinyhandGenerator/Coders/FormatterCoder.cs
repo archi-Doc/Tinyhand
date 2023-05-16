@@ -111,6 +111,7 @@ public sealed class FormatterResolver : ICoderResolver
         this.AddGenericsFullName("Arc.Collections.OrderedList<T>");
         this.AddGenericsFullName("Arc.Collections.UnorderedList<T>");
         this.AddGenericsFullName("Arc.Collections.UnorderedLinkedList<T>");
+        this.AddGenericsFullName("Tinyhand.KeyValueList<TKey, TValue>");
     }
 
     public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
