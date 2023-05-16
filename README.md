@@ -35,7 +35,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#lz4-Compression)
   - [Non-Generic API](#non-generic-API)
-- [External assembly](#external-assembly)
+- [Original formatter](#original-formatter)
 
 
 
@@ -927,4 +927,13 @@ var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
 var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
 var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
 ```
+
+
+
+## Original formatter
+
+To create an original formatter:
+1. Create a formatter and register it with **BuiltinResolver**.
+
+2. Source generator needs to be informed that the formatter exists. Register it with **FormatterResolver**.
 
