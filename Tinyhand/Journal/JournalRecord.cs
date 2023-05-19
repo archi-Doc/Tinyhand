@@ -6,6 +6,7 @@ namespace Tinyhand;
 
 public enum JournalType : byte
 {
+    Startingpoint,
     Waypoint,
     Record,
 }
