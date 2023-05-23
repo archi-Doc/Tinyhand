@@ -151,7 +151,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public MethodCondition MethodCondition_Clone { get; private set; }
 
-    public MethodCondition MethodCondition_WriteCustomRecord { get; private set; }
+    public MethodCondition MethodCondition_WriteCustomLocator { get; private set; }
 
     public MethodCondition MethodCondition_ReadCustomRecord { get; private set; }
 
@@ -607,20 +607,20 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         journalInterface = $"Tinyhand.ITinyhandCustomJournal";
-        this.MethodCondition_WriteCustomRecord = MethodCondition.MemberMethod;
+        this.MethodCondition_WriteCustomLocator = MethodCondition.MemberMethod;
         this.MethodCondition_ReadCustomRecord = MethodCondition.MemberMethod;
         if (this.Interfaces.Any(x => x.FullName == journalInterface))
         {// ITinyhandJournal implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandCustomJournal;
 
-            var methodName = journalInterface + ".WriteCustomRecord";
+            var methodName = journalInterface + ".WriteCustomLocator";
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
             {
-                this.MethodCondition_WriteCustomRecord = MethodCondition.ExplicitlyDeclared;
+                this.MethodCondition_WriteCustomLocator = MethodCondition.ExplicitlyDeclared;
             }
             else
             {
-                this.MethodCondition_WriteCustomRecord = MethodCondition.Declared;
+                this.MethodCondition_WriteCustomLocator = MethodCondition.Declared;
             }
 
             methodName = journalInterface + ".ReadCustomRecord";
@@ -2742,8 +2742,21 @@ ModuleInitializerClass_Added:
 
         using (var journalScope = ssb.ScopeBrace("if (this.Crystal is not null && this.Crystal.TryGetJournalWriter(JournalType.Record, this.CurrentPlane, out var writer))"))
         {
+            // Custom locator
+            if (this.MethodCondition_WriteCustomLocator == MethodCondition.Declared)
+            {
+                ssb.AppendLine("this.WriteCustomLocator(ref writer);");
+            }
+            else if (this.MethodCondition_WriteCustomLocator == MethodCondition.ExplicitlyDeclared)
+            {
+                ssb.AppendLine("((ITinyhandCustomJournal)this).WriteCustomLocator(ref writer);");
+            }
+
+            // Key
             ssb.AppendLine("writer.Write_Key();");
             ssb.AppendLine(writeKey);
+
+            // Value
             ssb.AppendLine("writer.Write_Value();");
             ssb.AppendLine($"writer.Write({ssb.FullObject});");
             ssb.AppendLine("this.Crystal.AddJournal(writer);");

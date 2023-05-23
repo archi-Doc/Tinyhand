@@ -65,12 +65,12 @@ public partial class JournalingClass3 : ITinyhandCustomJournal
     [Key(0)]
     public int X0 { get; set; }
 
-    [Key(1)]
-    public int X1 { get; set; }
+    [Key(1, AddProperty = "X1")]
+    private int x1;
 
     private object syncObject = new();
 
-    void ITinyhandCustomJournal.WriteCustomRecord(ref TinyhandWriter writer)
+    public void WriteCustomLocator(ref TinyhandWriter writer)
     {
     }
 
