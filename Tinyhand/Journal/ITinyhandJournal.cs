@@ -24,7 +24,7 @@ public interface ITinyhandJournal
 
 public interface ITinyhandCustomJournal
 {
-    void WriteCustomRecord(ref TinyhandWriter writer);
+    void WriteCustomLocator(ref TinyhandWriter writer);
 
     bool ReadCustomRecord(ref TinyhandReader reader);
 }
