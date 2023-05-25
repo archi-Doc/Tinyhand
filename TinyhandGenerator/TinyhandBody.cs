@@ -30,6 +30,8 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string LockTaken = "__lockTaken__";
     public static readonly string ILockable = "Arc.Threading.ILockable";
     public static readonly string LockStruct = "Arc.Threading.LockStruct";
+    public static readonly string ITinyhandJournal = "ITinyhandJournal";
+    public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
 
     public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
         id: "TG001", title: "Not a partial class/struct", messageFormat: "'{0}' must be a partial class/struct",

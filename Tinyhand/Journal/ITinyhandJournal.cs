@@ -14,7 +14,7 @@ public interface ITinyhandCrystal
 }
 
 public interface ITinyhandJournal
-{
+{// TinyhandGenerator, ValueLinkGenerator
     ITinyhandCrystal? Crystal { get; set; }
 
     uint CurrentPlane { get; set; }
