@@ -600,13 +600,13 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         // Method condition (Journal)
-        var journalInterface = $"Tinyhand.ITinyhandJournal";
+        var journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandJournal}";
         if (this.Interfaces.Any(x => x.FullName == journalInterface))
         {// ITinyhandJournal implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandJournal;
         }
 
-        journalInterface = $"Tinyhand.ITinyhandCustomJournal";
+        journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
         this.MethodCondition_WriteCustomLocator = MethodCondition.MemberMethod;
         this.MethodCondition_ReadCustomRecord = MethodCondition.MemberMethod;
         if (this.Interfaces.Any(x => x.FullName == journalInterface))
@@ -1718,11 +1718,11 @@ ModuleInitializerClass_Added:
             {
                 if (interfaceString == string.Empty)
                 {
-                    interfaceString = $" : ITinyhandJournal";
+                    interfaceString = $" : {TinyhandBody.ITinyhandJournal}";
                 }
                 else
                 {
-                    interfaceString += $", ITinyhandJournal";
+                    interfaceString += $", {TinyhandBody.ITinyhandJournal}";
                 }
             }
 
@@ -2743,13 +2743,9 @@ ModuleInitializerClass_Added:
         using (var journalScope = ssb.ScopeBrace("if (this.Crystal is not null && this.Crystal.TryGetJournalWriter(JournalType.Record, this.CurrentPlane, out var writer))"))
         {
             // Custom locator
-            if (this.MethodCondition_WriteCustomLocator == MethodCondition.Declared)
+            using (var customScope = ssb.ScopeBrace($"if (this is {TinyhandBody.ITinyhandCustomJournal} custom)"))
             {
-                ssb.AppendLine("this.WriteCustomLocator(ref writer);");
-            }
-            else if (this.MethodCondition_WriteCustomLocator == MethodCondition.ExplicitlyDeclared)
-            {
-                ssb.AppendLine("((ITinyhandCustomJournal)this).WriteCustomLocator(ref writer);");
+                ssb.AppendLine("custom.WriteCustomLocator(ref writer);");
             }
 
             // Key
@@ -2920,7 +2916,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace("bool ITinyhandJournal.ReadRecord(ref TinyhandReader reader)"))
+        using (var scopeMethod = ssb.ScopeBrace($"bool {TinyhandBody.ITinyhandJournal}.ReadRecord(ref TinyhandReader reader)"))
         {
             // Lock
             var lockExpression = this.GetLockExpression("this");
