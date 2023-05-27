@@ -2885,14 +2885,12 @@ ModuleInitializerClass_Added:
 
         if (!this.AllMembers.Any(x => x.SimpleName == "Crystal"))
         {
-            ssb.AppendLine("[IgnoreMember]");
-            ssb.AppendLine("public ITinyhandCrystal? Crystal { get; set; }");
+            ssb.AppendLine("[IgnoreMember] public ITinyhandCrystal? Crystal { get; set; }");
         }
 
         if (!this.AllMembers.Any(x => x.SimpleName == "CurrentPlane"))
         {
-            ssb.AppendLine("[IgnoreMember]");
-            ssb.AppendLine("public uint CurrentPlane { get; set; }");
+            ssb.AppendLine("[IgnoreMember] public uint CurrentPlane { get; set; }");
         }
 
         this.GenerateReadRecord(ssb, info);

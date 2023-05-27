@@ -93,12 +93,33 @@ public static partial class TinyhandSerializer
         T.Deserialize(ref reader, ref value, options);
     }
 
-    public static T? DeserializeObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public static void DeserializeOrReconstructObject<T>(ref TinyhandReader reader, [NotNull] scoped ref T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerialize<T>
     {
+        options = options ?? DefaultOptions;
+        T.Deserialize(ref reader, ref value, options);
+        if (value is null)
+        {
+            value = options.Resolver.GetFormatter<T>().Reconstruct(options);
+        }
+    }
+
+    public static T? DeserializeObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>
+    {
+        options = options ?? DefaultOptions;
         var value = default(T);
         T.Deserialize(ref reader, ref value, options);
         return value;
+    }
+
+    public static T DeserializeOrReconstructObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>
+    {
+        options = options ?? DefaultOptions;
+        var value = default(T);
+        T.Deserialize(ref reader, ref value, options);
+        return value ?? options.Resolver.GetFormatter<T>().Reconstruct(options);
     }
 
     /// <summary>
