@@ -117,7 +117,7 @@ internal static class JournalShared
 
         if (obj.AllAttributes.Any(x => x.FullName == TinyhandObjectAttributeMock.FullName))
         {// TinyhandObject
-            return $"TinyhandSerializer.DeserializeOrReconstructObject<{obj.FullName}>(ref reader)";
+            return $"TinyhandSerializer.DeserializeAndReconstructObject<{obj.FullName}>(ref reader)";
         }
 
         return $"TinyhandSerializer.Deserialize<{obj.FullName}>(ref reader)";
