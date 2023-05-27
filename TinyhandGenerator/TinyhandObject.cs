@@ -8,6 +8,7 @@ using System.Text;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Tinyhand.Coders;
+using TinyhandGenerator;
 using static Arc.Visceral.ScopingStringBuilder;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
@@ -2676,7 +2677,7 @@ ModuleInitializerClass_Added:
 
                     if (journal)
                     {
-                        this.GenerateAddProperty_Journal(ssb, info, x);
+                        x.CodeJournal(ssb, null);
                     }
 
                     lockScope?.Dispose();
@@ -2704,42 +2705,6 @@ ModuleInitializerClass_Added:
         else
         {
             return $"lock ({objectName}.{this.ObjectAttribute!.LockObject}!)";
-        }
-    }
-
-    internal void GenerateAddProperty_Journal(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x)
-    {
-        string writeKey;
-        if (x.KeyAttribute!.IntKey is not null)
-        {// Integer key
-            writeKey = $"writer.Write({x.KeyAttribute!.IntKey.ToString()});";
-        }
-        else if (this.StringTrie is not null
-            && this.StringTrie.NodeList.FirstOrDefault(y => y.Member == x) is { } node)
-        {// String key
-            writeKey = $"writer.WriteString({node.Utf8String});";
-        }
-        else
-        {
-            return;
-        }
-
-        using (var journalScope = ssb.ScopeBrace("if (this.Crystal is not null && this.Crystal.TryGetJournalWriter(JournalType.Record, this.CurrentPlane, out var writer))"))
-        {
-            // Custom locator
-            using (var customScope = ssb.ScopeBrace($"if (this is {TinyhandBody.ITinyhandCustomJournal} custom)"))
-            {
-                ssb.AppendLine("custom.WriteCustomLocator(ref writer);");
-            }
-
-            // Key
-            ssb.AppendLine("writer.Write_Key();");
-            ssb.AppendLine(writeKey);
-
-            // Value
-            ssb.AppendLine("writer.Write_Value();");
-            ssb.AppendLine($"writer.Write({ssb.FullObject});");
-            ssb.AppendLine("this.Crystal.AddJournal(writer);");
         }
     }
 

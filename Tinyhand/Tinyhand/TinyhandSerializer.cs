@@ -93,14 +93,15 @@ public static partial class TinyhandSerializer
         T.Deserialize(ref reader, ref value, options);
     }
 
-    public static void DeserializeOrReconstructObject<T>(ref TinyhandReader reader, [NotNull] scoped ref T? value, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+    public static void DeserializeAndReconstructObject<T>(ref TinyhandReader reader, [NotNull] scoped ref T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>, ITinyhandReconstruct<T>
     {
         options = options ?? DefaultOptions;
         T.Deserialize(ref reader, ref value, options);
         if (value is null)
         {
-            value = options.Resolver.GetFormatter<T>().Reconstruct(options);
+            T.Reconstruct(ref value, options);
+            // value = options.Resolver.GetFormatter<T>().Reconstruct(options);
         }
     }
 
@@ -113,13 +114,19 @@ public static partial class TinyhandSerializer
         return value;
     }
 
-    public static T DeserializeOrReconstructObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+    public static T DeserializeAndReconstructObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>, ITinyhandReconstruct<T>
     {
         options = options ?? DefaultOptions;
         var value = default(T);
         T.Deserialize(ref reader, ref value, options);
-        return value ?? options.Resolver.GetFormatter<T>().Reconstruct(options);
+        if (value == null)
+        {
+            T.Reconstruct(ref value, options);
+        }
+
+        return value;
+        // return value ?? options.Resolver.GetFormatter<T>().Reconstruct(options);
     }
 
     /// <summary>
@@ -551,19 +558,6 @@ public static partial class TinyhandSerializer
         {
             throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
         }
-    }
-
-    public static T DeserializeAndReconstructObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions options)
-        where T : ITinyhandSerialize<T>, ITinyhandReconstruct<T>
-    {
-        var value = default(T);
-        T.Deserialize(ref reader, ref value, options);
-        if (value == null)
-        {
-            T.Reconstruct(ref value, options);
-        }
-
-        return value;
     }
 
     /// <summary>
