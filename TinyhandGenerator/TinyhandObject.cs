@@ -1817,7 +1817,7 @@ ModuleInitializerClass_Added:
             }*/
 
             // StringKey fields
-            this.GenerateStringKeyFields(ssb, info);
+            // this.GenerateStringKeyFields(ssb, info);
 
             // Init-only property delegates
             this.GenerateInitSetters(ssb, info);
@@ -1842,13 +1842,6 @@ ModuleInitializerClass_Added:
     internal void Generate_PreparePrimary()
     {// Prepare Primary TinyhandObject
         this.PrepareTrie();
-        if (this.StringTrie is not null)
-        {
-            foreach (var x in this.StringTrie.NodeList)
-            {
-                x.Identifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
-            }
-        }
 
         // Init setter delegates
         var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetter).ToArray();
@@ -1880,15 +1873,6 @@ ModuleInitializerClass_Added:
         if (od == null)
         {
             return;
-        }
-
-        // StringTrie: Copy identifiers
-        if (od.StringTrie != null && this.StringTrie != null)
-        {
-            for (var n = 0; n < this.StringTrie.NodeList.Count; n++)
-            {
-                this.StringTrie.NodeList[n].Identifier = od.StringTrie.NodeList[n].Identifier;
-            }
         }
 
         // Init setter delegates
@@ -2733,7 +2717,7 @@ ModuleInitializerClass_Added:
         else if (this.StringTrie is not null
             && this.StringTrie.NodeList.FirstOrDefault(y => y.Member == x) is { } node)
         {// String key
-            writeKey = $"writer.WriteString({this.LocalName}.{node.Identifier});";
+            writeKey = $"writer.WriteString({node.Utf8String});";
         }
         else
         {
@@ -2901,14 +2885,12 @@ ModuleInitializerClass_Added:
 
         if (!this.AllMembers.Any(x => x.SimpleName == "Crystal"))
         {
-            ssb.AppendLine("[IgnoreMember]");
-            ssb.AppendLine("public ITinyhandCrystal? Crystal { get; set; }");
+            ssb.AppendLine("[IgnoreMember] public ITinyhandCrystal? Crystal { get; set; }");
         }
 
         if (!this.AllMembers.Any(x => x.SimpleName == "CurrentPlane"))
         {
-            ssb.AppendLine("[IgnoreMember]");
-            ssb.AppendLine("public uint CurrentPlane { get; set; }");
+            ssb.AppendLine("[IgnoreMember] public uint CurrentPlane { get; set; }");
         }
 
         this.GenerateReadRecord(ssb, info);
@@ -4137,7 +4119,7 @@ ModuleInitializerClass_Added:
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.StringTrie.NodeList)
         {
-            ssb.AppendLine($"writer.WriteString({cf.LocalName}.{x.Identifier});");
+            ssb.AppendLine($"writer.WriteString({x.Utf8String});");
 
             if (x.Member?.KeyAttribute?.Condition == false)
             {// Conditional
@@ -4164,7 +4146,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateStringKeyFields(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        if (this.StringTrie == null || this.StringTrie.NodeList.Count == 0)
+        /*if (this.StringTrie == null || this.StringTrie.NodeList.Count == 0)
         {
             return;
         }
@@ -4184,7 +4166,7 @@ ModuleInitializerClass_Added:
             }
 
             ssb.Append("};\r\n", false);
-        }
+        }*/
     }
 
     internal bool HasITinyhandSerializeConstraint()

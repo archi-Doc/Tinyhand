@@ -93,7 +93,7 @@ internal class VisceralTrieString<TObject>
             }
             else if (span.Length == 0)
             {// Leaf node
-                node = node.Add(key, this.NodeList.Count, member, utf8);
+                node = node.Add(key, this.NodeList.Count, member, utf8, name);
                 this.NodeList.Add(node);
             }
             else
@@ -304,7 +304,7 @@ internal class VisceralTrieString<TObject>
 
         public byte[]? Utf8Name { get; private set; }
 
-        public string? Identifier { get; set; }
+        public string? Utf8String { get; set; } // "test"u8
 
         public SortedDictionary<ulong, Node>? Nexts { get; private set; }
 
@@ -331,12 +331,13 @@ internal class VisceralTrieString<TObject>
             }
         }
 
-        public Node Add(ulong key, int index, TObject member, byte[] utf8)
+        public Node Add(ulong key, int index, TObject member, byte[] utf8, string name)
         {// Leaf node
             var node = this.Add(key);
             node.Index = index;
             node.Member = member;
             node.Utf8Name = utf8;
+            node.Utf8String = $"\"{name}\"u8";
 
             return node;
         }
