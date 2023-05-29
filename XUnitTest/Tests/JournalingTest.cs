@@ -6,6 +6,16 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
+[TinyhandObject]
+public readonly partial struct JournalIdentifier
+{
+    [Key(0)]
+    public readonly int Id0;
+
+    [Key(1)]
+    public readonly int Id1;
+}
+
 [TinyhandObject(Journaling = true)]
 public partial class JournalingClass
 {
@@ -67,6 +77,9 @@ public partial class JournalingClass3 : ITinyhandCustomJournal
 
     [Key(1, AddProperty = "X1")]
     private int x1;
+
+    [Key(2, AddProperty = "X2")]
+    private JournalIdentifier x2;
 
     private object syncObject = new();
 
