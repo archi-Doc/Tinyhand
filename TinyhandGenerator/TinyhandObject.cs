@@ -2665,7 +2665,14 @@ ModuleInitializerClass_Added:
                 using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
                 {
                     // Compare value
-                    ssb.AppendLine($"if ({ssb.FullObject} == value) return;");
+                    if (withNullable.Object.IsPrimitive)
+                    {
+                        ssb.AppendLine($"if ({ssb.FullObject} == value) return;");
+                    }
+                    else
+                    {
+                        ssb.AppendLine($"if (EqualityComparer<{withNullable.Object.FullName}>.Default.Equals({ssb.FullObject}, value)) return;");
+                    }
 
                     // Lock
                     var lockExpression = this.GetLockExpression("this");
