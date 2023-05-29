@@ -62,6 +62,7 @@ public enum TinyhandObjectFlag
     InterfaceImplemented = 1 << 28, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
     HasITinyhandJournal = 1 << 29, // Has ITinyhandJournal interface
     HasITinyhandCustomJournal = 1 << 30, // Has ITinyhandCustomJournal interface
+    HasValueLinkObject = 1 << 31, // Has ValueLinkgObject attribute
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -490,6 +491,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
                 }
+            }
+            else if (x.FullName == TinyhandBody.ValueLinkObjectAttribute)
+            {
+                this.ObjectFlag |= TinyhandObjectFlag.HasValueLinkObject;
             }
         }
 
@@ -2675,6 +2680,13 @@ ModuleInitializerClass_Added:
                         this.GenerateAddProperty_MaxLength(ssb, info, x, x.MaxLengthAttribute);
                     }
 
+                    // Update link
+                    if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasValueLinkObject) &&
+                        x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
+                    {
+                        ssb.AppendLine($"this.{TinyhandBody.ValueLinkUpdate}{x.SimpleName}();");
+                    }
+
                     if (journal)
                     {
                         x.CodeJournal(ssb, null);
@@ -2980,6 +2992,12 @@ ModuleInitializerClass_Added:
             }
 
             InitSetter_End();
+
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasValueLinkObject) &&
+                x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
+            {
+                ssb.AppendLine($"this.{TinyhandBody.ValueLinkUpdate}{x.SimpleName}();");
+            }
 
             ssb.AppendLine("return true;");
         }

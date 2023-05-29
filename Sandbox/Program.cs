@@ -76,15 +76,18 @@ public abstract partial class LockObjectClass<T>
 }
 
 [ValueLinkObject]
-[TinyhandObject]
+[TinyhandObject(Journaling = true, LockObject = "syncObject")]
 public partial class TestItem
 {
-    [Key(0)]
+    [Key(0, AddProperty = "X")]
     [Link(Primary = true, Type = ChainType.Ordered)]
-    public int X { get; set; }
+    private int x;
 
     [Key(2)]
     public GoshujinClass? Class2 { get; set; } = default!; // Error
+
+    [IgnoreMember]
+    private object syncObject = new();
 }
 
 public partial class NestParent
