@@ -12,6 +12,7 @@ using BenchmarkDotNet.Attributes;
 using ProtoBuf;
 using MemoryPack;
 using Tinyhand;
+using System;
 
 namespace Benchmark.H2HTest;
 
@@ -140,7 +141,7 @@ public class H2HBenchmark
     {
     }
 
-    /*[Benchmark]
+    [Benchmark]
     public byte[] SerializeProtoBuf()
     {
         using (var ms = new MemoryStream())
@@ -166,9 +167,9 @@ public class H2HBenchmark
     public byte[] SerializeTinyhand()
     {
         return Tinyhand.TinyhandSerializer.SerializeObject(this.h2h); // Serialize
-    }*/
+    }
 
-    /*[Benchmark]
+    [Benchmark]
     public ObjectH2H DeserializeProtoBuf()
     {
         return ProtoBuf.Serializer.Deserialize<ObjectH2H>(this.data3.AsSpan());
@@ -190,7 +191,7 @@ public class H2HBenchmark
     public ObjectH2H? DeserializeTinyhand()
     {
         return Tinyhand.TinyhandSerializer.DeserializeObject<ObjectH2H>(this.data); // Deserialize
-    }*/
+    }
 
     [Benchmark]
     public byte[] SerializeMessagePackString()
@@ -204,7 +205,7 @@ public class H2HBenchmark
         return Tinyhand.TinyhandSerializer.Serialize(this.h2h2);
     }
 
-    /*[Benchmark]
+    [Benchmark]
     public byte[] SerializeTinyhandUtf8()
     {
         return Tinyhand.TinyhandSerializer.SerializeToUtf8(this.h2h2);
@@ -214,7 +215,7 @@ public class H2HBenchmark
     public byte[] SerializeJsonUtf8()
     {
         return JsonSerializer.SerializeToUtf8Bytes(this.h2h2);
-    }*/
+    }
 
     [Benchmark]
     public ObjectH2H2 DeserializeMessagePackString()
@@ -228,7 +229,7 @@ public class H2HBenchmark
         return Tinyhand.TinyhandSerializer.Deserialize<ObjectH2H2>(this.data2);
     }
 
-    /*[Benchmark]
+    [Benchmark]
     public ObjectH2H2? DeserializeTinyhandUtf8()
     {
         return Tinyhand.TinyhandSerializer.DeserializeFromUtf8<ObjectH2H2>(this.utf8b);
@@ -238,7 +239,7 @@ public class H2HBenchmark
     public ObjectH2H2? DeserializeJsonUtf8()
     {
         return JsonSerializer.Deserialize<ObjectH2H2>(this.json);
-    }*/
+    }
 }
 
 [Config(typeof(BenchmarkConfig))]
