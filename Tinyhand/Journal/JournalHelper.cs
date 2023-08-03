@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -7,6 +8,76 @@ namespace Tinyhand.IO;
 
 public static class JournalHelper
 {
+    public static bool ReadJournal(ITinyhandJournal journalObject, ReadOnlyMemory<byte> data)
+    {
+        var reader = new TinyhandReader(data.Span);
+        var success = true;
+
+        while (reader.Consumed < data.Length)
+        {
+            if (!reader.TryReadRecord(out var length, out var journalType, out var plane))
+            {
+                return false;
+            }
+
+            var fork = reader.Fork();
+            try
+            {
+                if (journalType == JournalType.Record &&
+                    journalObject.CurrentPlane == plane)
+                {
+                    if (journalObject.ReadRecord(ref reader))
+                    {// Success
+                    }
+                    else
+                    {// Failure
+                        success = false;
+                    }
+                }
+                else
+                {
+                }
+            }
+            catch
+            {
+                success = false;
+            }
+            finally
+            {
+                reader = fork;
+                reader.Advance(length);
+            }
+        }
+
+        return success;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryReadRecord(this ref TinyhandReader reader, out int length, out JournalType journalType, out uint plane)
+    {
+        try
+        {
+            Span<byte> span = stackalloc byte[3];
+            span[0] = reader.ReadUInt8();
+            span[1] = reader.ReadUInt8();
+            span[2] = reader.ReadUInt8();
+            length = span[0] << 16 | span[1] << 8 | span[2];
+
+            reader.TryRead(out byte code);
+            journalType = (JournalType)code;
+            reader.TryReadBigEndian(out plane);
+        }
+        catch
+        {
+            length = 0;
+            journalType = default;
+            plane = 0;
+            return false;
+        }
+
+        return true;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Write_Locator(ref this TinyhandWriter writer)
         => writer.Write((byte)JournalRecord.Locator);
