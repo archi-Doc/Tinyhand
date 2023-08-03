@@ -61,4 +61,10 @@ public static class JournalHelper
             throw new InvalidDataException();
         }
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsNext_Key(ref this TinyhandReader reader)
+    {
+        return reader.Remaining > 0 && reader.NextCode == (byte)JournalRecord.Key;
+    }
 }
