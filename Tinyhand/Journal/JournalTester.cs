@@ -1,11 +1,9 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Tinyhand.IO;
-using Tinyhand.Logging;
 
 namespace Tinyhand;
 
@@ -21,6 +19,14 @@ public class JournalTester : ITinyhandCrystal
     {
         this.JournalLength = journalLength;
         this.buffer = new byte[this.JournalLength];
+    }
+
+    public byte[] GetJournal()
+    {
+        lock (this.syncObject)
+        {
+            return this.buffer.AsSpan(0, this.position).ToArray();
+        }
     }
 
     public bool TryGetJournalWriter(JournalType recordType, uint plane, out TinyhandWriter writer)

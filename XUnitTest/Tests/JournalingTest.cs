@@ -93,10 +93,43 @@ public partial class JournalingClass3 : ITinyhandCustomJournal
     }
 }
 
+[TinyhandObject(Journaling = true)]
+public partial class JournalingTestClass
+{
+    public JournalingTestClass()
+    {
+    }
+
+    public JournalingTestClass(int id, string name)
+    {
+        this.id = id;
+        this.name = name;
+    }
+
+    [Key(0, AddProperty = "Id")]
+    private int id;
+
+    [Key(1, AddProperty = "Name")]
+    private string name = string.Empty;
+}
+
 public class JournalingTest
 {
     [Fact]
     public void Test1()
     {
+        var tester = new JournalTester();
+        var c = new JournalingTestClass(1, "one");
+
+        var cc = new JournalingTestClass();
+        cc.Crystal = tester;
+        cc.Id = c.Id;
+        cc.Name = c.Name;
+
+        var journal = tester.GetJournal();
+        var c2 = new JournalingTestClass();
+        JournalHelper.ReadJournal(c2, journal).IsTrue();
+
+        c2.IsStructuralEqual(c);
     }
 }
