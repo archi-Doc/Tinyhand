@@ -2923,6 +2923,7 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine();
             }
 
+            ssb.AppendLine("KeyLoop:", false);
             ssb.AppendLine("var record = reader.Read_Record();");
             using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
             {
@@ -3005,6 +3006,8 @@ ModuleInitializerClass_Added:
             {
                 ssb.AppendLine($"this.{TinyhandBody.ValueLinkUpdate}{x.SimpleName}();");
             }
+
+            ssb.AppendLine("if (reader.IsNext_Key()) goto KeyLoop;");
 
             ssb.AppendLine("return true;");
         }
