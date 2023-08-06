@@ -6,7 +6,7 @@ namespace Tinyhand;
 
 public interface IJournalObject
 {// TinyhandGenerator, ValueLinkGenerator
-    ITinyhandJournal? Crystal { get; set; }
+    ITinyhandJournal? Journal { get; set; }
 
     IJournalObject? Parent { get; protected set; }
 
@@ -20,14 +20,14 @@ public interface IJournalObject
 
     public bool TryGetJournalWriter(out TinyhandWriter writer)
     {
-        if (this.Crystal is null)
+        if (this.Journal is null)
         {
             writer = default;
             return false;
         }
 
         var p = this.Parent;
-        this.Crystal.TryGetJournalWriter(JournalType.Record, out writer);
+        this.Journal.TryGetJournalWriter(JournalType.Record, out writer);
         if (p == null)
         {
             return true;

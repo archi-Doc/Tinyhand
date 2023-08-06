@@ -122,7 +122,7 @@ public class JournalingTest
         var c = new JournalingTestClass(1, "one");
 
         var cc = new JournalingTestClass();
-        cc.Crystal = tester;
+        cc.Journal = tester;
         cc.Id = c.Id;
         cc.Name = c.Name;
 

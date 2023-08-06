@@ -2703,7 +2703,7 @@ ModuleInitializerClass_Added:
 
                     if (journal)
                     {
-                        ssb.AppendLine("this.Crystal?.TryAddToSaveQueue();");
+                        ssb.AppendLine("this.Journal?.TryAddToSaveQueue();");
                     }
                 }
             }
@@ -2867,7 +2867,7 @@ ModuleInitializerClass_Added:
     {
         ssb.AppendLine();
 
-        ssb.AppendLine($"[IgnoreMember] public {TinyhandBody.ITinyhandJournal}? Crystal {{ get; set; }}");
+        ssb.AppendLine($"[IgnoreMember] public {TinyhandBody.ITinyhandJournal}? Journal {{ get; set; }}");
         ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IJournalObject}? {TinyhandBody.IJournalObject}.Parent {{ get; set; }}");
         ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IJournalObject}.Key {{ get; set; }} = -1;");
 
