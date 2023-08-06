@@ -8,14 +8,14 @@ namespace Tinyhand.IO;
 
 public static class JournalHelper
 {
-    public static bool ReadJournal(ITinyhandJournal journalObject, ReadOnlyMemory<byte> data)
+    public static bool ReadJournal(IJournalObject journalObject, ReadOnlyMemory<byte> data)
     {
         var reader = new TinyhandReader(data.Span);
         var success = true;
 
         while (reader.Consumed < data.Length)
         {
-            if (!reader.TryReadRecord(out var length, out var journalType, out var plane))
+            if (!reader.TryReadRecord(out var length, out var journalType))
             {
                 return false;
             }
@@ -23,8 +23,7 @@ public static class JournalHelper
             var fork = reader.Fork();
             try
             {
-                if (journalType == JournalType.Record &&
-                    journalObject.CurrentPlane == plane)
+                if (journalType == JournalType.Record)
                 {
                     if (journalObject.ReadRecord(ref reader))
                     {// Success
@@ -53,7 +52,7 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryReadRecord(this ref TinyhandReader reader, out int length, out JournalType journalType, out uint plane)
+    public static bool TryReadRecord(this ref TinyhandReader reader, out int length, out JournalType journalType)
     {
         try
         {
@@ -65,13 +64,13 @@ public static class JournalHelper
 
             reader.TryRead(out byte code);
             journalType = (JournalType)code;
-            reader.TryReadBigEndian(out plane);
+            // reader.TryReadBigEndian(out plane);
         }
         catch
         {
             length = 0;
             journalType = default;
-            plane = 0;
+            // plane = 0;
             return false;
         }
 

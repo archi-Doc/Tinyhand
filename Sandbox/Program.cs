@@ -21,9 +21,6 @@ public partial class PropertyTestClass2 : PropertyTestClass
 [TinyhandObject(Journaling = true)]
 public partial class JournalingClass
 {
-    [IgnoreMember]
-    public ITinyhandCrystal? Crystal { get; set; }
-
     [Key(0)]
     public int X { get; set; }
 
@@ -75,7 +72,7 @@ public abstract partial class LockObjectClass<T>
     protected object syncObject = new();
 }
 
-[ValueLinkObject]
+/*[ValueLinkObject]
 [TinyhandObject(Journaling = true, LockObject = "syncObject")]
 public partial class TestItem
 {
@@ -88,7 +85,7 @@ public partial class TestItem
 
     [IgnoreMember]
     private object syncObject = new();
-}
+}*/
 
 public partial class NestParent
 {
@@ -98,8 +95,8 @@ public partial class NestParent
         [Key(0)]
         public int MyProperty { get; set; }
 
-        [Key(1)]
-        public TestItem.GoshujinClass? Class1 { get; set; } = default!;
+        // [Key(1)]
+        // public TestItem.GoshujinClass? Class1 { get; set; } = default!;
     }
 
     public class NestContractless

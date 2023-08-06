@@ -89,7 +89,7 @@ public sealed class TinyhandObjectAttribute : Attribute
     public bool UseResolver { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to add a journaling feature (<see cref="ITinyhandJournal"/>) to the object [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether or not to add a journaling feature (<see cref="IJournalObject"/>) to the object [default is <see langword="false"/>].
     /// </summary>
     public bool Journaling { get; set; } = false;
 
