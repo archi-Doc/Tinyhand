@@ -7,7 +7,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
-public class JournalTester : ITinyhandCrystal
+public class JournalTester : ITinyhandJournal
 {
     private const int MaxJournalLength = 1024 * 1024 * 1; // 1 MB
     private const int MaxRecordLength = 1024 * 16; // 16 KB
@@ -29,7 +29,7 @@ public class JournalTester : ITinyhandCrystal
         }
     }
 
-    public bool TryGetJournalWriter(JournalType recordType, uint plane, out TinyhandWriter writer)
+    public bool TryGetJournalWriter(JournalType recordType, out TinyhandWriter writer)
     {
         if (initialBuffer == null)
         {
@@ -39,7 +39,7 @@ public class JournalTester : ITinyhandCrystal
         writer = new(initialBuffer);
         writer.Advance(3); // Size(0-16MB): byte[3]
         writer.RawWriteUInt8(Unsafe.As<JournalType, byte>(ref recordType)); // JournalRecordType: byte
-        writer.RawWriteUInt32(plane); // Plane: byte[4]
+        // writer.RawWriteUInt32(plane); // Plane: byte[4]
 
         return true;
     }
@@ -56,7 +56,7 @@ public class JournalTester : ITinyhandCrystal
 
         // Size (0-16MB)
         var span = memory.Span;
-        var length = memory.Length - 8;
+        var length = memory.Length - 4;
         span[2] = (byte)length;
         span[1] = (byte)(length >> 8);
         span[0] = (byte)(length >> 16);

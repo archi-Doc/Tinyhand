@@ -5,10 +5,10 @@ using Tinyhand.IO;
 namespace Tinyhand;
 
 public interface ITinyhandJournal
-{// TinyhandGenerator, ValueLinkGenerator
-    ITinyhandCrystal? Crystal { get; set; }
+{
+    bool TryGetJournalWriter(JournalType recordType, out TinyhandWriter writer);
 
-    uint CurrentPlane { get; set; }
+    ulong AddJournal(in TinyhandWriter writer);
 
-    bool ReadRecord(ref TinyhandReader reader);
+    bool TryAddToSaveQueue();
 }

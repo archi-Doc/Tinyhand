@@ -60,7 +60,7 @@ public enum TinyhandObjectFlag
     HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
     CanCreateInstance = 1 << 27, // Can create an instance
     InterfaceImplemented = 1 << 28, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
-    HasITinyhandJournal = 1 << 29, // Has ITinyhandJournal interface
+    HasIJournalObject = 1 << 29, // Has IJournalObject interface
     HasITinyhandCustomJournal = 1 << 30, // Has ITinyhandCustomJournal interface
     HasValueLinkObject = 1 << 31, // Has ValueLinkgObject attribute
 }
@@ -606,17 +606,17 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         // Method condition (Journal)
-        var journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandJournal}";
+        var journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.IJournalObject}";
         if (this.Interfaces.Any(x => x.FullName == journalInterface))
-        {// ITinyhandJournal implemented
-            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandJournal;
+        {// IJournalObject implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasIJournalObject;
         }
 
         journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
         this.MethodCondition_WriteCustomLocator = MethodCondition.MemberMethod;
         this.MethodCondition_ReadCustomRecord = MethodCondition.MemberMethod;
         if (this.Interfaces.Any(x => x.FullName == journalInterface))
-        {// ITinyhandJournal implemented
+        {// ITinyhandCustomJournal implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandCustomJournal;
 
             var methodName = journalInterface + ".WriteCustomLocator";
@@ -1720,15 +1720,15 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            if (this.ObjectAttribute.Journaling && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            if (this.ObjectAttribute.Journaling && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
             {
                 if (interfaceString == string.Empty)
                 {
-                    interfaceString = $" : {TinyhandBody.ITinyhandJournal}";
+                    interfaceString = $" : {TinyhandBody.IJournalObject}";
                 }
                 else
                 {
-                    interfaceString += $", {TinyhandBody.ITinyhandJournal}";
+                    interfaceString += $", {TinyhandBody.IJournalObject}";
                 }
             }
 
@@ -1804,7 +1804,7 @@ ModuleInitializerClass_Added:
 
                 x.GenerateMethod(ssb, info);
 
-                if (x.ObjectAttribute.Journaling && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+                if (x.ObjectAttribute.Journaling && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
                 {
                     x.GenerateITinyhandJournal(ssb, info);
                 }
@@ -2113,11 +2113,11 @@ ModuleInitializerClass_Added:
             }
 
             // Update plane
-            if (this.ObjectAttribute?.Journaling == true ||
-                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
+            /*if (this.ObjectAttribute?.Journaling == true ||
+                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
             {
                 ssb.AppendLine($"{ssb.FullObject}.CurrentPlane = options.Plane;");
-            }
+            }*/
 
             // ITinyhandSerializationCallback.OnBeforeSerialize
             this.Generate_OnBeforeSerialize(ssb, info);
@@ -2649,7 +2649,7 @@ ModuleInitializerClass_Added:
             }
 
             var journal = this.ObjectAttribute?.Journaling == true ||
-                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal);
+                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject);
 
             string setterAccessibility = string.Empty;
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
@@ -2867,22 +2867,16 @@ ModuleInitializerClass_Added:
     {
         ssb.AppendLine();
 
-        if (!this.AllMembers.Any(x => x.SimpleName == "Crystal"))
-        {
-            ssb.AppendLine("[IgnoreMember] public ITinyhandCrystal? Crystal { get; set; }");
-        }
-
-        if (!this.AllMembers.Any(x => x.SimpleName == "CurrentPlane"))
-        {
-            ssb.AppendLine("[IgnoreMember] public uint CurrentPlane { get; set; }");
-        }
+        ssb.AppendLine($"[IgnoreMember] public {TinyhandBody.ITinyhandJournal}? Crystal {{ get; set; }}");
+        ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IJournalObject}? {TinyhandBody.IJournalObject}.Parent {{ get; set; }}");
+        ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IJournalObject}.Key {{ get; set; }} = -1;");
 
         this.GenerateReadRecord(ssb, info);
     }
 
     internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"bool {TinyhandBody.ITinyhandJournal}.ReadRecord(ref TinyhandReader reader)"))
+        using (var scopeMethod = ssb.ScopeBrace($"bool {TinyhandBody.IJournalObject}.ReadRecord(ref TinyhandReader reader)"))
         {
             // Lock
             var lockExpression = this.GetLockExpression("this");
@@ -2986,9 +2980,9 @@ ModuleInitializerClass_Added:
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
             ssb.AppendLine("reader.Read_Value();");
-            if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandJournal))
-            {// ((ITinyhandJournal)this.member).ReadRecord
-                ssb.AppendLine($"return ((ITinyhandJournal){ssb.FullObject}).ReadRecord(ref reader);");
+            if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+            {// ((IJournalObject)this.member).ReadRecord
+                ssb.AppendLine($"return ((IJournalObject){ssb.FullObject}).ReadRecord(ref reader);");
             }
 
             InitSetter_Start();
