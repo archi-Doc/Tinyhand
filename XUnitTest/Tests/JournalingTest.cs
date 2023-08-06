@@ -69,6 +69,16 @@ public partial class JournalingClass2
     protected SemaphoreLock semaphore = new();
 }
 
+[TinyhandObject(Journaling = true)]
+public partial class JournalingClass2B
+{
+    [Key(1)]
+    public JournalingClass2 Class1 { get; set; }
+
+    [Key(2)]
+    public JournalingClass2 Class2 { get; set; }
+}
+
 [TinyhandObject(Journaling = true, LockObject = "syncObject")]
 public partial class JournalingClass3 : ITinyhandCustomJournal
 {
@@ -125,6 +135,20 @@ public class JournalingTest
         cc.Journal = tester;
         cc.Id = c.Id;
         cc.Name = c.Name;
+
+        var journal = tester.GetJournal();
+        var c2 = new JournalingTestClass();
+        JournalHelper.ReadJournal(c2, journal).IsTrue();
+
+        c2.IsStructuralEqual(c);
+    }
+
+    [Fact]
+    public void Test2()
+    {
+        var tester = new JournalTester();
+        var c = new JournalingClass2B();
+        c.Journal = tester;
 
         var journal = tester.GetJournal();
         var c2 = new JournalingTestClass();

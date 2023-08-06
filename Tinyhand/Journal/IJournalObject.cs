@@ -4,30 +4,68 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
+public class JournalRoot
+{
+    public JournalRoot()
+    {
+    }
+
+    public ITinyhandJournal? Journal { get; set; }
+}
+
 public interface IJournalObject
 {// TinyhandGenerator, ValueLinkGenerator
-    ITinyhandJournal? Journal { get; set; }
+    JournalRoot Root { get; protected set; }
 
     IJournalObject? Parent { get; protected set; }
 
     int Key { get; protected set; } // Plane or IntKey
 
-    public void AddChild(IJournalObject child, int key)
+    public void SetParent(IJournalObject parent, int key = -1)
     {
-        child.Parent = this;
-        child.Key = key;
+        var p = parent;
+        JournalRoot? root = default;
+        while (true)
+        {
+            if (p.Root is not null)
+            {// Root found
+                root = p.Root;
+                break;
+            }
+            else if (p.Parent is null)
+            {// New root
+                root = new();
+
+                p = parent;
+                while (p is not null)
+                {
+                    p.Root = root;
+                    p = p.Parent;
+                }
+
+                break;
+            }
+            else
+            {// Search parents
+                p = p.Parent;
+            }
+        }
+
+        this.Root = root;
+        this.Parent = parent;
+        this.Key = key;
     }
 
     public bool TryGetJournalWriter(out TinyhandWriter writer)
     {
-        if (this.Journal is null)
+        if (this.Root.Journal is null)
         {
             writer = default;
             return false;
         }
 
         var p = this.Parent;
-        this.Journal.TryGetJournalWriter(JournalType.Record, out writer);
+        this.Root.Journal.TryGetJournalWriter(JournalType.Record, out writer);
         if (p == null)
         {
             return true;
