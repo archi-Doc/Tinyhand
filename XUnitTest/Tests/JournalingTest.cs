@@ -76,7 +76,7 @@ public partial class JournalingClass2B
     public JournalingClass2 Class1 { get; set; }
 
     [Key(2)]
-    public JournalingClass2 Class2 { get; set; }
+    public JournalingTestClass Class2 { get; set; }
 }
 
 [TinyhandObject(Journaling = true, LockObject = "syncObject")]
@@ -147,13 +147,19 @@ public class JournalingTest
     public void Test2()
     {
         var tester = new JournalTester();
-        var c = new JournalingClass2B();
+        var c = TinyhandSerializer.Reconstruct<JournalingClass2B>();
         c.Journal = tester;
 
+        c.Class1.X7 = 77;
+        c.Class2.Id = 21;
+        c.Class2.Name = "AA";
+
         var journal = tester.GetJournal();
-        var c2 = new JournalingTestClass();
+        var c2 = TinyhandSerializer.Reconstruct<JournalingClass2B>();
         JournalHelper.ReadJournal(c2, journal).IsTrue();
 
-        c2.IsStructuralEqual(c);
+        c.Class1.X7.Is(c2.Class1.X7);
+        c.Class2.Id.Is(c2.Class2.Id);
+        c.Class2.Name.Is(c2.Class2.Name);
     }
 }

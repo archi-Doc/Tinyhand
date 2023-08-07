@@ -2992,11 +2992,17 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
-            ssb.AppendLine("reader.Read_Value();");
-            if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
-            {// ((IJournalObject)this.member).ReadRecord
-                ssb.AppendLine($"return ((IJournalObject){ssb.FullObject}).ReadRecord(ref reader);");
+            if (x.TypeObject?.ObjectAttribute?.Journaling == true || x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject) == true)
+            {
+                ssb.AppendLine($"if (reader.IsNext_Key() && (({TinyhandBody.IJournalObject}){ssb.FullObject}).ReadRecord(ref reader)) return true;");
             }
+
+            ssb.AppendLine("reader.Read_Value();");
+
+            /*if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+            {
+                ssb.AppendLine($"return (({TinyhandBody.IJournalObject}){ssb.FullObject}).ReadRecord(ref reader);");
+            }*/
 
             InitSetter_Start();
 
