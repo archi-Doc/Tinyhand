@@ -2488,6 +2488,19 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal void GenerateJournal_SetParent(ScopingStringBuilder ssb, TinyhandObject? child, string parent)
+    {
+        if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
+        {
+            return;
+        }
+
+        if (typeObject.ObjectAttribute?.Journaling == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+        {
+            ssb.AppendLine($"(({TinyhandBody.IJournalObject}){ssb.FullObject}).SetParent({parent}, {key.ToString()});");
+        }
+    }
+
     internal void GenerateReconstruct_Method(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         string methodCode;
@@ -2979,11 +2992,17 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
-            ssb.AppendLine("reader.Read_Value();");
-            if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
-            {// ((IJournalObject)this.member).ReadRecord
-                ssb.AppendLine($"return ((IJournalObject){ssb.FullObject}).ReadRecord(ref reader);");
+            if (x.TypeObject?.ObjectAttribute?.Journaling == true || x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject) == true)
+            {
+                ssb.AppendLine($"if (reader.IsNext_Key() && (({TinyhandBody.IJournalObject}){ssb.FullObject}).ReadRecord(ref reader)) return true;");
             }
+
+            ssb.AppendLine("reader.Read_Value();");
+
+            /*if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+            {
+                ssb.AppendLine($"return (({TinyhandBody.IJournalObject}){ssb.FullObject}).ReadRecord(ref reader);");
+            }*/
 
             InitSetter_Start();
 
@@ -3249,7 +3268,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateDeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
+    internal void GenerateDeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, int key)
     {// Integer key
         var withNullable = x?.TypeObjectWithNullable;
         if (x == null || withNullable == null)
@@ -3328,6 +3347,8 @@ ModuleInitializerClass_Added:
                     InitSetter_End();
                 }
             }
+
+            this.GenerateJournal_SetParent(ssb, x, destObject);
         }
 
         void InitSetter_Start()
@@ -3446,6 +3467,8 @@ ModuleInitializerClass_Added:
                     InitSetter_End();
                 }
             }
+
+            // this.GenerateJournal_SetParent(ssb, "this");
         }
 
         void InitSetter_Start()
@@ -3539,6 +3562,8 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"{ssb.FullObject} = {withNullable.Object.NewInstanceCode()};");
                 InitSetter_End();
             }
+
+            this.GenerateJournal_SetParent(ssb, x, destObject);
         }
 
         void InitSetter_Start(bool brace = false)
@@ -3804,9 +3829,9 @@ ModuleInitializerClass_Added:
                 this.GenerateDeserialize_LockEnter(ssb, info);
             }
 
-            foreach (var x in this.IntKey_Array)
+            for (var i = 0; i < this.IntKey_Array.Length; i++)
             {
-                this.GenerateDeserializeCore(ssb, info, x);
+                this.GenerateDeserializeCore(ssb, info, this.IntKey_Array[i], i);
             }
 
             ssb.AppendLine("while (numberOfData-- > 0) reader.Skip();");

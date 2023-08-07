@@ -52,7 +52,7 @@ internal static class JournalShared
 
     public static void CodeJournal(this TinyhandObject obj, ScopingStringBuilder ssb, TinyhandObject? locator)
     {
-        using (var journalScope = ssb.ScopeBrace("if (this.Journal is not null && this.Journal.TryGetJournalWriter(JournalType.Record, out var writer))"))
+        using (var journalScope = ssb.ScopeBrace($"if ((({TinyhandBody.IJournalObject})this).TryGetJournalWriter(out var journal, out var writer))"))
         {
             // Custom locator
             using (var customScope = ssb.ScopeBrace($"if (this is Tinyhand.ITinyhandCustomJournal custom)"))
@@ -84,7 +84,7 @@ internal static class JournalShared
                 ssb.AppendLine(writeValue);
             }
 
-            ssb.AppendLine("this.Journal.AddJournal(writer);");
+            ssb.AppendLine("journal.AddJournal(writer);");
         }
     }
 

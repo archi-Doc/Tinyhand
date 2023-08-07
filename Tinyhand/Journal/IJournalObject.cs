@@ -1,5 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 
 namespace Tinyhand;
@@ -12,41 +14,47 @@ public interface IJournalObject
 
     int Key { get; protected set; } // Plane or IntKey
 
-    public void AddChild(IJournalObject child, int key)
+    public void SetParent(IJournalObject parent, int key = -1)
     {
-        child.Parent = this;
-        child.Key = key;
+        this.Parent = parent;
+        this.Key = key;
     }
 
-    public bool TryGetJournalWriter(out TinyhandWriter writer)
+    public bool TryGetJournalWriter([NotNullWhen(true)] out ITinyhandJournal? journal, out TinyhandWriter writer)
     {
-        if (this.Journal is null)
-        {
-            writer = default;
-            return false;
-        }
-
         var p = this.Parent;
-        this.Journal.TryGetJournalWriter(JournalType.Record, out writer);
         if (p == null)
         {
-            return true;
+            if (this.Journal is null)
+            {
+                journal = null;
+                writer = default;
+                return false;
+            }
+            else
+            {
+                journal = this.Journal;
+                return journal.TryGetJournalWriter(JournalType.Record, out writer);
+            }
         }
         else
         {
             var p2 = p.Parent;
             if (p2 is null)
             {
-                writer.Write_Key();
-                if (this.Key >= 0)
+                if (p.Journal is null)
                 {
-                    writer.Write(this.Key);
+                    journal = null;
+                    writer = default;
+                    return false;
                 }
                 else
                 {
-                    this.WriteLocator(ref writer);
+                    journal = p.Journal;
+                    journal.TryGetJournalWriter(JournalType.Record, out writer);
                 }
 
+                this.WriteKeyOrLocator(ref writer);
                 return true;
             }
             else
@@ -54,26 +62,20 @@ public interface IJournalObject
                 var p3 = p2.Parent;
                 if (p3 is null)
                 {
-                    writer.Write_Key();
-                    if (p.Key >= 0)
+                    if (p2.Journal is null)
                     {
-                        writer.Write(p.Key);
+                        journal = null;
+                        writer = default;
+                        return false;
                     }
                     else
                     {
-                        p.WriteLocator(ref writer);
+                        journal = p2.Journal;
+                        journal.TryGetJournalWriter(JournalType.Record, out writer);
                     }
 
-                    writer.Write_Key();
-                    if (this.Key >= 0)
-                    {
-                        writer.Write(this.Key);
-                    }
-                    else
-                    {
-                        this.WriteLocator(ref writer);
-                    }
-
+                    p.WriteKeyOrLocator(ref writer);
+                    this.WriteKeyOrLocator(ref writer);
                     return true;
                 }
                 else
@@ -81,36 +83,21 @@ public interface IJournalObject
                     var p4 = p3.Parent;
                     if (p4 is null)
                     {
-                        writer.Write_Key();
-                        if (p2.Key >= 0)
+                        if (p3.Journal is null)
                         {
-                            writer.Write(p2.Key);
+                            journal = null;
+                            writer = default;
+                            return false;
                         }
                         else
                         {
-                            p2.WriteLocator(ref writer);
+                            journal = p3.Journal;
+                            journal.TryGetJournalWriter(JournalType.Record, out writer);
                         }
 
-                        writer.Write_Key();
-                        if (p.Key >= 0)
-                        {
-                            writer.Write(p.Key);
-                        }
-                        else
-                        {
-                            p.WriteLocator(ref writer);
-                        }
-
-                        writer.Write_Key();
-                        if (this.Key >= 0)
-                        {
-                            writer.Write(this.Key);
-                        }
-                        else
-                        {
-                            this.WriteLocator(ref writer);
-                        }
-
+                        p2.WriteKeyOrLocator(ref writer);
+                        p.WriteKeyOrLocator(ref writer);
+                        this.WriteKeyOrLocator(ref writer);
                         return true;
                     }
                     else
@@ -118,53 +105,56 @@ public interface IJournalObject
                         var p5 = p4.Parent;
                         if (p5 is null)
                         {
-                            writer.Write_Key();
-                            if (p3.Key >= 0)
+                            if (p4.Journal is null)
                             {
-                                writer.Write(p3.Key);
+                                journal = null;
+                                writer = default;
+                                return false;
                             }
                             else
                             {
-                                p3.WriteLocator(ref writer);
+                                journal = p4.Journal;
+                                journal.TryGetJournalWriter(JournalType.Record, out writer);
                             }
 
-                            writer.Write_Key();
-                            if (p2.Key >= 0)
-                            {
-                                writer.Write(p2.Key);
-                            }
-                            else
-                            {
-                                p2.WriteLocator(ref writer);
-                            }
-
-                            writer.Write_Key();
-                            if (p.Key >= 0)
-                            {
-                                writer.Write(p.Key);
-                            }
-                            else
-                            {
-                                p.WriteLocator(ref writer);
-                            }
-
-                            writer.Write_Key();
-                            if (this.Key >= 0)
-                            {
-                                writer.Write(this.Key);
-                            }
-                            else
-                            {
-                                this.WriteLocator(ref writer);
-                            }
-
+                            p3.WriteKeyOrLocator(ref writer);
+                            p2.WriteKeyOrLocator(ref writer);
+                            p.WriteKeyOrLocator(ref writer);
+                            this.WriteKeyOrLocator(ref writer);
                             return true;
+                        }
+                        else
+                        {
+                            var p6 = p5.Parent;
+                            if (p6 is null)
+                            {
+                                if (p5.Journal is null)
+                                {
+                                    journal = null;
+                                    writer = default;
+                                    return false;
+                                }
+                                else
+                                {
+                                    journal = p5.Journal;
+                                    journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                }
+
+                                p4.WriteKeyOrLocator(ref writer);
+                                p3.WriteKeyOrLocator(ref writer);
+                                p2.WriteKeyOrLocator(ref writer);
+                                p.WriteKeyOrLocator(ref writer);
+                                this.WriteKeyOrLocator(ref writer);
+                                return true;
+                            }
                         }
                     }
                 }
             }
         }
 
+        journal = null;
+        writer = default;
         return false;
     }
 
@@ -173,5 +163,19 @@ public interface IJournalObject
 
     public void WriteLocator(ref TinyhandWriter writer)
     {
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteKeyOrLocator(ref TinyhandWriter writer)
+    {
+        if (this.Key >= 0)
+        {
+            writer.Write_Key();
+            writer.Write(this.Key);
+        }
+        else
+        {
+            this.WriteLocator(ref writer);
+        }
     }
 }
