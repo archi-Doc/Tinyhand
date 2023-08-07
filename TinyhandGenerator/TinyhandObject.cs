@@ -2884,7 +2884,35 @@ ModuleInitializerClass_Added:
         ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IJournalObject}? {TinyhandBody.IJournalObject}.Parent {{ get; set; }}");
         ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IJournalObject}.Key {{ get; set; }} = -1;");
 
+        this.GenerateSetParent(ssb, info);
         this.GenerateReadRecord(ssb, info);
+    }
+
+    internal void GenerateSetParent(ScopingStringBuilder ssb, GeneratorInformation info)
+    {// public void SetParent(IJournalObject parent, int key = -1)
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IJournalObject}.SetParent({TinyhandBody.IJournalObject} parent, int key)"))
+        {
+            ssb.AppendLine($"(({TinyhandBody.IJournalObject})this).SetParentInternal(parent, key);");
+
+            if (this.IntKey_Array is not null)
+            {
+                using (var t = ssb.ScopeObject("this"))
+                {
+                    foreach (var x in this.IntKey_Array)
+                    {
+                        if (x is null)
+                        {
+                            continue;
+                        }
+
+                        using (var m = this.ScopeMember(ssb, x))
+                        {
+                            this.GenerateJournal_SetParent(ssb, x, "this");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -3268,7 +3296,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateDeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, int key)
+    internal void GenerateDeserializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x)
     {// Integer key
         var withNullable = x?.TypeObjectWithNullable;
         if (x == null || withNullable == null)
@@ -3829,9 +3857,9 @@ ModuleInitializerClass_Added:
                 this.GenerateDeserialize_LockEnter(ssb, info);
             }
 
-            for (var i = 0; i < this.IntKey_Array.Length; i++)
+            foreach (var x in this.IntKey_Array)
             {
-                this.GenerateDeserializeCore(ssb, info, this.IntKey_Array[i], i);
+                this.GenerateDeserializeCore(ssb, info, x);
             }
 
             ssb.AppendLine("while (numberOfData-- > 0) reader.Skip();");

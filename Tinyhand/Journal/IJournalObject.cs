@@ -20,6 +20,12 @@ public interface IJournalObject
         this.Key = key;
     }
 
+    public void SetParentInternal(IJournalObject parent, int key = -1)
+    {
+        this.Parent = parent;
+        this.Key = key;
+    }
+
     public bool TryGetJournalWriter([NotNullWhen(true)] out ITinyhandJournal? journal, out TinyhandWriter writer)
     {
         var p = this.Parent;
