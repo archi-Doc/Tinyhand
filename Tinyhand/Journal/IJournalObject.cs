@@ -14,13 +14,13 @@ public interface IJournalObject
 
     int Key { get; protected set; } // Plane or IntKey
 
-    public void SetParent(IJournalObject parent, int key = -1)
+    public void SetParent(IJournalObject? parent, int key = -1)
     {
         this.Parent = parent;
         this.Key = key;
     }
 
-    public void SetParentInternal(IJournalObject parent, int key = -1)
+    public void SetParentInternal(IJournalObject? parent, int key = -1)
     {
         this.Parent = parent;
         this.Key = key;

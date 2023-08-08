@@ -2889,8 +2889,8 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateSetParent(ScopingStringBuilder ssb, GeneratorInformation info)
-    {// public void SetParent(IJournalObject parent, int key = -1)
-        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IJournalObject}.SetParent({TinyhandBody.IJournalObject} parent, int key)"))
+    {// public void SetParent(IJournalObject? parent, int key = -1)
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IJournalObject}.SetParent({TinyhandBody.IJournalObject}? parent, int key)"))
         {
             ssb.AppendLine($"(({TinyhandBody.IJournalObject})this).SetParentInternal(parent, key);");
 
