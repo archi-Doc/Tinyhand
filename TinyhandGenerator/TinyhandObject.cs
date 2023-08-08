@@ -2497,7 +2497,7 @@ ModuleInitializerClass_Added:
 
         if (typeObject.ObjectAttribute?.Journaling == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
         {
-            ssb.AppendLine($"(({TinyhandBody.IJournalObject}){ssb.FullObject}).SetParent({parent}, {key.ToString()});");
+            ssb.AppendLine($"(({TinyhandBody.IJournalObject}){ssb.FullObject})?.SetParent({parent}, {key.ToString()});");
         }
     }
 
