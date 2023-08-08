@@ -26,7 +26,7 @@ public interface IJournalObject
         this.Key = key;
     }
 
-    public bool TryGetJournalWriter([NotNullWhen(true)] out ITinyhandJournal? journal, out TinyhandWriter writer)
+    public bool TryGetJournalWriter([NotNullWhen(true)] out ITinyhandJournal? journal, out TinyhandWriter writer, bool includeCurrent = true)
     {
         var p = this.Parent;
         if (p == null)
@@ -60,7 +60,11 @@ public interface IJournalObject
                     journal.TryGetJournalWriter(JournalType.Record, out writer);
                 }
 
-                this.WriteKeyOrLocator(ref writer);
+                if (includeCurrent)
+                {
+                    this.WriteKeyOrLocator(ref writer);
+                }
+
                 return true;
             }
             else
@@ -81,7 +85,11 @@ public interface IJournalObject
                     }
 
                     p.WriteKeyOrLocator(ref writer);
-                    this.WriteKeyOrLocator(ref writer);
+                    if (includeCurrent)
+                    {
+                        this.WriteKeyOrLocator(ref writer);
+                    }
+
                     return true;
                 }
                 else
@@ -103,7 +111,11 @@ public interface IJournalObject
 
                         p2.WriteKeyOrLocator(ref writer);
                         p.WriteKeyOrLocator(ref writer);
-                        this.WriteKeyOrLocator(ref writer);
+                        if (includeCurrent)
+                        {
+                            this.WriteKeyOrLocator(ref writer);
+                        }
+
                         return true;
                     }
                     else
@@ -126,7 +138,11 @@ public interface IJournalObject
                             p3.WriteKeyOrLocator(ref writer);
                             p2.WriteKeyOrLocator(ref writer);
                             p.WriteKeyOrLocator(ref writer);
-                            this.WriteKeyOrLocator(ref writer);
+                            if (includeCurrent)
+                            {
+                                this.WriteKeyOrLocator(ref writer);
+                            }
+
                             return true;
                         }
                         else
@@ -150,8 +166,42 @@ public interface IJournalObject
                                 p3.WriteKeyOrLocator(ref writer);
                                 p2.WriteKeyOrLocator(ref writer);
                                 p.WriteKeyOrLocator(ref writer);
-                                this.WriteKeyOrLocator(ref writer);
+                                if (includeCurrent)
+                                {
+                                    this.WriteKeyOrLocator(ref writer);
+                                }
+
                                 return true;
+                            }
+                            else
+                            {
+                                var p7 = p6.Parent;
+                                if (p7 is null)
+                                {
+                                    if (p6.Journal is null)
+                                    {
+                                        journal = null;
+                                        writer = default;
+                                        return false;
+                                    }
+                                    else
+                                    {
+                                        journal = p6.Journal;
+                                        journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                    }
+
+                                    p5.WriteKeyOrLocator(ref writer);
+                                    p4.WriteKeyOrLocator(ref writer);
+                                    p3.WriteKeyOrLocator(ref writer);
+                                    p2.WriteKeyOrLocator(ref writer);
+                                    p.WriteKeyOrLocator(ref writer);
+                                    if (includeCurrent)
+                                    {
+                                        this.WriteKeyOrLocator(ref writer);
+                                    }
+
+                                    return true;
+                                }
                             }
                         }
                     }
