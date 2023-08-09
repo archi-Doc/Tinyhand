@@ -2958,7 +2958,12 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine();
             }
 
-            ssb.AppendLine("KeyLoop:", false);
+            if (this.IntKey_Number > 0 ||
+                (this.StringTrie is not null && this.StringTrie.NameToNode.Count > 0))
+            {
+                ssb.AppendLine("KeyLoop:", false);
+            }
+
             ssb.AppendLine("var record = reader.Read_Record();");
             using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
             {
