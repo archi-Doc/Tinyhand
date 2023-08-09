@@ -106,10 +106,10 @@ public record TinyhandSerializerOptions
     /// </summary>
     public TinyhandComposeOption Compose { get; init; } = TinyhandComposeOption.Standard;
 
-    /// <summary>
+    /*/// <summary>
     /// Gets the serialization plane.
     /// </summary>
-    public uint Plane { get; init; }
+    public uint Plane { get; init; }*/
 
     /// <summary>
     /// Gets the serialization mode.
