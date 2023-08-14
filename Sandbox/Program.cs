@@ -13,13 +13,13 @@ using ValueLink;
 
 namespace Sandbox;
 
-[TinyhandObject(LockObject = "semaphore", Journaling = true)]
+[TinyhandObject(LockObject = "semaphore", Journal = true)]
 public partial class PropertyTestClass2 : PropertyTestClass
 {
 }
 
-[TinyhandObject(Journaling = true)]
-public partial class JournalingClass
+[TinyhandObject(Journal = true)]
+public partial class JournalClass
 {
     [Key(0)]
     public int X { get; set; }
@@ -73,7 +73,7 @@ public abstract partial class LockObjectClass<T>
 }
 
 /*[ValueLinkObject]
-[TinyhandObject(Journaling = true, LockObject = "syncObject")]
+[TinyhandObject(Journal = true, LockObject = "syncObject")]
 public partial class TestItem
 {
     [Key(0, AddProperty = "X")]

@@ -77,7 +77,7 @@ internal static class JournalShared
             }
 
             // Value
-            var writeValue = obj.CodeWriter(ssb.FullObject);
+            var writeValue = obj.CodeWriter("value"); // ssb.FullObject "this.id" -> "value"
             if (writeValue is not null)
             {
                 ssb.AppendLine("writer.Write_Value();");
