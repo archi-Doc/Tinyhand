@@ -137,4 +137,10 @@ public static class JournalHelper
     {
         return reader.Remaining > 0 && reader.NextCode == (byte)JournalRecord.Key;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsNext_NonValue(ref this TinyhandReader reader)
+    {
+        return reader.Remaining > 0 && reader.NextCode != (byte)JournalRecord.Value;
+    }
 }
