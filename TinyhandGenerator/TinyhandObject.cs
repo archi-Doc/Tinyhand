@@ -3074,7 +3074,7 @@ ModuleInitializerClass_Added:
                 x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject) == true ||
                 x.TypeObject?.Kind == VisceralObjectKind.Error)
             {
-                ssb.AppendLine($"if (reader.IsNext_Key() && {ssb.FullObject} is {TinyhandBody.IJournalObject} obj && obj.ReadRecord(ref reader)) return true;");
+                ssb.AppendLine($"if (reader.IsNext_NonValue() && {ssb.FullObject} is {TinyhandBody.IJournalObject} obj && obj.ReadRecord(ref reader)) return true;");
             }
 
             ssb.AppendLine("reader.Read_Value();");
