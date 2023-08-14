@@ -19,7 +19,7 @@ public partial class PropertyTestClass2 : PropertyTestClass
 }
 
 [TinyhandObject(Journal = true)]
-public partial class JournalClass
+public partial class JournalClass : ITinyhandCustomJournal
 {
     [Key(0)]
     public int X { get; set; }
@@ -29,6 +29,15 @@ public partial class JournalClass
 
     [Key(2)]
     public KeyValueList<int, string> List5 { get; set; } = default!;
+
+    bool ITinyhandCustomJournal.ReadCustomRecord(ref TinyhandReader reader)
+    {
+        return false;
+    }
+
+    void ITinyhandCustomJournal.WriteCustomLocator(ref TinyhandWriter writer)
+    {
+    }
 }
 
 [TinyhandObject]

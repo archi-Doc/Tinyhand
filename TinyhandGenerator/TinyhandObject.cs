@@ -61,7 +61,7 @@ public enum TinyhandObjectFlag
     CanCreateInstance = 1 << 22, // Can create an instance
     InterfaceImplemented = 1 << 23, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
     HasIJournalObject = 1 << 24, // Has IJournalObject interface
-    HasITinyhandCustomJournal = 1 << 24, // Has ITinyhandCustomJournal interface
+    HasITinyhandCustomJournal = 1 << 25, // Has ITinyhandCustomJournal interface
     HasValueLinkObject = 1 << 26, // Has ValueLinkgObject attribute
     IsRepeatableRead = 1 << 27, // IsolationLevel.RepeatableRead
 }
@@ -1438,7 +1438,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             this.RequiresGetter = false;
             if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
             {// Repeatable read
-                this.ObjectFlag |= TinyhandObjectFlag.IsRepeatableRead;
+                this.RequiresSetter = false; // Main
+                // this.ObjectFlag |= TinyhandObjectFlag.IsRepeatableRead; // Alternative
             }
             else
             {// Other
@@ -2699,10 +2700,20 @@ ModuleInitializerClass_Added:
             {
                 ssb.AppendLine($"get => {ssb.FullObject};");
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
-                {// No setter
+                {// Repeatable read
+                    using (var m2 = ssb.ScopeBrace($"protected set"))
+                    {// Main
+                        // MaxLength
+                        if (x.MaxLengthAttribute is not null)
+                        {
+                            JournalShared.GenerateValue_MaxLength(ssb, x, x.MaxLengthAttribute);
+                        }
+
+                        ssb.AppendLine($"{ssb.FullObject} = value;");
+                    }
                 }
                 else
-                {
+                {// Other
                     using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
                     {
                         // Compare values
@@ -2731,14 +2742,6 @@ ModuleInitializerClass_Added:
                         }
 
                         ssb.AppendLine($"{ssb.FullObject} = value;");
-                        /*if (x.MaxLengthAttribute is null)
-                        {
-                            ssb.AppendLine($"{ssb.FullObject} = value;");
-                        }
-                        else
-                        {
-                            this.GenerateAddProperty_MaxLength(ssb, info, x, x.MaxLengthAttribute);
-                        }*/
 
                         // Update link
                         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasValueLinkObject) &&
