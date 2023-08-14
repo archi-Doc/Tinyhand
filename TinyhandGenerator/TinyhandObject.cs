@@ -52,17 +52,18 @@ public enum TinyhandObjectFlag
     HiddenMember = 1 << 10,
     AddPropertyTarget = 1 << 11,
 
-    HasITinyhandSerializationCallback = 1 << 20, // Has ITinyhandSerializationCallback interface
-    HasExplicitOnBeforeSerialize = 1 << 21, // ITinyhandSerializationCallback.OnBeforeSerialize()
-    HasExplicitOnAfterDeserialize = 1 << 22, // ITinyhandSerializationCallback.OnAfterDeserialize()
-    HasITinyhandSerialize = 1 << 23, // Has ITinyhandSerialize interface
-    HasITinyhandReconstruct = 1 << 24, // Has ITinyhandReconstruct interface
-    HasITinyhandClone = 1 << 26, // Has ITinyhandClone interface
-    CanCreateInstance = 1 << 27, // Can create an instance
-    InterfaceImplemented = 1 << 28, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
-    HasIJournalObject = 1 << 29, // Has IJournalObject interface
-    HasITinyhandCustomJournal = 1 << 30, // Has ITinyhandCustomJournal interface
-    HasValueLinkObject = 1 << 31, // Has ValueLinkgObject attribute
+    HasITinyhandSerializationCallback = 1 << 16, // Has ITinyhandSerializationCallback interface
+    HasExplicitOnBeforeSerialize = 1 << 17, // ITinyhandSerializationCallback.OnBeforeSerialize()
+    HasExplicitOnAfterDeserialize = 1 << 18, // ITinyhandSerializationCallback.OnAfterDeserialize()
+    HasITinyhandSerialize = 1 << 19, // Has ITinyhandSerialize interface
+    HasITinyhandReconstruct = 1 << 20, // Has ITinyhandReconstruct interface
+    HasITinyhandClone = 1 << 21, // Has ITinyhandClone interface
+    CanCreateInstance = 1 << 22, // Can create an instance
+    InterfaceImplemented = 1 << 23, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
+    HasIJournalObject = 1 << 24, // Has IJournalObject interface
+    HasITinyhandCustomJournal = 1 << 24, // Has ITinyhandCustomJournal interface
+    HasValueLinkObject = 1 << 26, // Has ValueLinkgObject attribute
+    IsRepeatableRead = 1 << 27, // IsolationLevel.RepeatableRead
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -294,7 +295,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     {
         get
         {
-            if (!string.IsNullOrEmpty(this.KeyAttribute?.AddProperty))
+            if (!string.IsNullOrEmpty(this.KeyAttribute?.AddProperty) &&
+                !this.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
             {
                 return this.KeyAttribute!.AddProperty;
             }
@@ -492,9 +494,22 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
                 }
             }
-            else if (x.FullName == TinyhandBody.ValueLinkObjectAttribute)
+            else if (x.FullName == ValueLinkObjectAttributeMock.FullName)
             {
-                this.ObjectFlag |= TinyhandObjectFlag.HasValueLinkObject;
+                try
+                {
+                    var valueLinkAttribute = ValueLinkObjectAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+
+                    this.ObjectFlag |= TinyhandObjectFlag.HasValueLinkObject;
+                    if (valueLinkAttribute.Isolation == IsolationLevel.RepeatableRead)
+                    {
+                        this.ObjectFlag |= TinyhandObjectFlag.IsRepeatableRead;
+                    }
+                }
+                catch (InvalidCastException)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                }
             }
         }
 
@@ -1419,9 +1434,16 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.Body.ReportDiagnostic(TinyhandBody.Error_DuplicateKeyword, this.KeyVisceralAttribute?.Location, parent.SimpleName, this.KeyAttribute.AddProperty);
             }
 
-            this.RequiresGetter = false;
-            this.RequiresSetter = false;
             this.ObjectFlag |= TinyhandObjectFlag.AddPropertyTarget;
+            this.RequiresGetter = false;
+            if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
+            {// Repeatable read
+                this.ObjectFlag |= TinyhandObjectFlag.IsRepeatableRead;
+            }
+            else
+            {// Other
+                this.RequiresSetter = false;
+            }
         }
 
         // MaxLength
@@ -1445,8 +1467,9 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute, this.Location);
             }
 
-            if (string.IsNullOrEmpty(this.KeyAttribute?.AddProperty))
-            {
+            if (string.IsNullOrEmpty(this.KeyAttribute?.AddProperty) &&
+                !parent.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
+            {// No add property and not repeatable read.
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute2, this.Location);
             }
         }
@@ -2675,48 +2698,61 @@ ModuleInitializerClass_Added:
             using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
             {
                 ssb.AppendLine($"get => {ssb.FullObject};");
-                using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
+                {// No setter
+                }
+                else
                 {
-                    // Compare value
-                    if (withNullable.Object.IsPrimitive)
+                    using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
                     {
-                        ssb.AppendLine($"if ({ssb.FullObject} == value) return;");
-                    }
-                    else
-                    {
-                        ssb.AppendLine($"if (EqualityComparer<{withNullable.Object.FullName}>.Default.Equals({ssb.FullObject}, value)) return;");
-                    }
+                        // Compare values
+                        if (withNullable.Object.IsPrimitive)
+                        {
+                            ssb.AppendLine($"if ({ssb.FullObject} == value) return;");
+                        }
+                        else
+                        {
+                            ssb.AppendLine($"if (EqualityComparer<{withNullable.Object.FullName}>.Default.Equals({ssb.FullObject}, value)) return;");
+                        }
 
-                    // Lock
-                    var lockExpression = this.GetLockExpression("this");
-                    var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+                        // MaxLength
+                        if (x.MaxLengthAttribute is not null)
+                        {
+                            JournalShared.GenerateValue_MaxLength(ssb, x, x.MaxLengthAttribute);
+                        }
 
-                    if (journal)
-                    {
-                        x.CodeJournal(ssb, null);
-                    }
+                        // Lock
+                        var lockExpression = this.GetLockExpression("this");
+                        var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
 
-                    if (x.MaxLengthAttribute == null)
-                    {
+                        if (journal)
+                        {
+                            x.CodeJournal(ssb, null);
+                        }
+
                         ssb.AppendLine($"{ssb.FullObject} = value;");
-                    }
-                    else
-                    {
-                        this.GenerateAddProperty_MaxLength(ssb, info, x, x.MaxLengthAttribute);
-                    }
+                        /*if (x.MaxLengthAttribute is null)
+                        {
+                            ssb.AppendLine($"{ssb.FullObject} = value;");
+                        }
+                        else
+                        {
+                            this.GenerateAddProperty_MaxLength(ssb, info, x, x.MaxLengthAttribute);
+                        }*/
 
-                    // Update link
-                    if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasValueLinkObject) &&
-                        x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
-                    {
-                        ssb.AppendLine($"this.{TinyhandBody.ValueLinkUpdate}{x.SimpleName}();");
-                    }
+                        // Update link
+                        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasValueLinkObject) &&
+                            x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
+                        {
+                            ssb.AppendLine($"this.{TinyhandBody.ValueLinkUpdate}{x.SimpleName}();");
+                        }
 
-                    lockScope?.Dispose();
+                        lockScope?.Dispose();
 
-                    if (journal)
-                    {
-                        ssb.AppendLine("this.Journal?.TryAddToSaveQueue();");
+                        if (journal)
+                        {
+                            ssb.AppendLine($"(({TinyhandBody.IJournalObject})this).Journal?.TryAddToSaveQueue();");
+                        }
                     }
                 }
             }
@@ -4052,7 +4088,7 @@ ModuleInitializerClass_Added:
         v1?.Dispose();
     }
 
-    internal void GenerateMaxLength(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject typeObject, MaxLengthAttributeMock attribute)
+    /*internal void GenerateMaxLength(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject typeObject, MaxLengthAttributeMock attribute)
     {
         if (typeObject.FullName == "string")
         {// string
@@ -4111,7 +4147,7 @@ ModuleInitializerClass_Added:
                 }
             }
         }
-    }
+    }*/
 
     internal void GenerateSerializerIntKey(ScopingStringBuilder ssb, GeneratorInformation info)
     {

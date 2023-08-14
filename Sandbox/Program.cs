@@ -72,20 +72,21 @@ public abstract partial class LockObjectClass<T>
     protected object syncObject = new();
 }
 
-/*[ValueLinkObject]
-[TinyhandObject(Journal = true, LockObject = "syncObject")]
-public partial class TestItem
+[ValueLinkObject(Isolation = IsolationLevel.RepeatableRead)]
+[TinyhandObject(Journal = true)]
+public partial record TestItem
 {
-    [Key(0, AddProperty = "X")]
-    [Link(Primary = true, Type = ChainType.Ordered)]
-    private int x;
+    [Key(0, AddProperty = "Id")]
+    [Link(Primary = true, Unique = true, Type = ChainType.Ordered)]
+    private int id;
+
+    [Key(1)]
+    [MaxLength(4)]
+    private string name = string.Empty;
 
     [Key(2)]
     public GoshujinClass? Class2 { get; set; } = default!; // Error
-
-    [IgnoreMember]
-    private object syncObject = new();
-}*/
+}
 
 public partial class NestParent
 {

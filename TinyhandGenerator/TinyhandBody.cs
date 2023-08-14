@@ -33,7 +33,6 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string ITinyhandJournal = "ITinyhandJournal";
     public static readonly string IJournalObject = "IJournalObject";
     public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
-    public static readonly string ValueLinkObjectAttribute = "ValueLink.ValueLinkObjectAttribute";
     public static readonly string ValueLinkUpdate = "__gen_cl_update_";
 
     public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
