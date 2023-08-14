@@ -2,7 +2,7 @@
   "profiles": {
     "TinyhandGenerator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\XUnitTest\\XUnitTest.csproj"
+      "targetProject": "..\\Sandbox\\Sandbox.csproj"
     }
   }
 }

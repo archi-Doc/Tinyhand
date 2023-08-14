@@ -8,6 +8,96 @@ namespace TinyhandGenerator;
 
 internal static class JournalShared
 {
+    public static void GenerateValue_MaxLength(ScopingStringBuilder ssb, TinyhandObject x, MaxLengthAttributeMock attribute)
+    {
+        if (x.TypeObject is not { } typeObject)
+        {
+            return;
+        }
+
+        if (typeObject.FullName == "string")
+        {// string
+            if (attribute.MaxLength >= 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if (value.Length > {attribute.MaxLength})"))
+                {// text = text.Substring(0, MaxLength);
+                    ssb.AppendLine($"value = value.Substring(0, {attribute.MaxLength});");
+                }
+            }
+        }
+        else if (typeObject.Array_Rank == 1)
+        {// T[]
+            if (attribute.MaxLength >= 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if (value.Length > {attribute.MaxLength})"))
+                {// array = array[..MaxLength];
+                    ssb.AppendLine($"value = value[..{attribute.MaxLength}];");
+                }
+            }
+
+            if (attribute.MaxChildLength >= 0)
+            {
+                if (typeObject.Array_Element?.FullName == "string")
+                {// string[]
+                    using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < value.Length; i++)"))
+                    {
+                        using (var scopeIf = ssb.ScopeBrace($"if (value[i].Length > {attribute.MaxChildLength})"))
+                        {// text = text.Substring(0, MaxLength);
+                            ssb.AppendLine($"value[i] = value[i].Substring(0, {attribute.MaxChildLength});");
+                        }
+                    }
+                }
+                else if (typeObject.Array_Element?.Array_Rank == 1)
+                {// T[][]
+                    using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < value.Length; i++)"))
+                    {
+                        using (var scopeIf = ssb.ScopeBrace($"if (value[i].Length > {attribute.MaxChildLength})"))
+                        {
+                            ssb.AppendLine($"value[i] = value[i][..{attribute.MaxChildLength}];");
+                        }
+                    }
+                }
+            }
+        }
+        else if (typeObject.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
+            typeObject.OriginalDefinition is { } baseObject &&
+            baseObject.FullName == "System.Collections.Generic.List<T>" &&
+            typeObject.Generics_Arguments.Length == 1)
+        {// List<T>
+            if (attribute.MaxLength >= 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if (value.Count > {attribute.MaxLength})"))
+                {// list = list.GetRange(0, MaxLength);
+                    ssb.AppendLine($"value = value.GetRange(0, {attribute.MaxLength});");
+                }
+            }
+
+            if (attribute.MaxChildLength >= 0)
+            {
+                if (typeObject.Generics_Arguments[0].FullName == "string")
+                {// List<string>
+                    using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < value.Count; i++)"))
+                    {
+                        using (var scopeIf = ssb.ScopeBrace($"if (value[i].Length > {attribute.MaxChildLength})"))
+                        {// text = text.Substring(0, MaxLength);
+                            ssb.AppendLine($"value[i] = value[i].Substring(0, {attribute.MaxChildLength});");
+                        }
+                    }
+                }
+                else if (typeObject.Generics_Arguments[0].Array_Rank == 1)
+                {// List<T[]>
+                    using (var scopeFor = ssb.ScopeBrace($"for (var i = 0; i < value.Count; i++)"))
+                    {
+                        using (var scopeIf = ssb.ScopeBrace($"if (value[i].Length > {attribute.MaxChildLength})"))
+                        {
+                            ssb.AppendLine($"value[i] = value[i][..{attribute.MaxChildLength}];");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public static string? CodeWriteKey(this TinyhandObject obj)
     {
         int intKey = -1;
