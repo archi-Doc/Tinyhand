@@ -95,6 +95,12 @@ public partial record TestItem
 
     [Key(2)]
     public GoshujinClass? Class2 { get; set; } = default!; // Error
+
+    [Key(3)]
+    public TestItem.GoshujinClass? Class3 { get; set; } = default!;
+
+    [Key(4)]
+    public GoshujinClass? Class4 { get; set; } = default!;
 }
 
 public partial class NestParent
