@@ -2523,6 +2523,12 @@ ModuleInitializerClass_Added:
         {
             ssb.AppendLine($"(({TinyhandBody.IJournalObject}){ssb.FullObject})?.SetParent({parent}, {key.ToString()});");
         }
+        else if (this.ObjectAttribute?.Journal == true && typeObject.Kind == VisceralObjectKind.Error)
+        {// Maybe generated class
+            var keyString = key.ToString();
+            var objName = "obj" + keyString;
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IJournalObject} {objName}) {objName}.SetParent({parent}, {keyString});");
+        }
     }
 
     internal void GenerateReconstruct_Method(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -3064,9 +3070,11 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
-            if (x.TypeObject?.ObjectAttribute?.Journal == true || x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject) == true)
+            if (x.TypeObject?.ObjectAttribute?.Journal == true ||
+                x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject) == true ||
+                x.TypeObject?.Kind == VisceralObjectKind.Error)
             {
-                ssb.AppendLine($"if (reader.IsNext_Key() && (({TinyhandBody.IJournalObject}){ssb.FullObject}).ReadRecord(ref reader)) return true;");
+                ssb.AppendLine($"if (reader.IsNext_Key() && {ssb.FullObject} is {TinyhandBody.IJournalObject} obj && obj.ReadRecord(ref reader)) return true;");
             }
 
             ssb.AppendLine("reader.Read_Value();");
@@ -3080,11 +3088,25 @@ ModuleInitializerClass_Added:
 
             var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
             if (coder != null)
-            {// Coder
+            {
                 coder.CodeDeserializer(ssb, info, true);
+            }
+            else
+            {
+                if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
+                {// T?
+                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                }
+                else
+                {// T
+                    ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
+                    ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
+                }
             }
 
             InitSetter_End();
+
+            this.GenerateJournal_SetParent(ssb, x, destObject);
 
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasValueLinkObject) &&
                 x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
