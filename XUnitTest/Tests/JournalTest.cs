@@ -16,8 +16,8 @@ public readonly partial struct JournalIdentifier
     public readonly int Id1;
 }
 
-[TinyhandObject(Journaling = true)]
-public partial class JournalingClass
+[TinyhandObject(Journal = true)]
+public partial class JournalClass
 {
     [Key(0)]
     public int X0 { get; set; }
@@ -38,10 +38,10 @@ public partial class JournalingClass
     public int X6 { get; set; }
 }
 
-[TinyhandObject(Journaling = true, LockObject = "semaphore")]
-public partial class JournalingClass2
+[TinyhandObject(Journal = true, LockObject = "semaphore")]
+public partial class JournalClass2
 {
-    public JournalingClass2()
+    public JournalClass2()
     {
     }
 
@@ -69,18 +69,18 @@ public partial class JournalingClass2
     protected SemaphoreLock semaphore = new();
 }
 
-[TinyhandObject(Journaling = true)]
-public partial class JournalingClass2B
+[TinyhandObject(Journal = true)]
+public partial class JournalClass2B
 {
     [Key(1)]
-    public JournalingClass2 Class1 { get; set; }
+    public JournalClass2 Class1 { get; set; }
 
     [Key(2)]
-    public JournalingTestClass Class2 { get; set; }
+    public JournalTestClass Class2 { get; set; }
 }
 
-[TinyhandObject(Journaling = true, LockObject = "syncObject")]
-public partial class JournalingClass3 : ITinyhandCustomJournal
+[TinyhandObject(Journal = true, LockObject = "syncObject")]
+public partial class JournalClass3 : ITinyhandCustomJournal
 {
     [Key(0)]
     public int X0 { get; set; }
@@ -103,14 +103,14 @@ public partial class JournalingClass3 : ITinyhandCustomJournal
     }
 }
 
-[TinyhandObject(Journaling = true)]
-public partial class JournalingTestClass
+[TinyhandObject(Journal = true)]
+public partial class JournalTestClass
 {
-    public JournalingTestClass()
+    public JournalTestClass()
     {
     }
 
-    public JournalingTestClass(int id, string name)
+    public JournalTestClass(int id, string name)
     {
         this.id = id;
         this.name = name;
@@ -123,21 +123,21 @@ public partial class JournalingTestClass
     private string name = string.Empty;
 }
 
-public class JournalingTest
+public class JournalTest
 {
     [Fact]
     public void Test1()
     {
         var tester = new JournalTester();
-        var c = new JournalingTestClass(1, "one");
+        var c = new JournalTestClass(1, "one");
 
-        var cc = new JournalingTestClass();
+        var cc = new JournalTestClass();
         cc.Journal = tester;
         cc.Id = c.Id;
         cc.Name = c.Name;
 
         var journal = tester.GetJournal();
-        var c2 = new JournalingTestClass();
+        var c2 = new JournalTestClass();
         JournalHelper.ReadJournal(c2, journal).IsTrue();
 
         c2.IsStructuralEqual(c);
@@ -147,7 +147,7 @@ public class JournalingTest
     public void Test2()
     {
         var tester = new JournalTester();
-        var c = TinyhandSerializer.Reconstruct<JournalingClass2B>();
+        var c = TinyhandSerializer.Reconstruct<JournalClass2B>();
         c.Journal = tester;
 
         c.Class1.X7 = 77;
@@ -155,7 +155,7 @@ public class JournalingTest
         c.Class2.Name = "AA";
 
         var journal = tester.GetJournal();
-        var c2 = TinyhandSerializer.Reconstruct<JournalingClass2B>();
+        var c2 = TinyhandSerializer.Reconstruct<JournalClass2B>();
         JournalHelper.ReadJournal(c2, journal).IsTrue();
 
         c.Class1.X7.Is(c2.Class1.X7);

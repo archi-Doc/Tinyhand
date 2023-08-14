@@ -1720,7 +1720,7 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            if (this.ObjectAttribute.Journaling && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+            if (this.ObjectAttribute.Journal && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
             {
                 if (interfaceString == string.Empty)
                 {
@@ -1804,7 +1804,7 @@ ModuleInitializerClass_Added:
 
                 x.GenerateMethod(ssb, info);
 
-                if (x.ObjectAttribute.Journaling && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+                if (x.ObjectAttribute.Journal && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
                 {
                     x.GenerateITinyhandJournal(ssb, info);
                 }
@@ -2113,7 +2113,7 @@ ModuleInitializerClass_Added:
             }
 
             // Update plane
-            /*if (this.ObjectAttribute?.Journaling == true ||
+            /*if (this.ObjectAttribute?.Journal == true ||
                 this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
             {
                 ssb.AppendLine($"{ssb.FullObject}.CurrentPlane = options.Plane;");
@@ -2495,7 +2495,7 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        if (typeObject.ObjectAttribute?.Journaling == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+        if (typeObject.ObjectAttribute?.Journal == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
         {
             ssb.AppendLine($"(({TinyhandBody.IJournalObject}){ssb.FullObject})?.SetParent({parent}, {key.ToString()});");
         }
@@ -2661,7 +2661,7 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
-            var journal = this.ObjectAttribute?.Journaling == true ||
+            var journal = this.ObjectAttribute?.Journal == true ||
                 this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject);
 
             string setterAccessibility = string.Empty;
@@ -2691,6 +2691,11 @@ ModuleInitializerClass_Added:
                     var lockExpression = this.GetLockExpression("this");
                     var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
 
+                    if (journal)
+                    {
+                        x.CodeJournal(ssb, null);
+                    }
+
                     if (x.MaxLengthAttribute == null)
                     {
                         ssb.AppendLine($"{ssb.FullObject} = value;");
@@ -2705,11 +2710,6 @@ ModuleInitializerClass_Added:
                         x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
                     {
                         ssb.AppendLine($"this.{TinyhandBody.ValueLinkUpdate}{x.SimpleName}();");
-                    }
-
-                    if (journal)
-                    {
-                        x.CodeJournal(ssb, null);
                     }
 
                     lockScope?.Dispose();
@@ -3025,7 +3025,7 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
-            if (x.TypeObject?.ObjectAttribute?.Journaling == true || x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject) == true)
+            if (x.TypeObject?.ObjectAttribute?.Journal == true || x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject) == true)
             {
                 ssb.AppendLine($"if (reader.IsNext_Key() && (({TinyhandBody.IJournalObject}){ssb.FullObject}).ReadRecord(ref reader)) return true;");
             }
