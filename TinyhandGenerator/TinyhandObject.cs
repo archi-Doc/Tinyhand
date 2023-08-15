@@ -2964,7 +2964,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"bool {TinyhandBody.IJournalObject}.ReadRecord(ref TinyhandReader reader)"))
+        using (var scopeMethod = ssb.ScopeBrace($"{this.UnsafeDeserializeString}bool {TinyhandBody.IJournalObject}.ReadRecord(ref TinyhandReader reader)"))
         {
             // Lock
             var lockExpression = this.GetLockExpression("this");

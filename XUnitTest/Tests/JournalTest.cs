@@ -36,6 +36,9 @@ public partial class JournalClass
 
     [Key(5)]
     public int X6 { get; set; }
+
+    [Key(6)]
+    public readonly int Id3;
 }
 
 [TinyhandObject(Journal = true, LockObject = "semaphore")]
