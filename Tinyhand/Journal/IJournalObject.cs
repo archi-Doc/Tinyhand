@@ -10,25 +10,25 @@ public interface IJournalObject
 {// TinyhandGenerator, ValueLinkGenerator
     ITinyhandJournal? Journal { get; set; }
 
-    IJournalObject? Parent { get; protected set; }
+    IJournalObject? JournalParent { get; protected set; }
 
-    int Key { get; protected set; } // Plane or IntKey
+    int JournalKey { get; protected set; } // Plane or IntKey
 
     public void SetParent(IJournalObject? parent, int key = -1)
     {
-        this.Parent = parent;
-        this.Key = key;
+        this.JournalParent = parent;
+        this.JournalKey = key;
     }
 
     public void SetParentInternal(IJournalObject? parent, int key = -1)
     {
-        this.Parent = parent;
-        this.Key = key;
+        this.JournalParent = parent;
+        this.JournalKey = key;
     }
 
     public bool TryGetJournalWriter([NotNullWhen(true)] out ITinyhandJournal? journal, out TinyhandWriter writer, bool includeCurrent = true)
     {
-        var p = this.Parent;
+        var p = this.JournalParent;
         if (p == null)
         {
             if (this.Journal is null)
@@ -45,7 +45,7 @@ public interface IJournalObject
         }
         else
         {
-            var p2 = p.Parent;
+            var p2 = p.JournalParent;
             if (p2 is null)
             {
                 if (p.Journal is null)
@@ -69,7 +69,7 @@ public interface IJournalObject
             }
             else
             {
-                var p3 = p2.Parent;
+                var p3 = p2.JournalParent;
                 if (p3 is null)
                 {
                     if (p2.Journal is null)
@@ -94,7 +94,7 @@ public interface IJournalObject
                 }
                 else
                 {
-                    var p4 = p3.Parent;
+                    var p4 = p3.JournalParent;
                     if (p4 is null)
                     {
                         if (p3.Journal is null)
@@ -120,7 +120,7 @@ public interface IJournalObject
                     }
                     else
                     {
-                        var p5 = p4.Parent;
+                        var p5 = p4.JournalParent;
                         if (p5 is null)
                         {
                             if (p4.Journal is null)
@@ -147,7 +147,7 @@ public interface IJournalObject
                         }
                         else
                         {
-                            var p6 = p5.Parent;
+                            var p6 = p5.JournalParent;
                             if (p6 is null)
                             {
                                 if (p5.Journal is null)
@@ -175,7 +175,7 @@ public interface IJournalObject
                             }
                             else
                             {
-                                var p7 = p6.Parent;
+                                var p7 = p6.JournalParent;
                                 if (p7 is null)
                                 {
                                     if (p6.Journal is null)
@@ -224,10 +224,10 @@ public interface IJournalObject
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteKeyOrLocator(ref TinyhandWriter writer)
     {
-        if (this.Key >= 0)
+        if (this.JournalKey >= 0)
         {
             writer.Write_Key();
-            writer.Write(this.Key);
+            writer.Write(this.JournalKey);
         }
         else
         {

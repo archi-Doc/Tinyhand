@@ -816,9 +816,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             {
                 if (this.IsRecord)
                 {
-                    this.MinimumConstructor = this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).First();
+                    this.MinimumConstructor = this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
                 }
-                else if (this.ObjectAttribute?.UseServiceProvider == false &&
+
+                if (this.MinimumConstructor == null &&
+                    this.ObjectAttribute?.UseServiceProvider == false &&
                     this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
@@ -2926,8 +2928,8 @@ ModuleInitializerClass_Added:
         ssb.AppendLine();
 
         ssb.AppendLine($"[IgnoreMember] public {TinyhandBody.ITinyhandJournal}? Journal {{ get; set; }}");
-        ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IJournalObject}? {TinyhandBody.IJournalObject}.Parent {{ get; set; }}");
-        ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IJournalObject}.Key {{ get; set; }} = -1;");
+        ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IJournalObject}? {TinyhandBody.IJournalObject}.JournalParent {{ get; set; }}");
+        ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IJournalObject}.JournalKey {{ get; set; }} = -1;");
 
         this.GenerateSetParent(ssb, info);
         this.GenerateReadRecord(ssb, info);
