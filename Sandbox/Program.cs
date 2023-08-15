@@ -7,11 +7,36 @@ using Sandbox.ZenItz;
 using Tinyhand;
 using Tinyhand.IO;
 using ValueLink;
+using System.Xml.Linq;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
 
 namespace Sandbox;
+
+public enum TestEnum
+{
+    A,
+    B,
+}
+
+[TinyhandObject]
+public partial class TestEnumBase
+{
+    [Key(0, AddProperty = "DataType")]
+    protected int dataType;
+}
+
+[TinyhandObject]
+public partial class TestEnumClass : TestEnumBase
+{
+    /*[IgnoreMember]
+    public new TestEnum DataType
+    {// Cannot serialize a hidden and type-changed member.
+        get => (TestEnum)this.dataType;
+        set => this.dataType = (int)value;
+    }*/
+}
 
 [TinyhandObject(LockObject = "semaphore", Journal = true)]
 public partial class PropertyTestClass2 : PropertyTestClass
@@ -81,7 +106,7 @@ public abstract partial class LockObjectClass<T>
     protected object syncObject = new();
 }
 
-/*[ValueLinkObject(Isolation = IsolationLevel.RepeatableRead)]
+[ValueLinkObject(Isolation = IsolationLevel.RepeatableRead)]
 [TinyhandObject(Journal = true)]
 public partial record TestItem
 {
@@ -101,7 +126,7 @@ public partial record TestItem
 
     [Key(4)]
     public GoshujinClass? Class4 { get; set; } = default!;
-}*/
+}
 
 public partial class NestParent
 {
