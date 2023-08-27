@@ -4189,12 +4189,12 @@ ModuleInitializerClass_Added:
         {
             if (x?.KeyAttribute?.Condition == false)
             {// Conditional
-                using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
+                /*using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
                 {
                     ssb.AppendLine("writer.WriteNil();");
-                }
+                }*/
 
-                using (var scopeIf = ssb.ScopeBrace("else if (options.IsSignatureMode)"))
+                using (var scopeIf = ssb.ScopeBrace("if (options.IsSignatureMode)"))
                 {
                 }
 
@@ -4231,12 +4231,12 @@ ModuleInitializerClass_Added:
 
             if (x.Member?.KeyAttribute?.Condition == false)
             {// Conditional
-                using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
+                /*using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
                 {
                     ssb.AppendLine("writer.WriteNil();");
-                }
+                }*/
 
-                using (var scopeIf = ssb.ScopeBrace("else if (options.IsSignatureMode)"))
+                using (var scopeIf = ssb.ScopeBrace("if (options.IsSignatureMode)"))
                 {
                 }
 

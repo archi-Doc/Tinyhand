@@ -88,8 +88,8 @@ public class ConditionTest
         tc2.A = "A";
         tc2.Z = 3;
 
-        var b = TinyhandSerializer.Serialize(tc, TinyhandSerializerOptions.Conditional);
-        var b2 = TinyhandSerializer.Serialize(tc2, TinyhandSerializerOptions.Conditional);
+        var b = TinyhandSerializer.Serialize(tc, TinyhandSerializerOptions.Standard); // tempcode
+        var b2 = TinyhandSerializer.Serialize(tc2, TinyhandSerializerOptions.Standard); // tempcode
         b.SequenceEqual(b2).IsTrue();
 
         var d = TinyhandSerializer.Deserialize<ConditionIntClass>(b);
@@ -117,8 +117,8 @@ public class ConditionTest
         tc2.A = "A";
         tc2.Z = 3;
 
-        var b = TinyhandSerializer.Serialize(tc, TinyhandSerializerOptions.Conditional);
-        var b2 = TinyhandSerializer.Serialize(tc2, TinyhandSerializerOptions.Conditional);
+        var b = TinyhandSerializer.Serialize(tc, TinyhandSerializerOptions.Standard); // tempcode
+        var b2 = TinyhandSerializer.Serialize(tc2, TinyhandSerializerOptions.Standard); // tempcode
         b.SequenceEqual(b2).IsTrue();
 
         var d = TinyhandSerializer.Deserialize<ConditionStringClass>(b);
