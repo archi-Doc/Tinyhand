@@ -4187,20 +4187,22 @@ ModuleInitializerClass_Added:
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
-            if (x?.KeyAttribute?.Condition == false)
-            {// Conditional
-                using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
-                {
-                    ssb.AppendLine("writer.WriteNil();");
-                }
+            if (x?.KeyAttribute?.Level is int level && level >= 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})"))
+                {// writer.Level >= Level
+                    var decrease = x?.TypeObject?.ObjectAttribute is not null;
+                    if (decrease)
+                    {
+                        ssb.AppendLine($"writer.Level -= {level};");
+                    }
 
-                using (var scopeIf = ssb.ScopeBrace("else if (options.IsSignatureMode)"))
-                {
-                }
-
-                using (var scopeElse = ssb.ScopeBrace("else"))
-                {
                     this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+
+                    if (decrease)
+                    {
+                        ssb.AppendLine($"writer.Level += {level};");
+                    }
                 }
             }
             else
@@ -4229,20 +4231,21 @@ ModuleInitializerClass_Added:
         {
             ssb.AppendLine($"writer.WriteString({x.Utf8String});");
 
-            if (x.Member?.KeyAttribute?.Condition == false)
-            {// Conditional
-                using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
+            if (x.Member?.KeyAttribute?.Level is int level && level >= 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})"))
                 {
-                    ssb.AppendLine("writer.WriteNil();");
-                }
+                    var decrease = x.Member?.TypeObject?.ObjectAttribute is not null;
+                    if (decrease)
+                    {
+                        ssb.AppendLine($"writer.Level -= {level};");
+                    }
 
-                using (var scopeIf = ssb.ScopeBrace("else if (options.IsSignatureMode)"))
-                {
-                }
-
-                using (var scopeElse = ssb.ScopeBrace("else"))
-                {
                     this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
+                    if (decrease)
+                    {
+                        ssb.AppendLine($"writer.Level += {level};");
+                    }
                 }
             }
             else

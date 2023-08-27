@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection.Emit;
 using Tinyhand;
 using Xunit;
 
@@ -213,7 +214,7 @@ public partial class DefaultValueTest
         [Key(1)]
         public string Name { get; set; } = string.Empty;
 
-        [Key(2, Condition = false)]
+        [Key(2, Level = 1)]
         public byte[] Signature = Array.Empty<byte>();
     }
 
@@ -226,7 +227,7 @@ public partial class DefaultValueTest
         [Key(1)]
         public string Name { get; set; } = string.Empty;
 
-        [Key(2, Condition = false)]
+        [Key(2, Level = 1)]
         public byte[] Signature = Array.Empty<byte>();
 
         [Key(3)]
@@ -244,20 +245,20 @@ public partial class DefaultValueTest
         var v1 = new TokenClassV1();
         v1.Id = 1;
         v1.Name = "Test";
-        v1.Signature = TinyhandSerializer.Serialize(v1, TinyhandSerializerOptions.Signature);
-        v1.Signature.SequenceEqual(TinyhandSerializer.Serialize(v1, TinyhandSerializerOptions.Signature)).IsTrue();
+        v1.Signature = TinyhandSerializer.SerializeSignature(v1, 0);
+        v1.Signature.SequenceEqual(TinyhandSerializer.SerializeSignature(v1, 0)).IsTrue();
 
         var v2 = new TokenClassV2();
         v2.Id = 1;
         v2.Name = "Test";
         v2.AddedMember = 1;
-        v2.Signature = TinyhandSerializer.Serialize(v2, TinyhandSerializerOptions.Signature);
-        v2.Signature.SequenceEqual(TinyhandSerializer.Serialize(v2, TinyhandSerializerOptions.Signature)).IsTrue();
+        v2.Signature = TinyhandSerializer.SerializeSignature(v2, 0);
+        v2.Signature.SequenceEqual(TinyhandSerializer.SerializeSignature(v2, 0)).IsTrue();
         v2.Signature.SequenceEqual(v1.Signature).IsFalse();
 
         var b1 = TinyhandSerializer.Serialize(v1);
         v2 = TinyhandSerializer.Deserialize<TokenClassV2>(b1);
-        var sig = TinyhandSerializer.Serialize(v2, TinyhandSerializerOptions.Signature);
+        var sig = TinyhandSerializer.SerializeSignature(v2, 0);
         v2.Signature.SequenceEqual(sig).IsTrue();
     }
 }

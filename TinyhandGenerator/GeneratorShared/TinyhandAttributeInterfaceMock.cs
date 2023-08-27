@@ -173,7 +173,7 @@ public class KeyAttributeMock
 
     public string? StringKey { get; private set; }
 
-    public bool Condition { get; private set; } = true;
+    public int Level { get; set; } = -1;
 
     public string AddProperty { get; set; } = string.Empty;
 
@@ -211,10 +211,10 @@ public class KeyAttributeMock
             throw new ArgumentNullException();
         }
 
-        var v = AttributeHelper.GetValue(-1, nameof(Condition), constructorArguments, namedArguments);
+        var v = AttributeHelper.GetValue(-1, nameof(Level), constructorArguments, namedArguments);
         if (v != null)
         {
-            attribute.Condition = (bool)v;
+            attribute.Level = (int)v;
         }
 
         v = AttributeHelper.GetValue(-1, nameof(AddProperty), constructorArguments, namedArguments);
