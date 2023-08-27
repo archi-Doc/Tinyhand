@@ -4191,7 +4191,18 @@ ModuleInitializerClass_Added:
             {
                 using (var scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})"))
                 {// writer.Level >= Level
+                    var decrease = x?.TypeObject?.ObjectAttribute is not null;
+                    if (decrease)
+                    {
+                        ssb.AppendLine($"writer.Level -= {level};");
+                    }
+
                     this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+
+                    if (decrease)
+                    {
+                        ssb.AppendLine($"writer.Level += {level};");
+                    }
                 }
             }
             else
@@ -4224,7 +4235,17 @@ ModuleInitializerClass_Added:
             {
                 using (var scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})"))
                 {
+                    var decrease = x.Member?.TypeObject?.ObjectAttribute is not null;
+                    if (decrease)
+                    {
+                        ssb.AppendLine($"writer.Level -= {level};");
+                    }
+
                     this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
+                    if (decrease)
+                    {
+                        ssb.AppendLine($"writer.Level += {level};");
+                    }
                 }
             }
             else

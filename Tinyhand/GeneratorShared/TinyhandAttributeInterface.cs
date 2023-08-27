@@ -130,7 +130,7 @@ public class KeyAttribute : Attribute
     public string? StringKey { get; private set; }
 
     /// <summary>
-    /// Gets or sets the level for serialization (will be serialized if Writer.Level is the same or greater than this) [default is -1 (disabled)].
+    /// Gets or sets the level for signature (will be serialized if Writer.Level is the same or greater than this) [default is -1 (disabled)].
     /// </summary>
     public int Level { get; set; } = -1;
 

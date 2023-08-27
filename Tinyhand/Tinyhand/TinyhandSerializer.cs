@@ -279,13 +279,11 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
-    /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A byte array with the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static byte[] SerializeWithLevel<T>(T value, int level, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
+    public static byte[] SerializeSignature<T>(T value, int level, CancellationToken cancellationToken = default)
     {
-        options = options ?? DefaultOptions;
         if (initialBuffer == null)
         {
             initialBuffer = new byte[InitialBufferSize];
@@ -294,20 +292,14 @@ public static partial class TinyhandSerializer
         var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken, Level = level, };
         try
         {
-            if (options.Compression == TinyhandCompression.None)
+            var options = TinyhandSerializerOptions.Signature;
+            try
             {
-                try
-                {
-                    options.Resolver.GetFormatter<T>().Serialize(ref writer, value, options);
-                }
-                catch (Exception ex)
-                {
-                    throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
-                }
+                options.Resolver.GetFormatter<T>().Serialize(ref writer, value, options);
             }
-            else
+            catch (Exception ex)
             {
-                Serialize(ref writer, value, options);
+                throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
             }
 
             return writer.FlushAndGetArray();
