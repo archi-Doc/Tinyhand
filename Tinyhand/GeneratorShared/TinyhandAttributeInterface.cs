@@ -130,9 +130,9 @@ public class KeyAttribute : Attribute
     public string? StringKey { get; private set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to serialize this member during conditional serialization [default is <see langword="true"/>].
+    /// Gets or sets the level for serialization (will be serialized if Writer.Level is the same or greater than this).
     /// </summary>
-    public bool Condition { get; set; } = true;
+    public int Level { get; set; }
 
     /// <summary>
     /// Gets or sets a name of a property that will be created from the field.<br/>

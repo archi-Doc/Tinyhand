@@ -30,6 +30,11 @@ public ref struct TinyhandWriter
     }
 
     /// <summary>
+    /// Gets or sets the level for serialization (members with this level or lower will be serialized).
+    /// </summary>
+    public int Level { get; set; }
+
+    /// <summary>
     /// Gets or sets the cancellation token for this serialization operation.
     /// </summary>
     public CancellationToken CancellationToken { get; set; } = default;
@@ -946,10 +951,10 @@ public ref struct TinyhandWriter
         fixed (char* pValue = value)
         {
             fixed (byte* pBuffer = &buffer)
-        {
-            int byteCount = Encoding.UTF8.GetBytes(pValue, value.Length, pBuffer + useOffset, bufferSize);
-            this.WriteString_PostEncoding(pBuffer, useOffset, byteCount);
-        }
+            {
+                int byteCount = Encoding.UTF8.GetBytes(pValue, value.Length, pBuffer + useOffset, bufferSize);
+                this.WriteString_PostEncoding(pBuffer, useOffset, byteCount);
+            }
         }
     }
 
@@ -967,10 +972,10 @@ public ref struct TinyhandWriter
         fixed (char* pValue = value)
         {
             fixed (byte* pBuffer = &buffer)
-        {
-            int byteCount = Encoding.UTF8.GetBytes(pValue, value.Length, pBuffer + useOffset, bufferSize);
-            this.WriteString_PostEncoding(pBuffer, useOffset, byteCount);
-        }
+            {
+                int byteCount = Encoding.UTF8.GetBytes(pValue, value.Length, pBuffer + useOffset, bufferSize);
+                this.WriteString_PostEncoding(pBuffer, useOffset, byteCount);
+            }
         }
     }
 

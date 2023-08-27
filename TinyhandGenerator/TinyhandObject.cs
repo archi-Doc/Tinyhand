@@ -4187,18 +4187,9 @@ ModuleInitializerClass_Added:
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
-            if (x?.KeyAttribute?.Condition == false)
-            {// Conditional
-                /*using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
-                {
-                    ssb.AppendLine("writer.WriteNil();");
-                }*/
-
-                using (var scopeIf = ssb.ScopeBrace("if (options.IsSignatureMode)"))
-                {
-                }
-
-                using (var scopeElse = ssb.ScopeBrace("else"))
+            if (x?.KeyAttribute?.Level is int level && level != 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if (!options.IsSignatureMode || writer.Level >= {level})"))
                 {
                     this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
                 }
@@ -4229,18 +4220,9 @@ ModuleInitializerClass_Added:
         {
             ssb.AppendLine($"writer.WriteString({x.Utf8String});");
 
-            if (x.Member?.KeyAttribute?.Condition == false)
-            {// Conditional
-                /*using (var scopeIf = ssb.ScopeBrace("if (options.IsConditionalMode)"))
-                {
-                    ssb.AppendLine("writer.WriteNil();");
-                }*/
-
-                using (var scopeIf = ssb.ScopeBrace("if (options.IsSignatureMode)"))
-                {
-                }
-
-                using (var scopeElse = ssb.ScopeBrace("else"))
+            if (x.Member?.KeyAttribute?.Level is int level && level != 0)
+            {
+                using (var scopeIf = ssb.ScopeBrace($"if (!options.IsSignatureMode || writer.Level >= {level})"))
                 {
                     this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
                 }

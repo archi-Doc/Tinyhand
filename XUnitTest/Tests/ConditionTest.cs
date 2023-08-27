@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject]
+/*[TinyhandObject]
 public partial class ConditionIntClass
 {
     [Key(0)]
@@ -130,4 +130,4 @@ public class ConditionTest
         b2 = TinyhandSerializer.Serialize(tc2, TinyhandSerializerOptions.Standard);
         b.SequenceEqual(b2).IsFalse();
     }
-}
+}*/

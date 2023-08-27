@@ -274,6 +274,42 @@ public static partial class TinyhandSerializer
         }
     }
 
+    /// <summary>
+    /// Serializes a given value in signature mode.
+    /// </summary>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>A byte array with the serialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    public static byte[] SerializeSignature<T>(T value, int level, CancellationToken cancellationToken = default)
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        var options = TinyhandSerializerOptions.Signature;
+        var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken, Level = level, };
+        try
+        {
+            try
+            {
+                options.Resolver.GetFormatter<T>().Serialize(ref writer, value, options);
+            }
+            catch (Exception ex)
+            {
+                throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+            }
+
+            return writer.FlushAndGetArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
     public static byte[] SerializeObject<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
