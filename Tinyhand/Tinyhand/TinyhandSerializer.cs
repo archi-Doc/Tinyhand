@@ -279,27 +279,35 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
+    /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A byte array with the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static byte[] SerializeSignature<T>(T value, int level, CancellationToken cancellationToken = default)
+    public static byte[] SerializeWithLevel<T>(T value, int level, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
+        options = options ?? DefaultOptions;
         if (initialBuffer == null)
         {
             initialBuffer = new byte[InitialBufferSize];
         }
 
-        var options = TinyhandSerializerOptions.Signature;
         var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken, Level = level, };
         try
         {
-            try
+            if (options.Compression == TinyhandCompression.None)
             {
-                options.Resolver.GetFormatter<T>().Serialize(ref writer, value, options);
+                try
+                {
+                    options.Resolver.GetFormatter<T>().Serialize(ref writer, value, options);
+                }
+                catch (Exception ex)
+                {
+                    throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+                Serialize(ref writer, value, options);
             }
 
             return writer.FlushAndGetArray();

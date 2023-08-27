@@ -32,7 +32,7 @@ public ref struct TinyhandWriter
     /// <summary>
     /// Gets or sets the level for serialization (members with this level or lower will be serialized).
     /// </summary>
-    public int Level { get; set; }
+    public int Level { get; set; } = 0x40000000;
 
     /// <summary>
     /// Gets or sets the cancellation token for this serialization operation.

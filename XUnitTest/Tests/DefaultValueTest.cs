@@ -245,20 +245,20 @@ public partial class DefaultValueTest
         var v1 = new TokenClassV1();
         v1.Id = 1;
         v1.Name = "Test";
-        v1.Signature = TinyhandSerializer.SerializeSignature(v1, 0);
-        v1.Signature.SequenceEqual(TinyhandSerializer.SerializeSignature(v1, 0)).IsTrue();
+        v1.Signature = TinyhandSerializer.SerializeWithLevel(v1, 0, TinyhandSerializerOptions.Signature);
+        v1.Signature.SequenceEqual(TinyhandSerializer.SerializeWithLevel(v1, 0, TinyhandSerializerOptions.Signature)).IsTrue();
 
         var v2 = new TokenClassV2();
         v2.Id = 1;
         v2.Name = "Test";
         v2.AddedMember = 1;
-        v2.Signature = TinyhandSerializer.SerializeSignature(v2, 0);
-        v2.Signature.SequenceEqual(TinyhandSerializer.SerializeSignature(v2, 0)).IsTrue();
+        v2.Signature = TinyhandSerializer.SerializeWithLevel(v2, 0, TinyhandSerializerOptions.Signature);
+        v2.Signature.SequenceEqual(TinyhandSerializer.SerializeWithLevel(v2, 0, TinyhandSerializerOptions.Signature)).IsTrue();
         v2.Signature.SequenceEqual(v1.Signature).IsFalse();
 
         var b1 = TinyhandSerializer.Serialize(v1);
         v2 = TinyhandSerializer.Deserialize<TokenClassV2>(b1);
-        var sig = TinyhandSerializer.SerializeSignature(v2, 0);
+        var sig = TinyhandSerializer.SerializeWithLevel(v2, 0, TinyhandSerializerOptions.Signature);
         v2.Signature.SequenceEqual(sig).IsTrue();
     }
 }

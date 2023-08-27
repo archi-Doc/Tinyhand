@@ -173,7 +173,7 @@ public class KeyAttributeMock
 
     public string? StringKey { get; private set; }
 
-    public int Level { get; set; }
+    public int Level { get; set; } = -1;
 
     public string AddProperty { get; set; } = string.Empty;
 
