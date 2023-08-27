@@ -4191,7 +4191,7 @@ ModuleInitializerClass_Added:
             {
                 using (var scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})"))
                 {// writer.Level >= Level
-                    var decrease = x?.TypeObject?.IsPrimitive == false;
+                    var decrease = x?.TypeObject?.IsPrimitive == false && level != 0;
                     if (decrease)
                     {
                         ssb.AppendLine($"writer.Level -= {level};");
