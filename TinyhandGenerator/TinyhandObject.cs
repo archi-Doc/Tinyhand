@@ -4187,6 +4187,8 @@ ModuleInitializerClass_Added:
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
+            var level = -1;
+            if (x?.KeyAttribute?.Level is int )
             if (x?.KeyAttribute?.Level is int level && level >= 0)
             {
                 using (var scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})"))

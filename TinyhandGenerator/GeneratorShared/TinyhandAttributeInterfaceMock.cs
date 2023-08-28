@@ -175,6 +175,8 @@ public class KeyAttributeMock
 
     public int Level { get; set; } = -1;
 
+    public bool Selection { get; set; } = true;
+
     public string AddProperty { get; set; } = string.Empty;
 
     public PropertyAccessibility PropertyAccessibility { get; set; } = PropertyAccessibility.PublicSetter;
@@ -215,6 +217,12 @@ public class KeyAttributeMock
         if (v != null)
         {
             attribute.Level = (int)v;
+        }
+
+        v = AttributeHelper.GetValue(-1, nameof(Selection), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.Selection = (bool)v;
         }
 
         v = AttributeHelper.GetValue(-1, nameof(AddProperty), constructorArguments, namedArguments);
