@@ -46,10 +46,10 @@ public record TinyhandSerializerOptions
         /// </summary>
         Standard,
 
-        /* /// <summary>
-        /// Serialize members whose conditions are true, and output Nil otherwise.
+        /// <summary>
+        /// Serialize members with the selection property set to true.
         /// </summary>
-        Conditional,*/
+        Selection,
 
         /// <summary>
         /// Serialize an object for signature generation. Level is enabled and WriteArrayHeader() is skipped.
@@ -63,7 +63,7 @@ public record TinyhandSerializerOptions
 
     public static TinyhandSerializerOptions Lz4 { get; } = Standard with { Compression = TinyhandCompression.Lz4, };
 
-    // public static TinyhandSerializerOptions Conditional { get; } = Standard with { SerializationMode = Mode.Conditional, };
+    public static TinyhandSerializerOptions Selection { get; } = Standard with { SerializationMode = Mode.Selection, };
 
     public static TinyhandSerializerOptions Signature { get; } = Standard with { SerializationMode = Mode.Signature, };
 
@@ -118,7 +118,7 @@ public record TinyhandSerializerOptions
 
     public bool IsStandardMode => this.SerializationMode == Mode.Standard;
 
-    // public bool IsConditionalMode => this.SerializationMode == Mode.Conditional;
+    public bool IsSelectionMode => this.SerializationMode == Mode.Selection;
 
     public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
 

@@ -129,7 +129,7 @@ public class LevelTest
         sig.SequenceEqual(TinyhandSerializer.SerializeSignature(new LevelTestClass2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0), 8)).IsTrue();
 
         sig = TinyhandSerializer.SerializeSignature(tc, 9);
-        sig.SequenceEqual(TinyhandSerializer.SerializeSignature(new LevelTestClass2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0),9)).IsTrue();
+        sig.SequenceEqual(TinyhandSerializer.SerializeSignature(new LevelTestClass2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0), 9)).IsTrue();
 
         sig = TinyhandSerializer.SerializeSignature(tc, 10);
         sig.SequenceEqual(TinyhandSerializer.SerializeSignature(new LevelTestClass2(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 10)).IsTrue();

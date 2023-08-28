@@ -135,6 +135,11 @@ public class KeyAttribute : Attribute
     public int Level { get; set; } = -1;
 
     /// <summary>
+    /// Gets or sets a value indicating whether or not to serialize the member during selection mode (TinyhandSerializerOptions) [default is <see langword="true"/>].
+    /// </summary>
+    public bool Selection { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets a name of a property that will be created from the field.<br/>
     /// <b>Valid for fields only.</b>
     /// </summary>
