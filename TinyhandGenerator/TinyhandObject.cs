@@ -132,6 +132,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public TinyhandObject[]? IntKey_Array;
 
+    public int SelectionCount;
+
     internal VisceralTrieString<TinyhandObject>? StringTrie;
 
     internal int StringTrieReconstructNumber = 0;
@@ -1088,6 +1090,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         this.IntKey_Array = new TinyhandObject[this.IntKey_Max + 1];
+        this.SelectionCount = this.IntKey_Max + 1;
 
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
         {
@@ -1105,6 +1108,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 else
                 {
                     this.IntKey_Array[i] = x;
+                }
+
+                if (!x.KeyAttribute.Selection)
+                {
+                    this.SelectionCount--;
                 }
             }
         }
@@ -3379,7 +3387,8 @@ ModuleInitializerClass_Added:
         {
             var originalName = ssb.FullObject;
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
-            using (var valid = ssb.ScopeBrace($"if (numberOfData-- > 0 && !reader.TryReadNil())"))
+            var selection = x.KeyAttribute?.Selection == false ? "!options.IsSelectionMode && " : string.Empty;
+            using (var valid = ssb.ScopeBrace($"if ({selection}numberOfData-- > 0 && !reader.TryReadNil())"))
             {
                 InitSetter_Start();
 
@@ -4183,35 +4192,69 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
+        if (this.IntKey_Array.Length == this.SelectionCount)
+        {
+            ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
+        }
+        else
+        {
+            ssb.AppendLine($"if (options.IsStandardMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
+            ssb.AppendLine($"else if (options.IsSelectionMode) writer.WriteArrayHeader({this.SelectionCount});");
+        }
+
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
-            var level = -1;
-            if (x?.KeyAttribute?.Level is int )
-            if (x?.KeyAttribute?.Level is int level && level >= 0)
-            {
-                using (var scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})"))
-                {// writer.Level >= Level
-                    var decrease = x?.TypeObject?.IsPrimitive == false && level != 0;
-                    if (decrease)
-                    {
-                        ssb.AppendLine($"writer.Level -= {level};");
-                    }
+            this.GenerateSerializerKey(ssb, info, x, skipDefaultValue);
+        }
+    }
 
-                    this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, bool skipDefaultValue)
+    {
+        var selection = x?.KeyAttribute?.Selection == false ? false : true;
+        bool decrease = false;
+        if (x?.KeyAttribute?.Level is not int level)
+        {
+            level = -1;
+        }
 
-                    if (decrease)
-                    {
-                        ssb.AppendLine($"writer.Level += {level};");
-                    }
-                }
+        IScope? scopeIf = null;
+        if (level < 0)
+        {// No level
+            if (selection)
+            {// Selection == true
             }
             else
-            {
-                this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+            {// Selection == false
+                scopeIf = ssb.ScopeBrace($"if (!options.IsSelectionMode)");
             }
         }
+        else
+        {// Level >= 0
+            decrease = x?.TypeObject?.IsPrimitive == false && level > 0;
+            if (selection)
+            {// Selection == true
+                scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})");
+            }
+            else
+            {// Selection == false
+                scopeIf = ssb.ScopeBrace($"if (options.IsStandardMode || (options.IsSignatureMode && writer.Level >= {level}))");
+            }
+        }
+
+        if (decrease)
+        {
+            ssb.AppendLine($"writer.Level -= {level};");
+        }
+
+        this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+
+        if (decrease)
+        {
+            ssb.AppendLine($"writer.Level += {level};");
+        }
+
+        scopeIf?.Dispose();
     }
 
     internal void GenerateSerializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -4232,27 +4275,9 @@ ModuleInitializerClass_Added:
         foreach (var x in this.StringTrie.NodeList)
         {
             ssb.AppendLine($"writer.WriteString({x.Utf8String});");
-
-            if (x.Member?.KeyAttribute?.Level is int level && level >= 0)
+            if (x.Member is not null)
             {
-                using (var scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})"))
-                {
-                    var decrease = x.Member?.TypeObject?.IsPrimitive == false && level != 0;
-                    if (decrease)
-                    {
-                        ssb.AppendLine($"writer.Level -= {level};");
-                    }
-
-                    this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
-                    if (decrease)
-                    {
-                        ssb.AppendLine($"writer.Level += {level};");
-                    }
-                }
-            }
-            else
-            {
-                this.GenerateSerializeCore(ssb, info, x.Member, skipDefaultValue);
+                this.GenerateSerializerKey(ssb, info, x.Member, skipDefaultValue);
             }
         }
     }

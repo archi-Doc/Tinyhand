@@ -1,6 +1,5 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System.Linq;
 using Xunit;
 
 namespace Tinyhand.Tests;
@@ -44,14 +43,14 @@ public class SelectionTest
 
         var bin = TinyhandSerializer.Serialize(tc, selection);
         tc2 = TinyhandSerializer.Deserialize<SelectionTestClass>(bin, selection);
-        tc.X.Is(1);
-        tc.Y.Is(0);
-        tc.Z.Is(0);
+        tc2.X.Is(1);
+        tc2.Y.Is(0);
+        tc2.Z.Is(0);
 
         tc2 = TinyhandSerializer.Reconstruct<SelectionTestClass>();
         TinyhandSerializer.DeserializeObject(bin, ref tc2);
-        tc.X.Is(1);
-        tc.Y.Is(0);
-        tc.Z.Is(0);
+        tc2.X.Is(1);
+        tc2.Y.Is(0);
+        tc2.Z.Is(0);
     }
 }

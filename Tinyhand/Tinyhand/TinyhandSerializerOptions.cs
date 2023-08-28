@@ -118,7 +118,7 @@ public record TinyhandSerializerOptions
 
     public bool IsStandardMode => this.SerializationMode == Mode.Standard;
 
-    // public bool IsConditionalMode => this.SerializationMode == Mode.Conditional;
+    public bool IsSelectionMode => this.SerializationMode == Mode.Selection;
 
     public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
 
