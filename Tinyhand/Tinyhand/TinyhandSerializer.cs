@@ -370,6 +370,42 @@ public static partial class TinyhandSerializer
         }
     }
 
+    public static void SerializeObjectAndGetTemporarySpan<T>(in T? value, out ReadOnlySpan<byte> temporary, TinyhandSerializerOptions? options)
+        where T : ITinyhandSerialize<T>
+    {
+        options = options ?? DefaultOptions;
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        var writer = new TinyhandWriter(initialBuffer);
+        try
+        {
+            if (options.Compression == TinyhandCompression.None)
+            {
+                try
+                {
+                    T.Serialize(ref writer, ref Unsafe.AsRef(value), options);
+                }
+                catch (Exception ex)
+                {
+                    throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+                }
+            }
+            else
+            {
+                Serialize(ref writer, value, options);
+            }
+
+            temporary = writer.FlushAndGetReadOnlySpan();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
     /// <summary>
     /// Serializes a given value to the specified stream.
     /// </summary>
