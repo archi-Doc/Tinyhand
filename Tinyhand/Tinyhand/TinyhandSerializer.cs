@@ -370,7 +370,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static void SerializeObjectAndGetTemporarySpan<T>(in T? value, out ReadOnlySpan<byte> temporary, TinyhandSerializerOptions? options)
+    /*public static void SerializeObjectAndGetTemporarySpan<T>(in T? value, out ReadOnlySpan<byte> temporary, TinyhandSerializerOptions? options)
         where T : ITinyhandSerialize<T>
     {
         options = options ?? DefaultOptions;
@@ -404,7 +404,7 @@ public static partial class TinyhandSerializer
         {
             writer.Dispose();
         }
-    }
+    }*/
 
     /// <summary>
     /// Serializes a given value to the specified stream.
