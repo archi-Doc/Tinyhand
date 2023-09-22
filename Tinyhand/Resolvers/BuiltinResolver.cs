@@ -55,6 +55,8 @@ public sealed class BuiltinResolver : IFormatterResolver
         { typeof(char?), NullableCharFormatter.Instance },
         { typeof(DateTime?), NullableDateTimeFormatter.Instance },
 
+        { typeof(Int128), Int128Formatter.Instance },
+
         // otpmitized primitive array formatter
         { typeof(byte[]), ByteArrayFormatter.Instance },
         { typeof(sbyte[]), Int8ArrayFormatter.Instance },

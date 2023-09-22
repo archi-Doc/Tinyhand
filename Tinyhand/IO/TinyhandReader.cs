@@ -1395,6 +1395,40 @@ public ref partial struct TinyhandReader
         return false;
     }
 
+    public bool TryReadBigEndian(out Int128 value)
+    {
+        if (!BitConverter.IsLittleEndian)
+        {
+            return this.TryRead(out value);
+        }
+
+        return this.TryReadReverseEndianness(out value);
+    }
+
+    public bool TryReadReverseEndianness(out Int128 value)
+    {
+        if (this.TryRead(out value))
+        {
+            var ripper = Unsafe.As<Int128, Int128Ripper>(ref value);
+            value = new(BinaryPrimitives.ReverseEndianness(ripper.Lower), BinaryPrimitives.ReverseEndianness(ripper.Upper));
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool TryReadBigEndian(out UInt128 value)
+    {
+        if (this.TryReadBigEndian(out Int128 v))
+        {
+            value = unchecked((UInt128)v);
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
     public unsafe bool TryReadBigEndian(out float value)
     {
         if (this.TryReadBigEndian(out int intValue))
