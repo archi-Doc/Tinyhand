@@ -15,10 +15,10 @@ public partial class Int128Class
     public Int128 A;
 
     [Key(1)]
-    public Int128[] B = [];
+    public Int128[] B = Array.Empty<Int128>();
 
     [Key(2)]
-    public List<Int128> C = [];
+    public List<Int128> C = new();
 }
 
 [TinyhandObject]
@@ -28,10 +28,10 @@ public partial class UInt128Class
     public UInt128 A;
 
     [Key(1)]
-    public UInt128[] B = [];
+    public UInt128[] B = Array.Empty<UInt128>();
 
     [Key(2)]
-    public List<UInt128> C = [];
+    public List<UInt128> C = new();
 }
 
 public class Int128Test
@@ -41,8 +41,12 @@ public class Int128Test
     {
         var tc = new Int128Class();
         tc.A = new(123, 456);
-        tc.B = [0, 1, -10, 12, new(11, 22)];
-        tc.C = [-2, 3, 44, 55, 666];
+        tc.B = new Int128[] { 0, 1, -10, 12, new(11, 22), };
+        tc.C.Add(-2);
+        tc.C.Add(3);
+        tc.C.Add(444);
+        tc.C.Add(long.MaxValue);
+        tc.C.Add(long.MinValue);
         tc.C.Add(123_000_000_000_000_000_000_000_000d.ToInt128());
         tc.C.Add(-123_000_000_000_000_000_000_000_000d.ToInt128());
 
@@ -56,8 +60,12 @@ public class Int128Test
     {
         var tc = new UInt128Class();
         tc.A = new(123, 456);
-        tc.B = [0, 1, 10, 12, new(11, 22)];
-        tc.C = [2, 3, 44, 55, 666];
+        tc.B = new UInt128[] { 0, 1, 10, 12, new(11, 22), };
+        tc.C.Add(2);
+        tc.C.Add(3);
+        tc.C.Add(444);
+        tc.C.Add(long.MaxValue);
+        tc.C.Add(ulong.MaxValue);
         tc.C.Add(123_000_000_000_000_000_000_000_000d.ToUInt128());
 
         var bin = TinyhandSerializer.Serialize(tc);
