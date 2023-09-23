@@ -646,6 +646,50 @@ public ref struct TinyhandWriter
         this.writer.Advance(9);
     }
 
+    public void Write(Int128 value)
+    {
+        var ripper = Unsafe.As<Int128, Int128Ripper>(ref value);
+        if (ripper.Upper == 0 || ~ripper.Upper == 0)
+        {
+            this.Write((long)ripper.Lower);
+        }
+        else
+        {
+            this.WriteInt128(value);
+        }
+    }
+
+    public void Write(UInt128 value)
+    {
+        var ripper = Unsafe.As<UInt128, Int128Ripper>(ref value);
+        if (ripper.Upper == 0)
+        {
+            this.Write(ripper.Lower);
+        }
+        else
+        {
+            this.WriteUInt128(value);
+        }
+    }
+
+    public void WriteInt128(Int128 value)
+    {
+        Span<byte> span = this.writer.GetSpan(18);
+        span[0] = MessagePackCode.FixExt16;
+        span[1] = unchecked((byte)MessagePackExtensionCodes.Int128);
+        WriteBigEndian(value, span.Slice(2));
+        this.writer.Advance(18);
+    }
+
+    public void WriteUInt128(UInt128 value)
+    {
+        Span<byte> span = this.writer.GetSpan(18);
+        span[0] = MessagePackCode.FixExt16;
+        span[1] = unchecked((byte)MessagePackExtensionCodes.UInt128);
+        WriteBigEndian(value, span.Slice(2));
+        this.writer.Advance(18);
+    }
+
     /// <summary>
     /// Writes a <see cref="bool"/> value using either <see cref="MessagePackCode.True"/> or <see cref="MessagePackCode.False"/>.
     /// </summary>
@@ -1115,6 +1159,8 @@ public ref struct TinyhandWriter
 
     private static void WriteBigEndian(long value, Span<byte> span) => WriteBigEndian(unchecked((ulong)value), span);
 
+    private static void WriteBigEndian(Int128 value, Span<byte> span) => WriteBigEndian(unchecked((UInt128)value), span);
+
     private static void WriteBigEndian(ushort value, Span<byte> span)
     {
         unchecked
@@ -1170,6 +1216,33 @@ public ref struct TinyhandWriter
             span[2] = (byte)(value >> 40);
             span[1] = (byte)(value >> 48);
             span[0] = (byte)(value >> 56);
+        }
+    }
+
+    private static void WriteBigEndian(UInt128 value, Span<byte> span)
+    {
+        var ripper = Unsafe.As<UInt128, Int128Ripper>(ref value);
+        unchecked
+        {
+            var lower = ripper.Lower;
+            var upper = ripper.Upper;
+
+            span[15] = (byte)lower;
+            span[14] = (byte)(lower >> 8);
+            span[13] = (byte)(lower >> 16);
+            span[12] = (byte)(lower >> 24);
+            span[11] = (byte)(lower >> 32);
+            span[10] = (byte)(lower >> 40);
+            span[9] = (byte)(lower >> 48);
+            span[8] = (byte)(lower >> 56);
+            span[7] = (byte)upper;
+            span[6] = (byte)(upper >> 8);
+            span[5] = (byte)(upper >> 16);
+            span[4] = (byte)(upper >> 24);
+            span[3] = (byte)(upper >> 32);
+            span[2] = (byte)(upper >> 40);
+            span[1] = (byte)(upper >> 48);
+            span[0] = (byte)(upper >> 56);
         }
     }
 

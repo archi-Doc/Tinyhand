@@ -20,6 +20,8 @@ var allTypes = new (string Simple, string Name, string Reconstruct)[]
     ("bool", "Boolean", "false"),
     ("char", "Char", "(char)0"),
     ("DateTime", "DateTime", "default(DateTime)"),
+    ("Int128", "Int128", "0"),
+    ("UInt128", "UInt128", "0"),
     };
 #>
 // Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
@@ -33,208 +35,207 @@ using Tinyhand.Generator;
 
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Coders
-{<# foreach(var t in allTypes) {  #>
+namespace Tinyhand.Coders;
+<# foreach(var t in allTypes) {  #>
 <# if(t.Name != "String") { #>
 
-    public sealed class <#= t.Name #>Coder : ITinyhandCoder
+public sealed class <#= t.Name #>Coder : ITinyhandCoder
+{
+    public static readonly <#= t.Name #>Coder Instance = new ();
+
+    private <#= t.Name #>Coder()
     {
-        public static readonly <#= t.Name #>Coder Instance = new ();
+    }
 
-        private <#= t.Name #>Coder()
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"writer.Write({ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = reader.Read<#= t.Name #>();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = <#= t.Reconstruct #>;");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+    }
+}
+<# } #>
+
+public sealed class Nullable<#= t.Name #>Coder : ITinyhandCoder
+{
+    public static readonly Nullable<#= t.Name #>Coder Instance = new ();
+
+    private Nullable<#= t.Name #>Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
         {
+            ssb.AppendLine("writer.WriteNil();");
         }
 
-        public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+        using (var b = ssb.ScopeBrace($"else"))
         {
-            ssb.AppendLine($"writer.Write({ssb.FullObject});");
+            ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
         }
+    }
 
-        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        if (nilChecked)
         {
             ssb.AppendLine($"{ssb.FullObject} = reader.Read<#= t.Name #>();");
         }
-
-        public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+        else
         {
-            ssb.AppendLine($"{ssb.FullObject} = <#= t.Reconstruct #>;");
-        }
-
-        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
-        }
-    }
-<# } #>
-
-    public sealed class Nullable<#= t.Name #>Coder : ITinyhandCoder
-    {
-        public static readonly Nullable<#= t.Name #>Coder Instance = new ();
-
-        private Nullable<#= t.Name #>Coder()
-        {
-        }
-
-        public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
+            using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
             {
-                ssb.AppendLine("writer.WriteNil();");
+                ssb.AppendLine($"{ssb.FullObject} = default;");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
             {
-                ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
-            }
-        }
-
-        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
-        {
-            if (nilChecked)
-            {
                 ssb.AppendLine($"{ssb.FullObject} = reader.Read<#= t.Name #>();");
             }
-            else
-            {
-                using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
-                {
-                    ssb.AppendLine($"{ssb.FullObject} = default;");
-                }
-
-                using (var b = ssb.ScopeBrace($"else"))
-                {
-                    ssb.AppendLine($"{ssb.FullObject} = reader.Read<#= t.Name #>();");
-                }
-            }
-        }
-
-        public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = <#= t.Reconstruct #>;");
-        }
-
-        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
         }
     }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = <#= t.Reconstruct #>;");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+    }
+}
 <# if(t.Name != "UInt8") { #>
 
-    public sealed class <#= t.Name #>ArrayCoder : ITinyhandCoder
+public sealed class <#= t.Name #>ArrayCoder : ITinyhandCoder
+{
+    public static readonly <#= t.Name #>ArrayCoder Instance = new ();
+
+    private <#= t.Name #>ArrayCoder()
     {
-        public static readonly <#= t.Name #>ArrayCoder Instance = new ();
-
-        private <#= t.Name #>ArrayCoder()
-        {
-        }
-
-        public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, {ssb.FullObject});");
-        }
-
-        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader) ?? new <#= t.Simple #>[0];");
-        }
-
-        public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = new <#= t.Simple #>[0];");
-        }
-
-        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Clone<#= t.Name #>Array({sourceObject})!;");
-        }
     }
 
-    public sealed class Nullable<#= t.Name #>ArrayCoder : ITinyhandCoder
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        public static readonly Nullable<#= t.Name #>ArrayCoder Instance = new ();
-
-        private Nullable<#= t.Name #>ArrayCoder()
-        {
-        }
-
-        public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, {ssb.FullObject});");
-        }
-
-        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader);");
-        }
-
-        public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = new <#= t.Simple #>[0];");
-        }
-
-        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Clone<#= t.Name #>Array({sourceObject});");
-        }
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, {ssb.FullObject});");
     }
 
-    public sealed class <#= t.Name #>ListCoder : ITinyhandCoder
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        public static readonly <#= t.Name #>ListCoder Instance = new ();
-
-        private <#= t.Name #>ListCoder()
-        {
-        }
-
-        public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, {ssb.FullObject});");
-        }
-
-        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader) ?? new List<<#= t.Simple #>>();");
-        }
-
-        public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = new List<<#= t.Simple #>>();");
-        }
-
-        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<<#= t.Simple #>>({sourceObject});");
-        }
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader) ?? new <#= t.Simple #>[0];");
     }
 
-    public sealed class Nullable<#= t.Name #>ListCoder : ITinyhandCoder
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        public static readonly Nullable<#= t.Name #>ListCoder Instance = new ();
-
-        private Nullable<#= t.Name #>ListCoder()
-        {
-        }
-
-        public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, {ssb.FullObject});");
-        }
-
-        public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader);");
-        }
-
-        public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = new List<<#= t.Simple #>>();");
-        }
-
-        public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
-        {
-            ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<<#= t.Simple #>>({sourceObject});");
-        }
+        ssb.AppendLine($"{ssb.FullObject} = new <#= t.Simple #>[0];");
     }
-<# } #>
-<# } #>
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Clone<#= t.Name #>Array({sourceObject})!;");
+    }
 }
+
+public sealed class Nullable<#= t.Name #>ArrayCoder : ITinyhandCoder
+{
+    public static readonly Nullable<#= t.Name #>ArrayCoder Instance = new ();
+
+    private Nullable<#= t.Name #>ArrayCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader);");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new <#= t.Simple #>[0];");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Clone<#= t.Name #>Array({sourceObject});");
+    }
+}
+
+public sealed class <#= t.Name #>ListCoder : ITinyhandCoder
+{
+    public static readonly <#= t.Name #>ListCoder Instance = new ();
+
+    private <#= t.Name #>ListCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader) ?? new List<<#= t.Simple #>>();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new List<<#= t.Simple #>>();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<<#= t.Simple #>>({sourceObject});");
+    }
+}
+
+public sealed class Nullable<#= t.Name #>ListCoder : ITinyhandCoder
+{
+    public static readonly Nullable<#= t.Name #>ListCoder Instance = new ();
+
+    private Nullable<#= t.Name #>ListCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader);");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new List<<#= t.Simple #>>();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<<#= t.Simple #>>({sourceObject});");
+    }
+}
+<# } #>
+<# } #>
