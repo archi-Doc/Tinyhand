@@ -116,6 +116,20 @@ public sealed class BuiltinCoder : ICoderResolver
         { "System.DateTime[]?", NullableDateTimeArrayCoder.Instance },
         { "System.Collections.Generic.List<System.DateTime>", DateTimeListCoder.Instance },
         { "System.Collections.Generic.List<System.DateTime>?", NullableDateTimeListCoder.Instance },
+
+        { "System.Int128", Int128Coder.Instance },
+        { "System.Int128?", NullableInt128Coder.Instance },
+        { "System.Int128[]", Int128ArrayCoder.Instance },
+        { "System.Int128[]?", NullableInt128ArrayCoder.Instance },
+        { "System.Collections.Generic.List<System.Int128>", Int128ListCoder.Instance },
+        { "System.Collections.Generic.List<System.Int128>?", NullableInt128ListCoder.Instance },
+
+        { "System.UInt128", UInt128Coder.Instance },
+        { "System.UInt128?", NullableUInt128Coder.Instance },
+        { "System.UInt128[]", UInt128ArrayCoder.Instance },
+        { "System.UInt128[]?", NullableUInt128ArrayCoder.Instance },
+        { "System.Collections.Generic.List<System.UInt128>", UInt128ListCoder.Instance },
+        { "System.Collections.Generic.List<System.UInt128>?", NullableUInt128ListCoder.Instance },
     };
 
     public ITinyhandCoder? TryGetCoder(WithNullable<TinyhandObject> withNullable)

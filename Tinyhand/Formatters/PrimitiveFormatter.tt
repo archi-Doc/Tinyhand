@@ -21,6 +21,7 @@ var allTypes = new (string Simple, string Name)[]
     ("char", "Char"),
     ("DateTime", "DateTime"),
     ("Int128", "Int128"),
+    ("UInt128", "UInt128"),
 };
 #>
 // Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.

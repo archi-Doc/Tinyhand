@@ -646,12 +646,48 @@ public ref struct TinyhandWriter
         this.writer.Advance(9);
     }
 
+    public void Write(Int128 value)
+    {
+        var ripper = Unsafe.As<Int128, Int128Ripper>(ref value);
+        if (ripper.Upper == 0 || ~ripper.Upper == 0)
+        {
+            this.Write((long)ripper.Lower);
+        }
+        else
+        {
+            this.WriteInt128(value);
+        }
+    }
+
+    public void Write(UInt128 value)
+    {
+        var ripper = Unsafe.As<UInt128, Int128Ripper>(ref value);
+        if (ripper.Upper == 0)
+        {
+            this.Write(ripper.Lower);
+        }
+        else
+        {
+            this.WriteUInt128(value);
+        }
+    }
+
     public void WriteInt128(Int128 value)
     {
-        Span<byte> span = this.writer.GetSpan(9);
-        span[0] = MessagePackCode.Int64;
-        WriteBigEndian(value, span.Slice(1));
-        this.writer.Advance(9);
+        Span<byte> span = this.writer.GetSpan(18);
+        span[0] = MessagePackCode.FixExt16;
+        span[1] = unchecked((byte)MessagePackExtensionCodes.Int128);
+        WriteBigEndian(value, span.Slice(2));
+        this.writer.Advance(18);
+    }
+
+    public void WriteUInt128(UInt128 value)
+    {
+        Span<byte> span = this.writer.GetSpan(18);
+        span[0] = MessagePackCode.FixExt16;
+        span[1] = unchecked((byte)MessagePackExtensionCodes.UInt128);
+        WriteBigEndian(value, span.Slice(2));
+        this.writer.Advance(18);
     }
 
     /// <summary>

@@ -1448,4 +1448,110 @@ namespace Tinyhand.Formatters
 
         public List<Int128>? Clone(List<Int128>? value, TinyhandSerializerOptions options) => value == null ? null : new List<Int128>(value);
     }
+
+    public sealed class UInt128Formatter : ITinyhandFormatter<UInt128>
+    {
+        public static readonly UInt128Formatter Instance = new ();
+
+        private UInt128Formatter()
+        {
+        }
+
+        public void Serialize(ref TinyhandWriter writer, UInt128 value, TinyhandSerializerOptions options)
+        {
+            writer.Write(value);
+        }
+
+        public UInt128 Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        {
+            return reader.ReadUInt128();
+        }
+
+        public UInt128 Reconstruct(TinyhandSerializerOptions options) => default;
+
+        public UInt128 Clone(UInt128 value, TinyhandSerializerOptions options) => value;
+    }
+
+    public sealed class NullableUInt128Formatter : ITinyhandFormatter<UInt128?>
+    {
+        public static readonly NullableUInt128Formatter Instance = new ();
+
+        private NullableUInt128Formatter()
+        {
+        }
+
+        public void Serialize(ref TinyhandWriter writer, UInt128? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                writer.WriteNil();
+            }
+            else
+            {
+                writer.Write(value.Value);
+            }
+        }
+
+        public UInt128? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return default;
+            }
+            else
+            {
+                return reader.ReadUInt128();
+            }
+        }
+
+        public UInt128? Reconstruct(TinyhandSerializerOptions options) => default(UInt128);
+
+        public UInt128? Clone(UInt128? value, TinyhandSerializerOptions options) => value;
+    }
+
+    public sealed class UInt128ArrayFormatter : ITinyhandFormatter<UInt128[]>
+    {
+        public static readonly UInt128ArrayFormatter Instance = new ();
+
+        private UInt128ArrayFormatter()
+        {
+        }
+
+        public void Serialize(ref TinyhandWriter writer, UInt128[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt128Array(ref writer, value);
+
+        public UInt128[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt128Array(ref reader);
+
+        public UInt128[] Reconstruct(TinyhandSerializerOptions options) => new UInt128[0];
+
+        public UInt128[]? Clone(UInt128[]? value, TinyhandSerializerOptions options)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            else
+            {
+                var array = new UInt128[value.Length];
+                Array.Copy(value, array, value.Length);
+                return array;
+            }
+        }
+    }
+
+    public sealed class UInt128ListFormatter : ITinyhandFormatter<List<UInt128>>
+    {
+        public static readonly UInt128ListFormatter Instance = new ();
+
+        private UInt128ListFormatter()
+        {
+        }
+
+        public void Serialize(ref TinyhandWriter writer, List<UInt128>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt128List(ref writer, value);
+
+        public List<UInt128>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeUInt128List(ref reader);
+
+        public List<UInt128> Reconstruct(TinyhandSerializerOptions options) => new List<UInt128>();
+
+        public List<UInt128>? Clone(List<UInt128>? value, TinyhandSerializerOptions options) => value == null ? null : new List<UInt128>(value);
+    }
 }

@@ -20,6 +20,8 @@ var allTypes = new (string Simple, string Name)[]
     ("bool", "Boolean"),
     ("char", "Char"),
     ("DateTime", "DateTime"),
+    ("Int128", "Int128"),
+    ("UInt128", "UInt128"),
 };
 #>
 // Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
@@ -34,99 +36,98 @@ using Tinyhand.IO;
 
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Formatters
-{
-    public static partial class Builtin
-    {<# foreach(var t in allTypes) {  #>
+namespace Tinyhand.Formatters;
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void Serialize<#= t.Name #>Array(ref TinyhandWriter writer, <#= t.Simple #>[]? value)
+public static partial class Builtin
+{<# foreach(var t in allTypes) {  #>
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void Serialize<#= t.Name #>Array(ref TinyhandWriter writer, <#= t.Simple #>[]? value)
+    {
+        if (value == null)
         {
-            if (value == null)
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
             {
-                writer.WriteNil();
-            }
-            else
-            {
-                writer.WriteArrayHeader(value.Length);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    writer.Write(value[i]);
-                }
+                writer.Write(value[i]);
             }
         }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static <#= t.Simple #>[]? Deserialize<#= t.Name #>Array(ref TinyhandReader reader)
-        {
-            if (reader.TryReadNil())
-            {
-                return null; // new <#= t.Simple #>[0];
-            }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var array = new <#= t.Simple #>[len];
-                for (int i = 0; i < array.Length; i++)
-                {
-                    array[i] = reader.Read<#= t.Name #>();
-                }
-
-                return array;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void Serialize<#= t.Name #>List(ref TinyhandWriter writer, List<<#= t.Simple #>>? value)
-        {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
-            {
-                writer.WriteArrayHeader(value.Count);
-                for (int i = 0; i < value.Count; i++)
-                {
-                    writer.Write(value[i]);
-                }
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<<#= t.Simple #>>? Deserialize<#= t.Name #>List(ref TinyhandReader reader)
-        {
-            if (reader.TryReadNil())
-            {
-                return null; // new List<<#= t.Simple #>>();
-            }
-            else
-            {
-                var len = reader.ReadArrayHeader();
-                var list = new List<<#= t.Simple #>>(len);
-                for (int i = 0; i < len; i++)
-                {
-                    list.Add(reader.Read<#= t.Name #>());
-                }
-
-                return list;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static <#= t.Simple #>[]? Clone<#= t.Name #>Array(<#= t.Simple #>[]? value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new <#= t.Simple #>[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
-        }
-<# } #>
     }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static <#= t.Simple #>[]? Deserialize<#= t.Name #>Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new <#= t.Simple #>[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new <#= t.Simple #>[len];
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = reader.Read<#= t.Name #>();
+            }
+
+            return array;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void Serialize<#= t.Name #>List(ref TinyhandWriter writer, List<<#= t.Simple #>>? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
+            {
+                writer.Write(value[i]);
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<<#= t.Simple #>>? Deserialize<#= t.Name #>List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<<#= t.Simple #>>();
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var list = new List<<#= t.Simple #>>(len);
+            for (int i = 0; i < len; i++)
+            {
+                list.Add(reader.Read<#= t.Name #>());
+            }
+
+            return list;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static <#= t.Simple #>[]? Clone<#= t.Name #>Array(<#= t.Simple #>[]? value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        else
+        {
+            var array = new <#= t.Simple #>[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
+        }
+    }
+<# } #>
 }

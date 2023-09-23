@@ -1452,4 +1452,124 @@ public ref partial struct TinyhandReader
         value = default;
         return false;
     }
+
+    public Int128 ReadInt128()
+    {
+        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
+
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
+                return checked((Int128)byteResult);
+            case MessagePackCode.Int8:
+                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
+                return checked((Int128)sbyteResult);
+            case MessagePackCode.UInt16:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
+                return checked((Int128)ushortResult);
+            case MessagePackCode.Int16:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
+                return checked((Int128)shortResult);
+            case MessagePackCode.UInt32:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
+                return checked((Int128)uintResult);
+            case MessagePackCode.Int32:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
+                return checked((Int128)intResult);
+            case MessagePackCode.UInt64:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
+                return checked((Int128)ulongResult);
+            case MessagePackCode.Int64:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
+                return checked((Int128)longResult);
+            default:
+                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
+                {
+                    return checked((Int128)unchecked((sbyte)code));
+                }
+
+                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
+                {
+                    return (Int128)code;
+                }
+
+                if (code == MessagePackCode.FixExt16)
+                {
+                    this.TryRead(out byte extCode);
+                    if (extCode == MessagePackExtensionCodes.Int128)
+                    {
+                        ThrowInsufficientBufferUnless(this.TryReadBigEndian(out Int128 int128Result));
+                        return int128Result;
+                    }
+                    else if (extCode == MessagePackExtensionCodes.UInt128)
+                    {
+                        ThrowInsufficientBufferUnless(this.TryReadBigEndian(out UInt128 uint128Result));
+                        return checked((Int128)uint128Result);
+                    }
+                }
+
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
+
+    public UInt128 ReadUInt128()
+    {
+        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
+
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
+                return checked((UInt128)byteResult);
+            case MessagePackCode.Int8:
+                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
+                return checked((UInt128)sbyteResult);
+            case MessagePackCode.UInt16:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
+                return checked((UInt128)ushortResult);
+            case MessagePackCode.Int16:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
+                return checked((UInt128)shortResult);
+            case MessagePackCode.UInt32:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
+                return checked((UInt128)uintResult);
+            case MessagePackCode.Int32:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
+                return checked((UInt128)intResult);
+            case MessagePackCode.UInt64:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
+                return checked((UInt128)ulongResult);
+            case MessagePackCode.Int64:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
+                return checked((UInt128)longResult);
+            default:
+                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
+                {
+                    return checked((UInt128)unchecked((sbyte)code));
+                }
+
+                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
+                {
+                    return (UInt128)code;
+                }
+
+                if (code == MessagePackCode.FixExt16)
+                {
+                    this.TryRead(out byte extCode);
+                    if (extCode == MessagePackExtensionCodes.Int128)
+                    {
+                        ThrowInsufficientBufferUnless(this.TryReadBigEndian(out Int128 int128Result));
+                        return checked((UInt128)int128Result);
+                    }
+                    else if (extCode == MessagePackExtensionCodes.UInt128)
+                    {
+                        ThrowInsufficientBufferUnless(this.TryReadBigEndian(out UInt128 uint128Result));
+                        return uint128Result;
+                    }
+                }
+
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
 }

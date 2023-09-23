@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 
+#pragma warning disable SA1649 // File name should match first type name
+
 namespace Tinyhand.Formatters;
 
 public static partial class Builtin
@@ -1164,6 +1166,184 @@ public static partial class Builtin
         else
         {
             var array = new DateTime[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt128Array(ref TinyhandWriter writer, Int128[]? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
+            {
+                writer.Write(value[i]);
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static Int128[]? DeserializeInt128Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new Int128[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new Int128[len];
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = reader.ReadInt128();
+            }
+
+            return array;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeInt128List(ref TinyhandWriter writer, List<Int128>? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
+            {
+                writer.Write(value[i]);
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<Int128>? DeserializeInt128List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<Int128>();
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var list = new List<Int128>(len);
+            for (int i = 0; i < len; i++)
+            {
+                list.Add(reader.ReadInt128());
+            }
+
+            return list;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static Int128[]? CloneInt128Array(Int128[]? value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        else
+        {
+            var array = new Int128[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt128Array(ref TinyhandWriter writer, UInt128[]? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Length);
+            for (int i = 0; i < value.Length; i++)
+            {
+                writer.Write(value[i]);
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static UInt128[]? DeserializeUInt128Array(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new UInt128[0];
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new UInt128[len];
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = reader.ReadUInt128();
+            }
+
+            return array;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void SerializeUInt128List(ref TinyhandWriter writer, List<UInt128>? value)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.WriteArrayHeader(value.Count);
+            for (int i = 0; i < value.Count; i++)
+            {
+                writer.Write(value[i]);
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static List<UInt128>? DeserializeUInt128List(ref TinyhandReader reader)
+    {
+        if (reader.TryReadNil())
+        {
+            return null; // new List<UInt128>();
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var list = new List<UInt128>(len);
+            for (int i = 0; i < len; i++)
+            {
+                list.Add(reader.ReadUInt128());
+            }
+
+            return list;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static UInt128[]? CloneUInt128Array(UInt128[]? value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        else
+        {
+            var array = new UInt128[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
         }

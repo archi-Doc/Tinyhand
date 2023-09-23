@@ -3,8 +3,11 @@
 /* THIS (.cs) FILE IS GENERATED. DO NOT CHANGE IT.
  * CHANGE THE .tt FILE INSTEAD. */
 
+using System;
 using Arc.Visceral;
 using Tinyhand.Generator;
+
+#pragma warning disable SA1649 // File name should match first type name
 
 namespace Tinyhand.Coders;
 
@@ -2450,5 +2453,399 @@ public sealed class NullableDateTimeListCoder : ITinyhandCoder
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<DateTime>({sourceObject});");
+    }
+}
+
+public sealed class Int128Coder : ITinyhandCoder
+{
+    public static readonly Int128Coder Instance = new ();
+
+    private Int128Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"writer.Write({ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = reader.ReadInt128();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = 0;");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+    }
+}
+
+public sealed class NullableInt128Coder : ITinyhandCoder
+{
+    public static readonly NullableInt128Coder Instance = new ();
+
+    private NullableInt128Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
+        {
+            ssb.AppendLine("writer.WriteNil();");
+        }
+
+        using (var b = ssb.ScopeBrace($"else"))
+        {
+            ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
+        }
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        if (nilChecked)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = reader.ReadInt128();");
+        }
+        else
+        {
+            using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
+            {
+                ssb.AppendLine($"{ssb.FullObject} = default;");
+            }
+
+            using (var b = ssb.ScopeBrace($"else"))
+            {
+                ssb.AppendLine($"{ssb.FullObject} = reader.ReadInt128();");
+            }
+        }
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = 0;");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+    }
+}
+
+public sealed class Int128ArrayCoder : ITinyhandCoder
+{
+    public static readonly Int128ArrayCoder Instance = new ();
+
+    private Int128ArrayCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeInt128Array(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt128Array(ref reader) ?? new Int128[0];");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new Int128[0];");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneInt128Array({sourceObject})!;");
+    }
+}
+
+public sealed class NullableInt128ArrayCoder : ITinyhandCoder
+{
+    public static readonly NullableInt128ArrayCoder Instance = new ();
+
+    private NullableInt128ArrayCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeInt128Array(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt128Array(ref reader);");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new Int128[0];");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneInt128Array({sourceObject});");
+    }
+}
+
+public sealed class Int128ListCoder : ITinyhandCoder
+{
+    public static readonly Int128ListCoder Instance = new ();
+
+    private Int128ListCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeInt128List(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt128List(ref reader) ?? new List<Int128>();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new List<Int128>();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<Int128>({sourceObject});");
+    }
+}
+
+public sealed class NullableInt128ListCoder : ITinyhandCoder
+{
+    public static readonly NullableInt128ListCoder Instance = new ();
+
+    private NullableInt128ListCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeInt128List(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt128List(ref reader);");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new List<Int128>();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<Int128>({sourceObject});");
+    }
+}
+
+public sealed class UInt128Coder : ITinyhandCoder
+{
+    public static readonly UInt128Coder Instance = new ();
+
+    private UInt128Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"writer.Write({ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = reader.ReadUInt128();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = 0;");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+    }
+}
+
+public sealed class NullableUInt128Coder : ITinyhandCoder
+{
+    public static readonly NullableUInt128Coder Instance = new ();
+
+    private NullableUInt128Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        using (var b = ssb.ScopeBrace($"if (!{ssb.FullObject}.HasValue)"))
+        {
+            ssb.AppendLine("writer.WriteNil();");
+        }
+
+        using (var b = ssb.ScopeBrace($"else"))
+        {
+            ssb.AppendLine($"writer.Write({ssb.FullObject}!.Value);");
+        }
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        if (nilChecked)
+        {
+            ssb.AppendLine($"{ssb.FullObject} = reader.ReadUInt128();");
+        }
+        else
+        {
+            using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
+            {
+                ssb.AppendLine($"{ssb.FullObject} = default;");
+            }
+
+            using (var b = ssb.ScopeBrace($"else"))
+            {
+                ssb.AppendLine($"{ssb.FullObject} = reader.ReadUInt128();");
+            }
+        }
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = 0;");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+    }
+}
+
+public sealed class UInt128ArrayCoder : ITinyhandCoder
+{
+    public static readonly UInt128ArrayCoder Instance = new ();
+
+    private UInt128ArrayCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeUInt128Array(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt128Array(ref reader) ?? new UInt128[0];");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new UInt128[0];");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneUInt128Array({sourceObject})!;");
+    }
+}
+
+public sealed class NullableUInt128ArrayCoder : ITinyhandCoder
+{
+    public static readonly NullableUInt128ArrayCoder Instance = new ();
+
+    private NullableUInt128ArrayCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeUInt128Array(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt128Array(ref reader);");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new UInt128[0];");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneUInt128Array({sourceObject});");
+    }
+}
+
+public sealed class UInt128ListCoder : ITinyhandCoder
+{
+    public static readonly UInt128ListCoder Instance = new ();
+
+    private UInt128ListCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeUInt128List(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt128List(ref reader) ?? new List<UInt128>();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new List<UInt128>();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<UInt128>({sourceObject});");
+    }
+}
+
+public sealed class NullableUInt128ListCoder : ITinyhandCoder
+{
+    public static readonly NullableUInt128ListCoder Instance = new ();
+
+    private NullableUInt128ListCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeUInt128List(ref writer, {ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt128List(ref reader);");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new List<UInt128>();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<UInt128>({sourceObject});");
     }
 }
