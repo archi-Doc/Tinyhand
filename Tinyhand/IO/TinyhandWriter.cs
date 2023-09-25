@@ -75,14 +75,14 @@ public ref struct TinyhandWriter
 
     public ReadOnlySequence<byte> FlushAndGetReadOnlySequence() => this.writer.FlushAndGetReadOnlySequence();
 
-    /*public void FlushAndGetArray(out byte[] rawArray, out int written)
-        => this.writer.FlushAndGetArray(out rawArray, out written);*/
+    public void FlushAndGetArray(out byte[] array, out int written, out bool isInitialBuffer)
+        => this.writer.FlushAndGetArray(out array, out written, out isInitialBuffer);
 
-    public void FlushAndGetMemory(out Memory<byte> memory, out bool isIinitialBuffer)
-        => this.writer.FlushAndGetMemory(out memory, out isIinitialBuffer);
+    public void FlushAndGetMemory(out Memory<byte> memory, out bool isInitialBuffer)
+        => this.writer.FlushAndGetMemory(out memory, out isInitialBuffer);
 
-    public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isIinitialBuffer)
-        => this.writer.FlushAndGetReadOnlySpan(out span, out isIinitialBuffer);
+    public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isInitialBuffer)
+        => this.writer.FlushAndGetReadOnlySpan(out span, out isInitialBuffer);
 
     public void Flush() => this.writer.Flush();
 

@@ -155,32 +155,6 @@ public ref struct ByteBufferWriter
         return this.byteSequence.ToReadOnlySequence().ToArray();
     }
 
-    /*/// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.<br/>
-    /// Pursue perfection.
-    /// </summary>
-    /// <param name="rawArray">A byte array containing the written data.</param>
-    /// <param name="written">The total number of bytes written by the writer.</param>
-    public void FlushAndGetArray(out byte[] rawArray, out int written)
-    {
-        if (this.bufferWriter == null)
-        { // Initial Buffer
-            rawArray = this.initialBuffer!;
-            written = this.spanSize;
-            return;
-        }
-
-        this.Flush();
-
-        if (this.byteSequence == null)
-        {
-            throw new InvalidOperationException("FlushAndGetArray() is not supported for external IBufferWriter<byte>.");
-        }
-
-        rawArray = this.byteSequence.ToReadOnlySequence().ToArray();
-        written = rawArray.Length;
-    }*/
-
     /// <summary>
     /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySequence{T}" />.
     /// </summary>
@@ -200,6 +174,35 @@ public ref struct ByteBufferWriter
         }
 
         return this.byteSequence.ToReadOnlySequence();
+    }
+
+    /// <summary>
+    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.<br/>
+    /// Pursue perfection.
+    /// </summary>
+    /// <param name="array">The byte array containing the written data.</param>
+    /// <param name="written">The total number of bytes written by the writer.</param>
+    /// /// <param name="isInitialBuffer"><see langword="true"/>: The byte array is the initial buffer.</param>
+    public void FlushAndGetArray(out byte[] array, out int written, out bool isInitialBuffer)
+    {
+        if (this.bufferWriter == null)
+        { // Initial Buffer
+            array = this.initialBuffer!;
+            written = this.spanSize;
+            isInitialBuffer = true;
+            return;
+        }
+
+        this.Flush();
+
+        if (this.byteSequence == null)
+        {
+            throw new InvalidOperationException("FlushAndGetArray() is not supported for external IBufferWriter<byte>.");
+        }
+
+        array = this.byteSequence.ToReadOnlySequence().ToArray();
+        written = array.Length;
+        isInitialBuffer = false;
     }
 
     /// <summary>
@@ -231,13 +234,13 @@ public ref struct ByteBufferWriter
     /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySpan{T}" />.
     /// </summary>
     /// <param name="span">A byte span consisting of the written data.</param>
-    /// <param name="isIinitialBuffer"><see langword="true"/>: The byte span is a part of the initial buffer.</param>
-    public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isIinitialBuffer)
+    /// <param name="isInitialBuffer"><see langword="true"/>: The byte span is a part of the initial buffer.</param>
+    public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isInitialBuffer)
     {
         if (this.bufferWriter == null)
         { // Initial Buffer
             span = this.initialBuffer.AsSpan(0, this.spanSize);
-            isIinitialBuffer = true;
+            isInitialBuffer = true;
             return;
         }
 
@@ -249,7 +252,7 @@ public ref struct ByteBufferWriter
         }
 
         span = this.byteSequence.ToReadOnlySpan();
-        isIinitialBuffer = false;
+        isInitialBuffer = false;
     }
 
     /// <summary>
