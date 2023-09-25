@@ -155,7 +155,7 @@ public ref struct ByteBufferWriter
         return this.byteSequence.ToReadOnlySequence().ToArray();
     }
 
-    /// <summary>
+    /*/// <summary>
     /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.<br/>
     /// Pursue perfection.
     /// </summary>
@@ -179,32 +179,7 @@ public ref struct ByteBufferWriter
 
         rawArray = this.byteSequence.ToReadOnlySequence().ToArray();
         written = rawArray.Length;
-    }
-
-    /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a memory region.<br/>
-    /// </summary>
-    /// <param name="memory">A memory region consisting of the written data.</param>
-    /// <param name="useInitialBuffer"><see langword="true"/>: A memory region is a part of the initial buffer.</param>
-    public void FlushAndGetMemory(out Memory<byte> memory, out bool useInitialBuffer)
-    {
-        if (this.bufferWriter == null)
-        { // Initial Buffer
-            memory = this.initialBuffer.AsMemory(0, this.spanSize);
-            useInitialBuffer = true;
-            return;
-        }
-
-        this.Flush();
-
-        if (this.byteSequence == null)
-        {
-            throw new InvalidOperationException("FlushAndGetMemory() is not supported for external IBufferWriter<byte>.");
-        }
-
-        memory = this.byteSequence.ToReadOnlySequence().ToArray().AsMemory();
-        useInitialBuffer = false;
-    }
+    }*/
 
     /// <summary>
     /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySequence{T}" />.
@@ -228,14 +203,42 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySpan{T}" />.
+    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a memory region.<br/>
     /// </summary>
-    /// <returns>A byte array consisting of the written data.</returns>
-    public ReadOnlySpan<byte> FlushAndGetReadOnlySpan()
+    /// <param name="memory">The memory region consisting of the written data.</param>
+    /// <param name="isInitialBuffer"><see langword="true"/>: The memory region is a part of the initial buffer.</param>
+    public void FlushAndGetMemory(out Memory<byte> memory, out bool isInitialBuffer)
     {
         if (this.bufferWriter == null)
         { // Initial Buffer
-            return this.initialBuffer.AsSpan(0, this.spanSize).ToArray();
+            memory = this.initialBuffer.AsMemory(0, this.spanSize);
+            isInitialBuffer = true;
+            return;
+        }
+
+        this.Flush();
+
+        if (this.byteSequence == null)
+        {
+            throw new InvalidOperationException("FlushAndGetMemory() is not supported for external IBufferWriter<byte>.");
+        }
+
+        memory = this.byteSequence.ToReadOnlySequence().ToArray().AsMemory();
+        isInitialBuffer = false;
+    }
+
+    /// <summary>
+    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySpan{T}" />.
+    /// </summary>
+    /// <param name="span">A byte span consisting of the written data.</param>
+    /// <param name="isIinitialBuffer"><see langword="true"/>: The byte span is a part of the initial buffer.</param>
+    public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isIinitialBuffer)
+    {
+        if (this.bufferWriter == null)
+        { // Initial Buffer
+            span = this.initialBuffer.AsSpan(0, this.spanSize);
+            isIinitialBuffer = true;
+            return;
         }
 
         this.Flush();
@@ -245,7 +248,8 @@ public ref struct ByteBufferWriter
             throw new InvalidOperationException("FlushAndGetReadOnlySequence() is not supported for external IBufferWriter<byte>.");
         }
 
-        return this.byteSequence.ToReadOnlySpan();
+        span = this.byteSequence.ToReadOnlySpan();
+        isIinitialBuffer = false;
     }
 
     /// <summary>
