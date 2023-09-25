@@ -46,7 +46,7 @@ public class JournalTester : ITinyhandJournal
 
     public ulong AddJournal(in TinyhandWriter writer)
     {
-        writer.FlushAndGetMemory(out var memory, out var useInitialBuffer);
+        writer.FlushAndGetMemory(out var memory, out _);
         writer.Dispose();
 
         if (memory.Length > MaxRecordLength)

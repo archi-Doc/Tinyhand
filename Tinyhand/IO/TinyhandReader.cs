@@ -31,7 +31,7 @@ public ref partial struct TinyhandReader
     public TinyhandReader(TinyhandWriter writer)
         : this()
     {
-        var span = writer.FlushAndGetReadOnlySpan();
+        writer.FlushAndGetReadOnlySpan(out var span, out _);
         this.b = ref MemoryMarshal.GetReference(span);
         this.remaining = span.Length;
         this.length = span.Length;
