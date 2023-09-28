@@ -42,9 +42,9 @@ public record TinyhandSerializerOptions
     public enum Mode
     {
         /// <summary>
-        /// Standard mode.
+        /// Serialize all members.
         /// </summary>
-        Standard,
+        All,
 
         /// <summary>
         /// Serialize members with the selection property set to true.
@@ -114,9 +114,9 @@ public record TinyhandSerializerOptions
     /// <summary>
     /// Gets the serialization mode.
     /// </summary>
-    public Mode SerializationMode { get; init; } = Mode.Standard;
+    public Mode SerializationMode { get; init; } = Mode.All;
 
-    public bool IsStandardMode => this.SerializationMode == Mode.Standard;
+    public bool IsStandardMode => this.SerializationMode == Mode.All;
 
     public bool IsSelectionMode => this.SerializationMode == Mode.Selection;
 
