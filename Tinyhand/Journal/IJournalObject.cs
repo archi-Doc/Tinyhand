@@ -16,12 +16,14 @@ public interface IJournalObject
 
     public void SetParent(IJournalObject? parent, int key = -1)
     {
+        this.Journal = parent?.Journal;
         this.JournalParent = parent;
         this.JournalKey = key;
     }
 
     public void SetParentInternal(IJournalObject? parent, int key = -1)
     {
+        this.Journal = parent?.Journal;
         this.JournalParent = parent;
         this.JournalKey = key;
     }
