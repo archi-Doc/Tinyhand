@@ -204,6 +204,69 @@ public interface IJournalObject
 
                                     return true;
                                 }
+                                else
+                                {
+                                    var p8 = p7.JournalParent;
+                                    if (p8 is null)
+                                    {
+                                        if (p7.Journal is null)
+                                        {
+                                            journal = null;
+                                            writer = default;
+                                            return false;
+                                        }
+                                        else
+                                        {
+                                            journal = p7.Journal;
+                                            journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                        }
+
+                                        p6.WriteKeyOrLocator(ref writer);
+                                        p5.WriteKeyOrLocator(ref writer);
+                                        p4.WriteKeyOrLocator(ref writer);
+                                        p3.WriteKeyOrLocator(ref writer);
+                                        p2.WriteKeyOrLocator(ref writer);
+                                        p.WriteKeyOrLocator(ref writer);
+                                        if (includeCurrent)
+                                        {
+                                            this.WriteKeyOrLocator(ref writer);
+                                        }
+
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        var p9 = p8.JournalParent;
+                                        if (p9 is null)
+                                        {
+                                            if (p8.Journal is null)
+                                            {
+                                                journal = null;
+                                                writer = default;
+                                                return false;
+                                            }
+                                            else
+                                            {
+                                                journal = p8.Journal;
+                                                journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                            }
+
+                                            p7.WriteKeyOrLocator(ref writer);
+                                            p6.WriteKeyOrLocator(ref writer);
+                                            p5.WriteKeyOrLocator(ref writer);
+                                            p4.WriteKeyOrLocator(ref writer);
+                                            p3.WriteKeyOrLocator(ref writer);
+                                            p2.WriteKeyOrLocator(ref writer);
+                                            p.WriteKeyOrLocator(ref writer);
+                                            if (includeCurrent)
+                                            {
+                                                this.WriteKeyOrLocator(ref writer);
+                                            }
+
+                                            return true;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
