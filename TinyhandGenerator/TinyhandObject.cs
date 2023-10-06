@@ -4198,7 +4198,7 @@ ModuleInitializerClass_Added:
         }
         else
         {
-            ssb.AppendLine($"if (options.IsStandardMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
+            ssb.AppendLine($"if (options.IsAllMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
             ssb.AppendLine($"else if (options.IsSelectionMode) writer.WriteArrayHeader({this.SelectionCount});");
         }
 
@@ -4238,7 +4238,7 @@ ModuleInitializerClass_Added:
             }
             else
             {// Selection == false
-                scopeIf = ssb.ScopeBrace($"if (options.IsStandardMode || (options.IsSignatureMode && writer.Level >= {level}))");
+                scopeIf = ssb.ScopeBrace($"if (options.IsAllMode || (options.IsSignatureMode && writer.Level >= {level}))");
             }
         }
 
