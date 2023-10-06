@@ -5,15 +5,7 @@ using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 using Tinyhand.Resolvers;
 
-#pragma warning disable SA1602 // Enumeration items should be documented
-
 namespace Tinyhand;
-
-public enum TinyhandCompression
-{
-    None,
-    Lz4,
-}
 
 public static class TinyhandSerializerOptionsExtension
 {
@@ -47,11 +39,6 @@ public record TinyhandSerializerOptions
         All,
 
         /// <summary>
-        /// Serialize all members and unload data (the actual unloading process will be implemented by the application side).
-        /// </summary>
-        Unload,
-
-        /// <summary>
         /// Serialize members with the selection property set to true.
         /// </summary>
         Selection,
@@ -62,11 +49,27 @@ public record TinyhandSerializerOptions
         Signature,
     }
 
+    [Flags]
+    public enum Flags
+    {
+        /// <summary>
+        /// Compress the data using the Lz4 algorithm.
+        /// </summary>
+        Lz4Compress = 1 << 0,
+
+        /// <summary>
+        /// Unload data (the actual unloading process will be implemented by the application side).
+        /// </summary>
+        Unload = 1 << 1,
+    }
+
     public static TinyhandSerializerOptions Standard { get; } = new TinyhandSerializerOptions(StandardResolver.Instance);
 
     public static TinyhandSerializerOptions Compatible { get; } = new TinyhandSerializerOptions(CompatibleResolver.Instance);
 
-    public static TinyhandSerializerOptions Lz4 { get; } = Standard with { Compression = TinyhandCompression.Lz4, };
+    public static TinyhandSerializerOptions Lz4 { get; } = Standard with { SerializationFlags = Flags.Lz4Compress, };
+
+    public static TinyhandSerializerOptions Unload { get; } = Standard with { SerializationFlags = Flags.Unload, };
 
     public static TinyhandSerializerOptions Selection { get; } = Standard with { SerializationMode = Mode.Selection, };
 
@@ -89,14 +92,9 @@ public record TinyhandSerializerOptions
     public IFormatterResolver Resolver { get; init; }
 
     /// <summary>
-    /// Gets the compression scheme to apply to serialized sequences.
+    /// Gets the serialization flags.
     /// </summary>
-    /// <remarks>
-    /// When set to something other than <see cref="TinyhandCompression.None"/>,
-    /// deserialization can still work on uncompressed sequences,
-    /// and serialization may not compress if msgpack sequences are short enough that compression would not likely be advantageous.
-    /// </remarks>
-    public TinyhandCompression Compression { get; init; } = TinyhandCompression.None;
+    public Flags SerializationFlags { get; init; }
 
     /// <summary>
     /// Gets the security-related options for deserializing messagepack sequences.
@@ -121,9 +119,7 @@ public record TinyhandSerializerOptions
     /// </summary>
     public Mode SerializationMode { get; init; } = Mode.All;
 
-    public bool IsAllMode => this.SerializationMode == Mode.All || this.SerializationMode == Mode.Unload;
-
-    public bool IsUnloadMode => this.SerializationMode == Mode.Unload;
+    public bool IsAllMode => this.SerializationMode == Mode.All;
 
     public bool IsSelectionMode => this.SerializationMode == Mode.Selection;
 
@@ -133,4 +129,8 @@ public record TinyhandSerializerOptions
     /// Gets a value indicating whether the option uses Standard resolver or not.
     /// </summary>
     public bool IsStandardResolver => this.Resolver == StandardResolver.Instance;
+
+    public bool HasLz4CompressFlag => this.SerializationFlags.HasFlag(Flags.Lz4Compress);
+
+    public bool HasUnloadFlag => this.SerializationFlags.HasFlag(Flags.Unload);
 }

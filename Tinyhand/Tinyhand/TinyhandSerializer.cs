@@ -207,7 +207,7 @@ public static partial class TinyhandSerializer
         try
         {
             options = options ?? DefaultOptions;
-            if (options.Compression == TinyhandCompression.None)
+            if (!options.HasLz4CompressFlag)
             {
                 try
                 {
@@ -250,7 +250,7 @@ public static partial class TinyhandSerializer
         var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
         try
         {
-            if (options.Compression == TinyhandCompression.None)
+            if (!options.HasLz4CompressFlag)
             {
                 try
                 {
@@ -346,7 +346,7 @@ public static partial class TinyhandSerializer
         var writer = new TinyhandWriter(initialBuffer);
         try
         {
-            if (options.Compression == TinyhandCompression.None)
+            if (!options.HasLz4CompressFlag)
             {
                 try
                 {
@@ -458,7 +458,7 @@ public static partial class TinyhandSerializer
 
         try
         {
-            if (options.Compression != TinyhandCompression.None && !PrimitiveChecker<T>.IsTinyhandFixedSizePrimitive)
+            if (options.HasLz4CompressFlag && !PrimitiveChecker<T>.IsTinyhandFixedSizePrimitive)
             {
                 if (initialBuffer2 == null)
                 {
@@ -469,7 +469,7 @@ public static partial class TinyhandSerializer
                 try
                 {
                     options.Resolver.GetFormatter<T>().Serialize(ref w, value, options);
-                    ToLZ4BinaryCore(w.FlushAndGetReadOnlySequence(), ref writer, options.Compression);
+                    ToLZ4BinaryCore(w.FlushAndGetReadOnlySequence(), ref writer);
                 }
                 finally
                 {
@@ -694,7 +694,7 @@ public static partial class TinyhandSerializer
 
         try
         {
-            if (options.Compression != TinyhandCompression.None)
+            if (options.HasLz4CompressFlag)
             {
                 var byteSequence = new ByteSequence();
                 try
@@ -915,38 +915,31 @@ public static partial class TinyhandSerializer
         return result;
     }
 
-    private static void ToLZ4BinaryCore(scoped in ReadOnlySequence<byte> msgpackUncompressedData, ref TinyhandWriter writer, TinyhandCompression compression)
+    private static void ToLZ4BinaryCore(scoped in ReadOnlySequence<byte> msgpackUncompressedData, ref TinyhandWriter writer)
     {
-        if (compression == TinyhandCompression.Lz4)
+        // Write to [Ext(98:int,int...), bin,bin,bin...]
+        var sequenceCount = 0;
+        var extHeaderSize = 0;
+        foreach (var item in msgpackUncompressedData)
         {
-            // Write to [Ext(98:int,int...), bin,bin,bin...]
-            var sequenceCount = 0;
-            var extHeaderSize = 0;
-            foreach (var item in msgpackUncompressedData)
-            {
-                sequenceCount++;
-                extHeaderSize += GetUInt32WriteSize((uint)item.Length);
-            }
-
-            writer.WriteArrayHeader(sequenceCount + 1);
-            writer.WriteExtensionFormatHeader(new ExtensionHeader(Tinyhand.MessagePackExtensionCodes.Lz4BlockArray, extHeaderSize));
-            foreach (var item in msgpackUncompressedData)
-            {
-                writer.Write(item.Length);
-            }
-
-            foreach (var item in msgpackUncompressedData)
-            {
-                var maxCompressedLength = MessagePack.LZ4.LZ4Codec.MaximumOutputLength(item.Length);
-                var lz4Span = writer.GetSpan(maxCompressedLength + 5);
-                int lz4Length = MessagePack.LZ4.LZ4Codec.Encode(item.Span, lz4Span.Slice(5, lz4Span.Length - 5));
-                WriteBin32Header((uint)lz4Length, lz4Span);
-                writer.Advance(lz4Length + 5);
-            }
+            sequenceCount++;
+            extHeaderSize += GetUInt32WriteSize((uint)item.Length);
         }
-        else
+
+        writer.WriteArrayHeader(sequenceCount + 1);
+        writer.WriteExtensionFormatHeader(new ExtensionHeader(Tinyhand.MessagePackExtensionCodes.Lz4BlockArray, extHeaderSize));
+        foreach (var item in msgpackUncompressedData)
         {
-            throw new ArgumentException("Invalid TinyhandCompression Code. Code:" + compression);
+            writer.Write(item.Length);
+        }
+
+        foreach (var item in msgpackUncompressedData)
+        {
+            var maxCompressedLength = MessagePack.LZ4.LZ4Codec.MaximumOutputLength(item.Length);
+            var lz4Span = writer.GetSpan(maxCompressedLength + 5);
+            int lz4Length = MessagePack.LZ4.LZ4Codec.Encode(item.Span, lz4Span.Slice(5, lz4Span.Length - 5));
+            WriteBin32Header((uint)lz4Length, lz4Span);
+            writer.Advance(lz4Length + 5);
         }
     }
 

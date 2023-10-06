@@ -5,7 +5,6 @@ using System.Buffers;
 using Arc.IO;
 using Tinyhand.Tree;
 
-#pragma warning disable SA1011 // Closing square brackets should be spaced correctly
 #pragma warning disable SA1513 // Closing brace should be followed by blank line
 #pragma warning disable SA1602 // Enumeration items should be documented
 
