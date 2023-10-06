@@ -47,6 +47,11 @@ public record TinyhandSerializerOptions
         All,
 
         /// <summary>
+        /// Serialize all members and unload data (the actual unloading process will be implemented by the application side).
+        /// </summary>
+        Unload,
+
+        /// <summary>
         /// Serialize members with the selection property set to true.
         /// </summary>
         Selection,
@@ -116,7 +121,9 @@ public record TinyhandSerializerOptions
     /// </summary>
     public Mode SerializationMode { get; init; } = Mode.All;
 
-    public bool IsStandardMode => this.SerializationMode == Mode.All;
+    public bool IsAllMode => this.SerializationMode == Mode.All || this.SerializationMode == Mode.Unload;
+
+    public bool IsUnloadMode => this.SerializationMode == Mode.Unload;
 
     public bool IsSelectionMode => this.SerializationMode == Mode.Selection;
 
