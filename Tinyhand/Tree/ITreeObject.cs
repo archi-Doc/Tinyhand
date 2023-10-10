@@ -2,38 +2,71 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Tinyhand.IO;
 
 namespace Tinyhand;
 
-public interface IJournalObject
+public interface ITreeObject
 {// TinyhandGenerator, ValueLinkGenerator
-    ITinyhandJournal? Journal { get; set; }
+    ITreeRoot? TreeRoot { get; set; }
 
-    IJournalObject? JournalParent { get; protected set; }
+    ITreeObject? TreeParent { get; protected set; }
 
-    int JournalKey { get; protected set; } // Plane or IntKey
+    int TreeKey { get; protected set; } // Plane or IntKey
 
-    public void SetParent(IJournalObject? parent, int key = -1)
+    public void SetParent(ITreeObject? parent, int key = -1)
     {
-        this.Journal = parent?.Journal;
-        this.JournalParent = parent;
-        this.JournalKey = key;
+        this.TreeRoot = parent?.TreeRoot;
+        this.TreeParent = parent;
+        this.TreeKey = key;
     }
 
-    public void SetParentInternal(IJournalObject? parent, int key = -1)
+    public void SetParentActual(ITreeObject? parent, int key = -1)
     {
-        this.Journal = parent?.Journal;
-        this.JournalParent = parent;
-        this.JournalKey = key;
+        this.TreeRoot = parent?.TreeRoot;
+        this.TreeParent = parent;
+        this.TreeKey = key;
     }
 
-    public bool TryGetJournalWriter([NotNullWhen(true)] out ITinyhandJournal? journal, out TinyhandWriter writer, bool includeCurrent = true)
+    Task<bool> Save(UnloadMode unloadMode)
+        => Task.FromResult(true);
+
+    void Delete()
     {
-        var p = this.JournalParent;
+    }
+
+    void NotifyDataChanged()
+    {
+    }
+
+    bool ReadRecord(ref TinyhandReader reader)
+        => false;
+
+    public void WriteLocator(ref TinyhandWriter writer)
+    {
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteKeyOrLocator(ref TinyhandWriter writer)
+    {
+        if (this.TreeKey >= 0)
+        {
+            writer.Write_Key();
+            writer.Write(this.TreeKey);
+        }
+        else
+        {
+            this.WriteLocator(ref writer);
+        }
+    }
+
+    public bool TryGetJournalWriter([NotNullWhen(true)] out ITreeRoot? journal, out TinyhandWriter writer, bool includeCurrent = true)
+    {
+        var p = this.TreeParent;
         if (p == null)
         {
-            if (this.Journal is null)
+            if (this.TreeRoot is null)
             {
                 journal = null;
                 writer = default;
@@ -41,16 +74,16 @@ public interface IJournalObject
             }
             else
             {
-                journal = this.Journal;
+                journal = this.TreeRoot;
                 return journal.TryGetJournalWriter(JournalType.Record, out writer);
             }
         }
         else
         {
-            var p2 = p.JournalParent;
+            var p2 = p.TreeParent;
             if (p2 is null)
             {
-                if (p.Journal is null)
+                if (p.TreeRoot is null)
                 {
                     journal = null;
                     writer = default;
@@ -58,7 +91,7 @@ public interface IJournalObject
                 }
                 else
                 {
-                    journal = p.Journal;
+                    journal = p.TreeRoot;
                     journal.TryGetJournalWriter(JournalType.Record, out writer);
                 }
 
@@ -71,10 +104,10 @@ public interface IJournalObject
             }
             else
             {
-                var p3 = p2.JournalParent;
+                var p3 = p2.TreeParent;
                 if (p3 is null)
                 {
-                    if (p2.Journal is null)
+                    if (p2.TreeRoot is null)
                     {
                         journal = null;
                         writer = default;
@@ -82,7 +115,7 @@ public interface IJournalObject
                     }
                     else
                     {
-                        journal = p2.Journal;
+                        journal = p2.TreeRoot;
                         journal.TryGetJournalWriter(JournalType.Record, out writer);
                     }
 
@@ -96,10 +129,10 @@ public interface IJournalObject
                 }
                 else
                 {
-                    var p4 = p3.JournalParent;
+                    var p4 = p3.TreeParent;
                     if (p4 is null)
                     {
-                        if (p3.Journal is null)
+                        if (p3.TreeRoot is null)
                         {
                             journal = null;
                             writer = default;
@@ -107,7 +140,7 @@ public interface IJournalObject
                         }
                         else
                         {
-                            journal = p3.Journal;
+                            journal = p3.TreeRoot;
                             journal.TryGetJournalWriter(JournalType.Record, out writer);
                         }
 
@@ -122,10 +155,10 @@ public interface IJournalObject
                     }
                     else
                     {
-                        var p5 = p4.JournalParent;
+                        var p5 = p4.TreeParent;
                         if (p5 is null)
                         {
-                            if (p4.Journal is null)
+                            if (p4.TreeRoot is null)
                             {
                                 journal = null;
                                 writer = default;
@@ -133,7 +166,7 @@ public interface IJournalObject
                             }
                             else
                             {
-                                journal = p4.Journal;
+                                journal = p4.TreeRoot;
                                 journal.TryGetJournalWriter(JournalType.Record, out writer);
                             }
 
@@ -149,10 +182,10 @@ public interface IJournalObject
                         }
                         else
                         {
-                            var p6 = p5.JournalParent;
+                            var p6 = p5.TreeParent;
                             if (p6 is null)
                             {
-                                if (p5.Journal is null)
+                                if (p5.TreeRoot is null)
                                 {
                                     journal = null;
                                     writer = default;
@@ -160,7 +193,7 @@ public interface IJournalObject
                                 }
                                 else
                                 {
-                                    journal = p5.Journal;
+                                    journal = p5.TreeRoot;
                                     journal.TryGetJournalWriter(JournalType.Record, out writer);
                                 }
 
@@ -177,10 +210,10 @@ public interface IJournalObject
                             }
                             else
                             {
-                                var p7 = p6.JournalParent;
+                                var p7 = p6.TreeParent;
                                 if (p7 is null)
                                 {
-                                    if (p6.Journal is null)
+                                    if (p6.TreeRoot is null)
                                     {
                                         journal = null;
                                         writer = default;
@@ -188,7 +221,7 @@ public interface IJournalObject
                                     }
                                     else
                                     {
-                                        journal = p6.Journal;
+                                        journal = p6.TreeRoot;
                                         journal.TryGetJournalWriter(JournalType.Record, out writer);
                                     }
 
@@ -206,10 +239,10 @@ public interface IJournalObject
                                 }
                                 else
                                 {
-                                    var p8 = p7.JournalParent;
+                                    var p8 = p7.TreeParent;
                                     if (p8 is null)
                                     {
-                                        if (p7.Journal is null)
+                                        if (p7.TreeRoot is null)
                                         {
                                             journal = null;
                                             writer = default;
@@ -217,7 +250,7 @@ public interface IJournalObject
                                         }
                                         else
                                         {
-                                            journal = p7.Journal;
+                                            journal = p7.TreeRoot;
                                             journal.TryGetJournalWriter(JournalType.Record, out writer);
                                         }
 
@@ -236,10 +269,10 @@ public interface IJournalObject
                                     }
                                     else
                                     {
-                                        var p9 = p8.JournalParent;
+                                        var p9 = p8.TreeParent;
                                         if (p9 is null)
                                         {
-                                            if (p8.Journal is null)
+                                            if (p8.TreeRoot is null)
                                             {
                                                 journal = null;
                                                 writer = default;
@@ -247,7 +280,7 @@ public interface IJournalObject
                                             }
                                             else
                                             {
-                                                journal = p8.Journal;
+                                                journal = p8.TreeRoot;
                                                 journal.TryGetJournalWriter(JournalType.Record, out writer);
                                             }
 
@@ -277,26 +310,5 @@ public interface IJournalObject
         journal = null;
         writer = default;
         return false;
-    }
-
-    bool ReadRecord(ref TinyhandReader reader)
-        => false;
-
-    public void WriteLocator(ref TinyhandWriter writer)
-    {
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteKeyOrLocator(ref TinyhandWriter writer)
-    {
-        if (this.JournalKey >= 0)
-        {
-            writer.Write_Key();
-            writer.Write(this.JournalKey);
-        }
-        else
-        {
-            this.WriteLocator(ref writer);
-        }
     }
 }

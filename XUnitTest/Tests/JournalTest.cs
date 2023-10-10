@@ -135,7 +135,7 @@ public class JournalTest
         var c = new JournalTestClass(1, "one");
 
         var cc = new JournalTestClass();
-        cc.Journal = tester;
+        cc.TreeRoot = tester;
         cc.Id = c.Id;
         cc.Name = c.Name;
 
@@ -151,7 +151,7 @@ public class JournalTest
     {
         var tester = new JournalTester();
         var c = TinyhandSerializer.Reconstruct<JournalClass2B>();
-        c.Journal = tester;
+        c.TreeRoot = tester;
 
         c.Class1.X7 = 77;
         c.Class2.Id = 21;

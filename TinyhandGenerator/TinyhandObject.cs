@@ -60,7 +60,7 @@ public enum TinyhandObjectFlag
     HasITinyhandClone = 1 << 21, // Has ITinyhandClone interface
     CanCreateInstance = 1 << 22, // Can create an instance
     InterfaceImplemented = 1 << 23, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
-    HasIJournalObject = 1 << 24, // Has IJournalObject interface
+    HasITreeObject = 1 << 24, // Has ITreeObject interface
     HasITinyhandCustomJournal = 1 << 25, // Has ITinyhandCustomJournal interface
     HasValueLinkObject = 1 << 26, // Has ValueLinkgObject attribute
     IsRepeatableRead = 1 << 27, // IsolationLevel.RepeatableRead
@@ -623,10 +623,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         // Method condition (Journal)
-        var journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.IJournalObject}";
+        var journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITreeObject}";
         if (this.Interfaces.Any(x => x.FullName == journalInterface))
-        {// IJournalObject implemented
-            this.ObjectFlag |= TinyhandObjectFlag.HasIJournalObject;
+        {// ITreeObject implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasITreeObject;
         }
 
         journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
@@ -1754,15 +1754,15 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            if (this.ObjectAttribute.Journal && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+            if (this.ObjectAttribute.Journal && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
             {
                 if (interfaceString == string.Empty)
                 {
-                    interfaceString = $" : {TinyhandBody.IJournalObject}";
+                    interfaceString = $" : {TinyhandBody.ITreeObject}";
                 }
                 else
                 {
-                    interfaceString += $", {TinyhandBody.IJournalObject}";
+                    interfaceString += $", {TinyhandBody.ITreeObject}";
                 }
             }
 
@@ -1838,9 +1838,9 @@ ModuleInitializerClass_Added:
 
                 x.GenerateMethod(ssb, info);
 
-                if (x.ObjectAttribute.Journal && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+                if (x.ObjectAttribute.Journal && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
                 {
-                    x.GenerateITinyhandJournal(ssb, info);
+                    x.GenerateITreeObject(ssb, info);
                 }
             }
 
@@ -2522,22 +2522,54 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateJournal_SetParent(ScopingStringBuilder ssb, TinyhandObject? child, string parent)
+    internal void GenerateJournal_SetParent(ScopingStringBuilder ssb, TinyhandObject? child, string parent, ref int count)
     {
         if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
         {
             return;
         }
 
-        if (typeObject.ObjectAttribute?.Journal == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
+        if (typeObject.ObjectAttribute?.Journal == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
         {
-            ssb.AppendLine($"(({TinyhandBody.IJournalObject}){ssb.FullObject})?.SetParent({parent}, {key.ToString()});");
+            ssb.AppendLine($"(({TinyhandBody.ITreeObject}){ssb.FullObject})?.SetParent({parent}, {key.ToString()});");
+            count++;
         }
         else if (this.ObjectAttribute?.Journal == true && typeObject.Kind == VisceralObjectKind.Error)
         {// Maybe generated class
             var keyString = key.ToString();
             var objName = "obj" + keyString;
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IJournalObject} {objName}) {objName}.SetParent({parent}, {keyString});");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.ITreeObject} {objName}) {objName}.SetParent({parent}, {keyString});");
+            count++;
+        }
+    }
+
+    internal void GenerateJournal_Delete(ScopingStringBuilder ssb, TinyhandObject? child)
+    {
+        if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
+        {
+            return;
+        }
+
+        if ((typeObject.ObjectAttribute?.Journal == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject)) ||
+            (this.ObjectAttribute?.Journal == true && typeObject.Kind == VisceralObjectKind.Error))
+        {// ITreeObject or unknown generated class
+            var objName = $"obj{key.ToString()}";
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.ITreeObject} {objName}) {objName}.Delete();");
+        }
+    }
+
+    internal void GenerateJournal_Save(ScopingStringBuilder ssb, TinyhandObject? child)
+    {
+        if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
+        {
+            return;
+        }
+
+        if ((typeObject.ObjectAttribute?.Journal == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject)) ||
+            (this.ObjectAttribute?.Journal == true && typeObject.Kind == VisceralObjectKind.Error))
+        {// ITreeObject or unknown generated class
+            var objName = $"obj{key.ToString()}";
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.ITreeObject} {objName} && await {objName}.Save(unloadMode).ConfigureAwait(false) == false) return false;");
         }
     }
 
@@ -2702,7 +2734,7 @@ ModuleInitializerClass_Added:
             }
 
             var journal = this.ObjectAttribute?.Journal == true ||
-                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject);
+                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject);
 
             string setterAccessibility = string.Empty;
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
@@ -2770,7 +2802,7 @@ ModuleInitializerClass_Added:
 
                         if (journal)
                         {
-                            ssb.AppendLine($"(({TinyhandBody.IJournalObject})this).Journal?.TryAddToSaveQueue();");
+                            ssb.AppendLine($"(({TinyhandBody.ITreeObject})this).TreeRoot?.TryAddToSaveQueue();");
                         }
                     }
                 }
@@ -2931,23 +2963,82 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateITinyhandJournal(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateITreeObject(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine();
 
-        ssb.AppendLine($"[IgnoreMember] public {TinyhandBody.ITinyhandJournal}? Journal {{ get; set; }}");
-        ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IJournalObject}? {TinyhandBody.IJournalObject}.JournalParent {{ get; set; }}");
-        ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IJournalObject}.JournalKey {{ get; set; }} = -1;");
+        ssb.AppendLine($"[IgnoreMember] public {TinyhandBody.ITreeRoot}? TreeRoot {{ get; set; }}");
+        ssb.AppendLine($"[IgnoreMember] {TinyhandBody.ITreeObject}? {TinyhandBody.ITreeObject}.TreeParent {{ get; set; }}");
+        ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.ITreeObject}.TreeKey {{ get; set; }} = -1;");
 
-        this.GenerateSetParent(ssb, info);
+        this.GenerateSetParent(ssb, info, out var count);
         this.GenerateReadRecord(ssb, info);
+
+        if (count > 0)
+        {
+            this.GenerateITreeObject_Save(ssb, info);
+            this.GenerateITreeObject_Delete(ssb, info);
+        }
     }
 
-    internal void GenerateSetParent(ScopingStringBuilder ssb, GeneratorInformation info)
-    {// public void SetParent(IJournalObject? parent, int key = -1)
-        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IJournalObject}.SetParent({TinyhandBody.IJournalObject}? parent, int key)"))
+    internal void GenerateITreeObject_Save(ScopingStringBuilder ssb, GeneratorInformation info)
+    {// public void Delete()
+        using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.ITreeObject}.Save(UnloadMode unloadMode)"))
         {
-            ssb.AppendLine($"(({TinyhandBody.IJournalObject})this).SetParentInternal(parent, key);");
+            if (this.IntKey_Array is not null)
+            {
+                using (var t = ssb.ScopeObject("this"))
+                {
+                    foreach (var x in this.IntKey_Array)
+                    {
+                        if (x is null)
+                        {
+                            continue;
+                        }
+
+                        using (var m = this.ScopeMember(ssb, x))
+                        {
+                            this.GenerateJournal_Save(ssb, x);
+                        }
+                    }
+                }
+            }
+
+            ssb.AppendLine("return true;");
+        }
+    }
+
+    internal void GenerateITreeObject_Delete(ScopingStringBuilder ssb, GeneratorInformation info)
+    {// public void Delete()
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.ITreeObject}.Delete()"))
+        {
+            if (this.IntKey_Array is not null)
+            {
+                using (var t = ssb.ScopeObject("this"))
+                {
+                    foreach (var x in this.IntKey_Array)
+                    {
+                        if (x is null)
+                        {
+                            continue;
+                        }
+
+                        using (var m = this.ScopeMember(ssb, x))
+                        {
+                            this.GenerateJournal_Delete(ssb, x);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    internal void GenerateSetParent(ScopingStringBuilder ssb, GeneratorInformation info, out int count)
+    {// public void SetParent(ITreeObject? parent, int key = -1)
+        count = 0;
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.ITreeObject}.SetParent({TinyhandBody.ITreeObject}? parent, int key)"))
+        {
+            ssb.AppendLine($"(({TinyhandBody.ITreeObject})this).SetParentActual(parent, key);");
 
             if (this.IntKey_Array is not null)
             {
@@ -2962,7 +3053,7 @@ ModuleInitializerClass_Added:
 
                         using (var m = this.ScopeMember(ssb, x))
                         {
-                            this.GenerateJournal_SetParent(ssb, x, "this");
+                            this.GenerateJournal_SetParent(ssb, x, "this", ref count);
                         }
                     }
                 }
@@ -2972,7 +3063,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"{this.UnsafeDeserializeString}bool {TinyhandBody.IJournalObject}.ReadRecord(ref TinyhandReader reader)"))
+        using (var scopeMethod = ssb.ScopeBrace($"{this.UnsafeDeserializeString}bool {TinyhandBody.ITreeObject}.ReadRecord(ref TinyhandReader reader)"))
         {
             // Lock
             var lockExpression = this.GetLockExpression("this");
@@ -3076,22 +3167,23 @@ ModuleInitializerClass_Added:
             return;
         }
 
+        var count = 0;
         ScopingStringBuilder.IScope? initSetter = null;
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
             if (x.TypeObject?.ObjectAttribute?.Journal == true ||
-                x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject) == true ||
+                x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject) == true ||
                 x.TypeObject?.Kind == VisceralObjectKind.Error)
             {
-                ssb.AppendLine($"if (reader.IsNext_NonValue() && {ssb.FullObject} is {TinyhandBody.IJournalObject} obj && obj.ReadRecord(ref reader)) return true;");
+                ssb.AppendLine($"if (reader.IsNext_NonValue() && {ssb.FullObject} is {TinyhandBody.ITreeObject} obj && obj.ReadRecord(ref reader)) return true;");
             }
 
             ssb.AppendLine("reader.Read_Value();");
 
             /*if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
             {
-                ssb.AppendLine($"return (({TinyhandBody.IJournalObject}){ssb.FullObject}).ReadRecord(ref reader);");
+                ssb.AppendLine($"return (({TinyhandBody.ITreeObject}){ssb.FullObject}).ReadRecord(ref reader);");
             }*/
 
             InitSetter_Start();
@@ -3116,7 +3208,7 @@ ModuleInitializerClass_Added:
 
             InitSetter_End();
 
-            this.GenerateJournal_SetParent(ssb, x, destObject);
+            this.GenerateJournal_SetParent(ssb, x, destObject, ref count);
 
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasValueLinkObject) &&
                 x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
@@ -3381,6 +3473,7 @@ ModuleInitializerClass_Added:
             return;
         }
 
+        var count = 0;
         ScopingStringBuilder.IScope? initSetter = null;
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeMember(ssb, x))
@@ -3453,7 +3546,7 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            this.GenerateJournal_SetParent(ssb, x, destObject);
+            this.GenerateJournal_SetParent(ssb, x, destObject, ref count);
         }
 
         void InitSetter_Start()
@@ -3620,6 +3713,7 @@ ModuleInitializerClass_Added:
             return;
         }
 
+        var count = 0;
         ScopingStringBuilder.IScope? initSetter = null;
         ScopingStringBuilder.IScope? emptyBrace = null;
         var destObject = ssb.FullObject; // Hidden members
@@ -3668,7 +3762,7 @@ ModuleInitializerClass_Added:
                 InitSetter_End();
             }
 
-            this.GenerateJournal_SetParent(ssb, x, destObject);
+            this.GenerateJournal_SetParent(ssb, x, destObject, ref count);
         }
 
         void InitSetter_Start(bool brace = false)
