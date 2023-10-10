@@ -30,8 +30,8 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string LockTaken = "__lockTaken__";
     public static readonly string ILockable = "Arc.Threading.ILockable";
     public static readonly string LockStruct = "Arc.Threading.LockStruct";
-    public static readonly string ITinyhandJournal = "ITinyhandJournal";
-    public static readonly string IJournalObject = "IJournalObject";
+    public static readonly string ITreeRoot = "ITreeRoot";
+    public static readonly string ITreeObject = "ITreeObject";
     public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
     public static readonly string ValueLinkUpdate = "__gen_cl_update_";
 
@@ -352,6 +352,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         ssb.AddUsing("System.Diagnostics.CodeAnalysis");
         ssb.AddUsing("System.Linq.Expressions");
         ssb.AddUsing("System.Runtime.CompilerServices");
+        ssb.AddUsing("System.Threading.Tasks");
         ssb.AddUsing("FastExpressionCompiler");
         ssb.AddUsing("Tinyhand");
         ssb.AddUsing("Tinyhand.IO");

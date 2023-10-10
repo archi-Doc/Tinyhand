@@ -105,7 +105,7 @@ public abstract partial class LockObjectClass<T>
     protected object syncObject = new();
 }
 
-[ValueLinkObject(Isolation = IsolationLevel.RepeatableRead)]
+/*[ValueLinkObject(Isolation = IsolationLevel.RepeatableRead)]
 [TinyhandObject(Journal = true)]
 public partial record TestItem
 {
@@ -125,7 +125,7 @@ public partial record TestItem
 
     [Key(4)]
     public GoshujinClass? Class4 { get; set; } = default!;
-}
+}*/
 
 public partial class NestParent
 {

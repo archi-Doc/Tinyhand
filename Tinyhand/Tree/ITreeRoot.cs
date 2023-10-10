@@ -4,7 +4,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
-public interface ITinyhandJournal
+public interface ITreeRoot
 {
     bool TryGetJournalWriter(JournalType recordType, out TinyhandWriter writer);
 
