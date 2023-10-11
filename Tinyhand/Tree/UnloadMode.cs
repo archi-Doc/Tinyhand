@@ -19,3 +19,9 @@ public enum UnloadMode
     /// </summary>
     ForceUnload,
 }
+
+public static class UnloadModeExtension
+{
+    public static bool IsUnload(this UnloadMode unloadMode)
+        => unloadMode != UnloadMode.NoUnload;
+}
