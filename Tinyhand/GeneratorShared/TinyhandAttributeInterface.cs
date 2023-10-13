@@ -16,14 +16,19 @@ public delegate void ByRefAction<T1, T2>(in T1 arg1, T2 arg2); // For struct set
 public enum PropertyAccessibility
 {
     /// <summary>
-    /// [Default] Generated properties have public getter and setter.
+    /// The generated property has both public getter and setter [default].
     /// </summary>
     PublicSetter,
 
     /// <summary>
-    /// Generated properties have public getter and protected setter.
+    /// The generated property has a public getter and a protected setter.
     /// </summary>
     ProtectedSetter,
+
+    /// <summary>
+    /// The generated property has a getter, but does not have a setter.
+    /// </summary>
+    GetterOnly,
 }
 
 /// <summary>

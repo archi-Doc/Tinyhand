@@ -298,6 +298,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         get
         {
             if (!string.IsNullOrEmpty(this.KeyAttribute?.AddProperty) &&
+                this.KeyAttribute!.PropertyAccessibility != PropertyAccessibility.GetterOnly &&
                 !this.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
             {
                 return this.KeyAttribute!.AddProperty;
@@ -2733,8 +2734,14 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
+            if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.GetterOnly)
+            {// getter-only
+                ssb.AppendLine($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.AddProperty} => this.{x.SimpleName};");
+                continue;
+            }
+
             var journal = this.ObjectAttribute?.Journal == true ||
-                this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject);
+            this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject);
 
             string setterAccessibility = string.Empty;
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)

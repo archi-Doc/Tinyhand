@@ -13,6 +13,7 @@ public enum PropertyAccessibility
 {
     PublicSetter,
     ProtectedSetter,
+    GetterOnly,
 }
 
 public static class AttributeHelper
