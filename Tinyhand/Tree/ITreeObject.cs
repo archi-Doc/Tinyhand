@@ -36,9 +36,9 @@ public interface ITreeObject
     {
     }
 
-    void NotifyDataChanged()
+    /*void NotifyDataChanged()
     {
-    }
+    }*/
 
     bool ReadRecord(ref TinyhandReader reader)
         => false;
