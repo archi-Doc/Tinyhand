@@ -32,19 +32,38 @@ public interface ITreeObject
     Task<bool> Save(UnloadMode unloadMode)
         => Task.FromResult(true);
 
-    void Delete()
+    void Erase()
     {
     }
-
-    /*void NotifyDataChanged()
-    {
-    }*/
 
     bool ReadRecord(ref TinyhandReader reader)
         => false;
 
     public void WriteLocator(ref TinyhandWriter writer)
     {
+    }
+
+    public void AddJournal_Remove(bool erase)
+    {
+        if (this.TryGetJournalWriter(out var root, out var writer, false))
+        {
+            if (this is Tinyhand.ITinyhandCustomJournal custom)
+            {
+                custom.WriteCustomLocator(ref writer);
+            }
+
+            if (erase)
+            {
+                writer.Write_RemoveAndErase();
+            }
+            else
+            {
+                writer.Write_Remove();
+            }
+
+            this.WriteLocator(ref writer);
+            root.AddJournal(writer);
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -61,21 +80,21 @@ public interface ITreeObject
         }
     }
 
-    public bool TryGetJournalWriter([NotNullWhen(true)] out ITreeRoot? journal, out TinyhandWriter writer, bool includeCurrent = true)
+    public bool TryGetJournalWriter([NotNullWhen(true)] out ITreeRoot? root, out TinyhandWriter writer, bool includeCurrent = true)
     {
         var p = this.TreeParent;
         if (p == null)
         {
             if (this.TreeRoot is null)
             {
-                journal = null;
+                root = null;
                 writer = default;
                 return false;
             }
             else
             {
-                journal = this.TreeRoot;
-                return journal.TryGetJournalWriter(JournalType.Record, out writer);
+                root = this.TreeRoot;
+                return root.TryGetJournalWriter(JournalType.Record, out writer);
             }
         }
         else
@@ -85,14 +104,14 @@ public interface ITreeObject
             {
                 if (p.TreeRoot is null)
                 {
-                    journal = null;
+                    root = null;
                     writer = default;
                     return false;
                 }
                 else
                 {
-                    journal = p.TreeRoot;
-                    journal.TryGetJournalWriter(JournalType.Record, out writer);
+                    root = p.TreeRoot;
+                    root.TryGetJournalWriter(JournalType.Record, out writer);
                 }
 
                 if (includeCurrent)
@@ -109,14 +128,14 @@ public interface ITreeObject
                 {
                     if (p2.TreeRoot is null)
                     {
-                        journal = null;
+                        root = null;
                         writer = default;
                         return false;
                     }
                     else
                     {
-                        journal = p2.TreeRoot;
-                        journal.TryGetJournalWriter(JournalType.Record, out writer);
+                        root = p2.TreeRoot;
+                        root.TryGetJournalWriter(JournalType.Record, out writer);
                     }
 
                     p.WriteKeyOrLocator(ref writer);
@@ -134,14 +153,14 @@ public interface ITreeObject
                     {
                         if (p3.TreeRoot is null)
                         {
-                            journal = null;
+                            root = null;
                             writer = default;
                             return false;
                         }
                         else
                         {
-                            journal = p3.TreeRoot;
-                            journal.TryGetJournalWriter(JournalType.Record, out writer);
+                            root = p3.TreeRoot;
+                            root.TryGetJournalWriter(JournalType.Record, out writer);
                         }
 
                         p2.WriteKeyOrLocator(ref writer);
@@ -160,14 +179,14 @@ public interface ITreeObject
                         {
                             if (p4.TreeRoot is null)
                             {
-                                journal = null;
+                                root = null;
                                 writer = default;
                                 return false;
                             }
                             else
                             {
-                                journal = p4.TreeRoot;
-                                journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                root = p4.TreeRoot;
+                                root.TryGetJournalWriter(JournalType.Record, out writer);
                             }
 
                             p3.WriteKeyOrLocator(ref writer);
@@ -187,14 +206,14 @@ public interface ITreeObject
                             {
                                 if (p5.TreeRoot is null)
                                 {
-                                    journal = null;
+                                    root = null;
                                     writer = default;
                                     return false;
                                 }
                                 else
                                 {
-                                    journal = p5.TreeRoot;
-                                    journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                    root = p5.TreeRoot;
+                                    root.TryGetJournalWriter(JournalType.Record, out writer);
                                 }
 
                                 p4.WriteKeyOrLocator(ref writer);
@@ -215,14 +234,14 @@ public interface ITreeObject
                                 {
                                     if (p6.TreeRoot is null)
                                     {
-                                        journal = null;
+                                        root = null;
                                         writer = default;
                                         return false;
                                     }
                                     else
                                     {
-                                        journal = p6.TreeRoot;
-                                        journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                        root = p6.TreeRoot;
+                                        root.TryGetJournalWriter(JournalType.Record, out writer);
                                     }
 
                                     p5.WriteKeyOrLocator(ref writer);
@@ -244,14 +263,14 @@ public interface ITreeObject
                                     {
                                         if (p7.TreeRoot is null)
                                         {
-                                            journal = null;
+                                            root = null;
                                             writer = default;
                                             return false;
                                         }
                                         else
                                         {
-                                            journal = p7.TreeRoot;
-                                            journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                            root = p7.TreeRoot;
+                                            root.TryGetJournalWriter(JournalType.Record, out writer);
                                         }
 
                                         p6.WriteKeyOrLocator(ref writer);
@@ -274,14 +293,14 @@ public interface ITreeObject
                                         {
                                             if (p8.TreeRoot is null)
                                             {
-                                                journal = null;
+                                                root = null;
                                                 writer = default;
                                                 return false;
                                             }
                                             else
                                             {
-                                                journal = p8.TreeRoot;
-                                                journal.TryGetJournalWriter(JournalType.Record, out writer);
+                                                root = p8.TreeRoot;
+                                                root.TryGetJournalWriter(JournalType.Record, out writer);
                                             }
 
                                             p7.WriteKeyOrLocator(ref writer);
@@ -307,7 +326,7 @@ public interface ITreeObject
             }
         }
 
-        journal = null;
+        root = null;
         writer = default;
         return false;
     }

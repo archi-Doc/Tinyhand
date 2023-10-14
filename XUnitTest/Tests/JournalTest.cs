@@ -16,7 +16,7 @@ public readonly partial struct JournalIdentifier
     public readonly int Id1;
 }
 
-[TinyhandObject(Journal = true)]
+[TinyhandObject(Tree = true)]
 public partial class JournalClass
 {
     [Key(0)]
@@ -41,7 +41,7 @@ public partial class JournalClass
     public readonly int Id3;
 }
 
-[TinyhandObject(Journal = true, LockObject = "semaphore")]
+[TinyhandObject(Tree = true, LockObject = "semaphore")]
 public partial class JournalClass2
 {
     public JournalClass2()
@@ -72,7 +72,7 @@ public partial class JournalClass2
     protected SemaphoreLock semaphore = new();
 }
 
-[TinyhandObject(Journal = true)]
+[TinyhandObject(Tree = true)]
 public partial class JournalClass2B
 {
     [Key(1)]
@@ -82,7 +82,7 @@ public partial class JournalClass2B
     public JournalTestClass Class2 { get; set; }
 }
 
-[TinyhandObject(Journal = true, LockObject = "syncObject")]
+[TinyhandObject(Tree = true, LockObject = "syncObject")]
 public partial class JournalClass3 : ITinyhandCustomJournal
 {
     [Key(0)]
@@ -106,7 +106,7 @@ public partial class JournalClass3 : ITinyhandCustomJournal
     }
 }
 
-[TinyhandObject(Journal = true)]
+[TinyhandObject(Tree = true)]
 public partial class JournalTestClass
 {
     public JournalTestClass()

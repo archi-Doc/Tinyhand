@@ -94,9 +94,9 @@ public sealed class TinyhandObjectAttribute : Attribute
     public bool UseResolver { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to add a journaling feature (<see cref="ITreeObject"/>) to the object [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether or not to generate code to manage objects in a tree structure for journaling and data persistence [default is <see langword="false"/>].
     /// </summary>
-    public bool Journal { get; set; } = false;
+    public bool Tree { get; set; } = false;
 
     public TinyhandObjectAttribute()
     {

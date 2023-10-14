@@ -37,12 +37,12 @@ public partial class TestEnumClass : TestEnumBase
     }*/
 }
 
-[TinyhandObject(LockObject = "semaphore", Journal = true)]
+[TinyhandObject(LockObject = "semaphore", Tree = true)]
 public partial class PropertyTestClass2 : PropertyTestClass
 {
 }
 
-[TinyhandObject(Journal = true)]
+[TinyhandObject(Tree = true)]
 public partial class JournalClass : ITinyhandCustomJournal
 {
     [Key(0)]
@@ -106,7 +106,7 @@ public abstract partial class LockObjectClass<T>
 }
 
 /*[ValueLinkObject(Isolation = IsolationLevel.RepeatableRead)]
-[TinyhandObject(Journal = true)]
+[TinyhandObject(Tree = true)]
 public partial record TestItem
 {
     [Key(0, AddProperty = "Id")]

@@ -18,5 +18,5 @@ public enum JournalRecord : byte
     Value,
     Add,
     Remove,
-    Clear,
+    RemoveAndErase,
 }
