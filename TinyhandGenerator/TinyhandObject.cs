@@ -623,21 +623,21 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
-        // Method condition (Journal)
-        var journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITreeObject}";
-        if (this.Interfaces.Any(x => x.FullName == journalInterface))
+        // Method condition (tree)
+        var treeInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITreeObject}";
+        if (this.Interfaces.Any(x => x.FullName == treeInterface))
         {// ITreeObject implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITreeObject;
         }
 
-        journalInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
+        treeInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
         this.MethodCondition_WriteCustomLocator = MethodCondition.MemberMethod;
         this.MethodCondition_ReadCustomRecord = MethodCondition.MemberMethod;
-        if (this.Interfaces.Any(x => x.FullName == journalInterface))
+        if (this.Interfaces.Any(x => x.FullName == treeInterface))
         {// ITinyhandCustomJournal implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandCustomJournal;
 
-            var methodName = journalInterface + ".WriteCustomLocator";
+            var methodName = treeInterface + ".WriteCustomLocator";
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
             {
                 this.MethodCondition_WriteCustomLocator = MethodCondition.ExplicitlyDeclared;
@@ -647,7 +647,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.MethodCondition_WriteCustomLocator = MethodCondition.Declared;
             }
 
-            methodName = journalInterface + ".ReadCustomRecord";
+            methodName = treeInterface + ".ReadCustomRecord";
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
             {
                 this.MethodCondition_ReadCustomRecord = MethodCondition.ExplicitlyDeclared;
@@ -1755,7 +1755,7 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            if (this.ObjectAttribute.Journal && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
+            if (this.ObjectAttribute.Tree && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
             {
                 if (interfaceString == string.Empty)
                 {
@@ -1839,7 +1839,7 @@ ModuleInitializerClass_Added:
 
                 x.GenerateMethod(ssb, info);
 
-                if (x.ObjectAttribute.Journal && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
+                if (x.ObjectAttribute.Tree && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
                 {
                     x.GenerateITreeObject(ssb, info);
                 }
@@ -2148,7 +2148,7 @@ ModuleInitializerClass_Added:
             }
 
             // Update plane
-            /*if (this.ObjectAttribute?.Journal == true ||
+            /*if (this.ObjectAttribute?.Tree == true ||
                 this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
             {
                 ssb.AppendLine($"{ssb.FullObject}.CurrentPlane = options.Plane;");
@@ -2530,12 +2530,12 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        if (typeObject.ObjectAttribute?.Journal == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
+        if (typeObject.ObjectAttribute?.Tree == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject))
         {
             ssb.AppendLine($"(({TinyhandBody.ITreeObject}){ssb.FullObject})?.SetParent({parent}, {key.ToString()});");
             count++;
         }
-        else if (this.ObjectAttribute?.Journal == true && typeObject.Kind == VisceralObjectKind.Error)
+        else if (this.ObjectAttribute?.Tree == true && typeObject.Kind == VisceralObjectKind.Error)
         {// Maybe generated class
             var keyString = key.ToString();
             var objName = "obj" + keyString;
@@ -2544,18 +2544,18 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateJournal_Delete(ScopingStringBuilder ssb, TinyhandObject? child)
+    internal void GenerateJournal_Erase(ScopingStringBuilder ssb, TinyhandObject? child)
     {
         if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
         {
             return;
         }
 
-        if ((typeObject.ObjectAttribute?.Journal == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject)) ||
-            (this.ObjectAttribute?.Journal == true && typeObject.Kind == VisceralObjectKind.Error))
+        if ((typeObject.ObjectAttribute?.Tree == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject)) ||
+            (this.ObjectAttribute?.Tree == true && typeObject.Kind == VisceralObjectKind.Error))
         {// ITreeObject or unknown generated class
             var objName = $"obj{key.ToString()}";
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.ITreeObject} {objName}) {objName}.Delete();");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.ITreeObject} {objName}) {objName}.Erase();");
         }
     }
 
@@ -2566,8 +2566,8 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        if ((typeObject.ObjectAttribute?.Journal == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject)) ||
-            (this.ObjectAttribute?.Journal == true && typeObject.Kind == VisceralObjectKind.Error))
+        if ((typeObject.ObjectAttribute?.Tree == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject)) ||
+            (this.ObjectAttribute?.Tree == true && typeObject.Kind == VisceralObjectKind.Error))
         {// ITreeObject or unknown generated class
             var objName = $"obj{key.ToString()}";
             ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.ITreeObject} {objName} && await {objName}.Save(unloadMode).ConfigureAwait(false) == false) return false;");
@@ -2740,7 +2740,7 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
-            var journal = this.ObjectAttribute?.Journal == true ||
+            var treeEnabled = this.ObjectAttribute?.Tree == true ||
             this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject);
 
             string setterAccessibility = string.Empty;
@@ -2791,7 +2791,7 @@ ModuleInitializerClass_Added:
                         var lockExpression = this.GetLockExpression("this");
                         var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
 
-                        if (journal)
+                        if (treeEnabled)
                         {
                             x.CodeJournal(ssb, null);
                         }
@@ -2807,7 +2807,7 @@ ModuleInitializerClass_Added:
 
                         lockScope?.Dispose();
 
-                        if (journal)
+                        if (treeEnabled)
                         {
                             ssb.AppendLine($"(({TinyhandBody.ITreeObject})this).TreeRoot?.TryAddToSaveQueue();");
                         }
@@ -2989,7 +2989,7 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateITreeObject_Save(ScopingStringBuilder ssb, GeneratorInformation info)
-    {// public void Delete()
+    {
         using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.ITreeObject}.Save(UnloadMode unloadMode)"))
         {
             if (this.IntKey_Array is not null)
@@ -3016,8 +3016,8 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateITreeObject_Delete(ScopingStringBuilder ssb, GeneratorInformation info)
-    {// public void Delete()
-        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.ITreeObject}.Delete()"))
+    {
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.ITreeObject}.Erase()"))
         {
             if (this.IntKey_Array is not null)
             {
@@ -3032,7 +3032,7 @@ ModuleInitializerClass_Added:
 
                         using (var m = this.ScopeMember(ssb, x))
                         {
-                            this.GenerateJournal_Delete(ssb, x);
+                            this.GenerateJournal_Erase(ssb, x);
                         }
                     }
                 }
@@ -3179,7 +3179,7 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
-            if (x.TypeObject?.ObjectAttribute?.Journal == true ||
+            if (x.TypeObject?.ObjectAttribute?.Tree == true ||
                 x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITreeObject) == true ||
                 x.TypeObject?.Kind == VisceralObjectKind.Error)
             {

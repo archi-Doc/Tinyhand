@@ -98,8 +98,8 @@ public static class JournalHelper
         => writer.Write((byte)JournalRecord.Remove);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Clear(ref this TinyhandWriter writer)
-        => writer.Write((byte)JournalRecord.Clear);
+    public static void Write_RemoveAndErase(ref this TinyhandWriter writer)
+        => writer.Write((byte)JournalRecord.RemoveAndErase);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static JournalRecord Read_Record(ref this TinyhandReader reader)
