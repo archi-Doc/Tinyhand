@@ -57,10 +57,10 @@ public record TinyhandSerializerOptions
         /// </summary>
         Lz4Compress = 1 << 0,
 
-        /// <summary>
+        /*/// <summary>
         /// Unload data (the actual unloading process will be implemented by the application side).
         /// </summary>
-        Unload = 1 << 1,
+        Unload = 1 << 1,*/
     }
 
     public static TinyhandSerializerOptions Standard { get; } = new TinyhandSerializerOptions(StandardResolver.Instance);
@@ -69,7 +69,7 @@ public record TinyhandSerializerOptions
 
     public static TinyhandSerializerOptions Lz4 { get; } = Standard with { SerializationFlags = Flags.Lz4Compress, };
 
-    public static TinyhandSerializerOptions Unload { get; } = Standard with { SerializationFlags = Flags.Unload, };
+    // public static TinyhandSerializerOptions Unload { get; } = Standard with { SerializationFlags = Flags.Unload, };
 
     public static TinyhandSerializerOptions Selection { get; } = Standard with { SerializationMode = Mode.Selection, };
 
@@ -132,5 +132,5 @@ public record TinyhandSerializerOptions
 
     public bool HasLz4CompressFlag => this.SerializationFlags.HasFlag(Flags.Lz4Compress);
 
-    public bool HasUnloadFlag => this.SerializationFlags.HasFlag(Flags.Unload);
+    // public bool HasUnloadFlag => this.SerializationFlags.HasFlag(Flags.Unload);
 }
