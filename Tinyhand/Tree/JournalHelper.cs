@@ -143,4 +143,10 @@ public static class JournalHelper
     {
         return reader.Remaining > 0 && reader.NextCode != (byte)JournalRecord.Value;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsNext_Remove(ref this TinyhandReader reader)
+    {
+        return reader.Remaining > 0 && (reader.NextCode == (byte)JournalRecord.Remove || reader.NextCode == (byte)JournalRecord.RemoveAndErase);
+    }
 }
