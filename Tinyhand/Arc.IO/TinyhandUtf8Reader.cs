@@ -27,7 +27,8 @@ public enum TinyhandAtomType
     Comment, // // comment
     Value_Base64, // b"Base64"
     Value_String, // "text"
-    Value_Long, // 123(long)
+    Value_Long, // -123(long)
+    Value_ULong, // 123(ulong)
     Value_Double, // 1.23(double)
     Value_Null, // null
     Value_True, // true
@@ -128,6 +129,8 @@ public ref struct TinyhandUtf8Reader
     public string ValueSpanToString => Encoding.UTF8.GetString(this.ValueSpan);
 
     public long ValueLong { get; private set; }
+
+    public ulong ValueULong { get; private set; }
 
     public double ValueDouble { get; private set; }
 
@@ -739,7 +742,7 @@ Unexpected_Symbol:
     {
         ReadOnlySpan<byte> localBuffer = this.buffer.Slice(this.Position);
         int position = 0;
-        bool isDouble = false;
+        var isDouble = false;
 
         // Utf8Parser.TryParse("NaN"u8, out var dd, out _); // NaN, Infinity, +/-Infinity
 
@@ -784,11 +787,19 @@ Unexpected_Symbol:
             return ret;
         }
         else
-        {
+        {// long
             this.AtomType = TinyhandAtomType.Value_Long;
-            // var ret = this.ReadInt64(this.ValueSpan, out var result);
             var ret = Utf8Parser.TryParse(this.ValueSpan, out long result, out int bytesConsumed);
-            this.ValueLong = result;
+            if (ret)
+            {
+                this.ValueLong = result;
+                return ret;
+            }
+
+            // Maybe ulong...
+            this.AtomType = TinyhandAtomType.Value_ULong;
+            ret = Utf8Parser.TryParse(this.ValueSpan, out ulong result2, out bytesConsumed);
+            this.ValueULong = result2;
             return ret;
         }
     }

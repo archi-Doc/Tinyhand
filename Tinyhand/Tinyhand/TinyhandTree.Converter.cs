@@ -452,10 +452,19 @@ public static class TinyhandTreeConverter
 
                     break;
 
-                case TinyhandAtomType.Value_Long: // 123(long)
+                case TinyhandAtomType.Value_Long: // -123(long)
                     if (assignedCount <= 1)
                     {
                         writer.Write(reader.ValueLong);
+                        count++;
+                    }
+
+                    break;
+
+                case TinyhandAtomType.Value_ULong: // 123(ulong)
+                    if (assignedCount <= 1)
+                    {
+                        writer.Write(reader.ValueULong);
                         count++;
                     }
 
@@ -616,6 +625,10 @@ public static class TinyhandTreeConverter
 
                 case ValueElementType.Value_Long:
                     writer.Write(((Value_Long)v).ValueLong);
+                    break;
+
+                case ValueElementType.Value_ULong:
+                    writer.Write(((Value_ULong)v).ValueULong);
                     break;
 
                 case ValueElementType.Value_Null:
