@@ -58,7 +58,8 @@ public enum ValueElementType
     SpecialIdentifier, // @mode
     Value_Binary, // b"Base64"
     Value_String, // "text"
-    Value_Long, // 123(long)
+    Value_Long, // -123(long)
+    Value_ULong, // 123(ulong)
     Value_Double, // 1.23(double)
     Value_Null, // null
     Value_Bool, // true/false
@@ -374,6 +375,24 @@ public class Value_Long : Value
     public override string ToString() => "Long: " + this.ValueLong.ToString();
 
     public long ValueLong { get; set; }
+}
+
+public class Value_ULong : Value
+{
+    public Value_ULong()
+        : base(ValueElementType.Value_ULong)
+    {
+    }
+
+    public Value_ULong(ulong valueULong)
+        : this()
+    {
+        this.ValueULong = valueULong;
+    }
+
+    public override string ToString() => "ULong: " + this.ValueULong.ToString();
+
+    public ulong ValueULong { get; set; }
 }
 
 public class Value_Double : Value

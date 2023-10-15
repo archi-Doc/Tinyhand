@@ -209,6 +209,11 @@ public static class TinyhandComposer
                     writer.WriteStringInt64(l.ValueLong);
                     break;
 
+                case ValueElementType.Value_ULong:
+                    var ul = (Value_ULong)element;
+                    writer.WriteStringUInt64(ul.ValueULong);
+                    break;
+
                 case ValueElementType.Value_Double:
                     var d = (Value_Double)element;
                     writer.WriteStringDouble(d.ValueDouble);
