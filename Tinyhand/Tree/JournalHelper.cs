@@ -78,6 +78,10 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Write(ref this TinyhandWriter writer, JournalRecord journalRecord)
+        => writer.Write((byte)journalRecord);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Write_Locator(ref this TinyhandWriter writer)
         => writer.Write((byte)JournalRecord.Locator);
 
@@ -94,21 +98,17 @@ public static class JournalHelper
         => writer.Write((byte)JournalRecord.Add);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Remove(ref this TinyhandWriter writer)
-        => writer.Write((byte)JournalRecord.Remove);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_RemoveAndErase(ref this TinyhandWriter writer)
-        => writer.Write((byte)JournalRecord.RemoveAndErase);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static JournalRecord Read_Record(ref this TinyhandReader reader)
-       => (JournalRecord)reader.ReadUInt8();
+    public static bool TryRead(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    {
+        var result = reader.TryRead(out byte b);
+        journalRecord = (JournalRecord)b;
+        return result;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Read_Locator(ref this TinyhandReader reader)
     {
-        if (reader.Read_Record() != JournalRecord.Locator)
+        if (!reader.TryRead(out JournalRecord record) || record != JournalRecord.Locator)
         {
             throw new InvalidDataException();
         }
@@ -117,7 +117,7 @@ public static class JournalHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Read_Key(ref this TinyhandReader reader)
     {
-        if (reader.Read_Record() != JournalRecord.Key)
+        if (!reader.TryRead(out JournalRecord record) || record != JournalRecord.Key)
         {
             throw new InvalidDataException();
         }
@@ -126,7 +126,7 @@ public static class JournalHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Read_Value(ref this TinyhandReader reader)
     {
-        if (reader.Read_Record() != JournalRecord.Value)
+        if (!reader.TryRead(out JournalRecord record) || record != JournalRecord.Value)
         {
             throw new InvalidDataException();
         }
@@ -145,8 +145,17 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNext_Remove(ref this TinyhandReader reader)
+    public static bool TryReadJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
     {
-        return reader.Remaining > 0 && (reader.NextCode == (byte)JournalRecord.Remove || reader.NextCode == (byte)JournalRecord.RemoveAndErase);
+        if (reader.Remaining > 0)
+        {
+            journalRecord = (JournalRecord)reader.NextCode;
+            return true;
+        }
+        else
+        {
+            journalRecord = JournalRecord.Locator;
+            return false;
+        }
     }
 }

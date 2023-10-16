@@ -3117,7 +3117,7 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine("KeyLoop:", false);
             }
 
-            ssb.AppendLine("var record = reader.Read_Record();");
+            ssb.AppendLine("if (!reader.TryRead(out JournalRecord record)) return false;");
             using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
             {
                 ssb.AppendLine("var options = TinyhandSerializerOptions.Standard;");
