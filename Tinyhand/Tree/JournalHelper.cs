@@ -106,6 +106,21 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryPeek(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    {
+        if (reader.Remaining > 0)
+        {
+            journalRecord = (JournalRecord)reader.NextCode;
+            return true;
+        }
+        else
+        {
+            journalRecord = JournalRecord.Locator;
+            return false;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Read_Locator(ref this TinyhandReader reader)
     {
         if (!reader.TryRead(out JournalRecord record) || record != JournalRecord.Locator)
@@ -142,20 +157,5 @@ public static class JournalHelper
     public static bool IsNext_NonValue(ref this TinyhandReader reader)
     {
         return reader.Remaining > 0 && reader.NextCode != (byte)JournalRecord.Value;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryReadJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
-    {
-        if (reader.Remaining > 0)
-        {
-            journalRecord = (JournalRecord)reader.NextCode;
-            return true;
-        }
-        else
-        {
-            journalRecord = JournalRecord.Locator;
-            return false;
-        }
     }
 }
