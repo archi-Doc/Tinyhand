@@ -19,4 +19,6 @@ public enum JournalRecord : byte
     Add,
     Remove,
     RemoveAndErase,
+    AddStorage,
+    EraseStorage,
 }

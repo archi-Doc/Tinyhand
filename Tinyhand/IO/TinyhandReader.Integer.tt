@@ -9,77 +9,76 @@ using System;
 using System.Buffers;
 using Arc.IO;
 
-namespace Tinyhand.IO
-{
-    public ref partial struct TinyhandReader
-    {<#
+namespace Tinyhand.IO;
+
+public ref partial struct TinyhandReader
+{<#
 var allTypes = new (string simple, string type)[]
 {
-    ("byte", "UInt8"),
-    ("sbyte", "Int8"),
-    ("ushort", "UInt16"),
-    ("short", "Int16"),
-    ("uint", "UInt32"),
-    ("int", "Int32"),
-    ("ulong", "UInt64"),
-    ("long", "Int64"),
+("byte", "UInt8"),
+("sbyte", "Int8"),
+("ushort", "UInt16"),
+("short", "Int16"),
+("uint", "UInt32"),
+("int", "Int32"),
+("ulong", "UInt64"),
+("long", "Int64"),
 };
 
 foreach (var intType in allTypes) {
 #>
 
-        /// <summary>
-        /// Reads an <see cref="<#=intType.simple#>"/> value from:
-        /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-        /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-        /// or any of the other MsgPack integer types.
-        /// </summary>
-        /// <returns>The value.</returns>
-        /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-        public <#=intType.simple#> Read<#=intType.type#>()
+    /// <summary>
+    /// Reads an <see cref="<#=intType.simple#>"/> value from:
+    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
+    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
+    /// or any of the other MsgPack integer types.
+    /// </summary>
+    /// <returns>The value.</returns>
+    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
+    public <#=intType.simple#> Read<#=intType.type#>()
+    {
+        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
+
+        switch (code)
         {
-            ThrowInsufficientBufferUnless(this.TryRead(out byte code));
+            case MessagePackCode.UInt8:
+                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
+                return checked((<#=intType.simple#>)byteResult);
+            case MessagePackCode.Int8:
+                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
+                return checked((<#=intType.simple#>)sbyteResult);
+            case MessagePackCode.UInt16:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
+                return checked((<#=intType.simple#>)ushortResult);
+            case MessagePackCode.Int16:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
+                return checked((<#=intType.simple#>)shortResult);
+            case MessagePackCode.UInt32:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
+                return checked((<#=intType.simple#>)uintResult);
+            case MessagePackCode.Int32:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
+                return checked((<#=intType.simple#>)intResult);
+            case MessagePackCode.UInt64:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
+                return checked((<#=intType.simple#>)ulongResult);
+            case MessagePackCode.Int64:
+                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
+                return checked((<#=intType.simple#>)longResult);
+            default:
+                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
+                {
+                    return checked((<#=intType.simple#>)unchecked((sbyte)code));
+                }
 
-            switch (code)
-            {
-                case MessagePackCode.UInt8:
-                    ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                    return checked((<#=intType.simple#>)byteResult);
-                case MessagePackCode.Int8:
-                    ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                    return checked((<#=intType.simple#>)sbyteResult);
-                case MessagePackCode.UInt16:
-                    ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                    return checked((<#=intType.simple#>)ushortResult);
-                case MessagePackCode.Int16:
-                    ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                    return checked((<#=intType.simple#>)shortResult);
-                case MessagePackCode.UInt32:
-                    ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                    return checked((<#=intType.simple#>)uintResult);
-                case MessagePackCode.Int32:
-                    ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                    return checked((<#=intType.simple#>)intResult);
-                case MessagePackCode.UInt64:
-                    ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                    return checked((<#=intType.simple#>)ulongResult);
-                case MessagePackCode.Int64:
-                    ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                    return checked((<#=intType.simple#>)longResult);
-                default:
-                    if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                    {
-                        return checked((<#=intType.simple#>)unchecked((sbyte)code));
-                    }
+                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
+                {
+                    return (<#=intType.simple#>)code;
+                }
 
-                    if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                    {
-                        return (<#=intType.simple#>)code;
-                    }
-
-                    throw ThrowInvalidCode(code, MessagePackType.Integer);
-            }
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
         }
-<# } #>
     }
+<# } #>
 }

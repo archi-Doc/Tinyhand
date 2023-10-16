@@ -43,7 +43,7 @@ public interface ITreeObject
     {
     }
 
-    public void AddJournal_Remove(bool erase)
+    public void AddJournalRecord(JournalRecord record)
     {
         if (this.TryGetJournalWriter(out var root, out var writer, false))
         {
@@ -52,16 +52,7 @@ public interface ITreeObject
                 custom.WriteCustomLocator(ref writer);
             }
 
-            if (erase)
-            {
-                writer.Write_RemoveAndErase();
-            }
-            else
-            {
-                writer.Write_Remove();
-            }
-
-            this.WriteLocator(ref writer);
+            writer.Write(record);
             root.AddJournal(writer);
         }
     }
