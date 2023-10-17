@@ -43,9 +43,9 @@ public interface ITreeObject
     {
     }
 
-    public void AddJournalRecord(JournalRecord record)
+    public void AddJournalRecord(JournalRecord record, bool includeCurrent = true)
     {
-        if (this.TryGetJournalWriter(out var root, out var writer, false))
+        if (this.TryGetJournalWriter(out var root, out var writer, includeCurrent))
         {
             if (this is Tinyhand.ITinyhandCustomJournal custom)
             {
