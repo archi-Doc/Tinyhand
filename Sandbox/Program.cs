@@ -7,11 +7,25 @@ using Sandbox.ZenItz;
 using Tinyhand;
 using Tinyhand.IO;
 using ValueLink;
+using System.Text;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
 
 namespace Sandbox;
+
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class Utf8StringClass
+{
+    public Utf8StringClass()
+    {
+        this.Utf8String = Encoding.UTF8.GetBytes("Test16");
+    }
+
+    public string Utf16String { get; set; } = "Test16";
+
+    public byte[] Utf8String { get; set; }
+}
 
 public enum TestEnum
 {
@@ -469,6 +483,9 @@ class Program
         Console.WriteLine("Sandbox");
         Console.WriteLine();
 
+        var sc = new Utf8StringClass();
+        var st = TinyhandSerializer.SerializeToString(sc);
+
         var ship = new ZenItz.Itz<int>.DefaultShip<Payload>();
         ship.Test();
 
@@ -516,11 +533,6 @@ class Program
         var gtc = new ConsoleApp1.ItzShip<GenericsImplementedClass>();
         var gtc2 = new ConsoleApp1.ItzShip<GenericsImplementedStruct>();
         var gtc3 = new ConsoleApp1.ItzShip<IntPayload2>();
-
-        var sc = new SerializableClass<int>();
-        var dictionary = new Dictionary<uint, ISerializableInterface>();
-        dictionary[12346] = sc;
-        var ba = TinyhandSerializer.Serialize(dictionary);
 
         /*var t = typeof(InternalTestBase);
         var field = t.GetField("PrivateInt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

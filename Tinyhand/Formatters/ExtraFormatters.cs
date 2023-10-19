@@ -32,10 +32,6 @@ public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
             writer.WriteNil();
             return;
         }
-
-        /*Span<byte> span = stackalloc byte[16];
-        value.TryWriteBytes(span, out var written);
-        writer.Write(span);*/
     }
 
     public IPAddress? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
