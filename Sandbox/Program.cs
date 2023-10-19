@@ -14,26 +14,6 @@ using System.Text;
 
 namespace Sandbox;
 
-[TinyhandObject(ImplicitKeyAsName = true)]
-public partial class Utf8StringClass
-{
-    public Utf8StringClass()
-    {
-        this.Utf8String = Encoding.UTF8.GetBytes("Test16");
-        this.Utf8Array = new byte[4][];
-        this.Utf8Array[0] = Encoding.UTF8.GetBytes("");
-        this.Utf8Array[1] = Encoding.UTF8.GetBytes("One");
-        this.Utf8Array[2] = Encoding.UTF8.GetBytes("2222222222222");
-        this.Utf8Array[3] = Encoding.UTF8.GetBytes("33333333333");
-    }
-
-    public string Utf16String { get; set; } = "Test16";
-
-    public byte[] Utf8String { get; set; }
-
-    public byte[][] Utf8Array { get; set; }
-}
-
 public enum TestEnum
 {
     A,
@@ -489,10 +469,6 @@ class Program
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
-
-        var sc = new Utf8StringClass();
-        var st = TinyhandSerializer.SerializeToString(sc);
-        var sc2 = TinyhandSerializer.DeserializeFromString<Utf8StringClass>(st);
 
         var ship = new ZenItz.Itz<int>.DefaultShip<Payload>();
         ship.Test();

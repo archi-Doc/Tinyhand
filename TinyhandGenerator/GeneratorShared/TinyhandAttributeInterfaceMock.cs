@@ -71,8 +71,6 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool Tree { get; set; } = false;
 
-    public bool Utf8String { get; set; } = false;
-
     public TinyhandObjectAttributeMock()
     {
     }
@@ -160,12 +158,6 @@ public sealed class TinyhandObjectAttributeMock
             attribute.Tree = (bool)val;
         }
 
-        val = AttributeHelper.GetValue(-1, nameof(Utf8String), constructorArguments, namedArguments);
-        if (val != null)
-        {
-            attribute.Utf8String = (bool)val;
-        }
-
         return attribute;
     }
 
@@ -189,6 +181,8 @@ public class KeyAttributeMock
     public string AddProperty { get; set; } = string.Empty;
 
     public PropertyAccessibility PropertyAccessibility { get; set; } = PropertyAccessibility.PublicSetter;
+
+    // public bool Utf8String { get; set; } = false;
 
     public KeyAttributeMock(int x)
     {
@@ -245,6 +239,12 @@ public class KeyAttributeMock
         {
             attribute.PropertyAccessibility = (PropertyAccessibility)v;
         }
+
+        /*v = AttributeHelper.GetValue(-1, nameof(Utf8String), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.Utf8String = (bool)v;
+        }*/
 
         return attribute;
     }

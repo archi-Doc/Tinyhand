@@ -98,11 +98,6 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public bool Tree { get; set; } = false;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the target type is utf-8 or not [default is <see langword="false"/>].
-    /// </summary>
-    public bool Utf8String { get; set; } = false;
-
     public TinyhandObjectAttribute()
     {
     }
@@ -159,6 +154,11 @@ public class KeyAttribute : Attribute
     /// Gets or sets an accessibility of a property that will be created from the field.<br/>
     /// </summary>
     public PropertyAccessibility PropertyAccessibility { get; set; }
+
+    /*/// <summary>
+    /// Gets or sets a value indicating whether the target type is utf-8 or not [default is <see langword="false"/>].
+    /// </summary>
+    public bool Utf8String { get; set; } = false;*/
 
     public KeyAttribute(int x)
     {
