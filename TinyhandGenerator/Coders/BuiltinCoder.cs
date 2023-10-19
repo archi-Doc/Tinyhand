@@ -377,6 +377,64 @@ public sealed class NullableUInt8ArrayCoder : ITinyhandCoder
     }
 }
 
+public sealed class Utf8Coder : ITinyhandCoder
+{
+    public static readonly Utf8Coder Instance = new();
+
+    private Utf8Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"writer.WriteString({ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToArray();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = Array.Empty<byte>();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneUInt8Array({sourceObject})!;");
+    }
+}
+
+public sealed class NullableUtf8Coder : ITinyhandCoder
+{
+    public static readonly NullableUtf8Coder Instance = new();
+
+    private NullableUtf8Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"writer.WriteString({ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToArray();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = Array.Empty<byte>();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneUInt8Array({sourceObject});");
+    }
+}
+
 public sealed class UInt8ListCoder : ITinyhandCoder
 {
     public static readonly UInt8ListCoder Instance = new ();

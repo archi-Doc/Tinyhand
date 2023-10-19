@@ -71,6 +71,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool Tree { get; set; } = false;
 
+    public bool Utf8String { get; set; } = false;
+
     public TinyhandObjectAttributeMock()
     {
     }
@@ -156,6 +158,12 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.Tree = (bool)val;
+        }
+
+        val = AttributeHelper.GetValue(-1, nameof(Utf8String), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.Utf8String = (bool)val;
         }
 
         return attribute;

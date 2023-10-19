@@ -98,6 +98,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public bool Tree { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the target type is utf-8 or not [default is <see langword="false"/>].
+    /// </summary>
+    public bool Utf8String { get; set; } = false;
+
     public TinyhandObjectAttribute()
     {
     }
