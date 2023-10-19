@@ -7,6 +7,7 @@ using Sandbox.ZenItz;
 using Tinyhand;
 using Tinyhand.IO;
 using ValueLink;
+using System.Text;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
@@ -516,11 +517,6 @@ class Program
         var gtc = new ConsoleApp1.ItzShip<GenericsImplementedClass>();
         var gtc2 = new ConsoleApp1.ItzShip<GenericsImplementedStruct>();
         var gtc3 = new ConsoleApp1.ItzShip<IntPayload2>();
-
-        var sc = new SerializableClass<int>();
-        var dictionary = new Dictionary<uint, ISerializableInterface>();
-        dictionary[12346] = sc;
-        var ba = TinyhandSerializer.Serialize(dictionary);
 
         /*var t = typeof(InternalTestBase);
         var field = t.GetField("PrivateInt", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

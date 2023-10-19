@@ -56,21 +56,18 @@ public static class JournalHelper
     {
         try
         {
-            Span<byte> span = stackalloc byte[3];
-            span[0] = reader.ReadUInt8();
-            span[1] = reader.ReadUInt8();
-            span[2] = reader.ReadUInt8();
-            length = span[0] << 16 | span[1] << 8 | span[2];
+            var b0 = reader.ReadUInt8();
+            var b1 = reader.ReadUInt8();
+            var b2 = reader.ReadUInt8();
+            length = b0 << 16 | b1 << 8 | b2;
 
             reader.TryRead(out byte code);
             journalType = (JournalType)code;
-            // reader.TryReadBigEndian(out plane);
         }
         catch
         {
             length = 0;
             journalType = default;
-            // plane = 0;
             return false;
         }
 

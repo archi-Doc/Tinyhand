@@ -130,6 +130,9 @@ public sealed class BuiltinCoder : ICoderResolver
         { "System.UInt128[]?", NullableUInt128ArrayCoder.Instance },
         { "System.Collections.Generic.List<System.UInt128>", UInt128ListCoder.Instance },
         { "System.Collections.Generic.List<System.UInt128>?", NullableUInt128ListCoder.Instance },
+
+        { "Tinyhand.Utf8String", Utf8StringCoder.Instance },
+        { "Tinyhand.Utf8String?", NullableUtf8StringCoder.Instance },
     };
 
     public ITinyhandCoder? TryGetCoder(WithNullable<TinyhandObject> withNullable)
@@ -138,6 +141,18 @@ public sealed class BuiltinCoder : ICoderResolver
         if (withNullable.Object.Kind.IsReferenceType() && withNullable.Nullable != NullableAnnotation.NotAnnotated)
         {
             nameWithNullable += "?";
+        }*/
+
+        /*if (withNullable.Object?.KeyAttribute?.Utf8String == true)
+        {
+            if (withNullable.FullNameWithNullable == "byte[]")
+            {
+                return Utf8StringCoder.Instance;
+            }
+            else if (withNullable.FullNameWithNullable == "byte[]?")
+            {
+                return NullableUtf8StringCoder.Instance;
+            }
         }*/
 
         this.NameToCoder.TryGetValue(withNullable.FullNameWithNullable, out var coder);
@@ -321,7 +336,7 @@ public sealed class NullableStringListCoder : ITinyhandCoder
 
 public sealed class UInt8ArrayCoder : ITinyhandCoder
 {
-    public static readonly UInt8ArrayCoder Instance = new ();
+    public static readonly UInt8ArrayCoder Instance = new();
 
     private UInt8ArrayCoder()
     {
@@ -350,7 +365,7 @@ public sealed class UInt8ArrayCoder : ITinyhandCoder
 
 public sealed class NullableUInt8ArrayCoder : ITinyhandCoder
 {
-    public static readonly NullableUInt8ArrayCoder Instance = new ();
+    public static readonly NullableUInt8ArrayCoder Instance = new();
 
     private NullableUInt8ArrayCoder()
     {
@@ -377,9 +392,67 @@ public sealed class NullableUInt8ArrayCoder : ITinyhandCoder
     }
 }
 
+public sealed class Utf8StringCoder : ITinyhandCoder
+{
+    public static readonly Utf8StringCoder Instance = new();
+
+    private Utf8StringCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"writer.WriteString({ssb.FullObject}.Value);");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new(reader.ReadBytesToArray());");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new(global::Tinyhand.Formatters.Builtin.CloneUInt8Array({sourceObject}.Value)!);");
+    }
+}
+
+public sealed class NullableUtf8StringCoder : ITinyhandCoder
+{
+    public static readonly NullableUtf8StringCoder Instance = new();
+
+    private NullableUtf8StringCoder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"if ({ssb.FullObject} is null) writer.WriteNil(); else writer.WriteString({ssb.FullObject}.Value!.Value);");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToNullableArray() is {{}} array ? new(array) : null;");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = new();");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"if ({sourceObject} is null) {ssb.FullObject} = null; else {ssb.FullObject} = new Utf8String({sourceObject}.Value!);");
+    }
+}
+
 public sealed class UInt8ListCoder : ITinyhandCoder
 {
-    public static readonly UInt8ListCoder Instance = new ();
+    public static readonly UInt8ListCoder Instance = new();
 
     private UInt8ListCoder()
     {

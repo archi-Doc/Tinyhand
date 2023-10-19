@@ -841,6 +841,19 @@ public ref partial struct TinyhandReader
         return span.ToArray();
     }
 
+    public byte[]? ReadBytesToNullableArray()
+    {
+        if (this.TryReadNil())
+        {
+            return null;
+        }
+
+        var length = this.GetBytesLength();
+        ThrowInsufficientBufferUnless(this.remaining >= length);
+        var span = this.ReadRaw(length);
+        return span.ToArray();
+    }
+
     /// <summary>
     /// Reads a string of bytes, whose length is determined by a header of one of these types:
     /// <see cref="MessagePackCode.Str8"/>,
