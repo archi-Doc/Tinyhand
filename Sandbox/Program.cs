@@ -14,6 +14,17 @@ using System.Text;
 
 namespace Sandbox;
 
+[TinyhandObject(ImplicitKeyAsName = true)]
+internal sealed partial class MonoTemplate
+{
+    public MonoTemplate()
+    {
+    }
+
+    public JournalClass TestData { get; private set; } = new();
+}
+
+
 public enum TestEnum
 {
     A,
