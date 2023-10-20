@@ -6,7 +6,9 @@ namespace Tinyhand;
 
 public interface ITinyhandCustomJournal
 {
-    void WriteCustomLocator(ref TinyhandWriter writer);
+    void WriteCustomLocator(ref TinyhandWriter writer)
+    {// Considering deprecation.
+    }
 
     bool ReadCustomRecord(ref TinyhandReader reader);
 }
