@@ -182,6 +182,8 @@ public class KeyAttributeMock
 
     public PropertyAccessibility PropertyAccessibility { get; set; } = PropertyAccessibility.PublicSetter;
 
+    public bool IgnoreKeyReservation { get; set; } = false;
+
     // public bool Utf8String { get; set; } = false;
 
     public KeyAttributeMock(int x)
@@ -238,6 +240,12 @@ public class KeyAttributeMock
         if (v != null)
         {
             attribute.PropertyAccessibility = (PropertyAccessibility)v;
+        }
+
+        v = AttributeHelper.GetValue(-1, nameof(IgnoreKeyReservation), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.IgnoreKeyReservation = (bool)v;
         }
 
         /*v = AttributeHelper.GetValue(-1, nameof(Utf8String), constructorArguments, namedArguments);

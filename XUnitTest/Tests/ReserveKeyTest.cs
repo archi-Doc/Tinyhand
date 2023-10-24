@@ -22,6 +22,9 @@ public partial class ReserveKeyDerived : ReserveKeyClass
 
     [Key(11)]
     public int B { get; set; }
+
+    [Key(3, IgnoreKeyReservation = true)]
+    public int C { get; set; }
 }
 
 public class ReserveKeyTest

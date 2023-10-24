@@ -155,6 +155,11 @@ public class KeyAttribute : Attribute
     /// </summary>
     public PropertyAccessibility PropertyAccessibility { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to ignore the reserved key's warnings and use it forcefully [default is <see langword="false"/>].
+    /// </summary>
+    public bool IgnoreKeyReservation { get; set; } = false;
+
     /*/// <summary>
     /// Gets or sets a value indicating whether the target type is utf-8 or not [default is <see langword="false"/>].
     /// </summary>

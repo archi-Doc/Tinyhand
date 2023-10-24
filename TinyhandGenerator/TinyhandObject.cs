@@ -1097,7 +1097,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         {
             if (x.KeyAttribute?.IntKey is int i && i >= 0 && i <= TinyhandBody.MaxIntegerKey)
             {
-                if (i <= reservedKeys && x.ContainingObject == this)
+                if (i <= reservedKeys && x.ContainingObject == this && !x.KeyAttribute.IgnoreKeyReservation)
                 {// Reserved
                     this.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyReserved, x.KeyVisceralAttribute?.Location, reservedKeys);
                 }
