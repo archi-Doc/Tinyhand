@@ -66,6 +66,12 @@ public partial class JournalClass : ITinyhandCustomJournal
     [Key(2)]
     public KeyValueList<int, string> List5 { get; set; } = default!;
 
+    [Key(3, AddProperty = "Time")]
+    private DateTime time;
+
+    [Key(4, AddProperty = "Enum1")]
+    private TestEnum enum1;
+
     bool ITinyhandCustomJournal.ReadCustomRecord(ref TinyhandReader reader)
     {
         return false;

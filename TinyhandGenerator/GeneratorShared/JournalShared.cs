@@ -196,6 +196,7 @@ internal static class JournalShared
             "string" => "reader.ReadString()",
             "float" => "reader.ReadSingle()",
             "double" => "reader.ReadDouble()",
+            "System.DateTime" => "reader.ReadDateTime()",
 
             _ => null,
         };
@@ -223,9 +224,29 @@ internal static class JournalShared
         else if (name == "bool" || name == "byte" || name == "sbyte" || name == "ushort" ||
             name == "short" || name == "uint" || name == "int" || name == "ulong" ||
             name == "long" || name == "char" || name == "string" || name == "float" ||
-            name == "double")
+            name == "double" || name == "System.DateTime")
         {
             return $"writer.Write({valueString});";
+        }
+        else if (obj.TypeObject?.Kind == VisceralObjectKind.Enum)
+        {
+            var coder = obj.TypeObject.Enum_UnderlyingTypeObject?.FullName switch
+            {
+                "sbyte" => $"var ev = {valueString}; writer.Write(Unsafe.As<{name}, sbyte>(ref ev));",
+                "byte" => $"var ev = {valueString}; writer.Write(Unsafe.As<{name}, byte>(ref ev));",
+                "short" => $"var ev = {valueString}; writer.Write(Unsafe.As<{name}, short>(ref ev));",
+                "ushort" => $"var ev = {valueString}; writer.Write(Unsafe.As<{name}, ushort>(ref ev));",
+                "int" => $"var ev = {valueString}; writer.Write(Unsafe.As<{name}, int>(ref ev));",
+                "uint" => $"var ev = {valueString}; writer.Write(Unsafe.As<{name}, uint>(ref ev));",
+                "long" => $"var ev = {valueString}; writer.Write(Unsafe.As<{name}, long>(ref ev));",
+                "ulong" => $"var ev = {valueString}; writer.Write(Unsafe.As<{name}, ulong>(ref ev));",
+                _ => null,
+            };
+
+            if (coder is not null)
+            {
+                return coder;
+            }
         }
 
         if (obj.AllAttributes.Any(x => x.FullName == TinyhandObjectAttributeMock.FullName))
