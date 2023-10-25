@@ -7,7 +7,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
-public class JournalTester : ITreeRoot
+public class JournalTester : IStructualRoot
 {
     private const int MaxJournalLength = 1024 * 1024 * 1; // 1 MB
     private const int MaxRecordLength = 1024 * 16; // 16 KB

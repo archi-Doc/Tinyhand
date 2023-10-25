@@ -16,7 +16,7 @@ public readonly partial struct JournalIdentifier
     public readonly int Id1;
 }
 
-[TinyhandObject(Tree = true)]
+[TinyhandObject(Structual = true)]
 public partial class JournalClass
 {
     [Key(0)]
@@ -41,7 +41,7 @@ public partial class JournalClass
     public readonly int Id3;
 }
 
-[TinyhandObject(Tree = true, LockObject = "semaphore")]
+[TinyhandObject(Structual = true, LockObject = "semaphore")]
 public partial class JournalClass2
 {
     public JournalClass2()
@@ -72,7 +72,7 @@ public partial class JournalClass2
     protected SemaphoreLock semaphore = new();
 }
 
-[TinyhandObject(Tree = true)]
+[TinyhandObject(Structual = true)]
 public partial class JournalClass2B
 {
     [Key(1)]
@@ -82,7 +82,7 @@ public partial class JournalClass2B
     public JournalTestClass Class2 { get; set; }
 }
 
-[TinyhandObject(Tree = true, LockObject = "syncObject")]
+[TinyhandObject(Structual = true, LockObject = "syncObject")]
 public partial class JournalClass3 : ITinyhandCustomJournal
 {
     [Key(0)]
@@ -106,7 +106,7 @@ public partial class JournalClass3 : ITinyhandCustomJournal
     }
 }
 
-[TinyhandObject(Tree = true)]
+[TinyhandObject(Structual = true)]
 public partial class JournalTestClass
 {
     public JournalTestClass()
@@ -135,7 +135,7 @@ public class JournalTest
         var c = new JournalTestClass(1, "one");
 
         var cc = new JournalTestClass();
-        cc.TreeRoot = tester;
+        cc.StructualRoot = tester;
         cc.Id = c.Id;
         cc.Name = c.Name;
 
@@ -151,7 +151,7 @@ public class JournalTest
     {
         var tester = new JournalTester();
         var c = TinyhandSerializer.Reconstruct<JournalClass2B>();
-        c.TreeRoot = tester;
+        c.StructualRoot = tester;
 
         c.Class1.X7 = 77;
         c.Class2.Id = 21;

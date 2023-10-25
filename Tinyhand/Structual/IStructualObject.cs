@@ -7,26 +7,26 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
-public interface ITreeObject
+public interface IStructualObject
 {// TinyhandGenerator, ValueLinkGenerator
-    ITreeRoot? TreeRoot { get; set; }
+    IStructualRoot? StructualRoot { get; set; }
 
-    ITreeObject? TreeParent { get; protected set; }
+    IStructualObject? StructualParent { get; protected set; }
 
-    int TreeKey { get; protected set; } // Plane or IntKey
+    int StructualKey { get; protected set; } // Plane or IntKey
 
-    public void SetParent(ITreeObject? parent, int key = -1)
+    public void SetParent(IStructualObject? parent, int key = -1)
     {
-        this.TreeRoot = parent?.TreeRoot;
-        this.TreeParent = parent;
-        this.TreeKey = key;
+        this.StructualRoot = parent?.StructualRoot;
+        this.StructualParent = parent;
+        this.StructualKey = key;
     }
 
-    public void SetParentActual(ITreeObject? parent, int key = -1)
+    public void SetParentActual(IStructualObject? parent, int key = -1)
     {
-        this.TreeRoot = parent?.TreeRoot;
-        this.TreeParent = parent;
-        this.TreeKey = key;
+        this.StructualRoot = parent?.StructualRoot;
+        this.StructualParent = parent;
+        this.StructualKey = key;
     }
 
     Task<bool> Save(UnloadMode unloadMode)
@@ -60,10 +60,10 @@ public interface ITreeObject
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteKeyOrLocator(ref TinyhandWriter writer)
     {
-        if (this.TreeKey >= 0)
+        if (this.StructualKey >= 0)
         {
             writer.Write_Key();
-            writer.Write(this.TreeKey);
+            writer.Write(this.StructualKey);
         }
         else
         {
@@ -71,12 +71,12 @@ public interface ITreeObject
         }
     }
 
-    public bool TryGetJournalWriter([NotNullWhen(true)] out ITreeRoot? root, out TinyhandWriter writer, bool includeCurrent = true)
+    public bool TryGetJournalWriter([NotNullWhen(true)] out IStructualRoot? root, out TinyhandWriter writer, bool includeCurrent = true)
     {
-        var p = this.TreeParent;
+        var p = this.StructualParent;
         if (p == null)
         {
-            if (this.TreeRoot is null)
+            if (this.StructualRoot is null)
             {
                 root = null;
                 writer = default;
@@ -84,16 +84,16 @@ public interface ITreeObject
             }
             else
             {
-                root = this.TreeRoot;
+                root = this.StructualRoot;
                 return root.TryGetJournalWriter(JournalType.Record, out writer);
             }
         }
         else
         {
-            var p2 = p.TreeParent;
+            var p2 = p.StructualParent;
             if (p2 is null)
             {
-                if (p.TreeRoot is null)
+                if (p.StructualRoot is null)
                 {
                     root = null;
                     writer = default;
@@ -101,7 +101,7 @@ public interface ITreeObject
                 }
                 else
                 {
-                    root = p.TreeRoot;
+                    root = p.StructualRoot;
                     root.TryGetJournalWriter(JournalType.Record, out writer);
                 }
 
@@ -114,10 +114,10 @@ public interface ITreeObject
             }
             else
             {
-                var p3 = p2.TreeParent;
+                var p3 = p2.StructualParent;
                 if (p3 is null)
                 {
-                    if (p2.TreeRoot is null)
+                    if (p2.StructualRoot is null)
                     {
                         root = null;
                         writer = default;
@@ -125,7 +125,7 @@ public interface ITreeObject
                     }
                     else
                     {
-                        root = p2.TreeRoot;
+                        root = p2.StructualRoot;
                         root.TryGetJournalWriter(JournalType.Record, out writer);
                     }
 
@@ -139,10 +139,10 @@ public interface ITreeObject
                 }
                 else
                 {
-                    var p4 = p3.TreeParent;
+                    var p4 = p3.StructualParent;
                     if (p4 is null)
                     {
-                        if (p3.TreeRoot is null)
+                        if (p3.StructualRoot is null)
                         {
                             root = null;
                             writer = default;
@@ -150,7 +150,7 @@ public interface ITreeObject
                         }
                         else
                         {
-                            root = p3.TreeRoot;
+                            root = p3.StructualRoot;
                             root.TryGetJournalWriter(JournalType.Record, out writer);
                         }
 
@@ -165,10 +165,10 @@ public interface ITreeObject
                     }
                     else
                     {
-                        var p5 = p4.TreeParent;
+                        var p5 = p4.StructualParent;
                         if (p5 is null)
                         {
-                            if (p4.TreeRoot is null)
+                            if (p4.StructualRoot is null)
                             {
                                 root = null;
                                 writer = default;
@@ -176,7 +176,7 @@ public interface ITreeObject
                             }
                             else
                             {
-                                root = p4.TreeRoot;
+                                root = p4.StructualRoot;
                                 root.TryGetJournalWriter(JournalType.Record, out writer);
                             }
 
@@ -192,10 +192,10 @@ public interface ITreeObject
                         }
                         else
                         {
-                            var p6 = p5.TreeParent;
+                            var p6 = p5.StructualParent;
                             if (p6 is null)
                             {
-                                if (p5.TreeRoot is null)
+                                if (p5.StructualRoot is null)
                                 {
                                     root = null;
                                     writer = default;
@@ -203,7 +203,7 @@ public interface ITreeObject
                                 }
                                 else
                                 {
-                                    root = p5.TreeRoot;
+                                    root = p5.StructualRoot;
                                     root.TryGetJournalWriter(JournalType.Record, out writer);
                                 }
 
@@ -220,10 +220,10 @@ public interface ITreeObject
                             }
                             else
                             {
-                                var p7 = p6.TreeParent;
+                                var p7 = p6.StructualParent;
                                 if (p7 is null)
                                 {
-                                    if (p6.TreeRoot is null)
+                                    if (p6.StructualRoot is null)
                                     {
                                         root = null;
                                         writer = default;
@@ -231,7 +231,7 @@ public interface ITreeObject
                                     }
                                     else
                                     {
-                                        root = p6.TreeRoot;
+                                        root = p6.StructualRoot;
                                         root.TryGetJournalWriter(JournalType.Record, out writer);
                                     }
 
@@ -249,10 +249,10 @@ public interface ITreeObject
                                 }
                                 else
                                 {
-                                    var p8 = p7.TreeParent;
+                                    var p8 = p7.StructualParent;
                                     if (p8 is null)
                                     {
-                                        if (p7.TreeRoot is null)
+                                        if (p7.StructualRoot is null)
                                         {
                                             root = null;
                                             writer = default;
@@ -260,7 +260,7 @@ public interface ITreeObject
                                         }
                                         else
                                         {
-                                            root = p7.TreeRoot;
+                                            root = p7.StructualRoot;
                                             root.TryGetJournalWriter(JournalType.Record, out writer);
                                         }
 
@@ -279,10 +279,10 @@ public interface ITreeObject
                                     }
                                     else
                                     {
-                                        var p9 = p8.TreeParent;
+                                        var p9 = p8.StructualParent;
                                         if (p9 is null)
                                         {
-                                            if (p8.TreeRoot is null)
+                                            if (p8.StructualRoot is null)
                                             {
                                                 root = null;
                                                 writer = default;
@@ -290,7 +290,7 @@ public interface ITreeObject
                                             }
                                             else
                                             {
-                                                root = p8.TreeRoot;
+                                                root = p8.StructualRoot;
                                                 root.TryGetJournalWriter(JournalType.Record, out writer);
                                             }
 
