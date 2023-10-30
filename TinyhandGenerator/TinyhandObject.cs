@@ -2967,7 +2967,7 @@ ModuleInitializerClass_Added:
     {
         ssb.AppendLine();
 
-        ssb.AppendLine($"[IgnoreMember] public {TinyhandBody.IStructualRoot}? StructualRoot {{ get; set; }}");
+        ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructualRoot}? {TinyhandBody.IStructualObject}.StructualRoot {{ get; set; }}");
         ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructualObject}? {TinyhandBody.IStructualObject}.StructualParent {{ get; set; }}");
         ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IStructualObject}.StructualKey {{ get; set; }} = -1;");
 
