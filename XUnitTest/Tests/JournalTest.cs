@@ -135,7 +135,7 @@ public class JournalTest
         var c = new JournalTestClass(1, "one");
 
         var cc = new JournalTestClass();
-        cc.StructualRoot = tester;
+        ((IStructualObject)cc).StructualRoot = tester;
         cc.Id = c.Id;
         cc.Name = c.Name;
 
@@ -151,7 +151,7 @@ public class JournalTest
     {
         var tester = new JournalTester();
         var c = TinyhandSerializer.Reconstruct<JournalClass2B>();
-        c.StructualRoot = tester;
+        ((IStructualObject)c).StructualRoot = tester;
 
         c.Class1.X7 = 77;
         c.Class2.Id = 21;
