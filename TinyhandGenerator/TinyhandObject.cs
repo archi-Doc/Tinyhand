@@ -824,7 +824,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
                 if (this.MinimumConstructor == null &&
                     this.ObjectAttribute?.UseServiceProvider == false &&
-                    this.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) != true)
+                    !this.HasDefaultConstructor())
                 {
                     this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
                 }

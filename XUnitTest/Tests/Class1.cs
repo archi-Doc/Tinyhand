@@ -13,6 +13,22 @@ using System.Text;
 
 namespace Tinyhand.Tests;
 
+/*[TinyhandObject]
+public partial class NoDefaultConstructorClass : NoDefaultConstructorClass2
+{
+    public NoDefaultConstructorClass(int x)
+        : base()
+    {
+    }
+}
+
+public partial class NoDefaultConstructorClass2
+{
+    public NoDefaultConstructorClass2()
+    {
+    }
+}*/
+
 public enum ByteEnum : byte { A, B, C, D, E }
 
 public enum SByteEnum : sbyte { A, B, C, D, E }
