@@ -57,7 +57,7 @@ internal static class TinyhandReconstruct
 
         if (typeObject.Kind.IsReferenceType())
         {// Reference type
-            var hasDefaultConstructor = typeObject.TypeObject?.GetMembers(VisceralTarget.Method).Any(a => a.Method_IsConstructor && a.Method_Parameters.Length == 0) == true;
+            var hasDefaultConstructor = typeObject.TypeObject?.HasDefaultConstructor() == true;
             if (!hasDefaultConstructor)
             {
                 return ReconstructCondition.NoDefaultConstructor;

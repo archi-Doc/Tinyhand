@@ -96,6 +96,10 @@ public partial class InheritanceTestClass : InheritanceTestBase
     [Key(9)]
     public int InitInt { get; init; }
 
+    public InheritanceTestClass()
+    {
+    }
+
     public InheritanceTestClass(int n = 0)
     {
         this.InitInt = n;
@@ -159,6 +163,10 @@ public partial class InheritanceTestClass2<T> : InheritanceTestBase2<T>
 
     [Key(9)]
     public T InitT { get; init; }
+
+    public InheritanceTestClass2()
+    {
+    }
 
     public InheritanceTestClass2(T t = default)
     {
