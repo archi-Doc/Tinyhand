@@ -20,7 +20,7 @@ internal class VisceralTrieString<TObject>
 {
     internal class VisceralTrieContext
     {
-        public VisceralTrieContext(ScopingStringBuilder ssb, Action<VisceralTrieContext, TObject, Node> generateMethod)
+        public VisceralTrieContext(ScopingStringBuilder ssb, Action<VisceralTrieContext, TObject?, Node> generateMethod)
         {
             this.GenerateMethod = generateMethod;
             this.Ssb = ssb;
@@ -36,7 +36,7 @@ internal class VisceralTrieString<TObject>
 
         // public string NoMatchingKey { get; } = "NoMatchingKey";
 
-        public Action<VisceralTrieContext, TObject, Node> GenerateMethod { get; }
+        public Action<VisceralTrieContext, TObject?, Node> GenerateMethod { get; }
 
         public object? ExtraInfo { get; }
 
@@ -53,13 +53,13 @@ internal class VisceralTrieString<TObject>
 
     public const int MaxStringKeySizeInBytes = 512;
 
-    public VisceralTrieString(TObject obj)
+    public VisceralTrieString(TObject? baseObject)
     {
-        this.Object = obj;
+        this.BaseObject = baseObject;
         this.root = new Node(this, 0);
     }
 
-    public TObject Object { get; }
+    public TObject? BaseObject { get; }
 
     public (Node? Node, VisceralTrieAddNodeResult Result, bool KeyResized) AddNode(string name, TObject member)
     {
@@ -267,7 +267,7 @@ internal class VisceralTrieString<TObject>
             firstFlag = false;
             using (var c = context.Ssb.ScopeBrace(condition))
             {
-                context.GenerateMethod(context, this.Object, x);
+                context.GenerateMethod(context, this.BaseObject, x);
             }
         }
 
