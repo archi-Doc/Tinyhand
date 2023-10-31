@@ -4089,7 +4089,7 @@ ModuleInitializerClass_Added:
                             ssb.AppendLine($"deserializedFlag[{node.SubIndex}] = true;");
                         }
 
-                        obj.GenerateDeserializeCore2(ssb, info, node.Member);
+                        obj?.GenerateDeserializeCore2(ssb, info, node.Member);
                     });
 
                 this.StringTrie.Generate(context);
@@ -4106,7 +4106,7 @@ ModuleInitializerClass_Added:
                         continue;
                     }
 
-                    this.StringTrie.Object.GenerateReconstructCore2(ssb, info, x.Member, x.SubIndex);
+                    this.StringTrie.BaseObject?.GenerateReconstructCore2(ssb, info, x.Member, x.SubIndex);
                 }
             }
 
