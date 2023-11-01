@@ -30,12 +30,16 @@ public class DateTimeTest
         dt.Equals(TinyhandSerializer.Deserialize<DateTime>(TinyhandSerializer.Serialize(dt))).IsTrue();
         dt.Equals(TinyhandSerializer.DeserializeFromString<DateTime>(TinyhandSerializer.SerializeToString(dt))).IsTrue();
 
+        dt = DateTime.Now;
+        dt.Equals(TinyhandSerializer.Deserialize<DateTime>(TinyhandSerializer.Serialize(dt))).IsTrue();
+        dt.ToUniversalTime().Equals(TinyhandSerializer.DeserializeFromString<DateTime>(TinyhandSerializer.SerializeToString(dt))).IsTrue();
+
         dt = DateTime.MinValue;
         dt.Equals(TinyhandSerializer.Deserialize<DateTime>(TinyhandSerializer.Serialize(dt))).IsTrue();
         dt.Equals(TinyhandSerializer.DeserializeFromString<DateTime>(TinyhandSerializer.SerializeToString(dt))).IsTrue();
 
         dt = DateTime.MaxValue;
         dt.Equals(TinyhandSerializer.Deserialize<DateTime>(TinyhandSerializer.Serialize(dt))).IsTrue();
-        dt.Equals(TinyhandSerializer.DeserializeFromString<DateTime>(TinyhandSerializer.SerializeToString(dt))).IsTrue();
+        dt.ToUniversalTime().Equals(TinyhandSerializer.DeserializeFromString<DateTime>(TinyhandSerializer.SerializeToString(dt))).IsTrue();
     }
 }

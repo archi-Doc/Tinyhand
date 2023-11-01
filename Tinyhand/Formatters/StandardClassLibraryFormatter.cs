@@ -114,7 +114,6 @@ public sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffset>
         }
 
         DateTime utc = reader.ReadDateTime();
-
         var dtOffsetMinutes = reader.ReadInt16();
 
         return new DateTimeOffset(utc.Ticks, TimeSpan.FromMinutes(dtOffsetMinutes));

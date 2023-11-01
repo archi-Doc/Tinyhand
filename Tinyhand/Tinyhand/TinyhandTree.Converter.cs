@@ -240,6 +240,11 @@ public static class TinyhandTreeConverter
                 if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
                 {// DateTime
                     var dt = reader.ReadDateTime(extHeader);
+                    if (dt.Kind != DateTimeKind.Utc)
+                    {
+                        dt = dt.ToUniversalTime();
+                    }
+
                     st = dt.ToString("o", CultureInfo.InvariantCulture);
                 }
                 else if (extHeader.TypeCode == MessagePackExtensionCodes.Identifier)

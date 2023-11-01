@@ -6,7 +6,7 @@ using Tinyhand.Internal;
 
 #pragma warning disable SA1403 // File may only contain a single namespace
 
-namespace Tinyhand.Resolvers
+/*namespace Tinyhand.Resolvers
 {
     public sealed class NativeDateTimeResolver : IFormatterResolver
     {
@@ -69,4 +69,4 @@ namespace Tinyhand.Internal
             return null;
         }
     }
-}
+}*/

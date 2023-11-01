@@ -781,6 +781,25 @@ public ref partial struct TinyhandReader
             throw new TinyhandException(string.Format("Extension TypeCode is invalid. typeCode: {0}", header.TypeCode));
         }
 
+        if (header.Length == 8)
+        {
+            ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longValue));
+            // return Unsafe.As<long, DateTime>(ref longValue);
+            return DateTime.FromBinary(longValue);
+        }
+        else
+        {
+            throw new TinyhandException($"The length of the extended header is defined as 8 bytes, but it was {header.Length} bytes.");
+        }
+    }
+
+    /*public DateTime ReadDateTime(ExtensionHeader header)
+    {
+        if (header.TypeCode != ReservedMessagePackExtensionTypeCode.DateTime)
+        {
+            throw new TinyhandException(string.Format("Extension TypeCode is invalid. typeCode: {0}", header.TypeCode));
+        }
+
         switch (header.Length)
         {
             case 4:
@@ -800,7 +819,7 @@ public ref partial struct TinyhandReader
             default:
                 throw new TinyhandException($"Length of extension was {header.Length}. Either 4 or 8 were expected.");
         }
-    }
+    }*/
 
     /// <summary>
     /// Reads a span of bytes, whose length is determined by a header of one of these types:
