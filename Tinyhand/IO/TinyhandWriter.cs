@@ -738,6 +738,16 @@ public ref struct TinyhandWriter
     /// <param name="dateTime">The value to write.</param>
     public void Write(DateTime dateTime)
     {
+        Span<byte> span = this.writer.GetSpan(10);
+        span[0] = MessagePackCode.FixExt8;
+        span[1] = unchecked((byte)ReservedMessagePackExtensionTypeCode.DateTime);
+        // WriteBigEndian(Unsafe.As<DateTime, ulong>(ref dateTime), span.Slice(2));
+        WriteBigEndian(dateTime.ToBinary(), span.Slice(2));
+        this.writer.Advance(10);
+    }
+
+    /*public void Write(DateTime dateTime)
+    {
         // Timestamp spec
         // https://github.com/msgpack/msgpack/pull/209
         // FixExt4(-1) => seconds |  [1970-01-01 00:00:00 UTC, 2106-02-07 06:28:16 UTC) range
@@ -790,7 +800,7 @@ public ref struct TinyhandWriter
             WriteBigEndian(seconds, span.Slice(7));
             this.writer.Advance(15);
         }
-    }
+    }*/
 
     /// <summary>
     /// Writes a <see cref="byte"/>[], prefixed with a length encoded as the smallest fitting from:

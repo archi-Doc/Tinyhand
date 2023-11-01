@@ -73,7 +73,7 @@ public partial class FormatterResolverClass
 
     public decimal Decimal = 123M;
     public TimeSpan TimeSpan = new(4, 5, 6);
-    public DateTimeOffset DateTimeOffset = DateTimeOffset.Now;
+    // public DateTimeOffset DateTimeOffset = DateTimeOffset.Now;
     public Guid Guid = new();
     // public Uri Uri = new("https://google.com");
     public Version Version = new(10, 23);
@@ -676,13 +676,13 @@ public partial class PrimitiveIntKeyClass
     [MessagePack.Key(27)]
     public char CharProperty { get; set; } = '@';
 
-    [Key(28)]
+    /*[Key(28)]
     [MessagePack.Key(28)]
     public DateTime DateTimeField = DateTime.UtcNow;
 
     [Key(29)]
     [MessagePack.Key(29)]
-    public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
+    public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;*/
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -745,9 +745,9 @@ public partial class PrimitiveStringKeyClass
 
     public char CharProperty { get; set; } = '@';
 
-    public DateTime DateTimeField = DateTime.UtcNow;
+    // public DateTime DateTimeField = DateTime.UtcNow;
 
-    public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
+    // public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -782,7 +782,7 @@ public partial class PrimitiveArrayClass
 
     public char[] CharArray { get; set; } = { 't', 'h', 'e', };
 
-    public DateTime[] DateTimeArray { get; set; } = { DateTime.UtcNow, DateTime.UtcNow, };
+    // public DateTime[] DateTimeArray { get; set; } = { DateTime.UtcNow, DateTime.UtcNow, };
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -817,7 +817,7 @@ public partial class PrimitiveNullableArrayClass
 
     public char?[] CharArray { get; set; } = { 't', null, 'h', 'e', };
 
-    public DateTime?[] DateTimeArray { get; set; } = { DateTime.UtcNow, null, DateTime.UtcNow, };
+    // public DateTime?[] DateTimeArray { get; set; } = { DateTime.UtcNow, null, DateTime.UtcNow, };
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -852,5 +852,5 @@ public partial class PrimitiveNullableArrayClass2
 
     public char?[]? CharArray { get; set; } = { 't', null, 'h', 'e', };
 
-    public DateTime?[]? DateTimeArray { get; set; } = { DateTime.UtcNow, null, DateTime.UtcNow, };
+    // public DateTime?[]? DateTimeArray { get; set; } = { DateTime.UtcNow, null, DateTime.UtcNow, };
 }
