@@ -3758,7 +3758,7 @@ ModuleInitializerClass_Added:
             else
             {// Default constructor
                 InitSetter_Start(true);
-                ssb.AppendLine($"{ssb.FullObject} = {withNullable.Object.NewInstanceCode()};");
+                ssb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()};");
                 InitSetter_End();
             }
 
