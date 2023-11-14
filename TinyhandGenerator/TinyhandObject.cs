@@ -3249,7 +3249,7 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
                     }
                     else
-                    {// Unsafe.AsRef({this.array) = vd;
+                    {// Unsafe.AsRef(in {this.array) = vd;
                         ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
                     }
                 }

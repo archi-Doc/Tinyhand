@@ -83,7 +83,7 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerialize<T>
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
-        T.Serialize(ref writer, ref Unsafe.AsRef(value), options);
+        T.Serialize(ref writer, ref Unsafe.AsRef(in value), options);
     }
 
     public static void DeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
@@ -190,7 +190,7 @@ public static partial class TinyhandSerializer
         where T : ITinyhandClone<T>
     {
         options = options ?? DefaultOptions;
-        return T.Clone(ref Unsafe.AsRef(obj), options);
+        return T.Clone(ref Unsafe.AsRef(in obj), options);
     }
 
     /// <summary>
@@ -321,7 +321,7 @@ public static partial class TinyhandSerializer
         var writer = new TinyhandWriter(initialBuffer);
         try
         {
-            T.Serialize(ref writer, ref Unsafe.AsRef(value), DefaultOptions);
+            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
             return writer.FlushAndGetArray();
         }
         catch (Exception ex)
@@ -350,7 +350,7 @@ public static partial class TinyhandSerializer
             {
                 try
                 {
-                    T.Serialize(ref writer, ref Unsafe.AsRef(value), options);
+                    T.Serialize(ref writer, ref Unsafe.AsRef(in value), options);
                 }
                 catch (Exception ex)
                 {
