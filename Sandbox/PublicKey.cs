@@ -30,7 +30,7 @@ public readonly partial struct PublicKey : IEquatable<PublicKey>
 
     public void Test(byte[] x)
     {
-        Unsafe.AsRef(this.x) = x;
+        Unsafe.AsRef(in this.x) = x;
     }
 
     public bool Validate()

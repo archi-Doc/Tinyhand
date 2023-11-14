@@ -3249,8 +3249,8 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
                     }
                     else
-                    {// Unsafe.AsRef({this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
+                    {// Unsafe.AsRef(in {this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef(in {this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
                     }
                 }
             }
@@ -3290,9 +3290,17 @@ ModuleInitializerClass_Added:
 
             // ITinyhandSerialize
             ssb.AppendLine("void ITinyhandSerialize.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)");
-            ssb.AppendLine("    => TinyhandSerializer.DeserializeObject(ref reader, ref Unsafe.AsRef(this)!, options);");
+            if (this.Kind.IsReferenceType())
+            {
+                ssb.AppendLine("{ var rt = this; TinyhandSerializer.DeserializeObject(ref reader, ref rt, options); }");
+            }
+            else
+            {
+                ssb.AppendLine("  => TinyhandSerializer.DeserializeObject(ref reader, ref Unsafe.AsRef(in this)!, options);");
+            }
+
             ssb.AppendLine("void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)");
-            ssb.AppendLine("    => TinyhandSerializer.SerializeObject(ref writer, this, options);");
+            ssb.AppendLine("  => TinyhandSerializer.SerializeObject(ref writer, this, options);");
         }
 
         this.GenerateAddProperty(ssb, info);
@@ -3577,8 +3585,8 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
                     }
                     else
-                    {// Unsafe.AsRef({this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
+                    {// Unsafe.AsRef(in {this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef(in {this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
                     }
                 }
             }
@@ -3697,8 +3705,8 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
                     }
                     else
-                    {// Unsafe.AsRef({this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
+                    {// Unsafe.AsRef(in {this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef(in {this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
                     }
                 }
             }
@@ -3798,8 +3806,8 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
                     }
                     else
-                    {// Unsafe.AsRef({this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                    {// Unsafe.AsRef(in {this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef(in {destObject}.{x.SimpleName}) = vd;");
                     }
                 }
 
@@ -3894,8 +3902,8 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
                     }
                     else
-                    {// Unsafe.AsRef({this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef({destObject}.{x.SimpleName}) = vd;");
+                    {// Unsafe.AsRef(in {this.array) = vd;
+                        ssb.AppendLine($"Unsafe.AsRef(in {destObject}.{x.SimpleName}) = vd;");
                     }
                 }
             }
@@ -3981,8 +3989,8 @@ ModuleInitializerClass_Added:
                         }*/
 
                         if (!withNullable.Object.IsUnmanagedType)
-                        {// Unsafe.AsRef({this.array) = vd;
-                            ssb.AppendLine($"Unsafe.AsRef({this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
+                        {// Unsafe.AsRef(in {this.array) = vd;
+                            ssb.AppendLine($"Unsafe.AsRef(in {this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
                         }
                         else
                         {
