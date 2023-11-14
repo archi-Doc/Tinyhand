@@ -8,11 +8,60 @@ using Tinyhand;
 using Tinyhand.IO;
 using ValueLink;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable CS0414
 #pragma warning disable CS0169
 
 namespace Sandbox;
+
+public struct UnsafeAsRefTest
+{
+    public UnsafeAsRefTest()
+    {
+    }
+
+    public void Test()
+    {
+        // var r = Unsafe.AsRef(this);
+        this.Test1(ref Unsafe.AsRef(in this));
+        var x = this.X;
+    }
+
+    private void Test1(ref UnsafeAsRefTest c)
+    {
+        var c2 = new UnsafeAsRefTest();
+        c2.X = 2;
+        c = c2;
+    }
+
+    public int X { get; set; }
+}
+
+public class UnsafeAsRefTest2
+{
+    public UnsafeAsRefTest2()
+    {
+    }
+
+    public void Test()
+    {
+        // var r = Unsafe.AsRef(this);
+        var rt = this;
+        this.Test1(ref rt);
+        // this.Test1(ref Unsafe.AsRef(in this));
+        var x = this.X;
+    }
+
+    private void Test1(ref UnsafeAsRefTest2 c)
+    {
+        var c2 = new UnsafeAsRefTest2();
+        c2.X = 2;
+        c = c2;
+    }
+
+    public int X { get; set; }
+}
 
 [TinyhandObject(ImplicitKeyAsName = true)]
 internal sealed partial class MonoTemplate
@@ -486,6 +535,9 @@ class Program
     {
         Console.WriteLine("Sandbox");
         Console.WriteLine();
+
+        var uarc = new UnsafeAsRefTest();
+        uarc.Test();
 
         var ship = new ZenItz.Itz<int>.DefaultShip<Payload>();
         ship.Test();

@@ -386,7 +386,7 @@ public static partial class TinyhandSerializer
             {
                 try
                 {
-                    T.Serialize(ref writer, ref Unsafe.AsRef(value), options);
+                    T.Serialize(ref writer, ref Unsafe.AsRef(in value), options);
                 }
                 catch (Exception ex)
                 {
