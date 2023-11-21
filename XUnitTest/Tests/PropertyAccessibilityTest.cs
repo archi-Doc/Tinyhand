@@ -27,6 +27,13 @@ public partial class PropertyAccessibilityClass
     public void SetB(int b) => this.B = b;
 }
 
+[TinyhandObject]
+public sealed partial class PropertyAccessibilityClass2
+{
+    [Key(0, AddProperty = "A", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
+    private int _a;
+}
+
 public class PropertyAccessibilityTest
 {
     [Fact]
