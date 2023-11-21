@@ -2739,7 +2739,14 @@ ModuleInitializerClass_Added:
             string setterAccessibility = string.Empty;
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
             {
-                setterAccessibility = "protected ";
+                if (this.IsSealed)
+                {
+                    setterAccessibility = "private ";
+                }
+                else
+                {
+                    setterAccessibility = "protected ";
+                }
             }
 
             ssb.AppendLine("[IgnoreMember]");

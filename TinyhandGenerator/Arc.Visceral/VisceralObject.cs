@@ -50,6 +50,13 @@ public enum VisceralTarget
     All = ~0,
 }
 
+public enum InterfaceImplementation
+{
+    Unknown,
+    Implemented,
+    NotImplemented,
+}
+
 public class VisceralAttribute : IComparable<VisceralAttribute>
 {
     public VisceralAttribute(string fullName, AttributeData attributeData)
@@ -774,6 +781,25 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
             }
 
             return "object";
+        }
+    }
+
+    public InterfaceImplementation GetInterfaceImplementation(string fullInterfaceName)
+    {
+        if (!this.IsSealed)
+        {
+            return InterfaceImplementation.Unknown;
+        }
+        else
+        {
+            if (this.AllInterfaces.Contains(fullInterfaceName))
+            {
+                return InterfaceImplementation.Implemented;
+            }
+            else
+            {
+                return InterfaceImplementation.NotImplemented;
+            }
         }
     }
 
@@ -1828,6 +1854,9 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
             this.isPartial = value;
         }
     }
+
+    public bool IsSealed
+        => this.symbol?.IsSealed == true;
 
     public bool IsConstructedFromNullable
     {
