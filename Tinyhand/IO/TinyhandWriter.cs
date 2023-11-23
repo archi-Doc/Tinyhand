@@ -98,7 +98,7 @@ public ref struct TinyhandWriter
     /// Copies bytes directly into the message pack writer.
     /// </summary>
     /// <param name="span">The span of bytes to copy from.</param>
-    public void WriteSpan(ReadOnlySpan<byte> span) => this.writer.Write(span);
+    public void WriteSpan(scoped ReadOnlySpan<byte> span) => this.writer.Write(span);
 
     /// <summary>
     /// Copies bytes directly into the message pack writer.

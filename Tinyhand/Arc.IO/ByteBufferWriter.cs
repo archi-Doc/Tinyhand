@@ -276,7 +276,7 @@ public ref struct ByteBufferWriter
     /// </summary>
     /// <param name="source">A source span.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(ReadOnlySpan<byte> source)
+    public void Write(scoped ReadOnlySpan<byte> source)
     {
         if (this.span.Length >= source.Length)
         {
@@ -289,7 +289,7 @@ public ref struct ByteBufferWriter
         }
     }
 
-    private void WriteMultiBuffer(ReadOnlySpan<byte> source)
+    private void WriteMultiBuffer(scoped ReadOnlySpan<byte> source)
     {
         int copiedBytes = 0;
         int bytesLeftToCopy = source.Length;
