@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Arc.Crypto;
 using Tinyhand.Tree;
 
 #pragma warning disable CS1998

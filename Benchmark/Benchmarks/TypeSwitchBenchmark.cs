@@ -91,7 +91,7 @@ public class SwitchBenchmark
 {
     private BaseClass testClass;
 
-    private ThreadsafeTypeKeyHashTable<Func<BaseClass, int>> table;
+    private ThreadsafeTypeKeyHashtable<Func<BaseClass, int>> table;
 
     public SwitchBenchmark()
     {

@@ -58,7 +58,7 @@ public static class CompositeResolver
 
     private class CachingResolver : IFormatterResolver
     {
-        private readonly ThreadsafeTypeKeyHashTable<ITinyhandFormatter?> formattersCache = new ();
+        private readonly ThreadsafeTypeKeyHashtable<ITinyhandFormatter?> formattersCache = new ();
         private readonly ITinyhandFormatter[] subFormatters;
         private readonly IFormatterResolver[] subResolvers;
 
