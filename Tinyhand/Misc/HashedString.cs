@@ -4,6 +4,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Threading;
+using Arc.Crypto;
 using Tinyhand.Tree;
 
 namespace Tinyhand;
