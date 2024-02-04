@@ -240,12 +240,12 @@ public class TinyhandUnion
         ssb.AppendLine($"private delegate void {this.DelegateIdentifier}(ref TinyhandWriter writer, ref {interfaceName} v, TinyhandSerializerOptions options);");
 
         // Table
-        ssb.AppendLine($"private static ThreadsafeTypeKeyHashTable<{this.DelegateIdentifier}> {this.TableIdentifier} = {initializeMethod}();");
+        ssb.AppendLine($"private static ThreadsafeTypeKeyHashtable<{this.DelegateIdentifier}> {this.TableIdentifier} = {initializeMethod}();");
 
         // initializeMethod
-        using (var scopeMethod = ssb.ScopeBrace($"private static ThreadsafeTypeKeyHashTable<{this.DelegateIdentifier}> {initializeMethod}()"))
+        using (var scopeMethod = ssb.ScopeBrace($"private static ThreadsafeTypeKeyHashtable<{this.DelegateIdentifier}> {initializeMethod}()"))
         {
-            ssb.AppendLine($"var table = new ThreadsafeTypeKeyHashTable<{this.DelegateIdentifier}>();");
+            ssb.AppendLine($"var table = new ThreadsafeTypeKeyHashtable<{this.DelegateIdentifier}>();");
             foreach (var x in this.StringDictionary)
             {
                 ssb.AppendLine($"table.TryAdd(typeof({x.Value.FullName}), static (ref TinyhandWriter writer, ref {interfaceName} v, TinyhandSerializerOptions options) =>");
