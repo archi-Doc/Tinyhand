@@ -258,7 +258,7 @@ public class TinyhandSecurity
     {
         private static readonly MethodInfo GetHashCollisionResistantEqualityComparerOpenGenericMethod = typeof(TinyhandSecurity).GetTypeInfo().DeclaredMethods.Single(m => m.Name == nameof(TinyhandSecurity.GetHashCollisionResistantEqualityComparer) && m.IsGenericMethod);
         private readonly TinyhandSecurity security;
-        private readonly ThreadsafeTypeKeyHashTable<IEqualityComparer> equalityComparerCache = new ThreadsafeTypeKeyHashTable<IEqualityComparer>();
+        private readonly ThreadsafeTypeKeyHashtable<IEqualityComparer> equalityComparerCache = new ThreadsafeTypeKeyHashtable<IEqualityComparer>();
 
         internal ObjectFallbackEqualityComparer(TinyhandSecurity security)
         {

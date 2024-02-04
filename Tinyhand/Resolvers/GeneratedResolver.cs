@@ -17,7 +17,7 @@ public sealed class GeneratedResolver : IFormatterResolver
     /// </summary>
     public static readonly GeneratedResolver Instance = new();
 
-    private ThreadsafeTypeKeyHashTable<FormatterGeneratorInfo> formatterGenerator = new();
+    private ThreadsafeTypeKeyHashtable<FormatterGeneratorInfo> formatterGenerator = new();
 
     internal class FormatterGeneratorInfo
     {

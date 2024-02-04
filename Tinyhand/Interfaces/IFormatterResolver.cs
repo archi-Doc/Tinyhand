@@ -43,8 +43,8 @@ public static class ResolverExtensions
         throw new FormatterNotRegisteredException(t.FullName + " is not registered in resolver: " + resolver.GetType());
     }
 
-    private static readonly ThreadsafeTypeKeyHashTable<Func<IFormatterResolver, ITinyhandFormatter>> FormatterGetters =
-        new ThreadsafeTypeKeyHashTable<Func<IFormatterResolver, ITinyhandFormatter>>();
+    private static readonly ThreadsafeTypeKeyHashtable<Func<IFormatterResolver, ITinyhandFormatter>> FormatterGetters =
+        new ThreadsafeTypeKeyHashtable<Func<IFormatterResolver, ITinyhandFormatter>>();
 
     private static readonly MethodInfo GetFormatterRuntimeMethod = typeof(IFormatterResolver).GetRuntimeMethod(nameof(IFormatterResolver.TryGetFormatter), Type.EmptyTypes)!;
 
