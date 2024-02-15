@@ -381,4 +381,16 @@ public static class TinyhandHelper
             throw new TinyhandException("Invalid UTF-8 text", ex);
         }
     }
+
+    public static uint GetFullNameId<T>() => IdCache<T>.Id;
+
+    private static class IdCache<T>
+    {
+        public static readonly uint Id;
+
+        static IdCache()
+        {
+            Id = (uint)Arc.Crypto.FarmHash.Hash64(typeof(T).FullName ?? string.Empty);
+        }
+    }
 }
