@@ -1165,10 +1165,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
                 CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
             {// No Coder or Formatter
-                var obj = this.TypeObjectWithNullable.Object;
+                /*var obj = this.TypeObjectWithNullable.Object;
                 obj.Configure();
-                if (obj.ObjectAttribute == null)
+                if (obj.ObjectAttribute == null)*/
                 {
+                    CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable);
                     this.Body.ReportDiagnostic(TinyhandBody.Error_ObjectAttributeRequired, this.Location, this.TypeObject.FullName);
                 }
             }

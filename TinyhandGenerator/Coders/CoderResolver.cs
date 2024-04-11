@@ -75,7 +75,12 @@ public sealed class CoderResolver : ICoderResolver
                 _ => false,
             };
 
-            if (ret == false)
+            if (ret)
+            {
+                return this.IsCoderOrFormatterAvailable(arguments[0]);
+            }
+
+            /*if (ret == false)
             {
                 return ret;
             }
@@ -83,16 +88,21 @@ public sealed class CoderResolver : ICoderResolver
             if (arguments.Length == 0)
             {
                 return false;
-            }
-
-            return this.IsCoderOrFormatterAvailable(arguments[0]);
+            }*/
         }
         else if (withNullable.Object.Kind == VisceralObjectKind.Enum)
         {// Enum
             return true;
         }
 
-        return false;
+        var obj = withNullable.Object;
+        if (obj is null)
+        {
+            return false;
+        }
+
+        obj.Configure();
+        return obj.ObjectAttribute is not null;
     }
 
     public ITinyhandCoder? TryGetCoder(WithNullable<TinyhandObject> withNullable)
