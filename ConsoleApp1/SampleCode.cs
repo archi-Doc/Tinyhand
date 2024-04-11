@@ -3,48 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using Tinyhand;
-using LP;
 
 #pragma warning disable CS0169
 
 namespace ConsoleApp1;
-
-public interface IItzPayload
-{
-}
-
-public interface IItzShip<TPayload>
-where TPayload : IItzPayload
-{
-}
-
-public partial class ItzShip<T> : IItzShip<T>
-    where T : IItzPayload
-{
-    [TinyhandObject]
-    public sealed partial class Item
-    {
-        public Item(PrimarySecondaryIdentifier key, T value)
-        {
-            this.Key = key;
-            this.Value = value;
-        }
-
-        public Item()
-        {
-        }
-
-        [Key(0)]
-        internal T Value = default!;
-
-        [Key(1)]
-        internal PrimarySecondaryIdentifier Key;
-    }
-
-    public ItzShip()
-    {
-    }
-}
 
 [TinyhandObject]
 public partial class InternalTestClass

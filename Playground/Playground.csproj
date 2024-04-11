@@ -7,14 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ConsoleApp1\ConsoleApp1.csproj" />
     <ProjectReference Include="..\TinyhandGenerator\TinyhandGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="strings.tinyhand" />
-    <EmbeddedResource Include="Sub\strings2.tinyhand" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ValueLink" Version="0.54.3" />
+    <PackageReference Include="ValueLink" Version="0.55.0" />
   </ItemGroup>
 
 </Project>
