@@ -58,7 +58,8 @@ public enum ValueElementType
     SpecialIdentifier, // @mode
     Value_Binary, // b"Base64"
     Value_String, // "text"
-    Value_Long, // 123(long)
+    Value_Long, // -123(long)
+    Value_ULong, // 123(ulong)
     Value_Double, // 1.23(double)
     Value_Null, // null
     Value_Bool, // true/false
@@ -376,6 +377,24 @@ public class Value_Long : Value
     public long ValueLong { get; set; }
 }
 
+public class Value_ULong : Value
+{
+    public Value_ULong()
+        : base(ValueElementType.Value_ULong)
+    {
+    }
+
+    public Value_ULong(ulong valueULong)
+        : this()
+    {
+        this.ValueULong = valueULong;
+    }
+
+    public override string ToString() => "ULong: " + this.ValueULong.ToString();
+
+    public ulong ValueULong { get; set; }
+}
+
 public class Value_Double : Value
 {
     public Value_Double()
@@ -404,6 +423,13 @@ public class Value_String : Value
     public Value_String(byte[] valueStringUtf8)
         : base(ValueElementType.Value_String)
     {
+        this.valueStringUtf8 = valueStringUtf8;
+    }
+
+    public Value_String(Element original, byte[] valueStringUtf8)
+        : base(ValueElementType.Value_String)
+    {
+        this.contextualChain = (Element?)original?.contextualChain?.DeepCopy();
         this.valueStringUtf8 = valueStringUtf8;
     }
 
@@ -504,7 +530,7 @@ public class Value_Binary : Value
 
     public byte[] ValueBinary { get; set; }
 
-    public byte[] ValueBinaryToBase64 => Base64.EncodeToBase64Utf8(this.ValueBinary);
+    // public byte[] ValueBinaryToBase64 => Arc.Crypto.Base64.Url.FromByteArrayToUtf8(this.ValueBinary); // Base64.EncodeToBase64Utf8(this.ValueBinary);
 }
 
 /// <summary>

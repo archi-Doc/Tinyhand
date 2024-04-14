@@ -220,10 +220,15 @@ internal static class TinyhandParser
                     valueString.IsTripleQuoted = reader.ValueLong != 0;
                     return valueString;
 
-                case TinyhandAtomType.Value_Long: // 123(long)
+                case TinyhandAtomType.Value_Long: // -123(long)
                     var valueLong = new Value_Long();
                     valueLong.ValueLong = reader.ValueLong;
                     return valueLong;
+
+                case TinyhandAtomType.Value_ULong: // 123(ulong)
+                    var valueULong = new Value_ULong();
+                    valueULong.ValueULong = reader.ValueULong;
+                    return valueULong;
 
                 case TinyhandAtomType.Value_Double: // 1.23(double)
                     var valueDouble = new Value_Double();

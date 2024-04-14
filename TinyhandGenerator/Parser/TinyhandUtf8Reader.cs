@@ -3,6 +3,7 @@
 using System;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
 #pragma warning disable SA1202 // Elements should be ordered by access
@@ -26,7 +27,8 @@ public enum TinyhandAtomType
     Comment, // // comment
     Value_Base64, // b"Base64"
     Value_String, // "text"
-    Value_Long, // 123(long)
+    Value_Long, // -123(long)
+    Value_ULong, // 123(ulong)
     Value_Double, // 1.23(double)
     Value_Null, // null
     Value_True, // true
@@ -125,6 +127,8 @@ public ref struct TinyhandUtf8Reader
     public TinyhandModifierType ValueModifierType { get; private set; }
 
     public long ValueLong { get; private set; }
+
+    public ulong ValueULong { get; private set; }
 
     public double ValueDouble { get; private set; }
 
@@ -303,7 +307,10 @@ public ref struct TinyhandUtf8Reader
             default: // Number, Binary, Modifier/Value, Identifier/Limited identifier
                 if (TinyhandHelper.IsDigit(b) || b == (byte)'+' || b == (byte)'-')
                 { // Number
-                    return this.ReadNumber();
+                    if (this.ReadNumber())
+                    {
+                        return true;
+                    }
                 }
 
                 if (b == (byte)'b' && this.Remaining >= 2 && this.buffer[this.Position + 1] == TinyhandConstants.Quote)
@@ -390,6 +397,28 @@ Unexpected_Symbol:
             if (this.ValueSpan[0] == (byte)'f' && this.ValueSpan[1] == (byte)'a' && this.ValueSpan[2] == (byte)'l' && this.ValueSpan[3] == (byte)'s' && this.ValueSpan[4] == (byte)'e')
             { // false
                 this.AtomType = TinyhandAtomType.Value_False;
+                return true;
+            }
+        }
+        else if (this.ValueSpan.Length == TinyhandConstants.DoubleNaNSpan.Length &&
+            this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNaNSpan))
+        {// double.NaN
+            this.AtomType = TinyhandAtomType.Value_Double;
+            this.ValueDouble = double.NaN;
+            return true;
+        }
+        else if (this.ValueSpan.Length == TinyhandConstants.DoublePositiveInfinitySpan.Length)
+        {
+            if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoublePositiveInfinitySpan))
+            {// double.PositiveInfinity
+                this.AtomType = TinyhandAtomType.Value_Double;
+                this.ValueDouble = double.PositiveInfinity;
+                return true;
+            }
+            else if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNegativeInfinitySpan))
+            {// double.NegativeInfinity
+                this.AtomType = TinyhandAtomType.Value_Double;
+                this.ValueDouble = double.NegativeInfinity;
                 return true;
             }
         }
@@ -613,7 +642,8 @@ Unexpected_Symbol:
         var length = this.GetQuotedStringLength(stringSpan);
         this.ValueSpan = stringSpan.Slice(0, length);
 
-        this.ValueBinary = Base64.DecodeFromBase64Utf8(this.ValueSpan);
+        // this.ValueBinary = Base64.DecodeFromBase64Utf8(this.ValueSpan);
+        this.ValueBinary = TinyhandHelper.FromBase64UrlToByteArray(this.ValueSpan.ToArray()); // Arc.Crypto.Base64.Url.FromUtf8ToByteArray(this.ValueSpan);
         if (this.ValueBinary == null)
         {
             this.ThrowException("Cannot decode Base64 string.");
@@ -710,7 +740,9 @@ Unexpected_Symbol:
     {
         ReadOnlySpan<byte> localBuffer = this.buffer.Slice(this.Position);
         int position = 0;
-        bool isDouble = false;
+        var isDouble = false;
+
+        // Utf8Parser.TryParse("NaN"u8, out var dd, out _); // NaN, Infinity, +/-Infinity
 
         for (var remaining = localBuffer.Length; remaining > 0; remaining--, position++)
         {
@@ -723,6 +755,13 @@ Unexpected_Symbol:
             if (val == '.' || val == 'e' || val == 'E')
             {
                 isDouble = true;
+            }
+            else if (val == '+' || val == '-')
+            {
+            }
+            else if (!TinyhandHelper.IsDigit(val))
+            {// Not a number.
+                return false;
             }
         }
 
@@ -746,11 +785,19 @@ Unexpected_Symbol:
             return ret;
         }
         else
-        {
+        {// long
             this.AtomType = TinyhandAtomType.Value_Long;
-            // var ret = this.ReadInt64(this.ValueSpan, out var result);
             var ret = Utf8Parser.TryParse(this.ValueSpan, out long result, out int bytesConsumed);
-            this.ValueLong = result;
+            if (ret)
+            {
+                this.ValueLong = result;
+                return ret;
+            }
+
+            // Maybe ulong...
+            this.AtomType = TinyhandAtomType.Value_ULong;
+            ret = Utf8Parser.TryParse(this.ValueSpan, out ulong result2, out bytesConsumed);
+            this.ValueULong = result2;
             return ret;
         }
     }

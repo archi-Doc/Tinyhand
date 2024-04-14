@@ -56,11 +56,6 @@ public record TinyhandSerializerOptions
         /// Compress the data using the Lz4 algorithm.
         /// </summary>
         Lz4Compress = 1 << 0,
-
-        /*/// <summary>
-        /// Unload data (the actual unloading process will be implemented by the application side).
-        /// </summary>
-        Unload = 1 << 1,*/
     }
 
     public static TinyhandSerializerOptions Standard { get; } = new TinyhandSerializerOptions(StandardResolver.Instance);
