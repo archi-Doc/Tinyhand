@@ -1,31 +1,70 @@
 ﻿using System;
+using System.Linq;
+using Arc.Crypto;
 using Tinyhand;
 
 namespace Playground;
 
 [TinyhandObject]
-public partial class TestClass
-{
-    public TestClass()
-    {
-    }
+public partial class StringConvertibleTestClass : IStringConvertible<StringConvertibleTestClass>
+{// @Base64.Url(Byte16)
+    public static int MaxStringLength
+        => 23;
 
     [Key(0)]
-    public int Id { get; set; }
+    public byte[] Byte16 { get; set; } = [];
+
+    public static bool TryParse(ReadOnlySpan<char> source, out StringConvertibleTestClass? instance)
+    {
+        if (source.Length < MaxStringLength ||
+            source[0] != '@')
+        {
+            instance = null;
+            return false;
+        }
+
+        source = source.Slice(1);
+        var b = Base64.Url.FromStringToByteArray(source);
+        if (b.Length != 16)
+        {
+            instance = null;
+            return false;
+        }
+
+        instance = new();
+        instance.Byte16 = b;
+        return true;
+    }
+
+    int IStringConvertible<StringConvertibleTestClass>.GetStringLength()
+        => MaxStringLength;
+
+    bool IStringConvertible<StringConvertibleTestClass>.TryFormat(Span<char> destination, out int written)
+    {
+        if (destination.Length < MaxStringLength)
+        {
+            written = 0;
+            return false;
+        }
+
+        destination[0] = '@';
+        destination = destination.Slice(1);
+        if (!Base64.Url.FromByteArrayToSpan(this.Byte16, destination, out written))
+        {
+            written = 0;
+            return false;
+        }
+
+        written++;
+        return true;
+    }
 }
 
 [TinyhandObject]
-public partial class TestClass2
+public partial class StringConvertibleTestClass2
 {
-    public TestClass2()
-    {
-    }
-
-    [Key(0)]
-    public TestClass Class { get; set; } = default!;
-
-    [Key(1)]
-    public TestClass[] Array { get; set; } = default!;
+    [Key("Class1")]
+    public StringConvertibleTestClass Class1 { get; set; } = new();
 }
 
 internal class Program
@@ -33,5 +72,14 @@ internal class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
+
+        var tc = new StringConvertibleTestClass();
+        tc.Byte16 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,];
+        var st = tc.ConvertToString();
+        StringConvertibleTestClass.TryParse(st, out var tc2);
+
+        var tc3 = new StringConvertibleTestClass2();
+        tc3.Class1 = tc2;
+        st = TinyhandSerializer.SerializeToString(tc3);
     }
 }
