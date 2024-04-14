@@ -381,4 +381,33 @@ internal static class TinyhandHelper
             throw new TinyhandException("Invalid UTF-8 text", ex);
         }
     }
+
+    public static byte[]? FromBase64UrlToByteArray(byte[] utf8)
+    {
+        try
+        {
+            var st = System.Text.Encoding.UTF8.GetString(utf8);
+            var base64 = st.Replace('-', '+').Replace('_', '/');
+
+            var mod = base64.Length % 4;
+            if (mod == 1)
+            {
+                base64 += "===";
+            }
+            else if (mod == 2)
+            {
+                base64 += "==";
+            }
+            else if (mod == 3)
+            {
+                base64 += "=";
+            }
+
+            return Convert.FromBase64String(base64);
+        }
+        catch
+        {
+            return null;
+        }
+    }
 }
