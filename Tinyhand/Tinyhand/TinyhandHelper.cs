@@ -341,9 +341,9 @@ public static class TinyhandHelper
                 fixed (char* charPtr = text)
                 {
                     fixed (byte* destPtr = dest)
-                {
-                    return Utf8Encoding.GetBytes(charPtr, text.Length, destPtr, dest.Length);
-                }
+                    {
+                        return Utf8Encoding.GetBytes(charPtr, text.Length, destPtr, dest.Length);
+                    }
                 }
             }
 #endif

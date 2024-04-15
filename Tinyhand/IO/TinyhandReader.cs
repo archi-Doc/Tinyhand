@@ -3,12 +3,14 @@
 using System;
 using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Arc.Crypto;
 
 #pragma warning disable SA1615 // Element return value should be documented
 
@@ -1083,6 +1085,29 @@ public ref partial struct TinyhandReader
         }
 
         return this.ReadString();
+    }
+
+    public void TryReadStringConvertible<T>(ref T? instance)
+        where T : IStringConvertible<T>
+    {
+        var st = this.ReadString();
+        if (st is not null)
+        {
+            T.TryParse(st, out instance);
+        }
+    }
+
+    public T? TryReadStringConvertible<T>()
+        where T : IStringConvertible<T>
+    {
+        var st = this.ReadString();
+        if (st is null)
+        {
+            return default;
+        }
+
+        T.TryParse(st, out var instance);
+        return instance;
     }
 
     /// <summary>

@@ -63,8 +63,11 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
 [TinyhandObject]
 public partial class StringConvertibleTestClass2
 {
-    [Key("Class1")]
+    [Key("Class1", ConvertToString = true)]
     public StringConvertibleTestClass Class1 { get; set; } = new();
+
+    [KeyAsName(ConvertToString = true)]
+    public StringConvertibleTestClass Class2 { get; set; } = new();
 }
 
 internal class Program
@@ -79,7 +82,11 @@ internal class Program
         StringConvertibleTestClass.TryParse(st, out var tc2);
 
         var tc3 = new StringConvertibleTestClass2();
-        tc3.Class1 = tc2;
+        tc3.Class1 = tc2!;
+        tc3.Class2 = tc2!;
         st = TinyhandSerializer.SerializeToString(tc3);
+        var list = st.Replace("\r\n", "\n").Split(['\n', '\r',]);
+
+        var tc4 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass2>(st);
     }
 }

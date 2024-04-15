@@ -160,6 +160,11 @@ public class KeyAttribute : Attribute
     /// </summary>
     public bool IgnoreKeyReservation { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to  convert it to a string [default is <see langword="false"/>].<br/>The object must implement <see cref="Arc.Crypto.IStringConvertible{T}"/>.
+    /// </summary>
+    public bool ConvertToString { get; set; } = false;
+
     /*/// <summary>
     /// Gets or sets a value indicating whether the target type is utf-8 or not [default is <see langword="false"/>].
     /// </summary>
@@ -182,6 +187,11 @@ public class KeyAttribute : Attribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
 public class KeyAsNameAttribute : Attribute
 {
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to  convert it to a string [default is <see langword="false"/>].<br/>The object must implement <see cref="Arc.Crypto.IStringConvertible{T}"/>.
+    /// </summary>
+    public bool ConvertToString { get; set; } = false;
+
     public KeyAsNameAttribute()
     {
     }
