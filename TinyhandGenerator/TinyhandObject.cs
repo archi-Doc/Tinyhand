@@ -443,6 +443,17 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 {// KeyAsNameAttribute to KeyAttribute.
                     this.KeyVisceralAttribute = x;
                     this.KeyAttribute = new KeyAttributeMock(this.SimpleName);
+                    try
+                    {
+                        var v = AttributeHelper.GetValue(-1, nameof(KeyAttributeMock.ConvertToString), x.ConstructorArguments, x.NamedArguments);
+                        if (v != null)
+                        {
+                            this.KeyAttribute.ConvertToString = (bool)v;
+                        }
+                    }
+                    catch
+                    {
+                    }
                 }
             }
             else if (x.FullName == IgnoreMemberAttributeMock.FullName)
@@ -4201,35 +4212,41 @@ ModuleInitializerClass_Added:
             }
         }
 
-        var coder = CoderResolver.Instance.TryGetCoder(withNullable);
-        if (coder != null)
-        {// Coder
-            coder.CodeSerializer(ssb, info);
-        }
-        else if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
-            (withNullable.Object.ObjectAttribute != null ||
-            withNullable.Object.HasITinyhandSerializeConstraint()))
-        {// TinyhandObject or Type parameter with ITinyhandSerialize constraint.
-            using (ssb.ScopeBrace(string.Empty))
-            {
-                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
-            }
+        if (x.KeyAttribute?.ConvertToString == true)
+        {
+            ssb.AppendLine($"writer.WriteStringConvertible({ssb.FullObject});");
         }
         else
-        {// Formatter
-            if (x.HasNullableAnnotation)
-            {
-                ssb.AppendLine($"if ({ssb.FullObject} == null) writer.WriteNil();");
-                ssb.AppendLine($"else options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {ssb.FullObject}, options);");
+        {
+            var coder = CoderResolver.Instance.TryGetCoder(withNullable);
+            if (coder != null)
+            {// Coder
+                coder.CodeSerializer(ssb, info);
+            }
+            else if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
+                (withNullable.Object.ObjectAttribute != null ||
+                withNullable.Object.HasITinyhandSerializeConstraint()))
+            {// TinyhandObject or Type parameter with ITinyhandSerialize constraint.
+                using (ssb.ScopeBrace(string.Empty))
+                {
+                    ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+                }
             }
             else
-            {
-                ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {ssb.FullObject}, options);");
+            {// Formatter
+                if (x.HasNullableAnnotation)
+                {
+                    ssb.AppendLine($"if ({ssb.FullObject} == null) writer.WriteNil();");
+                    ssb.AppendLine($"else options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {ssb.FullObject}, options);");
+                }
+                else
+                {
+                    ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Serialize(ref writer, {ssb.FullObject}, options);");
+                }
             }
         }
 
         skipDefaultValueScope?.Dispose();
-
         v2.Dispose();
         v1?.Dispose();
     }
