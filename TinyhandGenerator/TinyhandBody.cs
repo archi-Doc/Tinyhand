@@ -34,6 +34,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string IStructualObject = "IStructualObject";
     public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
     public static readonly string ValueLinkUpdate = "__gen_cl_update_";
+    public static readonly string IStringConvertible = "Arc.Crypto.IStringConvertible";
 
     public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
         id: "TG001", title: "Not a partial class/struct", messageFormat: "'{0}' must be a partial class/struct",
@@ -238,6 +239,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly DiagnosticDescriptor Error_LockObject3 = new DiagnosticDescriptor(
         id: "TG051", title: "LockObject3", messageFormat: "Member specified in LockObject is not accessible",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Warning_ConvertToString = new DiagnosticDescriptor(
+        id: "TG052", title: "IStringConvertible", messageFormat: "IStringConvertible is required to convert to string",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)

@@ -1184,6 +1184,19 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.ReportDiagnostic(TinyhandBody.Error_ObjectAttributeRequired, this.Location, this.TypeObject.FullName);
                 }
             }
+
+            if (this.KeyAttribute.ConvertToString)
+            {
+                if (this.TypeObject is { } typeObject)
+                {
+                    if (!typeObject.Interfaces.Any(x => x.FullName.StartsWith(TinyhandBody.IStringConvertible)))
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Warning_ConvertToString, this.Location);
+
+                        this.KeyAttribute.ConvertToString = false;
+                    }
+                }
+            }
         }
         else
         {// No KeyAttribute
