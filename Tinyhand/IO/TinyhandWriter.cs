@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Unicode;
 using System.Threading;
+using Arc.Crypto;
 using Arc.IO;
 
 namespace Tinyhand.IO;
@@ -1021,7 +1022,7 @@ public ref struct TinyhandWriter
     /// <see cref="MessagePackCode.Str32"/>.
     /// </summary>
     /// <param name="value">The value to write.</param>
-    public unsafe void Write(ReadOnlySpan<char> value)
+    public unsafe void Write(scoped ReadOnlySpan<char> value)
     {
         ref byte buffer = ref this.WriteString_PrepareSpan(value.Length, out int bufferSize, out int useOffset);
         fixed (char* pValue = value)
@@ -1162,6 +1163,47 @@ public ref struct TinyhandWriter
         span[5] = unchecked((byte)MessagePackExtensionCodes.Identifier);
 
         this.writer.Advance(bytesWritten + 6);
+    }
+
+    [SkipLocalsInit]
+    public void WriteStringConvertible<T>(T obj)
+        where T : IStringConvertible<T>
+    {
+        int length = 0;
+        try
+        {
+            length = obj.GetStringLength();
+        }
+        catch
+        {
+        }
+
+        if (length == 0)
+        {
+            try
+            {
+                length = T.MaxStringLength;
+            }
+            catch
+            {
+            }
+        }
+
+        char[]? pooledName = default;
+        var destination = length <= TinyhandConstants.StackallocThreshold ? stackalloc char[length] : (pooledName = ArrayPool<char>.Shared.Rent(length));
+        if (obj.TryFormat(destination, out var written))
+        {
+            this.Write(destination.Slice(0, written));
+        }
+        else
+        {
+            this.Write(ReadOnlySpan<char>.Empty);
+        }
+
+        if (pooledName != null)
+        {
+            ArrayPool<char>.Shared.Return(pooledName);
+        }
     }
 
     private static void WriteBigEndian(short value, Span<byte> span) => WriteBigEndian(unchecked((ushort)value), span);

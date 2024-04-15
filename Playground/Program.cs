@@ -79,7 +79,7 @@ internal class Program
         StringConvertibleTestClass.TryParse(st, out var tc2);
 
         var tc3 = new StringConvertibleTestClass2();
-        tc3.Class1 = tc2;
+        tc3.Class1 = tc2!;
         st = TinyhandSerializer.SerializeToString(tc3);
     }
 }
