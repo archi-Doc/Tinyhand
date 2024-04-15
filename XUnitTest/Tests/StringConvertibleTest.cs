@@ -69,7 +69,7 @@ public partial class StringConvertibleTestClass2
     public StringConvertibleTestClass Class1 { get; set; } = new();
 
     [KeyAsName(ConvertToString = true)]
-    public StringConvertibleTestClass Class2 { get; set; } = new();
+    public StringConvertibleTestClass? Class2 { get; set; } = new();
 
     // [KeyAsName(ConvertToString = true)]
     // TestRecord Class3 { get; set; } = new();
