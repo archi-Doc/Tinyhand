@@ -188,7 +188,7 @@ public class KeyAttribute : Attribute
 public class KeyAsNameAttribute : Attribute
 {
     /// <summary>
-    /// Gets or sets a value indicating whether or not to  convert it to a string [default is <see langword="false"/>].<br/>The object must implement <see cref="Arc.Crypto.IStringConvertible{T}"/>.
+    /// Gets or sets a value indicating whether or not to serialize the object to a string [default is <see langword="false"/>].<br/>The object must implement <see cref="Arc.Crypto.IStringConvertible{T}"/>.
     /// </summary>
     public bool ConvertToString { get; set; } = false;
 

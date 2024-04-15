@@ -70,6 +70,9 @@ public partial class StringConvertibleTestClass2
 
     [KeyAsName(ConvertToString = true)]
     public StringConvertibleTestClass Class2 { get; set; } = new();
+
+    // [KeyAsName(ConvertToString = true)]
+    // TestRecord Class3 { get; set; } = new();
 }
 
 public class StringConvertibleTest
