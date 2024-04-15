@@ -83,6 +83,10 @@ internal class Program
 
         var tc3 = new StringConvertibleTestClass2();
         tc3.Class1 = tc2!;
+        tc3.Class2 = tc2!;
         st = TinyhandSerializer.SerializeToString(tc3);
+        var list = st.Replace("\r\n", "\n").Split(['\n', '\r',]);
+
+        var tc4 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass2>(st);
     }
 }

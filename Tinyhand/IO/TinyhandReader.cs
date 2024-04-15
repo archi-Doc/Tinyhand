@@ -1087,17 +1087,27 @@ public ref partial struct TinyhandReader
         return this.ReadString();
     }
 
-    public bool TryReadStringConvertible<T>([MaybeNullWhen(false)] out T? instance)
+    public void TryReadStringConvertible<T>(ref T? instance)
+        where T : IStringConvertible<T>
+    {
+        var st = this.ReadString();
+        if (st is not null)
+        {
+            T.TryParse(st, out instance);
+        }
+    }
+
+    public T? TryReadStringConvertible<T>()
         where T : IStringConvertible<T>
     {
         var st = this.ReadString();
         if (st is null)
         {
-            instance = default;
-            return false;
+            return default;
         }
 
-        return T.TryParse(st, out instance);
+        T.TryParse(st, out var instance);
+        return instance;
     }
 
     /// <summary>

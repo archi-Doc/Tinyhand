@@ -2264,7 +2264,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
+    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance, bool convertToString)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
         /*if (this.Kind == VisceralObjectKind.Interface)
         {
@@ -2320,7 +2320,15 @@ ModuleInitializerClass_Added:
             }
         }
 
-        ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref v2!, options);");
+        if (convertToString)
+        {
+            ssb.AppendLine($"reader.TryReadStringConvertible<{this.FullName}>(ref v2!);");
+        }
+        else
+        {
+            ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref v2!, options);");
+        }
+
         ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
@@ -3515,7 +3523,7 @@ ModuleInitializerClass_Added:
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget), x.KeyAttribute?.ConvertToString == true);
                 }
                 else if (coder != null)
                 {
@@ -3634,7 +3642,7 @@ ModuleInitializerClass_Added:
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget), x.KeyAttribute?.ConvertToString == true);
                 }
                 else if (coder != null)
                 {
