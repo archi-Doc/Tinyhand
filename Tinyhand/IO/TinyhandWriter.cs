@@ -1166,9 +1166,15 @@ public ref struct TinyhandWriter
     }
 
     [SkipLocalsInit]
-    public void WriteStringConvertible<T>(T obj)
+    public void WriteStringConvertible<T>(T? obj)
         where T : IStringConvertible<T>
     {
+        if (obj is null)
+        {
+            this.WriteNil();
+            return;
+        }
+
         int length = 0;
         try
         {
