@@ -79,6 +79,12 @@ public static partial class TinyhandSerializer
     /// </remarks>
     public static TinyhandSerializerOptions DefaultOptions { get; set; } = TinyhandSerializerOptions.Standard;
 
+    /// <summary>
+    /// Calculates the XXHash3 hash value for the specified value.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="value">The value to calculate the hash for.</param>
+    /// <returns>The XXHash3 hash value.</returns>
     public static ulong GetXxHash3<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
@@ -91,9 +97,10 @@ public static partial class TinyhandSerializer
         try
         {
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
-            return writer.FlushAndGetArray();
+            writer.FlushAndGetReadOnlySpan(out var span, out _);
+            return Arc.Crypto.XxHash3.Hash64(span);
         }
-        catch (Exception ex)
+        catch
         {
             return 0;
         }
