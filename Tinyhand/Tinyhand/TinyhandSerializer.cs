@@ -79,6 +79,30 @@ public static partial class TinyhandSerializer
     /// </remarks>
     public static TinyhandSerializerOptions DefaultOptions { get; set; } = TinyhandSerializerOptions.Standard;
 
+    public static ulong GetXxHash3<T>(in T? value)
+        where T : ITinyhandSerialize<T>
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        var writer = new TinyhandWriter(initialBuffer);
+        try
+        {
+            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
+            return writer.FlushAndGetArray();
+        }
+        catch (Exception ex)
+        {
+            return 0;
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
     public static void SerializeObject<T>(ref TinyhandWriter writer, in T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerialize<T>
     {
