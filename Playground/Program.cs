@@ -1,73 +1,46 @@
 ﻿using System;
-using System.Linq;
-using Arc.Crypto;
-using Tinyhand;
 
 namespace Playground;
 
-[TinyhandObject]
-public partial class StringConvertibleTestClass : IStringConvertible<StringConvertibleTestClass>
-{// @Base64.Url(Byte16)
-    public static int MaxStringLength
-        => 23;
-
-    [Key(0)]
-    public byte[] Byte16 { get; set; } = [];
-
-    public static bool TryParse(ReadOnlySpan<char> source, out StringConvertibleTestClass? instance)
+public class IntegralityEngine
+{
+    public IntegralityEngine()
     {
-        if (source.Length < MaxStringLength ||
-            source[0] != '@')
-        {
-            instance = null;
-            return false;
-        }
-
-        source = source.Slice(1);
-        var b = Base64.Url.FromStringToByteArray(source);
-        if (b.Length != 16)
-        {
-            instance = null;
-            return false;
-        }
-
-        instance = new();
-        instance.Byte16 = b;
-        return true;
     }
 
-    int IStringConvertible<StringConvertibleTestClass>.GetStringLength()
-        => MaxStringLength;
+    public int Level { get; private set; }
 
-    bool IStringConvertible<StringConvertibleTestClass>.TryFormat(Span<char> destination, out int written)
+    public void GetIdentity(IIntegrality integrality)
     {
-        if (destination.Length < MaxStringLength)
-        {
-            written = 0;
-            return false;
+        if (this.Level == 0)
+        {// Get root hash
+            var rootHash = integrality.GetRootHash();
         }
-
-        destination[0] = '@';
-        destination = destination.Slice(1);
-        if (!Base64.Url.FromByteArrayToSpan(this.Byte16, destination, out written))
-        {
-            written = 0;
-            return false;
-        }
-
-        written++;
-        return true;
     }
 }
 
-[TinyhandObject]
-public partial class StringConvertibleTestClass2
+public class IntegralityContext
 {
-    [Key("Class1", ConvertToString = true)]
-    public StringConvertibleTestClass Class1 { get; set; } = new();
+}
 
-    [KeyAsName(ConvertToString = true)]
-    public StringConvertibleTestClass Class2 { get; set; } = new();
+public class Test1
+{
+    public void Test()
+    {
+        var engine = new IntegralityEngine();
+        /*var identity = engine.GetIdentity(g);
+        var difference = engine.GetDifference();
+        engine.Integrate(difference);*/
+    }
+}
+
+public interface IIntegrality
+{// Exaltation of the Integrality by Baxter.
+    ulong RootHash { get; set; }
+
+    ulong GetRootHash();
+
+    void ClearRootHash();
 }
 
 internal class Program
@@ -75,18 +48,5 @@ internal class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
-
-        var tc = new StringConvertibleTestClass();
-        tc.Byte16 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,];
-        var st = tc.ConvertToString();
-        StringConvertibleTestClass.TryParse(st, out var tc2);
-
-        var tc3 = new StringConvertibleTestClass2();
-        tc3.Class1 = tc2!;
-        tc3.Class2 = tc2!;
-        st = TinyhandSerializer.SerializeToString(tc3);
-        var list = st.Replace("\r\n", "\n").Split(['\n', '\r',]);
-
-        var tc4 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass2>(st);
     }
 }
