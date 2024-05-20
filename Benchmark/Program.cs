@@ -46,7 +46,7 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<Union2.UnionBenchmark2>();
+        DebugRun<H2HTest.H2HBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
