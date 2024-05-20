@@ -8,13 +8,14 @@ using System.Text.Unicode;
 using System.Threading;
 using Arc.Crypto;
 using Arc.IO;
+using Arc.Unit;
+
+#pragma warning disable SA1124
 
 namespace Tinyhand.IO;
 
 public ref struct TinyhandWriter
 {
-    private ByteBufferWriter writer;
-
     public TinyhandWriter(IBufferWriter<byte> writer)
     {
         this.writer = new ByteBufferWriter(writer);
@@ -25,10 +26,19 @@ public ref struct TinyhandWriter
         this.writer = new ByteBufferWriter(initialBuffer);
     }
 
+    public TinyhandWriter(ByteArrayPool.Owner owner)
+    {
+        this.writer = new ByteBufferWriter(owner);
+    }
+
     public void Dispose()
     {
         this.writer.Dispose();
     }
+
+    #region FieldAndProperty
+
+    private ByteBufferWriter writer;
 
     /// <summary>
     /// Gets or sets the level for serialization (members with this level or lower will be serialized).
@@ -39,6 +49,13 @@ public ref struct TinyhandWriter
     /// Gets or sets the cancellation token for this serialization operation.
     /// </summary>
     public CancellationToken CancellationToken { get; set; } = default;
+
+    /// <summary>
+    /// Gets the total number of bytes written by the writer.
+    /// </summary>
+    public long Written => this.writer.Written;
+
+    #endregion
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct,
@@ -85,6 +102,9 @@ public ref struct TinyhandWriter
     public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isInitialBuffer)
         => this.writer.FlushAndGetReadOnlySpan(out span, out isInitialBuffer);
 
+    public ByteArrayPool.MemoryOwner FlushAndGetMemoryOwner()
+        => this.writer.FlushAndGetMemoryOwner();
+
     public void Flush() => this.writer.Flush();
 
     public Span<byte> GetSpan(int length) => this.writer.GetSpan(length);
@@ -92,8 +112,6 @@ public ref struct TinyhandWriter
     public void Advance(int count) => this.writer.Advance(count);
 
     public void Ensure(int sizeHint) => this.writer.Ensure(sizeHint);
-
-    public long Written => this.writer.Written;
 
     /// <summary>
     /// Copies bytes directly into the message pack writer.

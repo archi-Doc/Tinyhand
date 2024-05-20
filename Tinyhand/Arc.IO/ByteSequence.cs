@@ -2,6 +2,9 @@
 
 using System;
 using System.Buffers;
+using Arc.Unit;
+
+#pragma warning disable SA1124
 
 namespace Arc.IO;
 
@@ -10,8 +13,41 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
     public const int DefaultVaultSize = 32 * 1024;
     private static ArrayPool<byte> arrayPool = ArrayPool<byte>.Create(80 * 1024, 100);
 
+    #region FieldAndProperty
+
     private ByteVault? firstVault;
     private ByteVault? lastVault;
+
+    #endregion
+
+    public ByteArrayPool.MemoryOwner ToMemoryOwner()
+    {
+        if (this.firstVault == null)
+        {
+            return default;
+        }
+        else if (this.firstVault == this.lastVault)
+        {// Single vault
+            var memoryOwner = ByteArrayPool.Default.Rent(this.firstVault.Size).ToMemoryOwner(0, this.firstVault.Size);
+            this.firstVault.Array.AsSpan(0, this.firstVault.Size).CopyTo(memoryOwner.Memory.Span);
+            return memoryOwner;
+        }
+        else
+        {// Multiple vaults
+            var size = this.lastVault!.Size;
+            var memoryOwner = ByteArrayPool.Default.Rent(size).ToMemoryOwner(0, size);
+            var span = memoryOwner.Memory.Span;
+            var segment = (ReadOnlySequenceSegment<byte>)this.firstVault;
+            while (segment is not null)
+            {
+                segment.Memory.Span.CopyTo(span);
+                span = span.Slice(segment.Memory.Length);
+                segment = segment.Next;
+            }
+
+            return memoryOwner;
+        }
+    }
 
     public ReadOnlySequence<byte> ToReadOnlySequence()
     {

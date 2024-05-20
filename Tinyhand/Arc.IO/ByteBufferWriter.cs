@@ -3,7 +3,9 @@
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using Arc.Unit;
 
+#pragma warning disable SA1124
 #pragma warning disable SA1202 // Elements should be ordered by access
 
 namespace Arc.IO;
@@ -14,15 +16,6 @@ namespace Arc.IO;
 /// </summary>
 public ref struct ByteBufferWriter
 {
-    private ByteSequence? byteSequence; // Fast byte sequence class.
-    private IBufferWriter<byte> bufferWriter; // IBufferWriter instance.
-
-    private Span<byte> span; // A byte span to be consumed.
-    private int spanSize; // The size of the span.
-    // private Span<byte> originalSpan; // The original (not sliced) version of the span.
-    private long spanWritten; // The size of the written span.
-    private byte[]? initialBuffer; // The initial buffer.
-
     public ByteBufferWriter(IBufferWriter<byte> bufferWriter)
     { // Use other IBufferWriter instance (this.bufferWriter != null).
         this.byteSequence = null;
@@ -43,11 +36,43 @@ public ref struct ByteBufferWriter
         this.initialBuffer = initialBuffer;
     }
 
+    public ByteBufferWriter(ByteArrayPool.Owner owner)
+    { // Use ByteArrayPool.Owner and ByteSequence (this.bufferWriter null -> not null, this.initialBuffer not null -> null).
+        this.byteSequence = null;
+        this.bufferWriter = null!;
+        this.span = owner.ByteArray.AsSpan();
+        this.spanSize = 0;
+        this.spanWritten = 0;
+        this.initialBuffer = owner.ByteArray;
+        this.owner = owner;
+    }
+
+    #region FieldAndProperty
+
+    private ByteSequence? byteSequence; // Fast byte sequence class.
+    private IBufferWriter<byte> bufferWriter; // IBufferWriter instance.
+
+    private Span<byte> span; // A byte span to be consumed.
+    private int spanSize; // The size of the span.
+    // private Span<byte> originalSpan; // The original (not sliced) version of the span.
+    private long spanWritten; // The size of the written span.
+    private byte[]? initialBuffer; // The initial buffer.
+    private ByteArrayPool.Owner? owner;
+
+    #endregion
+
     public void Dispose()
     {
-        if (this.byteSequence != null)
+        if (this.byteSequence is not null)
         {
             this.byteSequence.Dispose();
+            this.byteSequence = default;
+        }
+
+        if (this.owner is not null)
+        {
+            this.owner.Return();
+            this.owner = default;
         }
     }
 
@@ -125,6 +150,11 @@ public ref struct ByteBufferWriter
                 var span = this.bufferWriter.GetSpan(this.spanSize);
                 this.initialBuffer.AsSpan(0, this.spanSize).CopyTo(span);
                 this.initialBuffer = default;
+                if (this.owner is not null)
+                {
+                    this.owner.Return();
+                    this.owner = default;
+                }
             }
 
             this.spanWritten += this.spanSize;
@@ -132,6 +162,35 @@ public ref struct ByteBufferWriter
             this.span = default;
             this.spanSize = 0;
         }
+    }
+
+    /// <summary>
+    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.
+    /// </summary>
+    /// <returns>A byte array consisting of the written data.</returns>
+    public ByteArrayPool.MemoryOwner FlushAndGetMemoryOwner()
+    {
+        if (this.bufferWriter == null)
+        { // Initial Buffer
+            if (this.owner is { } owner)
+            {
+                this.owner = default; // Prevent double return.
+                return owner.ToMemoryOwner(0, this.spanSize);
+            }
+            else
+            {
+                return new(this.initialBuffer!, 0, this.spanSize);
+            }
+        }
+
+        this.Flush();
+
+        if (this.byteSequence == null)
+        {
+            throw new InvalidOperationException("FlushAndGetMemoryOwner() is not supported for external IBufferWriter<byte>.");
+        }
+
+        return this.byteSequence.ToMemoryOwner();
     }
 
     /// <summary>

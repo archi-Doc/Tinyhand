@@ -20,7 +20,7 @@ namespace Tinyhand;
 
 public static partial class TinyhandSerializer
 {
-    private const int InitialBufferSize = 32 * 1024;
+    public const int InitialBufferSize = 32 * 1024;
     private const int MaxHintSize = 1024 * 1024;
 
     /// <summary>
