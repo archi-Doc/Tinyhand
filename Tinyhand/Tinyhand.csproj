@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arc.Collections" Version="1.14.1" />
+    <PackageReference Include="Arc.Collections" Version="1.14.2" />
     <PackageReference Include="Arc.Crypto" Version="1.24.0" />
     <PackageReference Include="FastExpressionCompiler" Version="4.2.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
