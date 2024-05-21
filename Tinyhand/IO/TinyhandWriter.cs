@@ -16,6 +16,9 @@ namespace Tinyhand.IO;
 
 public ref struct TinyhandWriter
 {
+    public static TinyhandWriter CreateFromByteArrayPool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)
+        => new(ByteArrayPool.Default.Rent(initialBufferSize));
+
     public TinyhandWriter(IBufferWriter<byte> writer)
     {
         this.writer = new ByteBufferWriter(writer);
