@@ -20,7 +20,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
     #endregion
 
-    public ByteArrayPool.MemoryOwner ToMemoryOwner()
+    public ByteRental.Memory ToMemoryOwner()
     {
         if (this.firstVault == null)
         {
@@ -28,15 +28,15 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         }
         else if (this.firstVault == this.lastVault)
         {// Single vault
-            var memoryOwner = ByteArrayPool.Default.Rent(this.firstVault.Size).ToMemoryOwner(0, this.firstVault.Size);
-            this.firstVault.Array.AsSpan(0, this.firstVault.Size).CopyTo(memoryOwner.Memory.Span);
-            return memoryOwner;
+            var memory = ByteRental.Default.Rent(this.firstVault.Size).AsMemory(0, this.firstVault.Size);
+            this.firstVault.Array.AsSpan(0, this.firstVault.Size).CopyTo(memory.Span);
+            return memory;
         }
         else
         {// Multiple vaults
             var size = (int)this.lastVault!.RunningIndex + this.lastVault!.Size;
-            var memoryOwner = ByteArrayPool.Default.Rent(size).ToMemoryOwner(0, size);
-            var span = memoryOwner.Memory.Span;
+            var memory = ByteRental.Default.Rent(size).AsMemory(0, size);
+            var span = memory.Span;
             var vault = this.firstVault;
             while (vault is not null)
             {
@@ -53,7 +53,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
                 segment = segment.Next;
             }*/
 
-            return memoryOwner;
+            return memory;
         }
     }
 

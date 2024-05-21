@@ -8,7 +8,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        using (var writer = new TinyhandWriter(ByteArrayPool.Default.Rent(10)))
+        using (var writer = new TinyhandWriter(ByteRental.Default.Rent(10)))
         {
             writer.WriteInt8(123);
             var array = writer.FlushAndGetArray();

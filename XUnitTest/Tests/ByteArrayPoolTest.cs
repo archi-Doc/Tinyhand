@@ -16,7 +16,7 @@ public class ByteArrayPoolTest
         var initialBuffer = new byte[4];
         byte[] destination;
         byte[] destination2;
-        ByteArrayPool.MemoryOwner memoryOwner;
+        ByteRental.Memory rentMemory;
 
         using (var w = new TinyhandWriter(initialBuffer))
         {
@@ -41,12 +41,12 @@ public class ByteArrayPoolTest
         using (var w = TinyhandWriter.CreateFromByteArrayPool())
         {
             w.WriteInt16(1234);
-            memoryOwner = w.FlushAndGetMemoryOwner();
+            rentMemory = w.FlushAndGetMemoryOwner();
         }
 
-        r = new TinyhandReader(memoryOwner.Memory.Span);
+        r = new TinyhandReader(rentMemory.Span);
         r.ReadInt16().Is((short)1234);
         r.End.IsTrue();
-        memoryOwner = memoryOwner.Return();
+        rentMemory = rentMemory.Return();
     }
 }
