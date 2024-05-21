@@ -34,16 +34,24 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         }
         else
         {// Multiple vaults
-            var size = this.lastVault!.Size;
+            var size = (int)this.lastVault!.RunningIndex + this.lastVault!.Size;
             var memoryOwner = ByteArrayPool.Default.Rent(size).ToMemoryOwner(0, size);
             var span = memoryOwner.Memory.Span;
-            var segment = (ReadOnlySequenceSegment<byte>)this.firstVault;
+            var vault = this.firstVault;
+            while (vault is not null)
+            {
+                vault.Memory.Slice(0, vault.Size).Span.CopyTo(span);
+                span = span.Slice(vault.Size);
+                vault = vault.Next as ByteVault;
+            }
+
+            /*var segment = (ReadOnlySequenceSegment<byte>)this.firstVault;
             while (segment is not null)
             {
-                segment.Memory.Span.CopyTo(span);
+                segment.Memory.Slice(0, segment.).Span.CopyTo(span);
                 span = span.Slice(segment.Memory.Length);
                 segment = segment.Next;
-            }
+            }*/
 
             return memoryOwner;
         }
