@@ -64,10 +64,6 @@ public class GetXxHashBenchmark
         => TinyhandSerializer.GetXxHash3c(this.objectH2H);
 
     [Benchmark]
-    public ulong GetXxHash3d()
-        => TinyhandSerializer.GetXxHash3d(this.objectH2H);
-
-    [Benchmark]
     public ulong GetXxHash3_Array()
         => TinyhandSerializer.GetXxHash3(this.array);
 

@@ -160,30 +160,6 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static ulong GetXxHash3d<T>(in T? value)
-        where T : ITinyhandSerialize<T>
-    {
-        if (initialBuffer == null)
-        {
-            initialBuffer = new byte[InitialBufferSize];
-        }
-
-        var writer = new TinyhandWriter(initialBuffer);
-        try
-        {
-            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
-            var sequence = writer.FlushAndGetReadOnlySequence();
-        }
-        catch
-        {
-            return 0;
-        }
-        finally
-        {
-            writer.Dispose();
-        }
-    }
-
     public static void SerializeObject<T>(ref TinyhandWriter writer, in T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerialize<T>
     {
