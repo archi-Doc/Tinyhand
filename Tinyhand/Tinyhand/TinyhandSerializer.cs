@@ -123,7 +123,7 @@ public static partial class TinyhandSerializer
         try
         {
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
-            var memoryOwner = writer.FlushAndGetMemoryOwner();
+            var memoryOwner = writer.FlushAndGetRentMemory();
             var hash = Arc.Crypto.XxHash3.Hash64(memoryOwner.Span);
             memoryOwner.Return();
             return hash;
@@ -141,11 +141,11 @@ public static partial class TinyhandSerializer
     public static ulong GetXxHash3c<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
-        var writer = TinyhandWriter.CreateFromByteArrayPool();
+        var writer = TinyhandWriter.CreateFromBytePool();
         try
         {
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
-            var memoryOwner = writer.FlushAndGetMemoryOwner();
+            var memoryOwner = writer.FlushAndGetRentMemory();
             var hash = Arc.Crypto.XxHash3.Hash64(memoryOwner.Span);
             memoryOwner.Return();
             return hash;

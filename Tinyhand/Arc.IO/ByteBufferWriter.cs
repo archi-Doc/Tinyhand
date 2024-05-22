@@ -36,14 +36,14 @@ public ref struct ByteBufferWriter
         this.initialBuffer = initialBuffer;
     }
 
-    public ByteBufferWriter(ByteRental.Array array)
+    public ByteBufferWriter(BytePool.RentArray array)
     { // Use ByteArrayPool.Owner and ByteSequence (this.bufferWriter null -> not null, this.initialBuffer not null -> null).
         this.byteSequence = null;
         this.bufferWriter = null!;
-        this.span = array.ByteArray.AsSpan();
+        this.span = array.AsSpan();
         this.spanSize = 0;
         this.spanWritten = 0;
-        this.initialBuffer = array.ByteArray;
+        this.initialBuffer = array.Array;
         this.array = array;
     }
 
@@ -57,7 +57,7 @@ public ref struct ByteBufferWriter
     // private Span<byte> originalSpan; // The original (not sliced) version of the span.
     private long spanWritten; // The size of the written span.
     private byte[]? initialBuffer; // The initial buffer.
-    private ByteRental.Array? array;
+    private BytePool.RentArray? array;
 
     #endregion
 
@@ -168,18 +168,18 @@ public ref struct ByteBufferWriter
     /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.
     /// </summary>
     /// <returns>A byte array consisting of the written data.</returns>
-    public ByteRental.Memory FlushAndGetMemoryOwner()
+    public BytePool.RentMemory FlushAndGetRentMemory()
     {
         if (this.bufferWriter == null)
         { // Initial Buffer
-            if (this.array is { } owner)
+            if (this.array is { } rentArray)
             {
                 this.array = default; // Prevent double return.
-                return owner.AsMemory(0, this.spanSize);
+                return rentArray.AsMemory(0, this.spanSize);
             }
             else
             {
-                return new(this.initialBuffer!, 0, this.spanSize);
+                return new(this.initialBuffer.AsSpan(0, this.spanSize).ToArray(), 0, this.spanSize);
             }
         }
 
@@ -190,7 +190,7 @@ public ref struct ByteBufferWriter
             throw new InvalidOperationException("FlushAndGetMemoryOwner() is not supported for external IBufferWriter<byte>.");
         }
 
-        return this.byteSequence.ToMemoryOwner();
+        return this.byteSequence.ToRentMemory();
     }
 
     /// <summary>

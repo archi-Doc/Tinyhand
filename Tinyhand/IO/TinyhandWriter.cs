@@ -16,8 +16,8 @@ namespace Tinyhand.IO;
 
 public ref struct TinyhandWriter
 {
-    public static TinyhandWriter CreateFromByteArrayPool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)
-        => new(ByteRental.Default.Rent(initialBufferSize));
+    public static TinyhandWriter CreateFromBytePool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)
+        => new(BytePool.Default.Rent(initialBufferSize));
 
     public TinyhandWriter(IBufferWriter<byte> writer)
     {
@@ -29,7 +29,7 @@ public ref struct TinyhandWriter
         this.writer = new ByteBufferWriter(initialBuffer);
     }
 
-    public TinyhandWriter(ByteRental.Array array)
+    public TinyhandWriter(BytePool.RentArray array)
     {
         this.writer = new ByteBufferWriter(array);
     }
@@ -105,8 +105,8 @@ public ref struct TinyhandWriter
     public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isInitialBuffer)
         => this.writer.FlushAndGetReadOnlySpan(out span, out isInitialBuffer);
 
-    public ByteRental.Memory FlushAndGetMemoryOwner()
-        => this.writer.FlushAndGetMemoryOwner();
+    public BytePool.RentMemory FlushAndGetRentMemory()
+        => this.writer.FlushAndGetRentMemory();
 
     public void Flush() => this.writer.Flush();
 

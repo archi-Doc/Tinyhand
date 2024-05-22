@@ -20,7 +20,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
     #endregion
 
-    public ByteRental.Memory ToMemoryOwner()
+    public BytePool.RentMemory ToRentMemory()
     {
         if (this.firstVault == null)
         {
@@ -28,14 +28,14 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         }
         else if (this.firstVault == this.lastVault)
         {// Single vault
-            var memory = ByteRental.Default.Rent(this.firstVault.Size).AsMemory(0, this.firstVault.Size);
+            var memory = BytePool.Default.Rent(this.firstVault.Size).AsMemory(0, this.firstVault.Size);
             this.firstVault.Array.AsSpan(0, this.firstVault.Size).CopyTo(memory.Span);
             return memory;
         }
         else
         {// Multiple vaults
             var size = (int)this.lastVault!.RunningIndex + this.lastVault!.Size;
-            var memory = ByteRental.Default.Rent(size).AsMemory(0, size);
+            var memory = BytePool.Default.Rent(size).AsMemory(0, size);
             var span = memory.Span;
             var vault = this.firstVault;
             while (vault is not null)
@@ -44,14 +44,6 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
                 span = span.Slice(vault.Size);
                 vault = vault.Next as ByteVault;
             }
-
-            /*var segment = (ReadOnlySequenceSegment<byte>)this.firstVault;
-            while (segment is not null)
-            {
-                segment.Memory.Slice(0, segment.).Span.CopyTo(span);
-                span = span.Slice(segment.Memory.Length);
-                segment = segment.Next;
-            }*/
 
             return memory;
         }
