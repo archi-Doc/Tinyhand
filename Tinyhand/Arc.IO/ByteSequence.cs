@@ -2,7 +2,7 @@
 
 using System;
 using System.Buffers;
-using Arc.Unit;
+using Arc.Collections;
 
 #pragma warning disable SA1124
 

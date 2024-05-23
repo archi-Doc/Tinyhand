@@ -145,9 +145,9 @@ public static partial class TinyhandSerializer
         try
         {
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
-            var memoryOwner = writer.FlushAndGetRentMemory();
-            var hash = Arc.Crypto.XxHash3.Hash64(memoryOwner.Span);
-            memoryOwner.Return();
+            var rentMemory = writer.FlushAndGetRentMemory();
+            var hash = Arc.Crypto.XxHash3.Hash64(rentMemory.Span);
+            rentMemory.Return();
             return hash;
         }
         catch
