@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Arc.IO;
+using Arc.Unit;
 using MessagePack.LZ4;
 using Tinyhand.IO;
 
@@ -99,6 +100,55 @@ public static partial class TinyhandSerializer
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
             writer.FlushAndGetReadOnlySpan(out var span, out _);
             return Arc.Crypto.XxHash3.Hash64(span);
+        }
+        catch
+        {
+            return 0;
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    public static ulong GetXxHash3b<T>(in T? value)
+        where T : ITinyhandSerialize<T>
+    {
+        if (initialBuffer == null)
+        {
+            initialBuffer = new byte[InitialBufferSize];
+        }
+
+        var writer = new TinyhandWriter(initialBuffer);
+        try
+        {
+            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
+            var memoryOwner = writer.FlushAndGetRentMemory();
+            var hash = Arc.Crypto.XxHash3.Hash64(memoryOwner.Span);
+            memoryOwner.Return();
+            return hash;
+        }
+        catch
+        {
+            return 0;
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    public static ulong GetXxHash3c<T>(in T? value)
+        where T : ITinyhandSerialize<T>
+    {
+        var writer = TinyhandWriter.CreateFromBytePool();
+        try
+        {
+            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
+            var rentMemory = writer.FlushAndGetRentMemory();
+            var hash = Arc.Crypto.XxHash3.Hash64(rentMemory.Span);
+            rentMemory.Return();
+            return hash;
         }
         catch
         {

@@ -3,7 +3,7 @@
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using Arc.Unit;
+using Arc.Collections;
 
 #pragma warning disable SA1124
 #pragma warning disable SA1202 // Elements should be ordered by access
@@ -36,15 +36,15 @@ public ref struct ByteBufferWriter
         this.initialBuffer = initialBuffer;
     }
 
-    public ByteBufferWriter(ByteArrayPool.Owner owner)
+    public ByteBufferWriter(BytePool.RentArray array)
     { // Use ByteArrayPool.Owner and ByteSequence (this.bufferWriter null -> not null, this.initialBuffer not null -> null).
         this.byteSequence = null;
         this.bufferWriter = null!;
-        this.span = owner.ByteArray.AsSpan();
+        this.span = array.AsSpan();
         this.spanSize = 0;
         this.spanWritten = 0;
-        this.initialBuffer = owner.ByteArray;
-        this.owner = owner;
+        this.initialBuffer = array.Array;
+        this.array = array;
     }
 
     #region FieldAndProperty
@@ -57,7 +57,7 @@ public ref struct ByteBufferWriter
     // private Span<byte> originalSpan; // The original (not sliced) version of the span.
     private long spanWritten; // The size of the written span.
     private byte[]? initialBuffer; // The initial buffer.
-    private ByteArrayPool.Owner? owner;
+    private BytePool.RentArray? array;
 
     #endregion
 
@@ -69,10 +69,10 @@ public ref struct ByteBufferWriter
             this.byteSequence = default;
         }
 
-        if (this.owner is not null)
+        if (this.array is not null)
         {
-            this.owner.Return();
-            this.owner = default;
+            this.array.Return();
+            this.array = default;
         }
     }
 
@@ -150,10 +150,10 @@ public ref struct ByteBufferWriter
                 var span = this.bufferWriter.GetSpan(this.spanSize);
                 this.initialBuffer.AsSpan(0, this.spanSize).CopyTo(span);
                 this.initialBuffer = default;
-                if (this.owner is not null)
+                if (this.array is not null)
                 {
-                    this.owner.Return();
-                    this.owner = default;
+                    this.array.Return();
+                    this.array = default;
                 }
             }
 
@@ -168,18 +168,18 @@ public ref struct ByteBufferWriter
     /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.
     /// </summary>
     /// <returns>A byte array consisting of the written data.</returns>
-    public ByteArrayPool.MemoryOwner FlushAndGetMemoryOwner()
+    public BytePool.RentMemory FlushAndGetRentMemory()
     {
         if (this.bufferWriter == null)
         { // Initial Buffer
-            if (this.owner is { } owner)
+            if (this.array is { } rentArray)
             {
-                this.owner = default; // Prevent double return.
-                return owner.ToMemoryOwner(0, this.spanSize);
+                this.array = default; // Prevent double return.
+                return rentArray.AsMemory(0, this.spanSize);
             }
             else
             {
-                return new(this.initialBuffer!, 0, this.spanSize);
+                return new(this.initialBuffer.AsSpan(0, this.spanSize).ToArray(), 0, this.spanSize);
             }
         }
 
@@ -190,7 +190,7 @@ public ref struct ByteBufferWriter
             throw new InvalidOperationException("FlushAndGetMemoryOwner() is not supported for external IBufferWriter<byte>.");
         }
 
-        return this.byteSequence.ToMemoryOwner();
+        return this.byteSequence.ToRentMemory();
     }
 
     /// <summary>

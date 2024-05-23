@@ -6,9 +6,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Unicode;
 using System.Threading;
+using Arc.Collections;
 using Arc.Crypto;
 using Arc.IO;
-using Arc.Unit;
 
 #pragma warning disable SA1124
 
@@ -16,6 +16,9 @@ namespace Tinyhand.IO;
 
 public ref struct TinyhandWriter
 {
+    public static TinyhandWriter CreateFromBytePool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)
+        => new(BytePool.Default.Rent(initialBufferSize));
+
     public TinyhandWriter(IBufferWriter<byte> writer)
     {
         this.writer = new ByteBufferWriter(writer);
@@ -26,9 +29,9 @@ public ref struct TinyhandWriter
         this.writer = new ByteBufferWriter(initialBuffer);
     }
 
-    public TinyhandWriter(ByteArrayPool.Owner owner)
+    public TinyhandWriter(BytePool.RentArray array)
     {
-        this.writer = new ByteBufferWriter(owner);
+        this.writer = new ByteBufferWriter(array);
     }
 
     public void Dispose()
@@ -102,8 +105,8 @@ public ref struct TinyhandWriter
     public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isInitialBuffer)
         => this.writer.FlushAndGetReadOnlySpan(out span, out isInitialBuffer);
 
-    public ByteArrayPool.MemoryOwner FlushAndGetMemoryOwner()
-        => this.writer.FlushAndGetMemoryOwner();
+    public BytePool.RentMemory FlushAndGetRentMemory()
+        => this.writer.FlushAndGetRentMemory();
 
     public void Flush() => this.writer.Flush();
 

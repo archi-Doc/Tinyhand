@@ -46,10 +46,11 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<H2HTest.H2HBenchmark>();
+        DebugRun<GetXxHashBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
+            typeof(GetXxHashBenchmark),
             typeof(ReadOnlySpanTest),
             typeof(CompareByteSpanTest),
             typeof(Union2.UnionBenchmark2),
