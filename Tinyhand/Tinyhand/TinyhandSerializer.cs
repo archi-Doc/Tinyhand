@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Arc.Collections;
 using Arc.IO;
 using Arc.Unit;
 using MessagePack.LZ4;
@@ -87,58 +88,6 @@ public static partial class TinyhandSerializer
     /// <param name="value">The value to calculate the hash for.</param>
     /// <returns>The XXHash3 hash value.</returns>
     public static ulong GetXxHash3<T>(in T? value)
-        where T : ITinyhandSerialize<T>
-    {
-        if (initialBuffer == null)
-        {
-            initialBuffer = new byte[InitialBufferSize];
-        }
-
-        var writer = new TinyhandWriter(initialBuffer);
-        try
-        {
-            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
-            writer.FlushAndGetReadOnlySpan(out var span, out _);
-            return Arc.Crypto.XxHash3.Hash64(span);
-        }
-        catch
-        {
-            return 0;
-        }
-        finally
-        {
-            writer.Dispose();
-        }
-    }
-
-    public static ulong GetXxHash3b<T>(in T? value)
-        where T : ITinyhandSerialize<T>
-    {
-        if (initialBuffer == null)
-        {
-            initialBuffer = new byte[InitialBufferSize];
-        }
-
-        var writer = new TinyhandWriter(initialBuffer);
-        try
-        {
-            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
-            var memoryOwner = writer.FlushAndGetRentMemory();
-            var hash = Arc.Crypto.XxHash3.Hash64(memoryOwner.Span);
-            memoryOwner.Return();
-            return hash;
-        }
-        catch
-        {
-            return 0;
-        }
-        finally
-        {
-            writer.Dispose();
-        }
-    }
-
-    public static ulong GetXxHash3c<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
         var writer = TinyhandWriter.CreateFromBytePool();
@@ -384,6 +333,25 @@ public static partial class TinyhandSerializer
             }
 
             return writer.FlushAndGetArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    public static BytePool.RentMemory SerializeObjectToRentMemory<T>(in T? value)
+        where T : ITinyhandSerialize<T>
+    {
+        var writer = TinyhandWriter.CreateFromBytePool();
+        try
+        {
+            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
+            return writer.FlushAndGetRentMemory();
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
         }
         finally
         {
