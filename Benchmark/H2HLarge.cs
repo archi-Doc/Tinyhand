@@ -76,7 +76,7 @@ public class H2HLarge
         return Tinyhand.TinyhandSerializer.Serialize(this.h2h);
     }
 
-    [Benchmark]
+    /*[Benchmark]
     public LargeDataClass DeserializeMessagePack()
     {
         return MessagePack.MessagePackSerializer.Deserialize<LargeDataClass>(this.data);
@@ -110,5 +110,5 @@ public class H2HLarge
     public LargeDataClass? DeserializeTinyhandLz4()
     {
         return Tinyhand.TinyhandSerializer.Deserialize<LargeDataClass>(this.dataTh, TinyhandSerializerOptions.Lz4);
-    }
+    }*/
 }

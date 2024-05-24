@@ -46,7 +46,7 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<GetXxHashBenchmark>();
+        DebugRun<H2HTest.H2HLarge>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
