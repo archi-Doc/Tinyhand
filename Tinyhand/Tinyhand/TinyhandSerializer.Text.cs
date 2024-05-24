@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Threading;
+using Arc.Collections;
 using Arc.IO;
 using Tinyhand.IO;
 using Tinyhand.Tree;
@@ -48,6 +49,41 @@ public static partial class TinyhandSerializer
         }
         finally
         {
+            writer.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Serializes a given value with the specified buffer writer.
+    /// </summary>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <returns>A byte array with the serialized value (UTF-8).</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    public static BytePool.RentMemory SerializeObjectToUtf8RentMemory<T>(T value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerialize<T>
+    {
+        options = options ?? DefaultOptions;
+        var rentMemory = SerializeObjectToRentMemory(value, options);
+        bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
+        if (options.Compose == TinyhandComposeOption.Strict)
+        {
+            omitTopLevelBracket = false;
+        }
+        else
+        {
+            omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
+        }
+
+        var writer = TinyhandRawWriter.CreateFromBytePool();
+        try
+        {
+            TinyhandTreeConverter.FromBinaryToUtf8(rentMemory.Span, ref writer, options, omitTopLevelBracket);
+            return writer.FlushAndGetRentMemory();
+        }
+        finally
+        {
+            rentMemory.Return();
             writer.Dispose();
         }
     }
