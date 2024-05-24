@@ -305,6 +305,43 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
+    /// Serializes a given value to a <see cref="BytePool.RentMemory"/>.
+    /// </summary>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>A byte array with the serialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    public static BytePool.RentMemory SerializeToRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
+    {
+        options = options ?? DefaultOptions;
+        var writer = TinyhandWriter.CreateFromBytePool();
+        try
+        {
+            if (!options.HasLz4CompressFlag)
+            {
+                try
+                {
+                    options.Resolver.GetFormatter<T>().Serialize(ref writer, value, options);
+                }
+                catch (Exception ex)
+                {
+                    throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
+                }
+            }
+            else
+            {
+                Serialize(ref writer, value, options);
+            }
+
+            return writer.FlushAndGetRentMemory();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    /// <summary>
     /// Serializes a given value in signature mode.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
@@ -340,13 +377,14 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static BytePool.RentMemory SerializeObjectToRentMemory<T>(in T? value)
+    public static BytePool.RentMemory SerializeObjectToRentMemory<T>(in T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerialize<T>
     {
+        options = options ?? TinyhandSerializer.DefaultOptions;
         var writer = TinyhandWriter.CreateFromBytePool();
         try
         {
-            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
+            T.Serialize(ref writer, ref Unsafe.AsRef(in value), options);
             return writer.FlushAndGetRentMemory();
         }
         catch (Exception ex)
