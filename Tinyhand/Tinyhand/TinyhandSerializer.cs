@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Arc.Collections;
 using Arc.IO;
 using Arc.Unit;
 using MessagePack.LZ4;
@@ -332,6 +333,25 @@ public static partial class TinyhandSerializer
             }
 
             return writer.FlushAndGetArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    public static BytePool.RentMemory SerializeObjectToRentMemory<T>(in T? value)
+        where T : ITinyhandSerialize<T>
+    {
+        var writer = TinyhandWriter.CreateFromBytePool();
+        try
+        {
+            T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
+            return writer.FlushAndGetRentMemory();
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to serialize {typeof(T).FullName} value.", ex);
         }
         finally
         {
