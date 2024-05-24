@@ -7,10 +7,11 @@ using Arc.Collections;
 #pragma warning disable SA1124
 
 namespace Arc.IO;
-/*
+
 public class ByteSequence : IBufferWriter<byte>, IDisposable
 {
     public const int DefaultVaultSize = 32 * 1024;
+    private static ArrayPool<byte> arrayPool = ArrayPool<byte>.Create(80 * 1024, 100);
 
     #region FieldAndProperty
 
@@ -28,7 +29,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         else if (this.firstVault == this.lastVault)
         {// Single vault
             var memory = BytePool.Default.Rent(this.firstVault.Size).AsMemory(0, this.firstVault.Size);
-            this.firstVault.RentArray.Array.AsSpan(0, this.firstVault.Size).CopyTo(memory.Span);
+            this.firstVault.Array.AsSpan(0, this.firstVault.Size).CopyTo(memory.Span);
             return memory;
         }
         else
@@ -63,7 +64,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         }
         else if (this.firstVault == this.lastVault)
         {// Single vault
-            return new ReadOnlyMemory<byte>(this.firstVault.RentArray.Array, 0, this.firstVault.Size);
+            return new ReadOnlyMemory<byte>(this.firstVault.Array, 0, this.firstVault.Size);
         }
         else
         {// Multiple vaults
@@ -79,7 +80,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         }
         else if (this.firstVault == this.lastVault)
         {// Single vault
-            return new ReadOnlySpan<byte>(this.firstVault.RentArray.Array, 0, this.firstVault.Size);
+            return new ReadOnlySpan<byte>(this.firstVault.Array, 0, this.firstVault.Size);
         }
         else
         {// Multiple vaults
@@ -104,7 +105,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         {
             var next = (ByteVault?)current.Next;
 
-            current.RentArray.Return();
+            arrayPool.Return(current.Array);
             current.Clear();
 
             current = next;
@@ -138,7 +139,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
         if (bufferSizeToAllocate > 0)
         {
-            var vault = new ByteVault(BytePool.Default.Rent(bufferSizeToAllocate));
+            var vault = new ByteVault(arrayPool.Rent(bufferSizeToAllocate));
             this.AddVault(vault);
         }
 
@@ -172,7 +173,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
                     }
                 }
 
-                this.lastVault.RentArray.Return();
+                arrayPool.Return(this.lastVault.Array);
                 this.lastVault.Clear();
 
                 current.SetNext(vault);
@@ -184,26 +185,26 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
     private class ByteVault : ReadOnlySequenceSegment<byte>
     {
-        public ByteVault(BytePool.RentArray rentArray)
+        public ByteVault(byte[] array)
         {
-            this.RentArray = rentArray;
-            this.Memory = rentArray.Array;
+            this.Array = array;
+            this.Memory = array;
         }
 
-        internal BytePool.RentArray RentArray { get; set; }
+        internal byte[] Array { get; set; }
 
         internal int Size { get; set; }
 
-        internal int Remaining => this.RentArray.Array.Length - this.Size;
+        internal int Remaining => this.Array.Length - this.Size;
 
-        internal Memory<byte> RemainingMemory => this.RentArray.Array.AsMemory(this.Size);
+        internal Memory<byte> RemainingMemory => this.Array.AsMemory().Slice(this.Size);
 
-        internal Span<byte> RemainingSpan => this.RentArray.Array.AsSpan(this.Size);
+        internal Span<byte> RemainingSpan => this.Array.AsSpan().Slice(this.Size);
 
         internal void Advance(int count)
         {
             this.Size += count;
-            if (count < 0 || this.Size > this.RentArray.Array.Length)
+            if (count < 0 || this.Size > this.Array.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
@@ -223,8 +224,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
             this.RunningIndex = 0;
             this.Size = 0;
             // arrayPool.Return(this.Array); // Called by ByteSequence.
-            this.RentArray = null!;
+            this.Array = null!;
         }
     }
 }
-*/

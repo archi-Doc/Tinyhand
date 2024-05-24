@@ -44,15 +44,15 @@ public static class TinyhandTreeConverter
     /// <summary>
     /// Converts a sequence of byte to UTF-8 text.
     /// </summary>
-    /// <param name="byteArray">A byte array to convert.</param>
+    /// <param name="span">A byte span to convert.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
-    public static void FromBinaryToUtf8(byte[] byteArray, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options, bool omitTopLevelBracket = false)
+    public static void FromBinaryToUtf8(ReadOnlySpan<byte> span, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options, bool omitTopLevelBracket = false)
     {
         options ??= TinyhandSerializer.DefaultOptions;
 
-        var reader = new TinyhandReader(byteArray);
+        var reader = new TinyhandReader(span);
         var byteSequence = new ByteSequence();
         try
         {

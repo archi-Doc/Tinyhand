@@ -3,12 +3,17 @@
 using System;
 using System.Buffers;
 using System.Buffers.Text;
+using Arc.Collections;
 using Tinyhand;
+using Tinyhand.IO;
 
 namespace Arc.IO;
 
 public ref struct TinyhandRawWriter
 {
+    public static TinyhandRawWriter CreateFromBytePool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)
+        => new(BytePool.Default.Rent(initialBufferSize));
+
     private ByteBufferWriter writer;
 
     public TinyhandRawWriter(IBufferWriter<byte> writer)
@@ -21,22 +26,36 @@ public ref struct TinyhandRawWriter
         this.writer = new ByteBufferWriter(initialBuffer);
     }
 
+    public TinyhandRawWriter(BytePool.RentArray array)
+    {
+        this.writer = new ByteBufferWriter(array);
+    }
+
     public void Dispose()
     {
         this.writer.Dispose();
     }
 
-    public byte[] FlushAndGetArray() => this.writer.FlushAndGetArray();
+    public byte[] FlushAndGetArray()
+        => this.writer.FlushAndGetArray();
 
-    public void Flush() => this.writer.Flush();
+    public BytePool.RentMemory FlushAndGetRentMemory()
+        => this.writer.FlushAndGetRentMemory();
 
-    public Span<byte> GetSpan(int length) => this.writer.GetSpan(length);
+    public void Flush()
+        => this.writer.Flush();
 
-    public void Advance(int count) => this.writer.Advance(count);
+    public Span<byte> GetSpan(int length)
+        => this.writer.GetSpan(length);
 
-    public void Ensure(int sizeHint) => this.writer.Ensure(sizeHint);
+    public void Advance(int count)
+        => this.writer.Advance(count);
 
-    public void WriteSpan(ReadOnlySpan<byte> span) => this.writer.Write(span);
+    public void Ensure(int sizeHint)
+        => this.writer.Ensure(sizeHint);
+
+    public void WriteSpan(ReadOnlySpan<byte> span)
+        => this.writer.Write(span);
 
     public void WriteEscapedUtf8(ReadOnlySpan<byte> utf8)
     {
