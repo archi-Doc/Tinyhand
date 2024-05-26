@@ -4,6 +4,7 @@
  *  PM> Install-Package BenchmarkDotNet
  */
 
+using Arc.Collections;
 using BenchmarkDotNet.Attributes;
 using Tinyhand;
 
@@ -73,7 +74,15 @@ public class H2HLarge
     [Benchmark]
     public byte[] SerializeTinyhand()
     {
-        return Tinyhand.TinyhandSerializer.Serialize(this.h2h);
+        return TinyhandSerializer.Serialize(this.h2h);
+    }
+
+    [Benchmark]
+    public BytePool.RentMemory SerializeTinyhand2()
+    {
+        var rentMemory = TinyhandSerializer.SerializeToRentMemory(this.h2h);
+        rentMemory.Return();
+        return rentMemory;
     }
 
     /*[Benchmark]

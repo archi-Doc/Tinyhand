@@ -8,7 +8,7 @@ using Arc.Collections;
 
 namespace Arc.IO;
 
-public class ByteSequence : IBufferWriter<byte>, IDisposable
+/*public class ByteSequence : IBufferWriter<byte>, IDisposable
 {
     public const int DefaultVaultSize = 32 * 1024;
     private static ArrayPool<byte> arrayPool = ArrayPool<byte>.Create(80 * 1024, 100);
@@ -227,4 +227,4 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
             this.Array = null!;
         }
     }
-}
+}*/
