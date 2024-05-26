@@ -16,6 +16,8 @@ internal class Program
             memoryOwner.Return();
         }
 
+        var ts = System.Diagnostics.Stopwatch.GetTimestamp();
+
         Console.WriteLine("Hello, World!");
     }
 }

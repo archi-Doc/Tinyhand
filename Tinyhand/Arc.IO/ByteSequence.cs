@@ -7,7 +7,7 @@ using Arc.Collections;
 #pragma warning disable SA1124
 
 namespace Arc.IO;
-/*
+
 public class ByteSequence : IBufferWriter<byte>, IDisposable
 {
     public const int DefaultVaultSize = 32 * 1024;
@@ -46,6 +46,11 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
             return memory;
         }
+
+        /*var size = (int)this.lastVault!.RunningIndex + this.lastVault!.Size;
+        var memory = BytePool.Default.Rent(size).AsMemory(0, size);
+        new ReadOnlySequence<byte>(this.firstVault, 0, this.lastVault!, this.lastVault!.Size).CopyTo(memory.Span);
+        return memory;*/
     }
 
     public ReadOnlySequence<byte> ToReadOnlySequence()
@@ -227,4 +232,3 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         }
     }
 }
-*/
