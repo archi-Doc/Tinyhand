@@ -25,8 +25,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         {
             return default;
         }
-
-        /*else if (this.firstVault == this.lastVault)
+        else if (this.firstVault == this.lastVault)
         {// Single vault
             var memory = BytePool.Default.Rent(this.firstVault.Size).AsMemory(0, this.firstVault.Size);
             this.firstVault.RentArray.Array.AsSpan(0, this.firstVault.Size).CopyTo(memory.Span);
@@ -46,12 +45,12 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
             }
 
             return memory;
-        }*/
+        }
 
-        var size = (int)this.lastVault!.RunningIndex + this.lastVault!.Size;
+        /*var size = (int)this.lastVault!.RunningIndex + this.lastVault!.Size;
         var memory = BytePool.Default.Rent(size).AsMemory(0, size);
         new ReadOnlySequence<byte>(this.firstVault, 0, this.lastVault!, this.lastVault!.Size).CopyTo(memory.Span);
-        return memory;
+        return memory;*/
     }
 
     public ReadOnlySequence<byte> ToReadOnlySequence()
