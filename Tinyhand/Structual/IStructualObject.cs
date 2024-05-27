@@ -55,7 +55,7 @@ public interface IStructualObject
             }
 
             writer.Write(record);
-            root.AddJournal(writer);
+            root.AddJournal(ref writer);
         }
     }
 

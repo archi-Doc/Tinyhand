@@ -174,7 +174,7 @@ internal static class JournalShared
                 ssb.AppendLine(writeValue);
             }
 
-            ssb.AppendLine("root.AddJournal(writer);");
+            ssb.AppendLine("root.AddJournal(ref writer);");
         }
     }
 
