@@ -8,7 +8,7 @@ public interface IStructualRoot
 {
     bool TryGetJournalWriter(JournalType recordType, out TinyhandWriter writer);
 
-    ulong AddJournal(in TinyhandWriter writer);
+    ulong AddJournal(ref TinyhandWriter writer);
 
     bool TryAddToSaveQueue();
 }
