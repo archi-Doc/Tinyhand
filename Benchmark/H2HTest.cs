@@ -13,6 +13,7 @@ using ProtoBuf;
 using MemoryPack;
 using Tinyhand;
 using System;
+using Arc.Collections;
 
 namespace Benchmark.H2HTest;
 
@@ -133,7 +134,7 @@ public class H2HBenchmark
         TinyhandSerializer.ReconstructObject(ref test);
         var test2 = test;
 
-        var d = TinyhandSerializer.SerializeObject(this.h2h);;
+        var d = TinyhandSerializer.SerializeObject(this.h2h); ;
     }
 
     [GlobalCleanup]
@@ -166,7 +167,15 @@ public class H2HBenchmark
     [Benchmark]
     public byte[] SerializeTinyhand()
     {
-        return Tinyhand.TinyhandSerializer.SerializeObject(this.h2h);
+        return TinyhandSerializer.SerializeObject(this.h2h);
+    }
+
+    [Benchmark]
+    public BytePool.RentMemory SerializeTinyhandRentMemory()
+    {
+        var rentMemory = TinyhandSerializer.SerializeObjectToRentMemory(this.h2h);
+        rentMemory.Return();
+        return rentMemory;
     }
 
     [Benchmark]
