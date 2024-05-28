@@ -1326,7 +1326,7 @@ public ref partial struct TinyhandReader
 #pragma warning disable SA1202 // Elements should be ordered by access
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe void ReadRaw<T>(out T value)
+    public unsafe T ReadRaw<T>()
         where T : unmanaged
     {
         if (this.remaining < sizeof(T))
@@ -1334,9 +1334,10 @@ public ref partial struct TinyhandReader
             throw ThrowNotEnoughBytesException();
         }
 
-        value = Unsafe.ReadUnaligned<T>(ref this.b);
+        var value = Unsafe.ReadUnaligned<T>(ref this.b);
         this.remaining -= sizeof(T);
         this.b = ref Unsafe.Add(ref this.b, sizeof(T));
+        return value;
     }
 
     public bool TryReadRaw<T>(out T value)
