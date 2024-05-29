@@ -424,7 +424,7 @@ public static class TinyhandTreeConverter
                     {
                         var utf8 = reader.ValueSpan;
                         writer.WriteStringHeader(utf8.Length + 1);
-                        writer.RawWriteUInt8(TinyhandConstants.AtSign);
+                        writer.WriteRawUInt8(TinyhandConstants.AtSign);
                         writer.WriteSpan(utf8);
                         count++;
                     }
@@ -651,7 +651,7 @@ public static class TinyhandTreeConverter
                 case ValueElementType.SpecialIdentifier:
                     var utf8 = ((Value_Identifier)v).IdentifierUtf8;
                     writer.WriteStringHeader(utf8.Length + 1);
-                    writer.RawWriteUInt8(TinyhandConstants.AtSign);
+                    writer.WriteRawUInt8(TinyhandConstants.AtSign);
                     writer.WriteSpan(utf8);
                     break;
             }

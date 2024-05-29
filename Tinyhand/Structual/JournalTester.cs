@@ -38,7 +38,7 @@ public class JournalTester : IStructualRoot
 
         writer = new(initialBuffer);
         writer.Advance(3); // Size(0-16MB): byte[3]
-        writer.RawWriteUInt8(Unsafe.As<JournalType, byte>(ref recordType)); // JournalRecordType: byte
+        writer.WriteRawUInt8(Unsafe.As<JournalType, byte>(ref recordType)); // JournalRecordType: byte
         // writer.RawWriteUInt32(plane); // Plane: byte[4]
 
         return true;
