@@ -118,7 +118,7 @@ public ref struct TinyhandWriter
     public void Ensure(int sizeHint) => this.writer.Ensure(sizeHint);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe void WriteRaw<T>(T value)
+    public unsafe void WriteUnsafe<T>(T value)
         where T : unmanaged
     {
         Span<byte> span = this.writer.GetSpan(sizeof(T));
@@ -144,60 +144,74 @@ public ref struct TinyhandWriter
         }
     }
 
-    public void RawWriteInt8(sbyte value)
+    public void WriteRawInt8(sbyte value)
     {
         Span<byte> span = this.writer.GetSpan(1);
         span[0] = unchecked((byte)value);
         this.writer.Advance(1);
     }
 
-    public void RawWriteUInt8(byte value)
+    public void WriteRawUInt8(byte value)
     {
         Span<byte> span = this.writer.GetSpan(1);
         span[0] = value;
         this.writer.Advance(1);
     }
 
-    public void RawWriteInt16(short value)
+    public void WriteRawInt16(short value)
     {
         Span<byte> span = this.writer.GetSpan(2);
         WriteBigEndian(value, span);
         this.writer.Advance(2);
     }
 
-    public void RawWriteUInt16(ushort value)
+    public void WriteRawUInt16(ushort value)
     {
         Span<byte> span = this.writer.GetSpan(2);
         WriteBigEndian(value, span);
         this.writer.Advance(2);
     }
 
-    public void RawWriteInt32(int value)
+    public void WriteRawInt32(int value)
     {
         Span<byte> span = this.writer.GetSpan(4);
         WriteBigEndian(value, span);
         this.writer.Advance(4);
     }
 
-    public void RawWriteUInt32(uint value)
+    public void WriteRawUInt32(uint value)
     {
         Span<byte> span = this.writer.GetSpan(4);
         WriteBigEndian(value, span);
         this.writer.Advance(4);
     }
 
-    public void RawWriteInt64(long value)
+    public void WriteRawInt64(long value)
     {
         Span<byte> span = this.writer.GetSpan(8);
         WriteBigEndian(value, span);
         this.writer.Advance(8);
     }
 
-    public void RawWriteUInt64(ulong value)
+    public void WriteRawUInt64(ulong value)
     {
         Span<byte> span = this.writer.GetSpan(8);
         WriteBigEndian(value, span);
         this.writer.Advance(8);
+    }
+
+    public void WriteRawInt128(Int128 value)
+    {
+        Span<byte> span = this.writer.GetSpan(16);
+        WriteBigEndian(value, span);
+        this.writer.Advance(16);
+    }
+
+    public void WriteRawUInt128(UInt128 value)
+    {
+        Span<byte> span = this.writer.GetSpan(16);
+        WriteBigEndian(value, span);
+        this.writer.Advance(16);
     }
 
     /// <summary>
