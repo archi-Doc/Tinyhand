@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 using System.Threading;
@@ -115,6 +116,15 @@ public ref struct TinyhandWriter
     public void Advance(int count) => this.writer.Advance(count);
 
     public void Ensure(int sizeHint) => this.writer.Ensure(sizeHint);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe void WriteRaw<T>(T value)
+        where T : unmanaged
+    {
+        Span<byte> span = this.writer.GetSpan(sizeof(T));
+        Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), value);
+        this.writer.Advance(sizeof(T));
+    }
 
     /// <summary>
     /// Copies bytes directly into the message pack writer.
