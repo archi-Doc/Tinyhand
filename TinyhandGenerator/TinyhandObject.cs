@@ -64,6 +64,7 @@ public enum TinyhandObjectFlag
     HasITinyhandCustomJournal = 1 << 25, // Has ITinyhandCustomJournal interface
     HasValueLinkObject = 1 << 26, // Has ValueLinkgObject attribute
     IsRepeatableRead = 1 << 27, // IsolationLevel.RepeatableRead
+    HasIIntegralityObject = 1 << 28, // Has IIntegralityObject interface
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -518,6 +519,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     if (valueLinkAttribute.Isolation == IsolationLevel.RepeatableRead)
                     {
                         this.ObjectFlag |= TinyhandObjectFlag.IsRepeatableRead;
+                    }
+
+                    if (valueLinkAttribute.Integrality)
+                    {
+                        this.ObjectFlag |= TinyhandObjectFlag.HasIIntegralityObject;
                     }
                 }
                 catch (InvalidCastException)
@@ -2836,6 +2842,12 @@ ModuleInitializerClass_Added:
                             x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
                         {
                             ssb.AppendLine($"this.{TinyhandBody.ValueLinkUpdate}{x.SimpleName}();");
+                        }
+
+                        // Clear integrality hash
+                        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIIntegralityObject))
+                        {
+                            ssb.AppendLine($"(({TinyhandBody.IIntegralityObject})this).ClearIntegralityHash();");
                         }
 
                         lockScope?.Dispose();

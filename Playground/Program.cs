@@ -7,6 +7,17 @@ using ValueLink;
 namespace Playground;
 
 [TinyhandObject]
+public partial class TestClass
+{
+    public TestClass()
+    {
+    }
+
+    [Key(0)]
+    public string Name { get; set; } = string.Empty;
+}
+
+[TinyhandObject]
 [ValueLinkObject(Integrality = true)]
 public partial class GenericIntegralityClass2<T>
     where T : ITinyhandSerialize<T>
@@ -26,6 +37,26 @@ public partial class GenericIntegralityClass2<T>
 
     [Key(2, AddProperty = "Name")]
     private string name = string.Empty;//
+}
+
+[TinyhandObject]
+public partial class GenericTestClass3 : GenericTestClass2<TestClass>
+{
+}
+
+[TinyhandObject]
+public partial class GenericTestClass2<T>
+    where T : ITinyhandSerialize<T>
+{
+    public GenericTestClass2()
+    {
+    }
+
+    [Key(0)]
+    public char Id { get; private set; }
+
+    [Key(1)]
+    public T Value { get; set; } = default!;
 }
 
 
