@@ -8,6 +8,13 @@ using ValueLink;
 namespace Playground;
 
 [TinyhandObject]
+public partial class TestClass2 : TestAssembly.TestClass
+{
+    [Key(2)]
+    public int Age2 { get; private set; }
+}
+
+[TinyhandObject]
 public partial class Credential : CertificateToken<TestClass>
 {
     public Credential()
