@@ -1,10 +1,56 @@
 ﻿using System;
 using Arc.Collections;
+using Arc.Crypto;
 using Tinyhand;
 using Tinyhand.IO;
 using ValueLink;
 
 namespace Playground;
+
+[TinyhandObject]
+public partial class Credential : CertificateToken<TestClass>
+{
+    public Credential()
+    {
+    }
+}
+
+[TinyhandObject]
+public partial class CertificateToken<T>
+    where T : ITinyhandSerialize<T>
+{
+    private const char Identifier = 'C';
+
+    public CertificateToken()
+    {
+        this.Target = default!;
+    }
+
+    public CertificateToken(T target)
+    {
+        this.Target = target;
+    }
+
+    public static int MaxStringLength => 256;
+
+    [Key(0)]
+    public char TokenIdentifier { get; private set; } = Identifier;//
+
+    [Key(2, Level = 1)]
+    public byte[] Signature { get; set; } = Array.Empty<byte>();
+
+    [Key(3)]
+    public long SignedMics { get; set; }
+
+    [Key(4)]
+    public ulong Salt { get; set; }
+
+    [Key(5)]
+    public T Target
+    {
+        get; set;
+    }
+}
 
 [TinyhandObject]
 public partial class TestClass
