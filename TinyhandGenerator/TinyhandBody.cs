@@ -35,6 +35,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
     public static readonly string ValueLinkUpdate = "__gen_cl_update_";
     public static readonly string IStringConvertible = "Arc.Crypto.IStringConvertible";
+    public static readonly string IIntegralityObject = "ValueLink.Integrality.IIntegralityObject";
 
     public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
         id: "TG001", title: "Not a partial class/struct", messageFormat: "'{0}' must be a partial class/struct",

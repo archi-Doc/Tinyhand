@@ -64,6 +64,7 @@ public enum TinyhandObjectFlag
     HasITinyhandCustomJournal = 1 << 25, // Has ITinyhandCustomJournal interface
     HasValueLinkObject = 1 << 26, // Has ValueLinkgObject attribute
     IsRepeatableRead = 1 << 27, // IsolationLevel.RepeatableRead
+    HasIIntegralityObject = 1 << 28, // Has IIntegralityObject interface
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -518,6 +519,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     if (valueLinkAttribute.Isolation == IsolationLevel.RepeatableRead)
                     {
                         this.ObjectFlag |= TinyhandObjectFlag.IsRepeatableRead;
+                    }
+
+                    if (valueLinkAttribute.Integrality)
+                    {
+                        this.ObjectFlag |= TinyhandObjectFlag.HasIIntegralityObject;
                     }
                 }
                 catch (InvalidCastException)
@@ -1161,7 +1167,13 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 }
                 else if (this.Kind == VisceralObjectKind.Property)
                 {// Getter-only property is not supported.
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
+                    if (!this.IsSameAssembly(parent))
+                    {// Skip the check process because the IsReadOnly property in the external assembly's private getter is set to true.
+                    }
+                    else
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
+                    }
                 }
             }
         }
@@ -2836,6 +2848,12 @@ ModuleInitializerClass_Added:
                             x.AllAttributes.Any(y => y.FullName == "ValueLink.LinkAttribute"))
                         {
                             ssb.AppendLine($"this.{TinyhandBody.ValueLinkUpdate}{x.SimpleName}();");
+                        }
+
+                        // Clear integrality hash
+                        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIIntegralityObject))
+                        {
+                            ssb.AppendLine($"(({TinyhandBody.IIntegralityObject})this).ClearIntegralityHash();");
                         }
 
                         lockScope?.Dispose();
