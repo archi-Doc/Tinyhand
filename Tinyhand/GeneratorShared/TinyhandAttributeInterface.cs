@@ -286,14 +286,19 @@ public sealed class TinyhandGeneratorOptionAttribute : Attribute
 public interface ITinyhandSerializationCallback
 {
     /// <summary>
-    /// Called before the object is serialized.
+    /// Called after the object is reconstructed (an instance was created but not deserialized).
     /// </summary>
-    void OnBeforeSerialize();
+    void OnAfterReconstruct();
 
     /// <summary>
     /// Called after the object is deserialized.
     /// </summary>
     void OnAfterDeserialize();
+
+    /// <summary>
+    /// Called before the object is serialized.
+    /// </summary>
+    void OnBeforeSerialize();
 }
 
 /// <summary>

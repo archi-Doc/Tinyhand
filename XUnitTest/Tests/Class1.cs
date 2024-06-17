@@ -117,7 +117,7 @@ public partial class FormatterResolverClass
     public ReadOnlyObservableCollection<int> ReadOnlyObservableCollectionInt { get; set; } = default!;
     public IReadOnlyList<int> IReadOnlyListInt { get; set; } = new[] { 4, 2, 4, };
     public IReadOnlyCollection<string> IReadOnlyCollectionString { get; set; } = new[] { "4", "tes", "to" };
-    public ISet<int> ISetInt { get; set; } = new HashSet<int>(new int[] { -444,  });
+    public ISet<int> ISetInt { get; set; } = new HashSet<int>(new int[] { -444, });
     public System.Collections.Concurrent.ConcurrentBag<int> ConcurrentBag { get; set; } = new();
     public System.Collections.Concurrent.ConcurrentQueue<double> ConcurrentQueueDouble { get; set; } = new(new[] { 3d, 55d, -331d });
     public System.Collections.Concurrent.ConcurrentStack<string> ConcurrentStackString { get; set; } = new(new[] { "tes", "44", "fin" });
@@ -341,6 +341,10 @@ public partial class Callback1 : ITinyhandSerializationCallback
     {
         this.CalledAfter = true;
     }
+
+    public void OnAfterReconstruct()
+    {
+    }
 }
 
 [TinyhandObject]
@@ -372,6 +376,10 @@ public partial class Callback1_2 : ITinyhandSerializationCallback
     void ITinyhandSerializationCallback.OnAfterDeserialize()
     {
         this.CalledAfter = true;
+    }
+
+    void ITinyhandSerializationCallback.OnAfterReconstruct()
+    {
     }
 }
 
@@ -406,6 +414,10 @@ public partial struct Callback2 : ITinyhandSerializationCallback
     {
         CalledAfter = true;
     }
+
+    public void OnAfterReconstruct()
+    {
+    }
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -438,6 +450,10 @@ public partial struct Callback2_2 : ITinyhandSerializationCallback
     void ITinyhandSerializationCallback.OnAfterDeserialize()
     {
         CalledAfter = true;
+    }
+
+    void ITinyhandSerializationCallback.OnAfterReconstruct()
+    {
     }
 }
 

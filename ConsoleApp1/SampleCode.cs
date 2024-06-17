@@ -91,12 +91,17 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
     public void OnBeforeSerialize()
     {
-        Console.WriteLine("OnBefore");
+        Console.WriteLine("OnBeforeSerialize");
     }
 
     public void OnAfterDeserialize()
     {
-        Console.WriteLine("OnAfter");
+        Console.WriteLine("OnAfterDeserialize");
+    }
+
+    public void OnAfterReconstruct()
+    {
+        Console.WriteLine("OnAfterReconstruct");
     }
 }
 

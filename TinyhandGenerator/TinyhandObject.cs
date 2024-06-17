@@ -2656,6 +2656,9 @@ ModuleInitializerClass_Added:
             {
                 this.GenerateReconstructCore(ssb, info, x);
             }
+
+            // ITinyhandSerializationCallback.OnAfterReconstruct
+            this.Generate_OnAfterReconstruct(ssb, info);
         }
     }
 
@@ -2683,6 +2686,9 @@ ModuleInitializerClass_Added:
             {
                 this.GenerateReconstructCore(ssb, info, x);
             }
+
+            // ITinyhandSerializationCallback.OnAfterReconstruct
+            this.Generate_OnAfterReconstruct(ssb, info);
         }
     }
 
