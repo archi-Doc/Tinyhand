@@ -251,29 +251,53 @@ public sealed class MaxLengthAttribute : Attribute
     }
 }
 
+/// <summary>
+/// Specifies the options for the Tinyhand generator.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
 public sealed class TinyhandGeneratorOptionAttribute : Attribute
 {
+    /// <summary>
+    /// Gets or sets a value indicating whether to attach a debugger during code generation.
+    /// </summary>
     public bool AttachDebugger { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether to generate the code to a file.
+    /// </summary>
     public bool GenerateToFile { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets the custom namespace for the generated code.
+    /// </summary>
     public string? CustomNamespace { get; set; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TinyhandGeneratorOptionAttribute"/> class.
+    /// </summary>
     public TinyhandGeneratorOptionAttribute()
     {
     }
 }
 
+/// <summary>
+/// An interface for defining functions that are called during the serialization, deserialization, and reconstruction of objects.
+/// </summary>
 public interface ITinyhandSerializationCallback
 {
-    public void OnBeforeSerialize();
+    /// <summary>
+    /// Called before the object is serialized.
+    /// </summary>
+    void OnBeforeSerialize();
 
-    public void OnAfterDeserialize();
+    /// <summary>
+    /// Called after the object is deserialized.
+    /// </summary>
+    void OnAfterDeserialize();
 }
 
 /// <summary>
-/// Interface for serialize/deserialize methods.
+/// An interface for serialize/deserialize methods.
 /// </summary>
 public interface ITinyhandSerialize
 {
