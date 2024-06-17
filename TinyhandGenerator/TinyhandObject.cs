@@ -1173,7 +1173,13 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 }
                 else if (this.Kind == VisceralObjectKind.Property)
                 {// Getter-only property is not supported.
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
+                    if (!this.IsSameAssembly(parent))
+                    {// Skip the check process because the IsReadOnly property in the external assembly's private getter is set to true.
+                    }
+                    else
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_NotSerializableMember, this.Location, this.SimpleName);
+                    }
                 }
             }
         }

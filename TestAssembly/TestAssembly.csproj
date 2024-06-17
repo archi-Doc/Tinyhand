@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TestAssembly\TestAssembly.csproj" />
     <ProjectReference Include="..\TinyhandGenerator\TinyhandGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
   </ItemGroup>
@@ -17,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ValueLink" Version="0.58.4" />
+    <PackageReference Include="ValueLink" Version="0.58.1" />
   </ItemGroup>
 
 </Project>
