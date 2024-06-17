@@ -55,16 +55,17 @@ public enum TinyhandObjectFlag
     HasITinyhandSerializationCallback = 1 << 16, // Has ITinyhandSerializationCallback interface
     HasExplicitOnBeforeSerialize = 1 << 17, // ITinyhandSerializationCallback.OnBeforeSerialize()
     HasExplicitOnAfterDeserialize = 1 << 18, // ITinyhandSerializationCallback.OnAfterDeserialize()
-    HasITinyhandSerialize = 1 << 19, // Has ITinyhandSerialize interface
-    HasITinyhandReconstruct = 1 << 20, // Has ITinyhandReconstruct interface
-    HasITinyhandClone = 1 << 21, // Has ITinyhandClone interface
-    CanCreateInstance = 1 << 22, // Can create an instance
-    InterfaceImplemented = 1 << 23, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
-    HasIStructualObject = 1 << 24, // Has IStructualObject interface
-    HasITinyhandCustomJournal = 1 << 25, // Has ITinyhandCustomJournal interface
-    HasValueLinkObject = 1 << 26, // Has ValueLinkgObject attribute
-    IsRepeatableRead = 1 << 27, // IsolationLevel.RepeatableRead
-    HasIIntegralityObject = 1 << 28, // Has IIntegralityObject interface
+    HasExplicitOnAfterReconstruct = 1 << 19, // ITinyhandSerializationCallback.OnAfterReconstruct()
+    HasITinyhandSerialize = 1 << 20, // Has ITinyhandSerialize interface
+    HasITinyhandReconstruct = 1 << 21, // Has ITinyhandReconstruct interface
+    HasITinyhandClone = 1 << 22, // Has ITinyhandClone interface
+    CanCreateInstance = 1 << 23, // Can create an instance
+    InterfaceImplemented = 1 << 24, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
+    HasIStructualObject = 1 << 25, // Has IStructualObject interface
+    HasITinyhandCustomJournal = 1 << 26, // Has ITinyhandCustomJournal interface
+    HasValueLinkObject = 1 << 27, // Has ValueLinkgObject attribute
+    IsRepeatableRead = 1 << 28, // IsolationLevel.RepeatableRead
+    HasIIntegralityObject = 1 << 29, // Has IIntegralityObject interface
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -687,6 +688,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterDeserialize"))
             {
                 this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnAfterDeserialize;
+            }
+
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterReconstruct"))
+            {
+                this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnAfterReconstruct;
             }
         }
 
@@ -2102,6 +2108,21 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal void Generate_OnAfterReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
+        {
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnAfterReconstruct))
+            {
+                ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterReconstruct();");
+            }
+            else
+            {
+                ssb.AppendLine($"{ssb.FullObject}.OnAfterReconstruct();");
+            }
+        }
+    }
+
     internal void GenerateSerialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         string methodCode;
@@ -2641,6 +2662,9 @@ ModuleInitializerClass_Added:
             {
                 this.GenerateReconstructCore(ssb, info, x);
             }
+
+            // ITinyhandSerializationCallback.OnAfterReconstruct
+            this.Generate_OnAfterReconstruct(ssb, info);
         }
     }
 
@@ -2668,6 +2692,9 @@ ModuleInitializerClass_Added:
             {
                 this.GenerateReconstructCore(ssb, info, x);
             }
+
+            // ITinyhandSerializationCallback.OnAfterReconstruct
+            this.Generate_OnAfterReconstruct(ssb, info);
         }
     }
 
