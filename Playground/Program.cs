@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Arc.Collections;
 using Arc.Crypto;
 using Tinyhand;
@@ -6,6 +7,44 @@ using Tinyhand.IO;
 using ValueLink;
 
 namespace Playground;
+
+[TinyhandObject]
+public partial class TestClass3<T>
+{
+    [TinyhandObject]
+    [ValueLinkObject]
+    public partial class Item
+    {
+        [Link(Primary = true, Type = ChainType.QueueList, Name = "Queue")]
+        public Item()
+        {
+            this.Value = default!;
+        }
+
+        public Item(T value)
+        {
+            this.Value = value;
+        }
+
+        [Key(0)]
+        public T Value { get; set; }
+
+        public override string ToString()
+            => $"Item {this.Value?.ToString()}";
+    }
+
+    [Key(0)]
+    public Item.GoshujinClass Items = new();
+
+    [Key(1)]
+    public bool B { get; set; }
+
+    [Key(2)]
+    public byte[] C { get; set; } = Array.Empty<byte>();
+
+    [Key(3)]
+    public int D { get; set; }
+}
 
 [TinyhandObject]
 public partial class TestClass2 : TestAssembly.TestClass
@@ -117,15 +156,13 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        using (var writer = new TinyhandWriter(BytePool.Default.Rent(10)))
-        {
-            writer.WriteInt8(123);
-            var array = writer.FlushAndGetArray();
-            var memoryOwner = writer.FlushAndGetRentMemory();
-            memoryOwner.Return();
-        }
+        var ts = new TrustSource<IPEndPoint?>(4, 2);
+        var e = new IPEndPoint(IPAddress.Loopback, 1234);
+        ts.Add(e);
+        var st = TinyhandSerializer.SerializeToString(ts);
 
-        var ts = System.Diagnostics.Stopwatch.GetTimestamp();
+        var bin = TinyhandSerializer.Serialize(ts);
+        var ts2 = TinyhandSerializer.Deserialize<TrustSource<IPEndPoint?>>(bin);
 
         Console.WriteLine("Hello, World!");
     }
