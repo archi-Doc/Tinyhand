@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System.Net;
+using System.Runtime.InteropServices;
 using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
@@ -60,7 +61,7 @@ public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
     public static readonly IPEndPointFormatter Instance = new IPEndPointFormatter();
 
     public void Serialize(ref TinyhandWriter writer, IPEndPoint? value, TinyhandSerializerOptions options)
-    {
+    {// Nil or Bin8(Address, RawInt)
         if (value == null)
         {
             writer.WriteNil();
@@ -71,9 +72,9 @@ public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
         if (value.Address.TryWriteBytes(span.Slice(2), out var written))
         {
             span[0] = MessagePackCode.Bin8;
-            span[1] = (byte)written;
-            writer.Advance(2 + written);
-            writer.Write(value.Port);
+            span[1] = (byte)(written + 4);
+            MemoryMarshal.Write(span.Slice(2 + written), value.Port);
+            writer.Advance(2 + written + 4);
         }
         else
         {
@@ -84,12 +85,14 @@ public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
 
     public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
-        if (!reader.TryReadBytes(out var span))
+        if (!reader.TryReadBytes(out var span) ||
+            span.Length < 4)
         {
             return null;
         }
 
-        return new IPEndPoint(new IPAddress(span), reader.ReadInt32());
+        var port = MemoryMarshal.Read<int>(span.Slice(span.Length - 4));
+        return new IPEndPoint(new IPAddress(span.Slice(0, span.Length - 4)), port);
     }
 
     public IPEndPoint Reconstruct(TinyhandSerializerOptions options)

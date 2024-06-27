@@ -160,6 +160,7 @@ internal class Program
         var e = new IPEndPoint(IPAddress.Loopback, 1234);
         ts.Add(e);
         var st = TinyhandSerializer.SerializeToString(ts);
+        var ts3 = TinyhandSerializer.DeserializeFromString<TrustSource<IPEndPoint?>>(st);
 
         var bin = TinyhandSerializer.Serialize(ts);
         var ts2 = TinyhandSerializer.Deserialize<TrustSource<IPEndPoint?>>(bin);
