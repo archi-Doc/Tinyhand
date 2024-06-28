@@ -9,7 +9,6 @@ using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Tinyhand.Coders;
 using TinyhandGenerator;
-using static Arc.Visceral.ScopingStringBuilder;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1204 // Static elements should appear before instance elements
@@ -2189,7 +2188,7 @@ ModuleInitializerClass_Added:
             }
 
             // LockObject
-            IScope? lockScope = null;
+            ScopingStringBuilder.IScope? lockScope = null;
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
             {
                 ssb.AppendLine($"var {TinyhandBody.LockTaken} = false;");
@@ -3516,7 +3515,7 @@ ModuleInitializerClass_Added:
         this.GenerateConstructorCore(ssb, info, false, array);
     }
 
-    internal IScope ScopeMember(ScopingStringBuilder ssb, TinyhandObject x)
+    internal ScopingStringBuilder.IScope ScopeMember(ScopingStringBuilder ssb, TinyhandObject x)
     {// ssb.ScopeObject(x.SimpleNameOrAddedProperty) -> this.ScopeMember(ssb, x)
         if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HiddenMember) &&
             x.ContainingObject is not null)
@@ -3530,7 +3529,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal IScope ScopeSimpleMember(ScopingStringBuilder ssb, TinyhandObject x)
+    internal ScopingStringBuilder.IScope ScopeSimpleMember(ScopingStringBuilder ssb, TinyhandObject x)
     {// ssb.ScopeObject(x.SimpleNameOrAddedProperty) -> this.ScopeMember(ssb, x)
         if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HiddenMember) &&
             x.ContainingObject is not null)
@@ -4411,7 +4410,7 @@ ModuleInitializerClass_Added:
             level = -1;
         }
 
-        IScope? scopeIf = null;
+        ScopingStringBuilder.IScope? scopeIf = null;
         if (level < 0)
         {// No level
             if (selection)

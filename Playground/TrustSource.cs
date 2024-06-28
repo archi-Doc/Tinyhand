@@ -148,29 +148,6 @@ public sealed partial class TrustSource<T>
 
             item.Value = value;
             item.Goshujin = this.items;
-
-            if (this.isFixed)
-            {// Fixed
-                if (this.fixedValue.Equals(value))
-                {// Identical
-                    return;
-                }
-
-                var last = this.counters.CountChain.Last;
-                if (last is not null && !last.Value.Equals(this.fixedValue))
-                {// Fix -> Unfix
-                }
-            }
-            else
-            {// Not fixed
-                var last = this.counters.CountChain.Last;
-                if (last is not null)
-                {// Fix
-                    // this.ClearInternal(false);
-                    this.isFixed = true;
-                    this.fixedValue = last.Value;
-                }
-            }
         }
     }
 }
