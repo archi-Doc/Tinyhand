@@ -55,7 +55,7 @@ public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
 }
 
 /// <summary>
-/// Serialize IPAddress.
+/// Serialize IPEndPoint.
 /// </summary>
 public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
 {
@@ -74,7 +74,6 @@ public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
         {
             span[0] = MessagePackCode.Bin8;
             span[1] = (byte)(written + 4); // Address + Port(4)
-            // MemoryMarshal.Write(span.Slice(2 + written), value.Port);
             BitConverter.TryWriteBytes(span.Slice(2 + written), value.Port);
             writer.Advance(2 + written + 4);
         }
@@ -93,7 +92,6 @@ public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
             return null;
         }
 
-        // var port = MemoryMarshal.Read<int>(span.Slice(span.Length - 4));
         var port = BitConverter.ToInt32(span.Slice(span.Length - 4));
         return new IPEndPoint(new IPAddress(span.Slice(0, span.Length - 4)), port);
     }

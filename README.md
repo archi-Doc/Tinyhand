@@ -930,10 +930,68 @@ var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
 
 
 
-## Original formatter
+## Custom formatter
 
-To create an original formatter:
+To create an custom formatter:
 1. Create a formatter and register it with **BuiltinResolver**.
 
 2. Source generator needs to be informed that the formatter exists. Register it with **FormatterResolver**.
+
+
+
+Principles for creating a custom formatter:
+
+- To improve performance, consider encapsulating everything within a single element (such as Binary).
+- If splitting into multiple elements, use **Array** or **Map**. Simply listing elements can lead to data structure corruption when Arrays or Maps are used at a higher level.
+
+
+
+```csharp
+public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
+{
+    public static readonly IPEndPointFormatter Instance = new IPEndPointFormatter();
+
+    public void Serialize(ref TinyhandWriter writer, IPEndPoint? value, TinyhandSerializerOptions options)
+    {// Nil or Bin8(Address, Port(4))
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        var span = writer.GetSpan(32);
+        if (value.Address.TryWriteBytes(span.Slice(2), out var written))
+        {
+            span[0] = MessagePackCode.Bin8;
+            span[1] = (byte)(written + 4); // Address + Port(4)
+            BitConverter.TryWriteBytes(span.Slice(2 + written), value.Port);
+            writer.Advance(2 + written + 4);
+        }
+        else
+        {
+            writer.WriteNil();
+            return;
+        }
+    }
+
+    public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (!reader.TryReadBytes(out var span) ||
+            span.Length < 4)
+        {
+            return null;
+        }
+
+        var port = BitConverter.ToInt32(span.Slice(span.Length - 4));
+        return new IPEndPoint(new IPAddress(span.Slice(0, span.Length - 4)), port);
+    }
+
+    public IPEndPoint Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new IPEndPoint(IPAddress.None, 0);
+    }
+
+    public IPEndPoint? Clone(IPEndPoint? value, TinyhandSerializerOptions options) => value == null ? null : new IPEndPoint(new IPAddress(value.Address.GetAddressBytes()), value.Port);
+}
+```
 
