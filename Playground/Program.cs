@@ -43,7 +43,7 @@ public partial class TestClass3<T>
     public byte[] C { get; set; } = Array.Empty<byte>();
 
     [Key(3)]
-    public int D { get; set; }
+    public TrustSource<IPEndPoint?> D { get; set; } = default!;
 }
 
 [TinyhandObject]
