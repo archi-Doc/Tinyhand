@@ -3,9 +3,78 @@
 using System;
 using System.Net;
 using System.Runtime.InteropServices;
+using Arc.Collections;
 using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
+
+/// <summary>
+/// BytePool.RentMemory formatter.
+/// </summary>
+public sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemory>
+{
+    public static readonly RentMemoryFormatter Instance = new();
+
+    private RentMemoryFormatter()
+    {
+    }
+
+    public void Serialize(ref TinyhandWriter writer, BytePool.RentMemory value, TinyhandSerializerOptions options)
+    {
+        writer.Write(value.Span);
+    }
+
+    public BytePool.RentMemory Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        return reader.ReadBytesToRentMemory();
+    }
+
+    public BytePool.RentMemory Reconstruct(TinyhandSerializerOptions options)
+    {
+        return default;
+    }
+
+    public BytePool.RentMemory Clone(BytePool.RentMemory value, TinyhandSerializerOptions options)
+    {
+        var rentMemory = BytePool.Default.Rent(value.Length).AsMemory();
+        value.Span.CopyTo(rentMemory.Span);
+        return rentMemory;
+    }
+}
+
+/// <summary>
+/// BytePool.RentReadOnlyMemory formatter.
+/// </summary>
+public sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.RentReadOnlyMemory>
+{
+    public static readonly RentReadOnlyMemoryFormatter Instance = new();
+
+    private RentReadOnlyMemoryFormatter()
+    {
+    }
+
+    public void Serialize(ref TinyhandWriter writer, BytePool.RentReadOnlyMemory value, TinyhandSerializerOptions options)
+    {
+        writer.Write(value.Span);
+    }
+
+    public BytePool.RentReadOnlyMemory Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        return reader.ReadBytesToRentMemory().ReadOnly;
+    }
+
+    public BytePool.RentReadOnlyMemory Reconstruct(TinyhandSerializerOptions options)
+    {
+        return default;
+    }
+
+    public BytePool.RentReadOnlyMemory Clone(BytePool.RentReadOnlyMemory value, TinyhandSerializerOptions options)
+    {
+        var rentMemory = BytePool.Default.Rent(value.Length).AsMemory();
+        value.Span.CopyTo(rentMemory.Span);
+        return rentMemory.ReadOnly;
+    }
+}
 
 /// <summary>
 /// Serialize IPAddress.

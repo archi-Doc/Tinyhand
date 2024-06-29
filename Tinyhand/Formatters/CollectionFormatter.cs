@@ -94,7 +94,7 @@ public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
 
 public sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
 {
-    public static readonly ByteMemoryFormatter Instance = new ByteMemoryFormatter();
+    public static readonly ByteMemoryFormatter Instance = new();
 
     private ByteMemoryFormatter()
     {
@@ -115,7 +115,8 @@ public sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
         return Memory<byte>.Empty;
     }
 
-    public Memory<byte> Clone(Memory<byte> value, TinyhandSerializerOptions options) => new Memory<byte>(value.ToArray());
+    public Memory<byte> Clone(Memory<byte> value, TinyhandSerializerOptions options)
+        => new Memory<byte>(value.ToArray());
 }
 
 public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMemory<byte>>
@@ -141,7 +142,8 @@ public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
         return ReadOnlyMemory<byte>.Empty;
     }
 
-    public ReadOnlyMemory<byte> Clone(ReadOnlyMemory<byte> value, TinyhandSerializerOptions options) => new ReadOnlyMemory<byte>(value.ToArray());
+    public ReadOnlyMemory<byte> Clone(ReadOnlyMemory<byte> value, TinyhandSerializerOptions options)
+        => new ReadOnlyMemory<byte>(value.ToArray());
 }
 
 public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlySequence<byte>>

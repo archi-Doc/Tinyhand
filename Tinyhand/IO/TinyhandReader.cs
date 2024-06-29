@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Arc.Collections;
 using Arc.Crypto;
 
 #pragma warning disable SA1615 // Element return value should be documented
@@ -873,6 +874,22 @@ public ref partial struct TinyhandReader
         ThrowInsufficientBufferUnless(this.remaining >= length);
         var span = this.ReadRaw(length);
         return span.ToArray();
+    }
+
+    public BytePool.RentMemory ReadBytesToRentMemory()
+    {
+        if (this.TryReadNil())
+        {
+            return default;
+        }
+
+        var length = this.GetBytesLength();
+        ThrowInsufficientBufferUnless(this.remaining >= length);
+        var span = this.ReadRaw(length);
+
+        var rentMemory = BytePool.Default.Rent(length).AsMemory();
+        span.CopyTo(rentMemory.Span);
+        return rentMemory;
     }
 
     /// <summary>
