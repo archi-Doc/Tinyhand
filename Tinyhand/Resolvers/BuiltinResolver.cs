@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using Arc.Collections;
 using Tinyhand.Formatters;
 
 #pragma warning disable SA1509 // Opening braces should not be preceded by blank line
@@ -126,6 +127,8 @@ public sealed class BuiltinResolver : IFormatterResolver
         // Extra
         { typeof(IPAddress), IPAddressFormatter.Instance },
         { typeof(IPEndPoint), IPEndPointFormatter.Instance },
+        { typeof(BytePool.RentMemory), RentMemoryFormatter.Instance },
+        { typeof(BytePool.RentReadOnlyMemory), RentReadOnlyMemoryFormatter.Instance },
     };
 
     private BuiltinResolver()

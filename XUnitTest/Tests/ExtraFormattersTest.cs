@@ -1,7 +1,10 @@
 ﻿// Copyright (c) All contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Linq;
 using System.Net;
+using Arc.Collections;
 using Xunit;
 
 namespace Tinyhand.Tests;
@@ -15,6 +18,7 @@ public partial class ExtraFormatterClass
         this.IPv6 = IPAddress.Parse("2001:0db8:1234:5678:90ab:cdef:0000:0000");
         this.IPArray = new IPAddress?[] { this.IPv4, this.IPv6, IPNull, };
         this.EndPoint = new(IPAddress.Parse("192.168.0.1"), 1234);
+        this.RentMemory = new BytePool.RentMemory([1, 2, 3, 4,]);
     }
 
     public IPAddress IPv4 { get; set; }
@@ -26,6 +30,10 @@ public partial class ExtraFormatterClass
     public IPAddress?[] IPArray { get; set; }
 
     public IPEndPoint EndPoint { get; set; }
+
+    public BytePool.RentMemory RentMemory { get; set; } = default!;
+
+    public BytePool.RentReadOnlyMemory RentReadOnlyMemory { get; set; } = default!;
 }
 
 public class ExtraFormattersTest
@@ -70,5 +78,7 @@ public class ExtraFormattersTest
         }
 
         c.EndPoint.Is(c2.EndPoint);
+        c.RentMemory.Span.SequenceEqual(c2.RentMemory.Span).IsTrue();
+        c.RentReadOnlyMemory.Span.SequenceEqual(c2.RentReadOnlyMemory.Span).IsTrue();
     }
 }
