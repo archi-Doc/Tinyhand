@@ -127,8 +127,8 @@ public sealed class BuiltinResolver : IFormatterResolver
         // Extra
         { typeof(IPAddress), IPAddressFormatter.Instance },
         { typeof(IPEndPoint), IPEndPointFormatter.Instance },
-        { typeof(BytePool.RentMemory), RentMemoryFormatter.Instance },
-        { typeof(BytePool.RentReadOnlyMemory), RentReadOnlyMemoryFormatter.Instance },
+        // { typeof(BytePool.RentMemory), RentMemoryFormatter.Instance },
+        // { typeof(BytePool.RentReadOnlyMemory), RentReadOnlyMemoryFormatter.Instance },
     };
 
     private BuiltinResolver()
