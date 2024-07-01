@@ -179,7 +179,7 @@ public ref struct ByteBufferWriter
             }
             else
             {
-                return new(this.initialBuffer.AsSpan(0, this.spanSize).ToArray(), 0, this.spanSize);
+                return BytePool.RentMemory.CreateFrom(this.initialBuffer.AsSpan(0, this.spanSize).ToArray(), 0, this.spanSize);
             }
         }
 

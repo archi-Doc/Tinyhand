@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arc.Collections" Version="1.17.1" />
+    <PackageReference Include="Arc.Collections" Version="1.17.3" />
     <PackageReference Include="Arc.Crypto" Version="1.24.1" />
     <PackageReference Include="Arc.Unit" Version="0.15.0" />
     <PackageReference Include="FastExpressionCompiler" Version="4.2.0" />
