@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -58,6 +59,27 @@ public static class HashedString
     /// </summary>
     /// <returns>The name of the current culture.</returns>
     public static string CurrentCultureName => CurrentCulture.Name;
+
+    /// <summary>
+    /// Tries to get the string value associated with the specified hash.
+    /// </summary>
+    /// <param name="hash">The hash value.</param>
+    /// <param name="result">When this method returns, contains the string value associated with the specified hash, if the hash is found; otherwise, null.</param>
+    /// <returns>true if the hash is found in the current culture table or the default culture table; otherwise, false.</returns>
+    public static bool TryGet(ulong hash, [MaybeNullWhen(false)] out string result)
+    {
+        if (currentCultureTable.TryGetValue(hash, out result))
+        {// Found in the current culture table.
+            return true;
+        }
+
+        if (currentCultureTable != defaultCultureTable && defaultCultureTable.TryGetValue(hash, out result))
+        {// Found in the default culture table.
+            return true;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Get a string that matches the hash.<br/>
