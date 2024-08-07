@@ -61,6 +61,15 @@ public static class HashedString
     public static string CurrentCultureName => CurrentCulture.Name;
 
     /// <summary>
+    /// Tries to get the string value associated with the specified identifier.
+    /// </summary>
+    /// <param name="identifier">The identifier.</param>
+    /// <param name="result">When this method returns, contains the string value associated with the specified hash, if the hash is found; otherwise, null.</param>
+    /// <returns>true if the hash is found in the current culture table or the default culture table; otherwise, false.</returns>
+    public static bool TryGet(string identifier, [MaybeNullWhen(false)] out string result)
+        => TryGet(IdentifierToHash(identifier), out result);
+
+    /// <summary>
     /// Tries to get the string value associated with the specified hash.
     /// </summary>
     /// <param name="hash">The hash value.</param>
