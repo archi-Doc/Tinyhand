@@ -38,11 +38,11 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string IIntegralityObject = "ValueLink.Integrality.IIntegralityObject";
 
     public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
-        id: "TG001", title: "Not a partial class/struct", messageFormat: "'{0}' must be a partial class/struct",
+        id: "TG001", title: "Partial class/struct", messageFormat: "'{0}' must be a partial class/struct",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_NotPartialParent = new DiagnosticDescriptor(
-        id: "TG002", title: "Not a partial class/struct", messageFormat: "Parent object '{0}' is not a partial class/struct",
+        id: "TG002", title: "Partial class/struct", messageFormat: "Parent type '{0}' is not a partial class/struct",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_NoDefaultConstructor = new DiagnosticDescriptor(
