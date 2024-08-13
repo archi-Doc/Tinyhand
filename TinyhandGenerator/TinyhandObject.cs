@@ -446,7 +446,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.KeyAttribute = new KeyAttributeMock(this.SimpleName);
                     try
                     {
-                        var v = AttributeHelper.GetValue(-1, nameof(KeyAttributeMock.ConvertToString), x.ConstructorArguments, x.NamedArguments);
+                        var v = VisceralHelper.GetValue(-1, nameof(KeyAttributeMock.ConvertToString), x.ConstructorArguments, x.NamedArguments);
                         if (v != null)
                         {
                             this.KeyAttribute.ConvertToString = (bool)v;
