@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Arc.Visceral;
 
 #pragma warning disable SA1602 // Enumeration items should be documented
 
@@ -65,37 +66,37 @@ public sealed class ValueLinkObjectAttributeMock : Attribute
         var attribute = new ValueLinkObjectAttributeMock();
         object? val;
 
-        val = AttributeHelper.GetValue(-1, nameof(GoshujinClass), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(GoshujinClass), constructorArguments, namedArguments);
         if (val != null)
         {
             attribute.GoshujinClass = (string)val;
         }
 
-        val = AttributeHelper.GetValue(-1, nameof(GoshujinInstance), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(GoshujinInstance), constructorArguments, namedArguments);
         if (val != null)
         {
             attribute.GoshujinInstance = (string)val;
         }
 
-        val = AttributeHelper.GetValue(-1, nameof(ExplicitPropertyChanged), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(ExplicitPropertyChanged), constructorArguments, namedArguments);
         if (val != null)
         {
             attribute.ExplicitPropertyChanged = (string)val;
         }
 
-        val = AttributeHelper.GetValue(-1, nameof(Isolation), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(Isolation), constructorArguments, namedArguments);
         if (val != null)
         {
             attribute.Isolation = (IsolationLevel)val;
         }
 
-        val = AttributeHelper.GetValue(-1, nameof(Restricted), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(Restricted), constructorArguments, namedArguments);
         if (val != null)
         {
             attribute.Restricted = (bool)val;
         }
 
-        val = AttributeHelper.GetValue(-1, nameof(Integrality), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(Integrality), constructorArguments, namedArguments);
         if (val != null)
         {
             attribute.Integrality = (bool)val;
