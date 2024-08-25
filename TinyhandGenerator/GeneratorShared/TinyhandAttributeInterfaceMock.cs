@@ -37,7 +37,7 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool UseServiceProvider { get; set; } = false;
 
-    public int ReservedKeys { get; set; } = -1;
+    public int ReservedKeyCount { get; set; } = 0;
 
     public string LockObject { get; set; } = string.Empty;
 
@@ -104,10 +104,10 @@ public sealed class TinyhandObjectAttributeMock
             attribute.UseServiceProvider = (bool)val;
         }
 
-        val = VisceralHelper.GetValue(-1, nameof(ReservedKeys), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(ReservedKeyCount), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.ReservedKeys = (int)val;
+            attribute.ReservedKeyCount = (int)val;
         }
 
         val = VisceralHelper.GetValue(-1, nameof(LockObject), constructorArguments, namedArguments);

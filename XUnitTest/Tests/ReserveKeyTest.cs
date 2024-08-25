@@ -4,9 +4,10 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject(ReservedKeys = 10)]
+[TinyhandObject(ReservedKeyCount = ReserveKeyClass.ReservedKeyCount)]
 public partial class ReserveKeyClass
 {
+    public const int ReservedKeyCount = 8;
     [Key(0)]
     public int X { get; set; }
 
@@ -17,10 +18,10 @@ public partial class ReserveKeyClass
 [TinyhandObject]
 public partial class ReserveKeyDerived : ReserveKeyClass
 {
-    // [Key(10)]
+    // [Key(ReserveKeyClass.ReservedKeyCount - 1)]
     // public int A { get; set; }
 
-    [Key(11)]
+    [Key(ReserveKeyClass.ReservedKeyCount)]
     public int B { get; set; }
 
     [Key(3, IgnoreKeyReservation = true)]
