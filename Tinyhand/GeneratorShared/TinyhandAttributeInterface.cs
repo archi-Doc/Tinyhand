@@ -73,10 +73,10 @@ public sealed class TinyhandObjectAttribute : Attribute
     public bool UseServiceProvider { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets the number of reserved keys for the future use.<br/>
-    /// Derived classes cannot use reserved keys (from 0 to ReservedKeys).
+    /// Gets or sets the number of reserved keys for future use.<br/>
+    /// Derived classes cannot use reserved keys from 0 to (ReservedKeyCount - 1).
     /// </summary>
-    public int ReservedKeys { get; set; } = -1;
+    public int ReservedKeyCount { get; set; } = 0;
 
     /// <summary>
     /// Gets or sets the name of the member used for lock statememt during serialization and deserialization [default is <see cref="string.Empty"/>].

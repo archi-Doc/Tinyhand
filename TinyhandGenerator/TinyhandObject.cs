@@ -1081,14 +1081,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     private void CheckObject_IntKey()
     {
         // Reserved keys
-        var reservedKeys = -1;
+        var reservedMax = 0;
         var baseObject = this.BaseObject;
         while (baseObject != null)
         {
             baseObject.TryConfigure();
-            if (baseObject.ObjectAttribute?.ReservedKeys is int key && key >= 0)
+            if (baseObject.ObjectAttribute?.ReservedKeyCount is int reservedKeyCount)
             {
-                reservedKeys = Math.Max(reservedKeys, key);
+                reservedMax = Math.Max(reservedMax, reservedKeyCount);
             }
 
             baseObject = baseObject.BaseObject;
@@ -1119,9 +1119,9 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         {
             if (x.KeyAttribute?.IntKey is int i && i >= 0 && i <= TinyhandBody.MaxIntegerKey)
             {
-                if (i <= reservedKeys && x.ContainingObject == this && !x.KeyAttribute.IgnoreKeyReservation)
+                if (i < reservedMax && x.ContainingObject == this && !x.KeyAttribute.IgnoreKeyReservation)
                 {// Reserved
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyReserved, x.KeyVisceralAttribute?.Location, reservedKeys);
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyReserved, x.KeyVisceralAttribute?.Location, reservedMax - 1);
                 }
                 else if (this.IntKey_Array[i] != null)
                 {// Conflict
@@ -1145,7 +1145,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             this.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyConflicted, x.KeyVisceralAttribute?.Location);
         }
 
-        var unusedKeys = this.IntKey_Max - (reservedKeys + 1);
+        var unusedKeys = this.IntKey_Max - (reservedMax + 1);
         if (unusedKeys >= 10 && unusedKeys > (this.IntKey_Number * 2))
         {// Too many unused key.
             this.Body.ReportDiagnostic(TinyhandBody.Warning_IntKeyUnused, this.Location);
