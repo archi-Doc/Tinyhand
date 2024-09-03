@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Tinyhand;
 
-namespace ConsoleApp1;
+namespace QuickStart;
 
 [TinyhandObject] // Annote a [TinyhandObject] attribute.
 public partial record MyClass // partial class is required for source generator.

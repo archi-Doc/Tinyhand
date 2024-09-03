@@ -6,7 +6,7 @@ using Tinyhand;
 
 #pragma warning disable CS0169
 
-namespace ConsoleApp1;
+namespace QuickStart;
 
 [TinyhandObject]
 public partial class InternalTestClass
