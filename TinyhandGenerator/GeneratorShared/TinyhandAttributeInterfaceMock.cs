@@ -142,6 +142,7 @@ public sealed class TinyhandObjectAttributeMock
 
 public class KeyAttributeMock
 {
+    public const int DefaultLevel = int.MinValue;
     public static readonly string SimpleName = "Key";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
@@ -150,7 +151,7 @@ public class KeyAttributeMock
 
     public string? StringKey { get; private set; }
 
-    public int Level { get; set; } = -1;
+    public int Level { get; set; } = DefaultLevel;
 
     public bool Exclude { get; set; } = false;
 

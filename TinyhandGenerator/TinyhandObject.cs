@@ -4407,11 +4407,11 @@ ModuleInitializerClass_Added:
         bool decrease = false;
         if (x?.KeyAttribute?.Level is not int level)
         {
-            level = -1;
+            level = KeyAttributeMock.DefaultLevel;
         }
 
         ScopingStringBuilder.IScope? scopeIf = null;
-        if (level < 0)
+        if (level == KeyAttributeMock.DefaultLevel)
         {// No level
             if (exclude)
             {// Exclude == true
@@ -4422,8 +4422,8 @@ ModuleInitializerClass_Added:
             }
         }
         else
-        {// Level >= 0
-            decrease = x?.TypeObject?.IsPrimitive == false && level > 0;
+        {// Level
+            decrease = x?.TypeObject?.IsPrimitive == false && level != 0;
             if (exclude)
             {// Exclude == true
                 scopeIf = ssb.ScopeBrace($"if (options.IsAllMode || (options.IsSignatureMode && writer.Level >= {level}))");
