@@ -124,6 +124,8 @@ public sealed class ReserveKeyAttribute : Attribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
 public class KeyAttribute : Attribute
 {
+    private const int DefaultLevel = int.MinValue;
+
     /// <summary>
     /// Gets the unique integer key used for serialization.
     /// </summary>
@@ -135,14 +137,14 @@ public class KeyAttribute : Attribute
     public string? StringKey { get; private set; }
 
     /// <summary>
-    /// Gets or sets the level for signature (will be serialized if Writer.Level is the same or greater than this) [default is -1 (disabled)].
+    /// Gets or sets the level for signature (will be serialized if Writer.Level is the same or greater than this) [default is <see cref="int.MinValue"/> (disabled)].
     /// </summary>
-    public int Level { get; set; } = -1;
+    public int Level { get; set; } = DefaultLevel;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to serialize the member during selection mode (TinyhandSerializerOptions) [default is <see langword="true"/>].
+    /// Gets or sets a value indicating whether or not to serialize the member during exclude mode (it will not be serialized in exclude mode and this property is true) [default is <see langword="false"/>].
     /// </summary>
-    public bool Selection { get; set; } = true;
+    public bool Exclude { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a name of a property that will be created from the field.<br/>

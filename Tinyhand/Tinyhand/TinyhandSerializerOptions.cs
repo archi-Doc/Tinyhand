@@ -39,9 +39,9 @@ public record TinyhandSerializerOptions
         All,
 
         /// <summary>
-        /// Serialize members with the selection property set to true.
+        /// Members with the exclude property set to <see langword="true"/> will be excluded from serialization.
         /// </summary>
-        Selection,
+        Exclude,
 
         /// <summary>
         /// Serialize an object for signature generation. Level is enabled and WriteArrayHeader() is skipped.
@@ -66,7 +66,7 @@ public record TinyhandSerializerOptions
 
     // public static TinyhandSerializerOptions Unload { get; } = Standard with { SerializationFlags = Flags.Unload, };
 
-    public static TinyhandSerializerOptions Selection { get; } = Standard with { SerializationMode = Mode.Selection, };
+    public static TinyhandSerializerOptions Exclude { get; } = Standard with { SerializationMode = Mode.Exclude, };
 
     public static TinyhandSerializerOptions Signature { get; } = Standard with { SerializationMode = Mode.Signature, };
 
@@ -116,7 +116,7 @@ public record TinyhandSerializerOptions
 
     public bool IsAllMode => this.SerializationMode == Mode.All;
 
-    public bool IsSelectionMode => this.SerializationMode == Mode.Selection;
+    public bool IsExcludeMode => this.SerializationMode == Mode.Exclude;
 
     public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
 

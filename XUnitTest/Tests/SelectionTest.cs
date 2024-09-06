@@ -21,10 +21,10 @@ public partial class SelectionTestClass
     [Key(0)]
     public int X { get; set; }
 
-    [Key(1, Selection = false)]
+    [Key(1, Exclude = true)]
     public int Y { get; set; }
 
-    [Key(2, Level = 0, Selection = false)]
+    [Key(2, Level = 0, Exclude = true)]
     public int Z { get; set; }
 }
 
@@ -35,7 +35,7 @@ public class SelectionTest
     {
         SelectionTestClass tc;
         SelectionTestClass tc2;
-        var selection = TinyhandSerializerOptions.Selection;
+        var selection = TinyhandSerializerOptions.Exclude;
 
         tc = new SelectionTestClass(1, 2, 3);
         tc2 = TinyhandSerializer.Deserialize<SelectionTestClass>(TinyhandSerializer.Serialize(tc));
