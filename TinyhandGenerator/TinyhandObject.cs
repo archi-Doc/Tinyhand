@@ -4446,7 +4446,11 @@ ModuleInitializerClass_Added:
             ssb.AppendLine($"writer.Level += {level};");
         }
 
-        scopeIf?.Dispose();
+        if (scopeIf is not null)
+        {
+            scopeIf.Dispose();
+            ssb.AppendLine($"else writer.WriteNil();");
+        }
     }
 
     internal void GenerateSerializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
