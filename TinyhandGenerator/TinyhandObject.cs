@@ -133,7 +133,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public TinyhandObject[]? IntKey_Array;
 
-    public int SelectionCount;
+    public int InclusiveCount;
 
     internal VisceralTrieString<TinyhandObject>? StringTrie;
 
@@ -1113,7 +1113,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         this.IntKey_Array = new TinyhandObject[this.IntKey_Max + 1];
-        this.SelectionCount = this.IntKey_Max + 1;
+        this.InclusiveCount = this.IntKey_Max + 1;
 
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
         {
@@ -1133,9 +1133,9 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.IntKey_Array[i] = x;
                 }
 
-                if (!x.KeyAttribute.Selection)
+                if (x.KeyAttribute.Exclude)
                 {
-                    this.SelectionCount--;
+                    this.InclusiveCount--;
                 }
             }
         }
@@ -3572,8 +3572,8 @@ ModuleInitializerClass_Added:
         {
             var originalName = ssb.FullObject;
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
-            var selection = x.KeyAttribute?.Selection == false ? "!options.IsSelectionMode && " : string.Empty;
-            using (var valid = ssb.ScopeBrace($"if ({selection}numberOfData-- > 0 && !reader.TryReadNil())"))
+            var exclude = x.KeyAttribute?.Exclude == true ? "!options.IsExcludeMode && " : string.Empty;
+            using (var valid = ssb.ScopeBrace($"if ({exclude}numberOfData-- > 0 && !reader.TryReadNil())"))
             {
                 InitSetter_Start();
 
@@ -4384,14 +4384,14 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        if (this.IntKey_Array.Length == this.SelectionCount)
+        if (this.IntKey_Array.Length == this.InclusiveCount)
         {
             ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
         }
         else
         {
             ssb.AppendLine($"if (options.IsAllMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
-            ssb.AppendLine($"else if (options.IsSelectionMode) writer.WriteArrayHeader({this.SelectionCount});");
+            ssb.AppendLine($"else if (options.IsExcludeMode) writer.WriteArrayHeader({this.InclusiveCount});");
         }
 
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
@@ -4403,7 +4403,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateSerializerKey(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, bool skipDefaultValue)
     {
-        var selection = x?.KeyAttribute?.Selection == false ? false : true;
+        var exclude = x?.KeyAttribute?.Exclude == true ? true : false;
         bool decrease = false;
         if (x?.KeyAttribute?.Level is not int level)
         {
@@ -4413,24 +4413,24 @@ ModuleInitializerClass_Added:
         ScopingStringBuilder.IScope? scopeIf = null;
         if (level < 0)
         {// No level
-            if (selection)
-            {// Selection == true
+            if (exclude)
+            {// Exclude == true
+                scopeIf = ssb.ScopeBrace($"if (!options.IsExcludeMode)");
             }
             else
-            {// Selection == false
-                scopeIf = ssb.ScopeBrace($"if (!options.IsSelectionMode)");
+            {// Exclude == false
             }
         }
         else
         {// Level >= 0
             decrease = x?.TypeObject?.IsPrimitive == false && level > 0;
-            if (selection)
-            {// Selection == true
-                scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})");
+            if (exclude)
+            {// Exclude == true
+                scopeIf = ssb.ScopeBrace($"if (options.IsAllMode || (options.IsSignatureMode && writer.Level >= {level}))");
             }
             else
-            {// Selection == false
-                scopeIf = ssb.ScopeBrace($"if (options.IsAllMode || (options.IsSignatureMode && writer.Level >= {level}))");
+            {// Exclude == false
+                scopeIf = ssb.ScopeBrace($"if (writer.Level >= {level})");
             }
         }
 

@@ -140,9 +140,9 @@ public class KeyAttribute : Attribute
     public int Level { get; set; } = -1;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to serialize the member during selection mode (TinyhandSerializerOptions) [default is <see langword="true"/>].
+    /// Gets or sets a value indicating whether or not to serialize the member during exclude mode (it will not be serialized in exclude mode and this property is true) [default is <see langword="false"/>].
     /// </summary>
-    public bool Selection { get; set; } = true;
+    public bool Exclude { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a name of a property that will be created from the field.<br/>

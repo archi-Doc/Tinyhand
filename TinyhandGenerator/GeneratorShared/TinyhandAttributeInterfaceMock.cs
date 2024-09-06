@@ -152,7 +152,7 @@ public class KeyAttributeMock
 
     public int Level { get; set; } = -1;
 
-    public bool Selection { get; set; } = true;
+    public bool Exclude { get; set; } = false;
 
     public string AddProperty { get; set; } = string.Empty;
 
@@ -202,10 +202,10 @@ public class KeyAttributeMock
             attribute.Level = (int)v;
         }
 
-        v = VisceralHelper.GetValue(-1, nameof(Selection), constructorArguments, namedArguments);
+        v = VisceralHelper.GetValue(-1, nameof(Exclude), constructorArguments, namedArguments);
         if (v != null)
         {
-            attribute.Selection = (bool)v;
+            attribute.Exclude = (bool)v;
         }
 
         v = VisceralHelper.GetValue(-1, nameof(AddProperty), constructorArguments, namedArguments);
