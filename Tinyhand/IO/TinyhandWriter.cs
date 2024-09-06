@@ -17,7 +17,8 @@ namespace Tinyhand.IO;
 
 public ref struct TinyhandWriter
 {
-    public const int DefaultLevel = 0x0001_0000; // 0x4000_0000
+    public const int DefaultLevel = 0x0100_0000;
+    public const int DefaultSignatureLevel = 0x0000_1000;
 
     public static TinyhandWriter CreateFromBytePool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)
         => new(BytePool.Default.Rent(initialBufferSize));
