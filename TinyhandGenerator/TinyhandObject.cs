@@ -4449,7 +4449,7 @@ ModuleInitializerClass_Added:
         if (scopeIf is not null)
         {
             scopeIf.Dispose();
-            ssb.AppendLine($"else writer.WriteNil();");
+            ssb.AppendLine($"else if (!options.IsSignatureMode) writer.WriteNil();");
         }
     }
 
