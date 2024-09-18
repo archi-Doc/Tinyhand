@@ -76,7 +76,7 @@ public class ScopingStringBuilder
         }
         else
         {
-            return this.ScopeBrace(string.Empty);
+            return new Scope(this, false, false);
         }
     }
 
