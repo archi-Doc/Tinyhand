@@ -68,7 +68,17 @@ public class ScopingStringBuilder
         }
     }
 
-    public IScope ScopeNamespace(string @namespace) => this.ScopeBrace($"namespace {@namespace}");
+    public IScope ScopeNamespace(string @namespace)
+    {
+        if (!string.IsNullOrEmpty(@namespace))
+        {
+            return this.ScopeBrace($"namespace {@namespace}");
+        }
+        else
+        {
+            return this.ScopeBrace(string.Empty);
+        }
+    }
 
     public IScope ScopeBrace(string preface)
     {
