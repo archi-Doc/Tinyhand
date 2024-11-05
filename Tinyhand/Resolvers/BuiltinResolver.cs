@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using Arc.Collections;
+using Arc.Crypto;
 using Tinyhand.Formatters;
 
 #pragma warning disable SA1509 // Opening braces should not be preceded by blank line

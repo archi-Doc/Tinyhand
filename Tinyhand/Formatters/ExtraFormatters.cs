@@ -3,6 +3,7 @@
 using System;
 using System.Net;
 using Arc.Collections;
+using Arc.Crypto;
 using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
