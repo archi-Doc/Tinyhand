@@ -133,6 +133,8 @@ public sealed class BuiltinCoder : ICoderResolver
 
         { "Tinyhand.Utf8String", Utf8StringCoder.Instance },
         { "Tinyhand.Utf8String?", NullableUtf8StringCoder.Instance },
+        //{ "Tinyhand.Struct128", Struct128Coder.Instance },
+        //{ "Tinyhand.Struct256?", Struct256Coder.Instance },
     };
 
     public ITinyhandCoder? TryGetCoder(WithNullable<TinyhandObject> withNullable)
@@ -159,6 +161,35 @@ public sealed class BuiltinCoder : ICoderResolver
         return coder;
     }
 }
+
+/*public sealed class Struct128Coder : ITinyhandCoder
+{
+    public static readonly Struct128Coder Instance = new();
+
+    private Struct128Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"writer.Write({ssb.FullObject});");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = reader.ReadInt128();");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = 0;");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+    }
+}*/
 
 public sealed class StringCoder : ITinyhandCoder
 {

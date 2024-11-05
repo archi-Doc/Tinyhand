@@ -878,7 +878,7 @@ public ref struct TinyhandWriter
     /// <see cref="MessagePackCode.Bin32"/>.
     /// </summary>
     /// <param name="src">The span of bytes to write.</param>
-    public void Write(ReadOnlySpan<byte> src)
+    public void Write(scoped ReadOnlySpan<byte> src)
     {
         int length = (int)src.Length;
         this.WriteBinHeader(length);
