@@ -54,5 +54,5 @@
 
     
 
-3. 
+3. Add the target type to the FormatterResolver.
 

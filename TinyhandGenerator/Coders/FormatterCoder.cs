@@ -100,6 +100,8 @@ public sealed class FormatterResolver : ICoderResolver
         this.AddFormatter(typeof(System.Net.IPEndPoint));
         // this.AddFormatter("Arc.Collections.BytePool.RentMemory");
         // this.AddFormatter("Arc.Collections.BytePool.RentReadOnlyMemory");
+        this.AddFormatter("Tinyhand.Struct128");
+        this.AddFormatter("Tinyhand.Struct256");
 
         this.AddGenericsFullName("Arc.Collections.OrderedMap<TKey, TValue>");
         this.AddGenericsFullName("Arc.Collections.OrderedMultiMap<TKey, TValue>");

@@ -37,7 +37,7 @@
     <PackageReference Include="Arc.Collections" Version="1.17.5" />
     <PackageReference Include="Arc.Crypto" Version="1.26.1" />
     <PackageReference Include="Arc.Unit" Version="0.16.0" />
-    <PackageReference Include="FastExpressionCompiler" Version="4.2.1" />
+    <PackageReference Include="FastExpressionCompiler" Version="4.2.2" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

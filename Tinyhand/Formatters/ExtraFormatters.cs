@@ -2,11 +2,72 @@
 
 using System;
 using System.Net;
-using System.Runtime.InteropServices;
 using Arc.Collections;
 using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
+
+/// <summary>
+/// Struct128 formatter.
+/// </summary>
+public sealed class Struct128Formatter : ITinyhandFormatter<Struct128>
+{
+    public static readonly Struct128Formatter Instance = new();
+
+    public static Struct128 DeserializeValue(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (!reader.TryReadBytes(out var span) ||
+            span.Length < Struct128.Length)
+        {
+            return default;
+        }
+
+        return new(span);
+    }
+
+    public void Serialize(ref TinyhandWriter writer, Struct128 value, TinyhandSerializerOptions options)
+        => writer.Write(value.AsSpan());
+
+    public Struct128 Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        => DeserializeValue(ref reader, options);
+
+    public Struct128 Reconstruct(TinyhandSerializerOptions options)
+        => default;
+
+    public Struct128 Clone(Struct128 value, TinyhandSerializerOptions options)
+        => value;
+}
+
+/// <summary>
+/// Struct256 formatter.
+/// </summary>
+public sealed class Struct256Formatter : ITinyhandFormatter<Struct256>
+{
+    public static readonly Struct256Formatter Instance = new();
+
+    public static Struct256 DeserializeValue(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        if (!reader.TryReadBytes(out var span) ||
+            span.Length < Struct256.Length)
+        {
+            return default;
+        }
+
+        return new(span);
+    }
+
+    public void Serialize(ref TinyhandWriter writer, Struct256 value, TinyhandSerializerOptions options)
+        => writer.Write(value.AsSpan());
+
+    public Struct256 Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        => DeserializeValue(ref reader, options);
+
+    public Struct256 Reconstruct(TinyhandSerializerOptions options)
+        => default;
+
+    public Struct256 Clone(Struct256 value, TinyhandSerializerOptions options)
+        => value;
+}
 
 /// <summary>
 /// BytePool.RentMemory formatter.
