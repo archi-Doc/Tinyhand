@@ -133,8 +133,8 @@ public sealed class BuiltinCoder : ICoderResolver
 
         { "Tinyhand.Utf8String", Utf8StringCoder.Instance },
         { "Tinyhand.Utf8String?", NullableUtf8StringCoder.Instance },
-        { "Tinyhand.Struct128", Struct128Coder.Instance },
-        // { "Tinyhand.Struct256", Struct256Coder.Instance }, // Slow...
+        { "Arc.Crypto.Struct128", Struct128Coder.Instance },
+        // { "Arc.Crypto.Struct256", Struct256Coder.Instance }, // Slow...
     };
 
     public ITinyhandCoder? TryGetCoder(WithNullable<TinyhandObject> withNullable)
