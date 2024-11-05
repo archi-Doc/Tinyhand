@@ -129,6 +129,8 @@ public sealed class BuiltinResolver : IFormatterResolver
         { typeof(IPEndPoint), IPEndPointFormatter.Instance },
         // { typeof(BytePool.RentMemory), RentMemoryFormatter.Instance },
         // { typeof(BytePool.RentReadOnlyMemory), RentReadOnlyMemoryFormatter.Instance },
+        { typeof(Struct128), Struct128Formatter.Instance },
+        { typeof(Struct256), Struct256Formatter.Instance },
     };
 
     private BuiltinResolver()

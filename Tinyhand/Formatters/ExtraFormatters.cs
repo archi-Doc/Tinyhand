@@ -9,6 +9,54 @@ using Tinyhand.IO;
 namespace Tinyhand.Formatters;
 
 /// <summary>
+/// Struct128 formatter.
+/// </summary>
+public sealed class Struct128Formatter : ITinyhandFormatter<Struct128>
+{
+    public static readonly Struct128Formatter Instance = new();
+
+    public void Serialize(ref TinyhandWriter writer, Struct128 value, TinyhandSerializerOptions options)
+    {
+        writer.Write(value.Long0);
+        writer.Write(value.Long1);
+    }
+
+    public Struct128 Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+       => new(reader.ReadInt64(), reader.ReadInt64());
+
+    public Struct128 Reconstruct(TinyhandSerializerOptions options)
+        => default;
+
+    public Struct128 Clone(Struct128 value, TinyhandSerializerOptions options)
+        => value;
+}
+
+/// <summary>
+/// Struct256 formatter.
+/// </summary>
+public sealed class Struct256Formatter : ITinyhandFormatter<Struct256>
+{
+    public static readonly Struct256Formatter Instance = new();
+
+    public void Serialize(ref TinyhandWriter writer, Struct256 value, TinyhandSerializerOptions options)
+    {
+        writer.Write(value.Long0);
+        writer.Write(value.Long1);
+        writer.Write(value.Long2);
+        writer.Write(value.Long3);
+    }
+
+    public Struct256 Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+       => new(reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt64());
+
+    public Struct256 Reconstruct(TinyhandSerializerOptions options)
+        => default;
+
+    public Struct256 Clone(Struct256 value, TinyhandSerializerOptions options)
+        => value;
+}
+
+/// <summary>
 /// BytePool.RentMemory formatter.
 /// </summary>
 public sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemory>

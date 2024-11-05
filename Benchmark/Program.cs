@@ -46,10 +46,11 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<H2HTest.H2HLarge>();
+        DebugRun<Struct128Benchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
+            typeof(Struct128Benchmark),
             typeof(GetXxHashBenchmark),
             typeof(ReadOnlySpanTest),
             typeof(CompareByteSpanTest),
