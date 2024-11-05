@@ -133,8 +133,8 @@ public sealed class BuiltinCoder : ICoderResolver
 
         { "Tinyhand.Utf8String", Utf8StringCoder.Instance },
         { "Tinyhand.Utf8String?", NullableUtf8StringCoder.Instance },
-        //{ "Tinyhand.Struct128", Struct128Coder.Instance },
-        //{ "Tinyhand.Struct256?", Struct256Coder.Instance },
+        { "Tinyhand.Struct128", Struct128Coder.Instance },
+        { "Tinyhand.Struct256", Struct256Coder.Instance },
     };
 
     public ITinyhandCoder? TryGetCoder(WithNullable<TinyhandObject> withNullable)
@@ -162,7 +162,7 @@ public sealed class BuiltinCoder : ICoderResolver
     }
 }
 
-/*public sealed class Struct128Coder : ITinyhandCoder
+public sealed class Struct128Coder : ITinyhandCoder
 {
     public static readonly Struct128Coder Instance = new();
 
@@ -172,24 +172,53 @@ public sealed class BuiltinCoder : ICoderResolver
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"writer.Write({ssb.FullObject});");
+        ssb.AppendLine($"writer.Write({ssb.FullObject}.AsSpan());");
     }
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = reader.ReadInt128();");
+        ssb.AppendLine($"{ssb.FullObject} = Tinyhand.Formatters.Struct128Formatter.DeserializeValue(ref reader, options);");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = 0;");
+        ssb.AppendLine($"{ssb.FullObject} = default;");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
     }
-}*/
+}
+
+public sealed class Struct256Coder : ITinyhandCoder
+{
+    public static readonly Struct256Coder Instance = new();
+
+    private Struct256Coder()
+    {
+    }
+
+    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"writer.Write({ssb.FullObject}.AsSpan());");
+    }
+
+    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = Tinyhand.Formatters.Struct256Formatter.DeserializeValue(ref reader, options);");
+    }
+
+    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = default;");
+    }
+
+    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    {
+        ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
+    }
+}
 
 public sealed class StringCoder : ITinyhandCoder
 {
