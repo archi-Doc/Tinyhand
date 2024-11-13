@@ -158,10 +158,12 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
             context.CancellationToken.ThrowIfCancellationRequested();
 
             var model = compilation.GetSemanticModel(x.SyntaxTree);
+#pragma warning disable RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
             if (model.GetDeclaredSymbol(x) is INamedTypeSymbol symbol)
             {
                 this.ProcessSymbol(body, generateMemberBody, processed, x.SyntaxTree, symbol);
             }
+#pragma warning restore RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
         }
 
         generics.Prepare(compilation);
