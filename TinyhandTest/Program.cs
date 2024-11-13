@@ -49,7 +49,7 @@ public class Program
         using var fs = new FileStream(fileName, FileMode.Open);
         var length = fs.Length;
         var buffer = new byte[length];
-        fs.Read(buffer.AsSpan());
+        fs.ReadExactly(buffer.AsSpan());
 
         var element = TinyhandParser.Parse(buffer, TinyhandParserOptions.ContextualInformation);
         var element2 = (Element)element.DeepCopy();
@@ -86,7 +86,7 @@ public class Program
         using var fs = new FileStream(fileName, FileMode.Open);
         var length = fs.Length;
         var buffer = new byte[length];
-        fs.Read(buffer.AsSpan());
+        fs.ReadExactly(buffer.AsSpan());
     }
 
     private static string GetProjectPath()
@@ -113,7 +113,7 @@ public class Program
         using var fs = new FileStream(fileName, FileMode.Open);
         var length = fs.Length;
         var buffer = new byte[length];
-        fs.Read(buffer.AsSpan());
+        fs.ReadExactly(buffer.AsSpan());
 
         var root = TinyhandParser.Parse(buffer, TinyhandParserOptions.ContextualInformation);
 
@@ -131,7 +131,7 @@ public class Program
         using var fs = new FileStream(fileName, FileMode.Open);
         var length = fs.Length;
         var buffer = new byte[length];
-        fs.Read(buffer.AsSpan());
+        fs.ReadExactly(buffer.AsSpan());
 
         var root = TinyhandParser.Parse(buffer, TinyhandParserOptions.ContextualInformation);
         var b = TinyhandComposer.Compose(root, TinyhandComposeOption.UseContextualInformation);

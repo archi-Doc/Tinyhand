@@ -48,7 +48,7 @@ public class Program
             using var fs = new FileStream(file, FileMode.Open);
             var length = fs.Length;
             buffer = new byte[length];
-            fs.Read(buffer.AsSpan());
+            fs.ReadExactly(buffer.AsSpan());
         }
         catch
         {
