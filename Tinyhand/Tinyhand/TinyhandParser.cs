@@ -260,7 +260,7 @@ public static class TinyhandParser
         using var fs = new FileStream(fileName, FileMode.Open);
         var length = fs.Length;
         var buffer = new byte[length];
-        fs.Read(buffer.AsSpan());
+        fs.ReadExactly(buffer.AsSpan());
 
         return Parse(buffer, options);
     }
@@ -271,7 +271,7 @@ public static class TinyhandParser
         using var fs = new FileStream(fileName, FileMode.Open);
         var length = fs.Length;
         var buffer = new byte[length];
-        await fs.ReadAsync(buffer.AsMemory());
+        await fs.ReadExactlyAsync(buffer.AsMemory());
 
         return Parse(buffer, options);
     }
