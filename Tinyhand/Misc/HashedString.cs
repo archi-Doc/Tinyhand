@@ -183,7 +183,7 @@ public static class HashedString
     {
         cultureName = ShortNameToCultureName(cultureName);
 
-        lock (syncObject)
+        using (lockObject.EnterScope())
         {
             defaultCultureName = cultureName;
 
@@ -212,7 +212,7 @@ public static class HashedString
 
         var cultureInfo = new CultureInfo(cultureName);
 
-        lock (syncObject)
+        using (lockObject.EnterScope())
         {
             if (!cultureTable.TryGetValue(cultureName, out var table))
             {
@@ -228,7 +228,7 @@ public static class HashedString
 
     public static void Clear()
     {
-        lock (syncObject)
+        using (lockObject.EnterScope())
         {
             foreach (var x in cultureTable.ToArray())
             {
@@ -247,7 +247,7 @@ public static class HashedString
     {
         using (var fs = File.OpenRead(tinyhandPath))
         {
-            lock (syncObject)
+            using (lockObject.EnterScope())
             {
                 Load(culture, fs, reset);
             }
@@ -262,7 +262,7 @@ public static class HashedString
     /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
     public static void LoadStream(string culture, Stream stream, bool reset = false)
     {
-        lock (syncObject)
+        using (lockObject.EnterScope())
         {
             Load(culture, stream, reset);
         }
@@ -285,7 +285,7 @@ public static class HashedString
                 throw new FileNotFoundException();
             }
 
-            lock (syncObject)
+            using (lockObject.EnterScope())
             {
                 Load(culture, stream, reset);
             }
@@ -382,7 +382,7 @@ public static class HashedString
         return alternative;
     }
 
-    private static object syncObject = new();
+    private static Lock lockObject = new();
     private static UInt64Hashtable<string> currentCultureTable; // Current culture data (name to string).
     private static UInt64Hashtable<string> defaultCultureTable; // Default culture data (name to string).
     private static Utf16Hashtable<UInt64Hashtable<string>> cultureTable; // Culture and data (culture to Utf16Hashtable<string>).

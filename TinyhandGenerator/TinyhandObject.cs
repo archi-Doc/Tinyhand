@@ -962,10 +962,19 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 {// Not reference type
                     this.Body.ReportDiagnostic(TinyhandBody.Error_LockObject2, this.Location);
                 }
-                else if (typeObject.FullName == TinyhandBody.ILockable ||
+
+                if (typeObject.FullName == TinyhandBody.ILockable ||
                     typeObject.AllInterfaces.Any(x => x == TinyhandBody.ILockable))
                 {// ILockable
-                    this.ObjectAttribute!.LockObjectIsLockable = true;
+                    this.ObjectAttribute!.LockObjectType = LockObjectType.Lockable;
+                }
+                else if (typeObject.FullName == TinyhandBody.LockName)
+                {
+                    this.ObjectAttribute!.LockObjectType = LockObjectType.Lock;
+                }
+                else
+                {
+                    this.ObjectAttribute!.LockObjectType = LockObjectType.Object;
                 }
             }
         }
@@ -2194,9 +2203,14 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"var {TinyhandBody.LockTaken} = false;");
                 lockScope = ssb.ScopeBrace("try");
 
-                if (this.ObjectAttribute!.LockObjectIsLockable)
+                if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
                 {
                     ssb.AppendLine($"{TinyhandBody.LockTaken} = {ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Enter();");
+                }
+                else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+                {
+                    ssb.AppendLine($"{ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Enter();");
+                    ssb.AppendLine($"{TinyhandBody.LockTaken} = true;");
                 }
                 else
                 {
@@ -2221,9 +2235,13 @@ ModuleInitializerClass_Added:
                 lockScope.Dispose();
                 using (var finallyScope = ssb.ScopeBrace("finally"))
                 {
-                    if (this.ObjectAttribute!.LockObjectIsLockable)
+                    if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
                     {
                         ssb.AppendLine($"if ({TinyhandBody.LockTaken}) {ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Exit();");
+                    }
+                    else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+                    {
+                        ssb.AppendLine($"{ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Exit();");
                     }
                     else
                     {
@@ -2547,9 +2565,13 @@ ModuleInitializerClass_Added:
     {
         if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
         {
-            if (this.ObjectAttribute!.LockObjectIsLockable)
+            if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
             {
                 ssb.AppendLine($"if ({TinyhandBody.LockObject} != null) {TinyhandBody.LockTaken} = {TinyhandBody.LockObject}.Enter();");
+            }
+            else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+            {
+                ssb.AppendLine($"if ({TinyhandBody.LockObject} != null) {{ {TinyhandBody.LockObject}.Enter(); {TinyhandBody.LockTaken} = true; }}");
             }
             else
             {
@@ -2562,7 +2584,8 @@ ModuleInitializerClass_Added:
     {
         if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
         {
-            if (this.ObjectAttribute!.LockObjectIsLockable)
+            if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable ||
+                this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
             {
                 ssb.AppendLine($"if ({TinyhandBody.LockTaken}) {TinyhandBody.LockObject}!.Exit();");
             }
@@ -2901,9 +2924,13 @@ ModuleInitializerClass_Added:
             return null;
         }
 
-        if (this.ObjectAttribute!.LockObjectIsLockable)
+        if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
         {
             return $"using ({objectName}.{this.ObjectAttribute!.LockObject}!.Lock())";
+        }
+        else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+        {
+            return $"using ({objectName}.{this.ObjectAttribute!.LockObject}!.EnterScope())";
         }
         else
         {
