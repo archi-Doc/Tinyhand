@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Tinyhand.IO;
 
 namespace Tinyhand;
@@ -23,7 +24,7 @@ public class JournalTester : IStructualRoot
 
     public byte[] GetJournal()
     {
-        lock (this.syncObject)
+        using (this.lockObject.EnterScope())
         {
             return this.buffer.AsSpan(0, this.position).ToArray();
         }
@@ -61,7 +62,7 @@ public class JournalTester : IStructualRoot
         span[1] = (byte)(length >> 8);
         span[0] = (byte)(length >> 16);
 
-        lock (this.syncObject)
+        using (this.lockObject.EnterScope())
         {
             if ((this.buffer.Length - this.position) >= span.Length)
             {
@@ -81,7 +82,7 @@ public class JournalTester : IStructualRoot
 
     public int JournalLength { get; init; }
 
-    private object syncObject = new();
+    private Lock lockObject = new();
     private byte[] buffer;
     private int position;
 }

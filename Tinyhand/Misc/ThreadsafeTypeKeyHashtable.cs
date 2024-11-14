@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1214 // Readonly fields should appear before non-readonly fields
@@ -20,7 +21,7 @@ public class ThreadsafeTypeKeyHashtable<TValue>
     private Entry[] buckets;
     private int size; // only use in writer lock
 
-    private readonly object writerLock = new object();
+    private readonly Lock writerLock = new();
     private readonly float loadFactor;
 
     // IEqualityComparer.Equals is overhead if key only Type, don't use it.
@@ -45,7 +46,7 @@ public class ThreadsafeTypeKeyHashtable<TValue>
 
     private bool TryAddInternal(Type key, Func<Type, TValue> valueFactory, out TValue resultingValue)
     {
-        lock (this.writerLock)
+        using (this.writerLock.EnterScope())
         {
             var nextCapacity = CalculateCapacity(this.size + 1, this.loadFactor);
 

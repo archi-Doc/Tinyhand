@@ -41,9 +41,6 @@ public partial class TestClass3<T>
 
     [Key(2)]
     public byte[] C { get; set; } = Array.Empty<byte>();
-
-    [Key(3)]
-    public TrustSource<IPEndPoint?> D { get; set; } = default!;
 }
 
 [TinyhandObject]
@@ -156,15 +153,6 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        var ts = new TrustSource<IPEndPoint?>(4, 2);
-        var e = new IPEndPoint(IPAddress.Loopback, 1234);
-        ts.Add(e);
-        var st = TinyhandSerializer.SerializeToString(ts);
-        var ts3 = TinyhandSerializer.DeserializeFromString<TrustSource<IPEndPoint?>>(st);
-
-        var bin = TinyhandSerializer.Serialize(ts);
-        var ts2 = TinyhandSerializer.Deserialize<TrustSource<IPEndPoint?>>(bin);
-
         Console.WriteLine("Hello, World!");
     }
 }

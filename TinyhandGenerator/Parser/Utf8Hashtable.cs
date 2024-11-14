@@ -133,7 +133,7 @@ internal class Utf8Hashtable<TValue>
     }
 
     private bool AddItem(Item[] table, Item item)
-    { // lock(cs) required.
+    { // lock (cs) required.
         var h = item.Hash & (table.Length - 1);
 
         if (table[h] == null)
@@ -165,7 +165,7 @@ internal class Utf8Hashtable<TValue>
     }
 
     private bool AddKeyValue(ReadOnlySpan<byte> key, TValue value)
-    { // lock(cs) required.
+    { // lock (cs) required.
         var table = this.hashTable;
         var hash = unchecked((int)FarmHash.Hash64(key));
         var h = hash & (table.Length - 1);
@@ -201,7 +201,7 @@ internal class Utf8Hashtable<TValue>
     }
 
     private bool AddKeyValue(byte[] key, TValue value)
-    { // lock(cs) required.
+    { // lock (cs) required.
         var table = this.hashTable;
         var hash = unchecked((int)FarmHash.Hash64(key));
         var h = hash & (table.Length - 1);

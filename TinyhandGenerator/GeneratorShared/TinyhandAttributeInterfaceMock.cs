@@ -17,6 +17,14 @@ public enum PropertyAccessibility
     GetterOnly,
 }
 
+public enum LockObjectType
+{
+    NoLock,
+    Object,
+    Lock,
+    Lockable,
+}
+
 public sealed class TinyhandObjectAttributeMock
 {
     public static readonly string SimpleName = "TinyhandObject";
@@ -137,7 +145,7 @@ public sealed class TinyhandObjectAttributeMock
         return attribute;
     }
 
-    public bool LockObjectIsLockable { get; set; }
+    public LockObjectType LockObjectType { get; set; }
 }
 
 public class KeyAttributeMock

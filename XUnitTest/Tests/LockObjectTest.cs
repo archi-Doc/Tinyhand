@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System.Threading;
 using Arc.Threading;
 using Tinyhand;
 
@@ -82,4 +83,13 @@ public partial class LockObjectClass4
 [TinyhandObject]
 public partial class LockObjectClass5 : LockObjectClass4
 {
+}
+
+[TinyhandObject(LockObject = "lockObject")]
+public partial class LockObjectClass6
+{
+    [Key(0)]
+    public int X { get; set; }
+
+    protected Lock lockObject = new();
 }
