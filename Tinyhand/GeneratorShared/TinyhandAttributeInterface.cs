@@ -288,17 +288,19 @@ public sealed class TinyhandGeneratorOptionAttribute : Attribute
 public interface ITinyhandSerializationCallback
 {
     /// <summary>
-    /// Called after the object is reconstructed (an instance was created but not deserialized).
+    /// Called immediately after the object is reconstructed (an instance was created but not deserialized).
     /// </summary>
     void OnAfterReconstruct();
 
     /// <summary>
-    /// Called after the object is deserialized.
+    /// Called after the object is deserialized.<br/>
+    /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
     /// </summary>
     void OnAfterDeserialize();
 
     /// <summary>
-    /// Called before the object is serialized.
+    /// Called before the object is serialized.<br/>
+    /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
     /// </summary>
     void OnBeforeSerialize();
 }

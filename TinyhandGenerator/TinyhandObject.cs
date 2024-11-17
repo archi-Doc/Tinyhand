@@ -2495,9 +2495,6 @@ ModuleInitializerClass_Added:
             {// Int Key
                 this.GenerateDeserializerIntKey(ssb, info);
             }
-
-            // ITinyhandSerializationCallback.OnAfterDeserialize
-            this.Generate_OnAfterDeserialize(ssb, info);
         }
     }
 
@@ -2545,9 +2542,6 @@ ModuleInitializerClass_Added:
             {// Int Key
                 this.GenerateDeserializerIntKey(ssb, info);
             }
-
-            // ITinyhandSerializationCallback.OnAfterDeserialize
-            this.Generate_OnAfterDeserialize(ssb, info);
         }
     }
 
@@ -4157,17 +4151,15 @@ ModuleInitializerClass_Added:
             this.GenerateReconstructRemaining(ssb, info);
         }
 
-        if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
-        {// LockObject
-            using (var finallyScope = ssb.ScopeBrace("finally"))
-            {
-                this.GenerateDeserialize_LockExit(ssb, info);
-                ssb.AppendLine("reader.Depth--;");
-            }
-        }
-        else
+        using (var finallyScope = ssb.ScopeBrace("finally"))
         {
-            ssb.AppendLine("finally { reader.Depth--; }");
+            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
+            if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+            {// LockObject
+                this.GenerateDeserialize_LockExit(ssb, info);
+            }
+
+            ssb.AppendLine("reader.Depth--;");
         }
     }
 
@@ -4232,17 +4224,15 @@ ModuleInitializerClass_Added:
             this.GenerateReconstructRemaining(ssb, info);
         }
 
-        if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
-        {// LockObject
-            using (var finallyScope = ssb.ScopeBrace("finally"))
-            {
-                this.GenerateDeserialize_LockExit(ssb, info);
-                ssb.AppendLine("reader.Depth--;");
-            }
-        }
-        else
+        using (var finallyScope = ssb.ScopeBrace("finally"))
         {
-            ssb.AppendLine("finally { reader.Depth--; }");
+            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
+            if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+            {// LockObject
+                this.GenerateDeserialize_LockExit(ssb, info);
+            }
+
+            ssb.AppendLine("reader.Depth--;");
         }
     }
 
