@@ -10,43 +10,27 @@ namespace Tinyhand;
 public static partial class TinyhandSerializerExtensions
 {
     /// <summary>
-    /// Serializes the specified value using the provided TinyhandWriter and options.
+    /// Calculates the XXHash3 hash value for the specified value.
     /// </summary>
-    /// <param name="value">The value to serialize.</param>
-    /// <param name="writer">The TinyhandWriter to use for serialization.</param>
-    /// <param name="options">The serialization options. If null, default options will be used.</param>
-    /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
-    public static void Serialize(this ITinyhandSerialize value, ref TinyhandWriter writer, TinyhandSerializerOptions? options = null)
+    /// <param name="value">The value to calculate the hash for.</param>
+    /// <returns>The XXHash3 hash value.</returns>
+    public static ulong GetXxHash3(this ITinyhandSerialize value)
     {
-        options = options ?? TinyhandSerializer.DefaultOptions;
+        TinyhandSerializer.EnsureInitialBuffer();
+        var writer = new TinyhandWriter(TinyhandSerializer.InitialBuffer);
         try
         {
-            if (options.HasLz4CompressFlag)
-            {
-                if (TinyhandSerializer.InitialBuffer2 == null)
-                {
-                    TinyhandSerializer.InitialBuffer2 = new byte[TinyhandSerializer.InitialBufferSize];
-                }
-
-                var w = writer.Clone(TinyhandSerializer.InitialBuffer2);
-                try
-                {
-                    value.Serialize(ref w, options);
-                    TinyhandSerializer.ToLZ4BinaryCore(w.FlushAndGetReadOnlySequence(), ref writer);
-                }
-                finally
-                {
-                    w.Dispose();
-                }
-            }
-            else
-            {
-                value.Serialize(ref writer, options);
-            }
+            value.Serialize(ref writer, TinyhandSerializer.DefaultOptions);
+            writer.FlushAndGetReadOnlySpan(out var span, out _);
+            return Arc.Crypto.XxHash3.Hash64(span);
         }
-        catch (Exception ex)
+        catch
         {
-            throw new TinyhandException($"Failed to serialize the value.", ex);
+            return 0;
+        }
+        finally
+        {
+            writer.Dispose();
         }
     }
 
@@ -59,15 +43,11 @@ public static partial class TinyhandSerializerExtensions
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
     public static byte[] Serialize(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
     {
-        if (TinyhandSerializer.InitialBuffer == null)
-        {
-            TinyhandSerializer.InitialBuffer = new byte[TinyhandSerializer.InitialBufferSize];
-        }
-
+        TinyhandSerializer.EnsureInitialBuffer();
         var writer = new TinyhandWriter(TinyhandSerializer.InitialBuffer);
         try
         {
-            Serialize(value, ref writer, options);
+            SerializeInternal(value, ref writer, options);
             return writer.FlushAndGetArray();
         }
         finally
@@ -88,7 +68,51 @@ public static partial class TinyhandSerializerExtensions
         var writer = TinyhandWriter.CreateFromBytePool();
         try
         {
-            Serialize(value, ref writer, options);
+            SerializeInternal(value, ref writer, options);
+            return writer.FlushAndGetRentMemory();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Serializes a given value in signature mode.
+    /// </summary>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
+    /// <returns>A byte array with the serialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    public static byte[] SerializeSignature(this ITinyhandSerialize value, int level)
+    {
+        TinyhandSerializer.EnsureInitialBuffer();
+        var writer = new TinyhandWriter(TinyhandSerializer.InitialBuffer) { Level = level, };
+        try
+        {
+            SerializeInternal(value, ref writer, TinyhandSerializerOptions.Signature);
+            return writer.FlushAndGetArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Serializes a given value in signature mode.
+    /// </summary>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
+    /// <returns>A byte array with the serialized value.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    public static BytePool.RentMemory SerializeSignatureToRentMemory(this ITinyhandSerialize value, int level)
+    {
+        var writer = TinyhandWriter.CreateFromBytePool();
+        writer.Level = level;
+        try
+        {
+            SerializeInternal(value, ref writer, TinyhandSerializerOptions.Signature);
             return writer.FlushAndGetRentMemory();
         }
         finally
@@ -139,5 +163,46 @@ public static partial class TinyhandSerializerExtensions
     {
         var reader = new TinyhandReader(data);
         return value.TryDeserialize(ref reader, options);
+    }
+
+    /// <summary>
+    /// Serializes the specified value using the provided TinyhandWriter and options.
+    /// </summary>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="writer">The TinyhandWriter to use for serialization.</param>
+    /// <param name="options">The serialization options. If null, default options will be used.</param>
+    /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
+    internal static void SerializeInternal(this ITinyhandSerialize value, ref TinyhandWriter writer, TinyhandSerializerOptions? options = null)
+    {
+        options = options ?? TinyhandSerializer.DefaultOptions;
+        try
+        {
+            if (options.HasLz4CompressFlag)
+            {
+                if (TinyhandSerializer.InitialBuffer2 == null)
+                {
+                    TinyhandSerializer.InitialBuffer2 = new byte[TinyhandSerializer.InitialBufferSize];
+                }
+
+                var w = writer.Clone(TinyhandSerializer.InitialBuffer2);
+                try
+                {
+                    value.Serialize(ref w, options);
+                    TinyhandSerializer.ToLZ4BinaryCore(w.FlushAndGetReadOnlySequence(), ref writer);
+                }
+                finally
+                {
+                    w.Dispose();
+                }
+            }
+            else
+            {
+                value.Serialize(ref writer, options);
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new TinyhandException($"Failed to serialize the value.", ex);
+        }
     }
 }

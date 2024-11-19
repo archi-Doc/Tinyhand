@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -44,6 +45,13 @@ public static class TinyhandHelper
     public static Utf8Hashtable<int> ReservedTable { get; } = new();
 
     public static Utf8Hashtable<TinyhandModifierType> ModifierTable { get; } = new();
+
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowNoServiceException(Type type)
+    {
+        throw new TinyhandException($"There is no service of type: {type.FullName}");
+    }
 
     public static ReadOnlySpan<byte> GetUnescapedSpan(ReadOnlySpan<byte> utf8Source)
     {

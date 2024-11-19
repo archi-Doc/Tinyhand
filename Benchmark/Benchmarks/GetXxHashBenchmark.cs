@@ -62,6 +62,10 @@ public class GetXxHashBenchmark
         => TinyhandSerializer.GetXxHash3(this.objectH2H);
 
     [Benchmark]
+    public ulong GetXxHash3i()
+        => this.objectH2H.GetXxHash3();
+
+    [Benchmark]
     public ulong GetXxHash3a()
         => GetXxHash3a(this.objectH2H);
 
