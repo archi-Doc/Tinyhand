@@ -16,7 +16,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="writer">The TinyhandWriter to use for serialization.</param>
     /// <param name="options">The serialization options. If null, default options will be used.</param>
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
-    public static void SerializeInterface(this ITinyhandSerialize value, ref TinyhandWriter writer, TinyhandSerializerOptions? options = null)
+    public static void Serialize(this ITinyhandSerialize value, ref TinyhandWriter writer, TinyhandSerializerOptions? options = null)
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
         try
@@ -57,7 +57,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="options">The serialization options. If null, default options will be used.</param>
     /// <returns>A byte array containing the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
-    public static byte[] SerializeInterface(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
+    public static byte[] Serialize(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
     {
         if (TinyhandSerializer.InitialBuffer == null)
         {
@@ -67,7 +67,7 @@ public static partial class TinyhandSerializerExtensions
         var writer = new TinyhandWriter(TinyhandSerializer.InitialBuffer);
         try
         {
-            value.SerializeInterface(ref writer, options);
+            Serialize(value, ref writer, options);
             return writer.FlushAndGetArray();
         }
         finally
@@ -83,12 +83,12 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="options">The serialization options. If null, default options will be used.</param>
     /// <returns>A <see cref="BytePool.RentMemory"/> containing the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
-    public static BytePool.RentMemory SerializeInterfaceToRentMemory(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
+    public static BytePool.RentMemory SerializeToRentMemory(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
     {
         var writer = TinyhandWriter.CreateFromBytePool();
         try
         {
-            value.SerializeInterface(ref writer, options);
+            Serialize(value, ref writer, options);
             return writer.FlushAndGetRentMemory();
         }
         finally
@@ -97,7 +97,7 @@ public static partial class TinyhandSerializerExtensions
         }
     }
 
-    public static bool TryDeserializeInterface(this ITinyhandSerialize value, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+    public static bool TryDeserialize(this ITinyhandSerialize value, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
         try
@@ -135,9 +135,9 @@ public static partial class TinyhandSerializerExtensions
         }
     }
 
-    public static bool TryDeserializeInterface(this ITinyhandSerialize value, ReadOnlySpan<byte> data, TinyhandSerializerOptions? options = null)
+    public static bool TryDeserialize(this ITinyhandSerialize value, ReadOnlySpan<byte> data, TinyhandSerializerOptions? options = null)
     {
         var reader = new TinyhandReader(data);
-        return value.TryDeserializeInterface(ref reader, options);
+        return value.TryDeserialize(ref reader, options);
     }
 }

@@ -15,12 +15,16 @@ public class InterfaceTest
     public void Test1()
     {
         var c = new InterfaceTestClass(1, "A");
-        var byteArray = c.SerializeInterface();
-        var rentMemory = c.SerializeInterfaceToRentMemory();
+        var byteArray = c.Serialize();
+        var rentMemory = c.SerializeToRentMemory();
         rentMemory.Span.SequenceEqual(byteArray.AsSpan()).IsTrue();
 
         var d = new InterfaceTestClass(0, string.Empty);
-        d.TryDeserializeInterface(byteArray.AsSpan());
+        d.TryDeserialize(byteArray.AsSpan());
+        d.Equals(c).IsTrue();
+
+        byteArray = c.Serialize(TinyhandSerializerOptions.Lz4);
+        d.TryDeserialize(byteArray.AsSpan());
         d.Equals(c).IsTrue();
     }
 }
