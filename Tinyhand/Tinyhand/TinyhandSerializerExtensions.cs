@@ -7,7 +7,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
-public static partial class TinyhandSerializer
+public static partial class TinyhandSerializerExtensions
 {
     /// <summary>
     /// Serializes the specified value using the provided TinyhandWriter and options.
@@ -18,21 +18,21 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
     public static void SerializeInterface(this ITinyhandSerialize value, ref TinyhandWriter writer, TinyhandSerializerOptions? options = null)
     {
-        options = options ?? DefaultOptions;
+        options = options ?? TinyhandSerializer.DefaultOptions;
         try
         {
             if (options.HasLz4CompressFlag)
             {
-                if (initialBuffer2 == null)
+                if (TinyhandSerializer.InitialBuffer2 == null)
                 {
-                    initialBuffer2 = new byte[InitialBufferSize];
+                    TinyhandSerializer.InitialBuffer2 = new byte[TinyhandSerializer.InitialBufferSize];
                 }
 
-                var w = writer.Clone(initialBuffer2);
+                var w = writer.Clone(TinyhandSerializer.InitialBuffer2);
                 try
                 {
                     value.Serialize(ref w, options);
-                    ToLZ4BinaryCore(w.FlushAndGetReadOnlySequence(), ref writer);
+                    TinyhandSerializer.ToLZ4BinaryCore(w.FlushAndGetReadOnlySequence(), ref writer);
                 }
                 finally
                 {
@@ -59,12 +59,12 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
     public static byte[] SerializeInterface(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
     {
-        if (initialBuffer == null)
+        if (TinyhandSerializer.InitialBuffer == null)
         {
-            initialBuffer = new byte[InitialBufferSize];
+            TinyhandSerializer.InitialBuffer = new byte[TinyhandSerializer.InitialBufferSize];
         }
 
-        var writer = new TinyhandWriter(initialBuffer);
+        var writer = new TinyhandWriter(TinyhandSerializer.InitialBuffer);
         try
         {
             value.SerializeInterface(ref writer, options);
@@ -99,7 +99,7 @@ public static partial class TinyhandSerializer
 
     public static bool TryDeserializeInterface(this ITinyhandSerialize value, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
     {
-        options = options ?? DefaultOptions;
+        options = options ?? TinyhandSerializer.DefaultOptions;
         try
         {
             if (options.HasLz4CompressFlag)
@@ -107,7 +107,7 @@ public static partial class TinyhandSerializer
                 var byteSequence = new ByteSequence();
                 try
                 {
-                    if (TryDecompress(ref reader, byteSequence))
+                    if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
                     {
                         var r = reader.Clone(byteSequence.ToReadOnlySpan());
                         value.Deserialize(ref r, options);

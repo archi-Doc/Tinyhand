@@ -29,10 +29,14 @@ public static partial class TinyhandSerializer
     /// <summary>
     /// A thread-local, recyclable array that may be used for short bursts of code.
     /// </summary>
+#pragma warning disable SA1401
+#pragma warning disable SA1202
     [ThreadStatic]
-    private static byte[]? initialBuffer;
+    internal static byte[]? InitialBuffer;
     [ThreadStatic]
-    private static byte[]? initialBuffer2;
+    internal static byte[]? InitialBuffer2;
+#pragma warning restore SA1202
+#pragma warning restore SA1401
 
     /// <summary>
     /// Gets or sets <see cref="IServiceProvider"/> that is used to create an instance with  <see cref="TinyhandObjectAttribute.UseServiceProvider"/> set to true.
@@ -117,12 +121,12 @@ public static partial class TinyhandSerializer
     public static byte[] SerializeObject<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
-        if (initialBuffer == null)
+        if (InitialBuffer == null)
         {
-            initialBuffer = new byte[InitialBufferSize];
+            InitialBuffer = new byte[InitialBufferSize];
         }
 
-        var writer = new TinyhandWriter(initialBuffer);
+        var writer = new TinyhandWriter(InitialBuffer);
         try
         {
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
@@ -142,12 +146,12 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerialize<T>
     {
         options = options ?? DefaultOptions;
-        if (initialBuffer == null)
+        if (InitialBuffer == null)
         {
-            initialBuffer = new byte[InitialBufferSize];
+            InitialBuffer = new byte[InitialBufferSize];
         }
 
-        var writer = new TinyhandWriter(initialBuffer);
+        var writer = new TinyhandWriter(InitialBuffer);
         try
         {
             if (!options.HasLz4CompressFlag)
@@ -391,12 +395,12 @@ public static partial class TinyhandSerializer
     public static byte[] Serialize<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
         options = options ?? DefaultOptions;
-        if (initialBuffer == null)
+        if (InitialBuffer == null)
         {
-            initialBuffer = new byte[InitialBufferSize];
+            InitialBuffer = new byte[InitialBufferSize];
         }
 
-        var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+        var writer = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken };
         try
         {
             if (!options.HasLz4CompressFlag)
@@ -470,12 +474,12 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeSignature<T>(T value, int level, CancellationToken cancellationToken = default)
     {
-        if (initialBuffer == null)
+        if (InitialBuffer == null)
         {
-            initialBuffer = new byte[InitialBufferSize];
+            InitialBuffer = new byte[InitialBufferSize];
         }
 
-        var writer = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken, Level = level, };
+        var writer = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken, Level = level, };
         try
         {
             var options = TinyhandSerializerOptions.Signature;
@@ -506,12 +510,12 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static void Serialize<T>(Stream stream, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        if (initialBuffer == null)
+        if (InitialBuffer == null)
         {
-            initialBuffer = new byte[InitialBufferSize];
+            InitialBuffer = new byte[InitialBufferSize];
         }
 
-        var w = new TinyhandWriter(initialBuffer) { CancellationToken = cancellationToken };
+        var w = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken };
         try
         {
             Serialize(ref w, value, options);
@@ -550,12 +554,12 @@ public static partial class TinyhandSerializer
         {
             if (options.HasLz4CompressFlag && !PrimitiveChecker<T>.IsTinyhandFixedSizePrimitive)
             {
-                if (initialBuffer2 == null)
+                if (InitialBuffer2 == null)
                 {
-                    initialBuffer2 = new byte[InitialBufferSize];
+                    InitialBuffer2 = new byte[InitialBufferSize];
                 }
 
-                var w = writer.Clone(initialBuffer2);
+                var w = writer.Clone(InitialBuffer2);
                 try
                 {
                     options.Resolver.GetFormatter<T>().Serialize(ref w, value, options);
@@ -933,6 +937,34 @@ public static partial class TinyhandSerializer
         return false;
     }
 
+    internal static void ToLZ4BinaryCore(scoped in ReadOnlySequence<byte> msgpackUncompressedData, ref TinyhandWriter writer)
+    {
+        // Write to [Ext(98:int,int...), bin,bin,bin...]
+        var sequenceCount = 0;
+        var extHeaderSize = 0;
+        foreach (var item in msgpackUncompressedData)
+        {
+            sequenceCount++;
+            extHeaderSize += GetUInt32WriteSize((uint)item.Length);
+        }
+
+        writer.WriteArrayHeader(sequenceCount + 1);
+        writer.WriteExtensionFormatHeader(new ExtensionHeader(Tinyhand.MessagePackExtensionCodes.Lz4BlockArray, extHeaderSize));
+        foreach (var item in msgpackUncompressedData)
+        {
+            writer.Write(item.Length);
+        }
+
+        foreach (var item in msgpackUncompressedData)
+        {
+            var maxCompressedLength = MessagePack.LZ4.LZ4Codec.MaximumOutputLength(item.Length);
+            var lz4Span = writer.GetSpan(maxCompressedLength + 5);
+            int lz4Length = MessagePack.LZ4.LZ4Codec.Encode(item.Span, lz4Span.Slice(5, lz4Span.Length - 5));
+            WriteBin32Header((uint)lz4Length, lz4Span);
+            writer.Advance(lz4Length + 5);
+        }
+    }
+
     private static bool TryDeserializeFromMemoryStream<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken, out T? result)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -971,34 +1003,6 @@ public static partial class TinyhandSerializer
         }
 
         return result;
-    }
-
-    private static void ToLZ4BinaryCore(scoped in ReadOnlySequence<byte> msgpackUncompressedData, ref TinyhandWriter writer)
-    {
-        // Write to [Ext(98:int,int...), bin,bin,bin...]
-        var sequenceCount = 0;
-        var extHeaderSize = 0;
-        foreach (var item in msgpackUncompressedData)
-        {
-            sequenceCount++;
-            extHeaderSize += GetUInt32WriteSize((uint)item.Length);
-        }
-
-        writer.WriteArrayHeader(sequenceCount + 1);
-        writer.WriteExtensionFormatHeader(new ExtensionHeader(Tinyhand.MessagePackExtensionCodes.Lz4BlockArray, extHeaderSize));
-        foreach (var item in msgpackUncompressedData)
-        {
-            writer.Write(item.Length);
-        }
-
-        foreach (var item in msgpackUncompressedData)
-        {
-            var maxCompressedLength = MessagePack.LZ4.LZ4Codec.MaximumOutputLength(item.Length);
-            var lz4Span = writer.GetSpan(maxCompressedLength + 5);
-            int lz4Length = MessagePack.LZ4.LZ4Codec.Encode(item.Span, lz4Span.Slice(5, lz4Span.Length - 5));
-            WriteBin32Header((uint)lz4Length, lz4Span);
-            writer.Advance(lz4Length + 5);
-        }
     }
 
     private static int GetUInt32WriteSize(uint value)
