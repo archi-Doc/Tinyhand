@@ -156,6 +156,11 @@ csharp_new_line_before_members_in_anonymous_types = true
 # Blocks are allowed
 csharp_prefer_braces = true:silent
 
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = silent
+# CS1998: Async method lacks 'await' operators and will run synchronously
+dotnet_diagnostic.CS1998.severity = silent
+
 dotnet_diagnostic.SA1000.severity = silent
 # SA1011: Closing square brackets should be spaced correctly
 dotnet_diagnostic.SA1011.severity = silent
@@ -177,13 +182,17 @@ dotnet_diagnostic.SA1600.severity = suggestion
 dotnet_diagnostic.SA1601.severity = suggestion
 # CS1573: Parameter has no matching param tag in the XML comment
 dotnet_diagnostic.CS1573.severity = silent
-# CS1591: Missing XML comment for publicly visible type or member
-dotnet_diagnostic.CS1591.severity = silent
 # SA1649: File name should match first type name
 dotnet_diagnostic.SA1649.severity = silent
 
 dotnet_diagnostic.SA1591.severity = suggestion
-dotnet_diagnostic.SA1010.severity = suggestion
+dotnet_diagnostic.SA1602.severity = suggestion
+dotnet_diagnostic.SA1405.severity = suggestion
+dotnet_diagnostic.SA1300.severity = suggestion
+dotnet_diagnostic.SA1302.severity = suggestion
+dotnet_diagnostic.SA1124.severity = suggestion
+dotnet_diagnostic.SA1010.severity = silent
+
 
 [*.{cs,vb}]
 csharp_style_namespace_declarations=file_scoped:warning
