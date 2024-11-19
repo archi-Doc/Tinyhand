@@ -24,11 +24,7 @@ public static partial class TinyhandSerializer
     public static byte[] SerializeObjectToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerialize<T>
     {
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         options = options ?? DefaultOptions;
         var binary = SerializeObject(value, options);
         bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
@@ -99,13 +95,8 @@ public static partial class TinyhandSerializer
     public static void DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, scoped ref T? value, TinyhandSerializerOptions? options = null)
     where T : ITinyhandSerialize<T>
     {
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         options = options ?? DefaultOptions;
-
         var writer = new TinyhandWriter(InitialBuffer);
         try
         {
@@ -196,11 +187,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeToUtf8<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         options = options ?? DefaultOptions;
         var binary = Serialize<T>(value, options, cancellationToken);
         bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
@@ -253,11 +240,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         options = options ?? DefaultOptions;
 
         // Slow

@@ -61,12 +61,13 @@ public static partial class TinyhandSerializer
 
     private static IServiceProvider? serviceProvider;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static object GetService(Type type)
     {
         var instance = ServiceProvider.GetService(type);
         if (instance == null)
         {
-            throw new TinyhandException($"There is no service of type: {type.FullName}");
+            TinyhandHelper.ThrowNoServiceException(type);
         }
 
         return instance;
@@ -86,6 +87,10 @@ public static partial class TinyhandSerializer
     /// </remarks>
     public static TinyhandSerializerOptions DefaultOptions { get; set; } = TinyhandSerializerOptions.Standard;
 
+    #endregion
+
+    #region Object
+
     /// <summary>
     /// Calculates the XXHash3 hash value for the specified value.
     /// </summary>
@@ -95,14 +100,13 @@ public static partial class TinyhandSerializer
     public static ulong GetXxHash3<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
-        var writer = TinyhandWriter.CreateFromBytePool();
+        EnsureInitialBuffer();
+        var writer = new TinyhandWriter(InitialBuffer);
         try
         {
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
-            var rentMemory = writer.FlushAndGetRentMemory();
-            var hash = Arc.Crypto.XxHash3.Hash64(rentMemory.Span);
-            rentMemory.Return();
-            return hash;
+            writer.FlushAndGetReadOnlySpan(out var span, out _);
+            return Arc.Crypto.XxHash3.Hash64(span);
         }
         catch
         {
@@ -114,18 +118,10 @@ public static partial class TinyhandSerializer
         }
     }
 
-    #endregion
-
-    #region Object
-
     public static byte[] SerializeObject<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         var writer = new TinyhandWriter(InitialBuffer);
         try
         {
@@ -146,11 +142,7 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerialize<T>
     {
         options = options ?? DefaultOptions;
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         var writer = new TinyhandWriter(InitialBuffer);
         try
         {
@@ -395,11 +387,7 @@ public static partial class TinyhandSerializer
     public static byte[] Serialize<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
         options = options ?? DefaultOptions;
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         var writer = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken };
         try
         {
@@ -474,11 +462,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeSignature<T>(T value, int level, CancellationToken cancellationToken = default)
     {
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         var writer = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken, Level = level, };
         try
         {
@@ -510,11 +494,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static void Serialize<T>(Stream stream, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-
+        EnsureInitialBuffer();
         var w = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken };
         try
         {
@@ -554,11 +534,7 @@ public static partial class TinyhandSerializer
         {
             if (options.HasLz4CompressFlag && !PrimitiveChecker<T>.IsTinyhandFixedSizePrimitive)
             {
-                if (InitialBuffer2 == null)
-                {
-                    InitialBuffer2 = new byte[InitialBufferSize];
-                }
-
+                EnsureInitialBuffer2();
                 var w = writer.Clone(InitialBuffer2);
                 try
                 {
@@ -962,6 +938,26 @@ public static partial class TinyhandSerializer
             int lz4Length = MessagePack.LZ4.LZ4Codec.Encode(item.Span, lz4Span.Slice(5, lz4Span.Length - 5));
             WriteBin32Header((uint)lz4Length, lz4Span);
             writer.Advance(lz4Length + 5);
+        }
+    }
+
+    [MemberNotNull(nameof(InitialBuffer))]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void EnsureInitialBuffer()
+    {
+        if (InitialBuffer == null)
+        {
+            InitialBuffer = new byte[InitialBufferSize];
+        }
+    }
+
+    [MemberNotNull(nameof(InitialBuffer2))]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void EnsureInitialBuffer2()
+    {
+        if (InitialBuffer2 == null)
+        {
+            InitialBuffer2 = new byte[InitialBufferSize];
         }
     }
 
