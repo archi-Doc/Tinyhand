@@ -34,8 +34,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arc.Collections" Version="1.19.1" />
-    <PackageReference Include="Arc.Crypto" Version="1.30.0" />
+    <PackageReference Include="Arc.Collections" Version="1.19.2" />
+    <PackageReference Include="Arc.Crypto" Version="1.30.1" />
     <PackageReference Include="Arc.Unit" Version="0.17.1" />
     <PackageReference Include="FastExpressionCompiler" Version="4.2.2" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
