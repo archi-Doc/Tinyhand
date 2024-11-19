@@ -197,10 +197,10 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static T? DeserializeObject<T>(ReadOnlySpan<byte> buffer)
+    public static T? DeserializeObject<T>(ReadOnlySpan<byte> data)
         where T : ITinyhandSerialize<T>
     {
-        var reader = new TinyhandReader(buffer);
+        var reader = new TinyhandReader(data);
 
         try
         {
@@ -214,10 +214,10 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static void DeserializeObject<T>(ReadOnlySpan<byte> buffer, ref T? value)
+    public static void DeserializeObject<T>(ReadOnlySpan<byte> data, ref T? value)
         where T : ITinyhandSerialize<T>
     {
-        var reader = new TinyhandReader(buffer);
+        var reader = new TinyhandReader(data);
 
         try
         {
@@ -270,6 +270,23 @@ public static partial class TinyhandSerializer
 
         return value;
         // return value ?? options.Resolver.GetFormatter<T>().Reconstruct(options);
+    }
+
+    public static bool TryDeserializeObject<T>(ReadOnlySpan<byte> data, [MaybeNullWhen(false)] out T value)
+        where T : ITinyhandSerialize<T>
+    {
+        var reader = new TinyhandReader(data);
+        try
+        {
+            value = default;
+            T.Deserialize(ref reader, ref value, DefaultOptions);
+            return value is not null;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
     }
 
     #endregion

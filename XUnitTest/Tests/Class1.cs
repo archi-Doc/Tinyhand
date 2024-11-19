@@ -180,11 +180,33 @@ public partial class SimpleStringKeyData
     public ByteEnum Prop2 { get; set; }
 
     public int Prop3 { get; set; }
+
+    public bool Equals(SimpleStringKeyData other)
+    {
+        return this.Prop1 == other.Prop1 && this.Prop2 == other.Prop2 && this.Prop3 == other.Prop3;
+    }
 }
 
 [TinyhandObject]
 public partial struct SimpleStructIntKeyData
 {
+    public SimpleStructIntKeyData()
+    {
+        this.BytesSpecial = [];
+    }
+
+    public SimpleStructIntKeyData(int x, int y, byte[] bytesSpecial)
+    {
+        this.X = x;
+        this.Y = y;
+        this.BytesSpecial = bytesSpecial;
+    }
+
+    public bool Equals(SimpleStructIntKeyData other)
+    {
+        return this.X == other.X && this.Y == other.Y && this.BytesSpecial.SequenceEqual(other.BytesSpecial);
+    }
+
     [Key(0)]
     public int X { get; set; }
 
