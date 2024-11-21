@@ -25,11 +25,6 @@ public partial class ObjectH2H
 {
     public const int ArrayN = 10;
 
-    /*static ObjectH2H()
-    {
-        Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatter(new TinyhandObjectFormatter<ObjectH2H>());
-    }*/
-
     public ObjectH2H()
     {
         this.B = Enumerable.Range(0, ArrayN).ToArray();
@@ -178,7 +173,7 @@ public class H2HBenchmark
         return rentMemory;
     }
 
-    [Benchmark]
+    /*[Benchmark]
     public ObjectH2H DeserializeProtoBuf()
     {
         return ProtoBuf.Serializer.Deserialize<ObjectH2H>(this.data3.AsSpan());
@@ -248,7 +243,7 @@ public class H2HBenchmark
     public ObjectH2H2? DeserializeJsonUtf8()
     {
         return JsonSerializer.Deserialize<ObjectH2H2>(this.json);
-    }
+    }*/
 }
 
 [Config(typeof(BenchmarkConfig))]

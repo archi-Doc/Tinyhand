@@ -978,6 +978,14 @@ public static partial class TinyhandSerializer
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static byte[] GetThreadStaticBuffer()
+        => InitialBuffer ??= new byte[InitialBufferSize];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static byte[] GetThreadStaticBuffer2()
+        => InitialBuffer2 ??= new byte[InitialBufferSize];
+
     private static bool TryDeserializeFromMemoryStream<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken, out T? result)
     {
         cancellationToken.ThrowIfCancellationRequested();

@@ -23,6 +23,9 @@ public ref struct TinyhandWriter
     public static TinyhandWriter CreateFromBytePool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)
         => new(BytePool.Default.Rent(initialBufferSize));
 
+    public static TinyhandWriter CreateFromThreadStaticBuffer()
+        => new(TinyhandSerializer.GetThreadStaticBuffer());
+
     public TinyhandWriter(IBufferWriter<byte> writer)
     {
         this.writer = new ByteBufferWriter(writer);
