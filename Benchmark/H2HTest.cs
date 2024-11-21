@@ -12,7 +12,6 @@ using BenchmarkDotNet.Attributes;
 using ProtoBuf;
 using MemoryPack;
 using Tinyhand;
-using System;
 using Arc.Collections;
 
 namespace Benchmark.H2HTest;

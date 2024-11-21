@@ -29,14 +29,10 @@ public static partial class TinyhandSerializer
     /// <summary>
     /// A thread-local, recyclable array that may be used for short bursts of code.
     /// </summary>
-#pragma warning disable SA1401
-#pragma warning disable SA1202
     [ThreadStatic]
-    internal static byte[]? InitialBuffer;
+    private static byte[]? threadStaticBuffer;
     [ThreadStatic]
-    internal static byte[]? InitialBuffer2;
-#pragma warning restore SA1202
-#pragma warning restore SA1401
+    private static byte[]? threadStaticBuffer2;
 
     /// <summary>
     /// Gets or sets <see cref="IServiceProvider"/> that is used to create an instance with  <see cref="TinyhandObjectAttribute.UseServiceProvider"/> set to true.
@@ -100,8 +96,7 @@ public static partial class TinyhandSerializer
     public static ulong GetXxHash3<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
-        EnsureInitialBuffer();
-        var writer = new TinyhandWriter(InitialBuffer);
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
         {
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
@@ -121,8 +116,7 @@ public static partial class TinyhandSerializer
     public static byte[] SerializeObject<T>(in T? value)
         where T : ITinyhandSerialize<T>
     {
-        EnsureInitialBuffer();
-        var writer = new TinyhandWriter(InitialBuffer);
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
         {
             T.Serialize(ref writer, ref Unsafe.AsRef(in value), DefaultOptions);
@@ -142,8 +136,7 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerialize<T>
     {
         options = options ?? DefaultOptions;
-        EnsureInitialBuffer();
-        var writer = new TinyhandWriter(InitialBuffer);
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
         {
             if (!options.HasLz4CompressFlag)
@@ -404,8 +397,8 @@ public static partial class TinyhandSerializer
     public static byte[] Serialize<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
         options = options ?? DefaultOptions;
-        EnsureInitialBuffer();
-        var writer = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken };
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
+        writer.CancellationToken = cancellationToken;
         try
         {
             if (!options.HasLz4CompressFlag)
@@ -479,8 +472,9 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeSignature<T>(T value, int level, CancellationToken cancellationToken = default)
     {
-        EnsureInitialBuffer();
-        var writer = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken, Level = level, };
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
+        writer.CancellationToken = cancellationToken;
+        writer.Level = level;
         try
         {
             var options = TinyhandSerializerOptions.Signature;
@@ -511,15 +505,15 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static void Serialize<T>(Stream stream, T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        EnsureInitialBuffer();
-        var w = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken };
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
+        writer.CancellationToken = cancellationToken;
         try
         {
-            Serialize(ref w, value, options);
+            Serialize(ref writer, value, options);
 
             try
             {
-                foreach (var segment in w.FlushAndGetReadOnlySequence())
+                foreach (var segment in writer.FlushAndGetReadOnlySequence())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     stream.Write(segment.Span);
@@ -532,7 +526,7 @@ public static partial class TinyhandSerializer
         }
         finally
         {
-            w.Dispose();
+            writer.Dispose();
         }
     }
 
@@ -551,8 +545,7 @@ public static partial class TinyhandSerializer
         {
             if (options.HasLz4CompressFlag && !PrimitiveChecker<T>.IsTinyhandFixedSizePrimitive)
             {
-                EnsureInitialBuffer2();
-                var w = writer.Clone(InitialBuffer2);
+                var w = writer.Clone(GetThreadStaticBuffer2());
                 try
                 {
                     options.Resolver.GetFormatter<T>().Serialize(ref w, value, options);
@@ -958,33 +951,21 @@ public static partial class TinyhandSerializer
         }
     }
 
-    [MemberNotNull(nameof(InitialBuffer))]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void EnsureInitialBuffer()
-    {
-        if (InitialBuffer == null)
-        {
-            InitialBuffer = new byte[InitialBufferSize];
-        }
-    }
-
-    [MemberNotNull(nameof(InitialBuffer2))]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static void EnsureInitialBuffer2()
-    {
-        if (InitialBuffer2 == null)
-        {
-            InitialBuffer2 = new byte[InitialBufferSize];
-        }
-    }
-
+    /// <summary>
+    /// Gets a thread-static buffer with a size of <see cref="InitialBufferSize"/>.
+    /// </summary>
+    /// <returns>A byte array that can be used as a buffer.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static byte[] GetThreadStaticBuffer()
-        => InitialBuffer ??= new byte[InitialBufferSize];
+        => threadStaticBuffer ??= new byte[InitialBufferSize];
 
+    /// <summary>
+    /// Gets a thread-static buffer2 with a size of <see cref="InitialBufferSize"/>.
+    /// </summary>
+    /// <returns>A byte array that can be used as a buffer.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static byte[] GetThreadStaticBuffer2()
-        => InitialBuffer2 ??= new byte[InitialBufferSize];
+        => threadStaticBuffer2 ??= new byte[InitialBufferSize];
 
     private static bool TryDeserializeFromMemoryStream<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken, out T? result)
     {
