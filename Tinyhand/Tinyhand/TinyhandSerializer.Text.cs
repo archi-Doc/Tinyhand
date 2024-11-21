@@ -24,7 +24,6 @@ public static partial class TinyhandSerializer
     public static byte[] SerializeObjectToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerialize<T>
     {
-        EnsureInitialBuffer();
         options = options ?? DefaultOptions;
         var binary = SerializeObject(value, options);
         bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
@@ -37,7 +36,7 @@ public static partial class TinyhandSerializer
             omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
         }
 
-        var writer = new TinyhandRawWriter(InitialBuffer);
+        var writer = new TinyhandRawWriter(GetThreadStaticBuffer());
         try
         {
             TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
@@ -95,9 +94,8 @@ public static partial class TinyhandSerializer
     public static void DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, scoped ref T? value, TinyhandSerializerOptions? options = null)
     where T : ITinyhandSerialize<T>
     {
-        EnsureInitialBuffer();
         options = options ?? DefaultOptions;
-        var writer = new TinyhandWriter(InitialBuffer);
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
         {
             bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
@@ -187,7 +185,6 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeToUtf8<T>(T value, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        EnsureInitialBuffer();
         options = options ?? DefaultOptions;
         var binary = Serialize<T>(value, options, cancellationToken);
         bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
@@ -204,7 +201,7 @@ public static partial class TinyhandSerializer
         // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
         // return TinyhandComposer.Compose(element, options.Compose);
 
-        var writer = new TinyhandRawWriter(InitialBuffer);
+        var writer = new TinyhandRawWriter(GetThreadStaticBuffer());
         try
         {
             TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
@@ -240,14 +237,14 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null, CancellationToken cancellationToken = default)
     {
-        EnsureInitialBuffer();
         options = options ?? DefaultOptions;
 
         // Slow
         // var element = TinyhandParser.Parse(utf8, TinyhandParserOptions.TextSerialization);
         // return DeserializeFromElement<T>(element, options, cancellationToken);
 
-        var writer = new TinyhandWriter(InitialBuffer) { CancellationToken = cancellationToken };
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
+        writer.CancellationToken = cancellationToken;
         try
         {
             bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);

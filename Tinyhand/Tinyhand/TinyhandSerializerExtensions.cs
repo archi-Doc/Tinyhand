@@ -16,8 +16,7 @@ public static partial class TinyhandSerializerExtensions
     /// <returns>The XXHash3 hash value.</returns>
     public static ulong GetXxHash3(this ITinyhandSerialize value)
     {
-        TinyhandSerializer.EnsureInitialBuffer();
-        var writer = new TinyhandWriter(TinyhandSerializer.InitialBuffer);
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
         {
             value.Serialize(ref writer, TinyhandSerializer.DefaultOptions);
@@ -43,8 +42,7 @@ public static partial class TinyhandSerializerExtensions
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
     public static byte[] Serialize(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
     {
-        TinyhandSerializer.EnsureInitialBuffer();
-        var writer = new TinyhandWriter(TinyhandSerializer.InitialBuffer);
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
         {
             SerializeInternal(value, ref writer, options);
@@ -86,8 +84,8 @@ public static partial class TinyhandSerializerExtensions
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeSignature(this ITinyhandSerialize value, int level)
     {
-        TinyhandSerializer.EnsureInitialBuffer();
-        var writer = new TinyhandWriter(TinyhandSerializer.InitialBuffer) { Level = level, };
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
+        writer.Level = level;
         try
         {
             SerializeInternal(value, ref writer, TinyhandSerializerOptions.Signature);
@@ -179,12 +177,7 @@ public static partial class TinyhandSerializerExtensions
         {
             if (options.HasLz4CompressFlag)
             {
-                if (TinyhandSerializer.InitialBuffer2 == null)
-                {
-                    TinyhandSerializer.InitialBuffer2 = new byte[TinyhandSerializer.InitialBufferSize];
-                }
-
-                var w = writer.Clone(TinyhandSerializer.InitialBuffer2);
+                var w = writer.Clone(TinyhandSerializer.GetThreadStaticBuffer2());
                 try
                 {
                     value.Serialize(ref w, options);

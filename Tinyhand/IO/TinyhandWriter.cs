@@ -20,8 +20,22 @@ public ref struct TinyhandWriter
     public const int DefaultLevel = 0x0100_0000;
     public const int DefaultSignatureLevel = 0x0000_1000;
 
+    /// <summary>
+    /// Creates a new instance of <see cref="TinyhandWriter"/> from a <see cref="BytePool"/>.
+    /// </summary>
+    /// <param name="initialBufferSize">The initial buffer size.</param>
+    /// <returns>A new instance of <see cref="TinyhandWriter"/>.</returns>
     public static TinyhandWriter CreateFromBytePool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)
         => new(BytePool.Default.Rent(initialBufferSize));
+
+    /// <summary>
+    /// Creates a new instance of <see cref="TinyhandWriter"/> from a thread-static buffer with a size of <see cref="TinyhandSerializer.InitialBufferSize"/>.<br/>
+    /// The buffer is shared per thread, so it should be used locally.<br/>
+    /// <see cref="FlushAndGetArray()" /> can be used safely.
+    /// </summary>
+    /// <returns>A new instance of <see cref="TinyhandWriter"/>.</returns>
+    public static TinyhandWriter CreateFromThreadStaticBuffer()
+        => new(TinyhandSerializer.GetThreadStaticBuffer());
 
     public TinyhandWriter(IBufferWriter<byte> writer)
     {
@@ -72,6 +86,7 @@ public ref struct TinyhandWriter
     /// <returns>The new writer.</returns>
     public TinyhandWriter Clone(IBufferWriter<byte> writer) => new TinyhandWriter(writer)
     {
+        Level = this.Level,
         CancellationToken = this.CancellationToken,
     };
 
@@ -83,6 +98,7 @@ public ref struct TinyhandWriter
     /// <returns>The new writer.</returns>
     public TinyhandWriter Clone(byte[] initialBuffer) => new TinyhandWriter(initialBuffer)
     {
+        Level = this.Level,
         CancellationToken = this.CancellationToken,
     };
 
@@ -93,6 +109,7 @@ public ref struct TinyhandWriter
     /// <returns>The new writer.</returns>
     public TinyhandWriter Clone() => new TinyhandWriter()
     {
+        Level = this.Level,
         CancellationToken = this.CancellationToken,
     };
 
