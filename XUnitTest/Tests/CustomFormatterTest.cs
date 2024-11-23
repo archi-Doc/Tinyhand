@@ -13,7 +13,7 @@ public partial class CustomFormatterClass : ITinyhandSerialize<Tinyhand.Tests.Cu
 
     public string Name { get; set; } = default!;
 
-    static void ITinyhandSerialize<CustomFormatterClass>.Deserialize(ref TinyhandReader reader, scoped ref CustomFormatterClass? value, TinyhandSerializerOptions options)
+    static void Tinyhand.ITinyhandSerialize<Tinyhand.Tests.CustomFormatterClass>.Deserialize(ref TinyhandReader reader, scoped ref CustomFormatterClass? value, TinyhandSerializerOptions options)
     {
         value ??= new CustomFormatterClass();
 
@@ -48,7 +48,7 @@ public partial class CustomFormatterClass : ITinyhandSerialize<Tinyhand.Tests.Cu
 }
 
 [TinyhandObject]
-public partial class CustomFormatterGenericClass<T>
+public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize<Tinyhand.Tests.CustomFormatterGenericClass<T>>
 {
     public int ID { get; set; }
 
@@ -73,7 +73,7 @@ public partial class CustomFormatterGenericClass<T>
         }
     }
 
-    public static void Serialize(ref TinyhandWriter writer, scoped ref CustomFormatterGenericClass<T>? value, TinyhandSerializerOptions options)
+    static void ITinyhandSerialize<CustomFormatterGenericClass<T>>.Serialize(ref TinyhandWriter writer, scoped ref CustomFormatterGenericClass<T>? value, TinyhandSerializerOptions options)
     {
         writer.Write(value.ID + 1);
         options.Resolver.GetFormatter<T>().Serialize(ref writer, value.TValue, options);
