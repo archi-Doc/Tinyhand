@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System.Diagnostics.CodeAnalysis;
 using Tinyhand.IO;
 using Xunit;
 
@@ -47,7 +48,7 @@ public partial class CustomFormatterClass : ITinyhandSerialize<Tinyhand.Tests.Cu
 }
 
 [TinyhandObject]
-public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize<CustomFormatterGenericClass<T>>
+public partial class CustomFormatterGenericClass<T>
 {
     public int ID { get; set; }
 
@@ -78,13 +79,17 @@ public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize<CustomF
         options.Resolver.GetFormatter<T>().Serialize(ref writer, value.TValue, options);
     }
 
-    /*public void Reconstruct(TinyhandSerializerOptions options)
+    public static ulong GetTypeIdentifier() => 0;
+
+    public static void Reconstruct([NotNull] scoped ref CustomFormatterGenericClass<T>? value, TinyhandSerializerOptions options)
     {
-        if (this.Name == null)
-        {
-            this.Name = string.Empty;
-        }
-    }*/
+        value = default!;
+    }
+
+    public static CustomFormatterGenericClass<T>? Clone(scoped ref CustomFormatterGenericClass<T>? value, TinyhandSerializerOptions options)
+    {
+        return default;
+    }
 }
 
 public class CustomFormatterTest

@@ -282,20 +282,14 @@ public static partial class TinyhandSerializer
         }
     }
 
-    #endregion
-
     /// <summary>
-    /// Create a new instance of the given type.
+    /// Gets the type identifier (FarmHash.Hash64(Type.FullName)).
     /// </summary>
-    /// <typeparam name="T">The type of value to reconstruct.</typeparam>
-    /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
-    /// <returns>The created instance.</returns>
-    /// <exception cref="TinyhandException">Thrown when any error occurs during reconstruction.</exception>
-    public static T Reconstruct<T>(TinyhandSerializerOptions? options = null)
-    {
-        options = options ?? DefaultOptions;
-        return options.Resolver.GetFormatter<T>().Reconstruct(options);
-    }
+    /// <typeparam name="T">The type to get the identifier for.</typeparam>
+    /// <returns>The type identifier.</returns>
+    public static ulong GetTypeIdentifierObject<T>()
+        where T : ITinyhandSerialize<T>
+        => T.GetTypeIdentifier(); // GetTypeIdentifierCode
 
     /// <summary>
     /// Creates a new object and sets valid values to the object members.
@@ -325,12 +319,27 @@ public static partial class TinyhandSerializer
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The new object.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static T Clone<T>(T obj, TinyhandSerializerOptions? options = null)
+    [return: NotNullIfNotNull("value")]
+    public static T? CloneObject<T>(in T? obj, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandClone<T>
     {
         options = options ?? DefaultOptions;
-#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-        return options.Resolver.GetFormatter<T>().Clone(obj, options)!;
-#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+        return T.Clone(ref Unsafe.AsRef(in obj), options);
+    }
+
+    #endregion
+
+    /// <summary>
+    /// Create a new instance of the given type.
+    /// </summary>
+    /// <typeparam name="T">The type of value to reconstruct.</typeparam>
+    /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>The created instance.</returns>
+    /// <exception cref="TinyhandException">Thrown when any error occurs during reconstruction.</exception>
+    public static T Reconstruct<T>(TinyhandSerializerOptions? options = null)
+    {
+        options = options ?? DefaultOptions;
+        return options.Resolver.GetFormatter<T>().Reconstruct(options);
     }
 
     /// <summary>
@@ -340,12 +349,12 @@ public static partial class TinyhandSerializer
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The new object.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    [return: NotNullIfNotNull("value")]
-    public static T? CloneObject<T>(in T? obj, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandClone<T>
+    public static T Clone<T>(T obj, TinyhandSerializerOptions? options = null)
     {
         options = options ?? DefaultOptions;
-        return T.Clone(ref Unsafe.AsRef(in obj), options);
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
+        return options.Resolver.GetFormatter<T>().Clone(obj, options)!;
+#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
     }
 
     /// <summary>

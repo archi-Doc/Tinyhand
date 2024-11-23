@@ -310,9 +310,25 @@ public interface ITinyhandSerializationCallback
 /// </summary>
 public interface ITinyhandSerialize
 {
+    /// <summary>
+    /// Serializes the object to the specified writer.
+    /// </summary>
+    /// <param name="writer">The writer to serialize the object to.</param>
+    /// <param name="options">The serialization options to use.</param>
     void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options);
 
+    /// <summary>
+    /// Deserializes the object from the specified reader.
+    /// </summary>
+    /// <param name="reader">The reader to deserialize the object from.</param>
+    /// <param name="options">The deserialization options to use.</param>
     void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
+
+    /// <summary>
+    /// Gets the type identifier (FarmHash.Hash64(Type.FullName)) for the object.
+    /// </summary>
+    /// <returns>The type identifier.</returns>
+    ulong GetTypeIdentifier(); // GetTypeIdentifierCode
 }
 
 /// <summary>
@@ -322,9 +338,27 @@ public interface ITinyhandSerialize
 /// <typeparam name="T">The type to be serialized.</typeparam>
 public interface ITinyhandSerialize<T>
 {
+    /// <summary>
+    /// Serializes the object to the specified writer.
+    /// </summary>
+    /// <param name="writer">The writer to serialize the object to.</param>
+    /// <param name="value">The value to be serialized.</param>
+    /// <param name="options">The serialization options to use.</param>
     static abstract void Serialize(ref TinyhandWriter writer, scoped ref T? value, TinyhandSerializerOptions options);
 
+    /// <summary>
+    /// Deserializes the object from the specified reader.
+    /// </summary>
+    /// <param name="reader">The reader to deserialize the object from.</param>
+    /// <param name="value">The value to be deserialized.</param>
+    /// <param name="options">The deserialization options to use.</param>
     static abstract void Deserialize(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions options);
+
+    /// <summary>
+    /// Gets the type identifier (FarmHash.Hash64(Type.FullName)) for the object.
+    /// </summary>
+    /// <returns>The type identifier.</returns>
+    static abstract ulong GetTypeIdentifier(); // GetTypeIdentifierCode
 }
 
 /// <summary>

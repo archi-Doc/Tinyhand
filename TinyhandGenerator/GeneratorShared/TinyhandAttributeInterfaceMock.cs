@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 

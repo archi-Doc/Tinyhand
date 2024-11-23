@@ -8,7 +8,7 @@ using ValueLink;
 
 namespace Playground;
 
-[TinyhandObject]
+/*[TinyhandObject]
 public partial class TestClass3<T>
 {
     [TinyhandObject]
@@ -41,7 +41,7 @@ public partial class TestClass3<T>
 
     [Key(2)]
     public byte[] C { get; set; } = Array.Empty<byte>();
-}
+}*/
 
 [TinyhandObject]
 public partial class TestClass2 : TestAssembly.TestClass
@@ -106,7 +106,7 @@ public partial class TestClass
     public string Name { get; set; } = string.Empty;
 }
 
-[TinyhandObject]
+/*[TinyhandObject]
 [ValueLinkObject(Integrality = true)]
 public partial class GenericIntegralityClass2<T>
     where T : ITinyhandSerialize<T>
@@ -126,7 +126,7 @@ public partial class GenericIntegralityClass2<T>
 
     [Key(2, AddProperty = "Name")]
     private string name = string.Empty;//
-}
+}*/
 
 [TinyhandObject]
 public partial class GenericTestClass3 : GenericTestClass2<TestClass>
