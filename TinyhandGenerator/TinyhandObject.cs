@@ -149,6 +149,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public MethodCondition MethodCondition_Deserialize { get; private set; }
 
+    public MethodCondition MethodCondition_GetTypeIdentifier { get; private set; } // GetTypeIdentifierCode
+
     public MethodCondition MethodCondition_Reconstruct { get; private set; }
 
     public MethodCondition MethodCondition_CanSkipSerialization { get; private set; }
@@ -556,6 +558,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         // Method condition (Serialize/Deserialize)
         this.MethodCondition_Serialize = MethodCondition.StaticMethod;
         this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
+        this.MethodCondition_GetTypeIdentifier = MethodCondition.StaticMethod; // GetTypeIdentifierCode
         var serializeInterface = $"Tinyhand.ITinyhandSerialize<{this.FullName}>";
         if (this.Interfaces.Any(x => x.FullName == serializeInterface))
         {// ITinyhandSerialize implemented
@@ -577,6 +580,15 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             else
             {
                 this.MethodCondition_Deserialize = MethodCondition.Declared;
+            }
+
+            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{serializeInterface}.GetTypeIdentifier"))
+            {// GetTypeIdentifierCode
+                this.MethodCondition_GetTypeIdentifier = MethodCondition.ExplicitlyDeclared;
+            }
+            else
+            {
+                this.MethodCondition_GetTypeIdentifier = MethodCondition.Declared;
             }
         }
 
@@ -2131,45 +2143,6 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateSerialize_Method(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        string methodCode;
-        string objectCode;
-
-        if (this.MethodCondition_Serialize == MethodCondition.MemberMethod)
-        {
-            info.GeneratingStaticMethod = false;
-            methodCode = "public void Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)";
-            objectCode = "this";
-        }
-        else if (this.MethodCondition_Serialize == MethodCondition.StaticMethod)
-        {
-            info.GeneratingStaticMethod = true;
-            methodCode = $"public static void Serialize(ref TinyhandWriter writer, {this.RegionalName} v, TinyhandSerializerOptions options)";
-            objectCode = "v";
-        }
-        else
-        {
-            return;
-        }
-
-        using (var m = ssb.ScopeBrace(methodCode))
-        using (var v = ssb.ScopeObject(objectCode))
-        {
-            // ITinyhandSerializationCallback.OnBeforeSerialize
-            this.Generate_OnBeforeSerialize(ssb, info);
-
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
-            {// String Key
-                this.GenerateSerializerStringKey(ssb, info);
-            }
-            else
-            {// Int Key
-                this.GenerateSerializerIntKey(ssb, info);
-            }
-        }
-    }
-
     internal void GenerateSerialize_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {// static abstract
         info.GeneratingStaticMethod = true;
@@ -3383,6 +3356,11 @@ ModuleInitializerClass_Added:
                 this.GenerateDeserialize_Method2(ssb, info);
             }
 
+            if (this.MethodCondition_GetTypeIdentifier == MethodCondition.StaticMethod)
+            {// GetTypeIdentifierCode
+                ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => {this.GetTypeIdentifierString()};");
+            }
+
             if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
             {
                 this.GenerateReconstruct_Method2(ssb, info);
@@ -3406,6 +3384,7 @@ ModuleInitializerClass_Added:
 
             ssb.AppendLine("void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)");
             ssb.AppendLine("  => TinyhandSerializer.SerializeObject(ref writer, this, options);");
+            ssb.AppendLine($"ulong ITinyhandSerialize.GetTypeIdentifier() => {this.GetTypeIdentifierString()};"); // GetTypeIdentifierCode
         }
 
         this.GenerateAddProperty(ssb, info);
@@ -4552,4 +4531,7 @@ ModuleInitializerClass_Added:
 
         return true;
     }
+
+    private string GetTypeIdentifierString()
+        => $"0x{FarmHash.Hash64(this.FullName).ToString("x")}ul";
 }

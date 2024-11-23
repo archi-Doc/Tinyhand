@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel;
+using Arc.Crypto;
 using BenchmarkDotNet.Attributes;
 using Tinyhand;
 using Tinyhand.IO;
@@ -135,6 +136,8 @@ public partial class CustomIntClass : ITinyhandSerialize<CustomIntClass>
         }
         finally { reader.Depth--; }
     }
+
+    public static ulong GetTypeIdentifier() => FarmHash.Hash64(typeof(CustomIntClass).FullName ?? string.Empty);
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
