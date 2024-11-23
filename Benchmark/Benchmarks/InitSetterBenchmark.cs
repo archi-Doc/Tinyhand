@@ -100,6 +100,9 @@ public class InitOnlyBenchmark
 
     public InitOnlyBenchmark()
     {
+        var d = this.CreateDelegate2();
+        var c = new InitIntClass(1, 2, "a", "b");
+        d(c, 33);
     }
 
     [GlobalSetup]
@@ -131,6 +134,13 @@ public class InitOnlyBenchmark
         var mi = type.GetMethod("set_X")!;
         var exp = Expression.Parameter(typeof(int));
         return Expression.Lambda<Action<InitIntClass, int>>(Expression.Call(expType, mi!, exp), expType, exp).CompileFast();
+    }
+
+    [Benchmark]
+    public Action<InitIntClass, int> CreateDelegate2()
+    {
+        var mi = typeof(InitIntClass).GetProperty("X")!.GetSetMethod(true)!;
+        return (Action<InitIntClass, int>)Delegate.CreateDelegate(typeof(Action<InitIntClass, int>), mi);
     }
 
     [Benchmark]
