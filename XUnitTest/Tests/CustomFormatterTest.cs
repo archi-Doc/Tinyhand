@@ -47,7 +47,7 @@ public partial class CustomFormatterClass : ITinyhandSerialize<Tinyhand.Tests.Cu
 }
 
 [TinyhandObject]
-public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize<CustomFormatterGenericClass<T>>
+public partial class CustomFormatterGenericClass<T>
 {
     public int ID { get; set; }
 

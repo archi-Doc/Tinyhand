@@ -56,8 +56,6 @@ public enum TinyhandObjectFlag
     HasExplicitOnAfterDeserialize = 1 << 18, // ITinyhandSerializationCallback.OnAfterDeserialize()
     HasExplicitOnAfterReconstruct = 1 << 19, // ITinyhandSerializationCallback.OnAfterReconstruct()
     HasITinyhandSerialize = 1 << 20, // Has ITinyhandSerialize interface
-    HasITinyhandReconstruct = 1 << 21, // Has ITinyhandReconstruct interface
-    HasITinyhandClone = 1 << 22, // Has ITinyhandClone interface
     CanCreateInstance = 1 << 23, // Can create an instance
     InterfaceImplemented = 1 << 24, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
     HasIStructualObject = 1 << 25, // Has IStructualObject interface
@@ -553,58 +551,77 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
     }
 
+    private bool MethodCompare_Serialize() => true;
+
+    private bool MethodCompare_Deserialize() => true;
+
+    private bool MethodCompare_GetTypeIdentifier() => true;
+
+    private bool MethodCompare_Reconstruct() => true;
+
+    private bool MethodCompare_Clone() => true;
+
     private void ConfigureObject()
     {
         // Method condition (Serialize/Deserialize)
         this.MethodCondition_Serialize = MethodCondition.StaticMethod;
         this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
         this.MethodCondition_GetTypeIdentifier = MethodCondition.StaticMethod; // GetTypeIdentifierCode
-        var serializeInterface = $"Tinyhand.ITinyhandSerialize<{this.FullName}>";
-        if (this.Interfaces.Any(x => x.FullName == serializeInterface))
-        {// ITinyhandSerialize implemented
-            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+        this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
+        this.MethodCondition_Clone = MethodCondition.StaticMethod;
 
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{serializeInterface}.Serialize"))
-            {
-                this.MethodCondition_Serialize = MethodCondition.ExplicitlyDeclared;
-            }
-            else
+        var serializeInterface = $"Tinyhand.ITinyhandSerialize<{this.FullName}>";
+        var serializeName = $"{serializeInterface}.Serialize";
+        var deserializeName = $"{serializeInterface}.Deserialize";
+        var getTypeIdentifierName = $"{serializeInterface}.GetTypeIdentifier"; // GetTypeIdentifierCode
+        var reconstructName = $"Tinyhand.ITinyhandReconstruct<{this.FullName}>.Reconstruct";
+        var cloneName = $"Tinyhand.ITinyhandClone<{this.FullName}>.Clone";
+
+        foreach (var x in this.GetMembers(VisceralTarget.Method))
+        {
+            if (x.SimpleName == "Serialize" && this.MethodCompare_Serialize())
             {
                 this.MethodCondition_Serialize = MethodCondition.Declared;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
-
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{serializeInterface}.Deserialize"))
+            else if (x.SimpleName == serializeName && this.MethodCompare_Serialize())
             {
-                this.MethodCondition_Deserialize = MethodCondition.ExplicitlyDeclared;
+                this.MethodCondition_Serialize = MethodCondition.ExplicitlyDeclared;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
-            else
+            else if (x.SimpleName == "Deserialize" && this.MethodCompare_Deserialize())
             {
                 this.MethodCondition_Deserialize = MethodCondition.Declared;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
-
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{serializeInterface}.GetTypeIdentifier"))
-            {// GetTypeIdentifierCode
-                this.MethodCondition_GetTypeIdentifier = MethodCondition.ExplicitlyDeclared;
+            else if (x.SimpleName == deserializeName && this.MethodCompare_Deserialize())
+            {
+                this.MethodCondition_Deserialize = MethodCondition.ExplicitlyDeclared;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
-            else
+            else if (x.SimpleName == "GetTypeIdentifier" && this.MethodCompare_GetTypeIdentifier())
             {
                 this.MethodCondition_GetTypeIdentifier = MethodCondition.Declared;
             }
-        }
-
-        // Method condition (Reconstruct)
-        this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
-        if (this.Interfaces.Any(x => x.FullName == $"Tinyhand.ITinyhandReconstruct<{this.FullName}>"))
-        {// ITinyhandReconstruct implemented
-            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandReconstruct;
-
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"Tinyhand.ITinyhandReconstruct<{this.FullName}>.Reconstruct"))
+            else if (x.SimpleName == getTypeIdentifierName && this.MethodCompare_GetTypeIdentifier())
+            {
+                this.MethodCondition_GetTypeIdentifier = MethodCondition.ExplicitlyDeclared;
+            }
+            else if (x.SimpleName == "Reconstruct" && this.MethodCompare_Reconstruct())
+            {
+                this.MethodCondition_Reconstruct = MethodCondition.Declared;
+            }
+            else if (x.SimpleName == reconstructName && this.MethodCompare_Reconstruct())
             {
                 this.MethodCondition_Reconstruct = MethodCondition.ExplicitlyDeclared;
             }
-            else
+            else if (x.SimpleName == "Clone" && this.MethodCompare_Clone())
             {
-                this.MethodCondition_Reconstruct = MethodCondition.Declared;
+                this.MethodCondition_Clone = MethodCondition.Declared;
+            }
+            else if (x.SimpleName == cloneName && this.MethodCompare_Clone())
+            {
+                this.MethodCondition_Clone = MethodCondition.ExplicitlyDeclared;
             }
         }
 
@@ -631,24 +648,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             else
             {
                 this.MethodCondition_SetDefaultValue = MethodCondition.Declared;
-            }
-        }
-
-        // Method condition (Clone)
-        var cloneInterface = $"Tinyhand.ITinyhandClone<{this.FullName}>";
-        this.MethodCondition_Clone = MethodCondition.StaticMethod;
-        if (this.Interfaces.Any(x => x.FullName == cloneInterface))
-        {// ITinyhandClone implemented
-            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandClone;
-
-            cloneInterface += ".Clone";
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == cloneInterface))
-            {
-                this.MethodCondition_Clone = MethodCondition.ExplicitlyDeclared;
-            }
-            else
-            {
-                this.MethodCondition_Clone = MethodCondition.Declared;
             }
         }
 
