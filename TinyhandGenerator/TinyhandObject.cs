@@ -599,47 +599,47 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            if (x.SimpleName == "Serialize" && this.MethodCompare_Serialize(ms))
+            if (ms.Name == "Serialize" && this.MethodCompare_Serialize(ms))
             {
                 this.MethodCondition_Serialize = MethodCondition.Declared;
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
-            else if (x.SimpleName == serializeName && this.MethodCompare_Serialize(ms))
+            else if (ms.Name == serializeName && this.MethodCompare_Serialize(ms))
             {
                 this.MethodCondition_Serialize = MethodCondition.ExplicitlyDeclared;
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
-            else if (x.SimpleName == "Deserialize" && this.MethodCompare_Deserialize(ms))
+            else if (ms.Name == "Deserialize" && this.MethodCompare_Deserialize(ms))
             {
                 this.MethodCondition_Deserialize = MethodCondition.Declared;
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
-            else if (x.SimpleName == deserializeName && this.MethodCompare_Deserialize(ms))
+            else if (ms.Name == deserializeName && this.MethodCompare_Deserialize(ms))
             {
                 this.MethodCondition_Deserialize = MethodCondition.ExplicitlyDeclared;
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
-            else if (x.SimpleName == "GetTypeIdentifier" && this.MethodCompare_GetTypeIdentifier(ms))
+            else if (ms.Name == "GetTypeIdentifier" && this.MethodCompare_GetTypeIdentifier(ms))
             {
                 this.MethodCondition_GetTypeIdentifier = MethodCondition.Declared;
             }
-            else if (x.SimpleName == getTypeIdentifierName && this.MethodCompare_GetTypeIdentifier(ms))
+            else if (ms.Name == getTypeIdentifierName && this.MethodCompare_GetTypeIdentifier(ms))
             {
                 this.MethodCondition_GetTypeIdentifier = MethodCondition.ExplicitlyDeclared;
             }
-            else if (x.SimpleName == "Reconstruct" && this.MethodCompare_Reconstruct(ms))
+            else if (ms.Name == "Reconstruct" && this.MethodCompare_Reconstruct(ms))
             {
                 this.MethodCondition_Reconstruct = MethodCondition.Declared;
             }
-            else if (x.SimpleName == reconstructName && this.MethodCompare_Reconstruct(ms))
+            else if (ms.Name == reconstructName && this.MethodCompare_Reconstruct(ms))
             {
                 this.MethodCondition_Reconstruct = MethodCondition.ExplicitlyDeclared;
             }
-            else if (x.SimpleName == "Clone" && this.MethodCompare_Clone(ms))
+            else if (ms.Name == "Clone" && this.MethodCompare_Clone(ms))
             {
                 this.MethodCondition_Clone = MethodCondition.Declared;
             }
-            else if (x.SimpleName == cloneName && this.MethodCompare_Clone(ms))
+            else if (ms.Name == cloneName && this.MethodCompare_Clone(ms))
             {
                 this.MethodCondition_Clone = MethodCondition.ExplicitlyDeclared;
             }
