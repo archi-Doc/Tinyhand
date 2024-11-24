@@ -2,15 +2,82 @@
 
 using System;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Reflection.Emit;
 using BenchmarkDotNet.Attributes;
 using FastExpressionCompiler;
 using Tinyhand;
+
+#pragma warning disable CS0169
 
 namespace Benchmark.InitOnly;
 
 public delegate void TestByRefAction<T1, T2>(ref T1 arg1, T2 arg2);
 
 public delegate void TestByInAction<T1, T2>(in T1 arg1, T2 arg2);
+
+public delegate T2 TestByRefFunc<T1, T2>(ref T1 arg1);
+
+public delegate ref V TestStructRefField<T, V>(in T obj);
+
+public delegate ref V TestClassRefField<T, V>(T obj);
+
+public static class VisceralHelper
+{
+    public const BindingFlags TargetBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+
+    public static TestStructRefField<T, V> CreateStructRefField<T, V>(string fieldName)
+        where T : struct
+    {
+        var fieldInfo = typeof(T).GetField(fieldName, TargetBindingFlags)!;
+        var name = "__refget_" + typeof(T).Name + "_fi_" + fieldInfo.Name;
+        var method = new DynamicMethod(name, typeof(V).MakeByRefType(), [typeof(T).MakeByRefType(),], typeof(T), true);
+
+        var il = method.GetILGenerator();
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldflda, fieldInfo);
+        il.Emit(OpCodes.Ret);
+
+        return (TestStructRefField<T, V>)method.CreateDelegate(typeof(TestStructRefField<T, V>));
+    }
+
+    public static TestClassRefField<T, V> CreateClassRefField<T, V>(string fieldName)
+        where T : class
+    {
+        var fieldInfo = typeof(T).GetField(fieldName, TargetBindingFlags)!;
+        var name = "__refget_" + typeof(T).Name + "_fi_" + fieldInfo.Name;
+        var method = new DynamicMethod(name, typeof(V).MakeByRefType(), [typeof(T),], typeof(T), true);
+
+        var il = method.GetILGenerator();
+        il.Emit(OpCodes.Ldarg_0);
+        il.Emit(OpCodes.Ldflda, fieldInfo);
+        il.Emit(OpCodes.Ret);
+
+        return (TestClassRefField<T, V>)method.CreateDelegate(typeof(TestClassRefField<T, V>));
+    }
+}
+
+public struct DesignStruct
+{
+    private int X { get; set; }
+
+    private int Y;
+
+    private readonly int Z;
+}
+
+public class DesignBaseClass
+{
+    private int X { get; set; }
+
+    private int Y;
+
+    private readonly int Z;
+}
+
+public class DesignDerivedClass : DesignBaseClass
+{
+}
 
 [TinyhandObject]
 public partial class NormalIntClass
@@ -143,8 +210,64 @@ public class InitOnlyBenchmark
     private readonly TestByInAction<InitIntStruct, int> setStructDelegate;
     private readonly TestByRefAction<InitIntStruct, int> setStructDelegate2;
 
+    private readonly DesignStruct designStruct;
+    private readonly DesignDerivedClass designDerivedClass;
+    private readonly TestByInAction<DesignStruct, int> designStructSetter;
+    private readonly Action<DesignBaseClass, int> designClassSetter;
+    private readonly TestStructRefField<DesignStruct, int> structRefField;
+    private readonly TestClassRefField<DesignBaseClass, int> classRefField;
+
     public InitOnlyBenchmark()
     {
+        var designStruct = new DesignStruct();
+        this.designStruct = designStruct;
+        var designDerivedClass = new DesignDerivedClass();
+        this.designDerivedClass = designDerivedClass;
+
+        var setter1 = (TestByInAction<DesignStruct, int>)Delegate.CreateDelegate(typeof(TestByInAction<DesignStruct, int>), typeof(DesignStruct).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);
+        this.designStructSetter = setter1;
+        var getter1 = (TestByRefFunc<DesignStruct, int>)Delegate.CreateDelegate(typeof(TestByRefFunc<DesignStruct, int>), typeof(DesignStruct).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetGetMethod(true)!);
+
+        int v;
+        setter1(in designStruct, 1);
+        v = getter1(ref designStruct);
+
+        var structRefField = VisceralHelper.CreateStructRefField<DesignStruct, int>("Y");
+        v = structRefField(in designStruct);
+        structRefField(in designStruct) = 2;
+        v = structRefField(in designStruct);
+        structRefField = VisceralHelper.CreateStructRefField<DesignStruct, int>("Z");
+        v = structRefField(in designStruct);
+        structRefField(in designStruct) = 3;
+        v = structRefField(in designStruct);
+
+        var setter2 = (Action<DesignBaseClass, int>)Delegate.CreateDelegate(typeof(Action<DesignBaseClass, int>), typeof(DesignBaseClass).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);
+        var getter2 = (Func<DesignBaseClass, int>)Delegate.CreateDelegate(typeof(Func<DesignBaseClass, int>), typeof(DesignBaseClass).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetGetMethod(true)!);
+
+        setter2(designDerivedClass, 1);
+        v = getter2(designDerivedClass);
+
+        var classRefField = VisceralHelper.CreateClassRefField<DesignBaseClass, int>("Y");
+        v = classRefField(designDerivedClass);
+        classRefField(designDerivedClass) = 2;
+        v = classRefField(designDerivedClass);
+        classRefField = VisceralHelper.CreateClassRefField<DesignBaseClass, int>("Z");
+        v = classRefField(designDerivedClass);
+        classRefField(designDerivedClass) = 3;
+        v = classRefField(designDerivedClass);
+
+        this.designStructSetter = (TestByInAction<DesignStruct, int>)Delegate.CreateDelegate(typeof(TestByInAction<DesignStruct, int>), typeof(DesignStruct).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);
+        this.structRefField = VisceralHelper.CreateStructRefField<DesignStruct, int>("Y");
+        this.designClassSetter = (Action<DesignBaseClass, int>)Delegate.CreateDelegate(typeof(Action<DesignBaseClass, int>), typeof(DesignBaseClass).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);
+        this.classRefField = VisceralHelper.CreateClassRefField<DesignBaseClass, int>("Y");
+
+        this.normalInt = new(1, 2, "A", "B");
+        this.normalIntByte = TinyhandSerializer.Serialize(this.normalInt);
+        this.initInt = new(1, 2, "A", "B");
+        this.initIntByte = TinyhandSerializer.Serialize(this.initInt);
+        this.recordClass = new RecordClass(1, 2, "A", "B");
+        this.recordClassByte = TinyhandSerializer.Serialize(this.recordClass);
+
         var d = this.CreateDelegate2();
         var c = new InitIntClass(1, 2, "a", "b");
         d(c, 33);
@@ -161,12 +284,6 @@ public class InitOnlyBenchmark
     [GlobalSetup]
     public void Setup()
     {
-        this.normalInt = new(1, 2, "A", "B");
-        this.normalIntByte = TinyhandSerializer.Serialize(this.normalInt);
-        this.initInt = new(1, 2, "A", "B");
-        this.initIntByte = TinyhandSerializer.Serialize(this.initInt);
-        this.recordClass = new RecordClass(1, 2, "A", "B");
-        this.recordClassByte = TinyhandSerializer.Serialize(this.recordClass);
     }
 
     [Benchmark]
@@ -211,6 +328,22 @@ public class InitOnlyBenchmark
     }
 
     [Benchmark]
+    public TestByRefAction<DesignStruct, int> CreateDesignStructSetter()
+        => (TestByRefAction<DesignStruct, int>)Delegate.CreateDelegate(typeof(TestByRefAction<DesignStruct, int>), typeof(DesignStruct).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);
+
+    [Benchmark]
+    public Action<DesignBaseClass, int> CreateDesignClassSetter()
+        => (Action<DesignBaseClass, int>)Delegate.CreateDelegate(typeof(Action<DesignBaseClass, int>), typeof(DesignBaseClass).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);
+
+    [Benchmark]
+    public TestStructRefField<DesignStruct, int> CreateStructRefField()
+        => VisceralHelper.CreateStructRefField<DesignStruct, int>("Y");
+
+    [Benchmark]
+    public TestClassRefField<DesignBaseClass, int> CreateClassRefField()
+        => VisceralHelper.CreateClassRefField<DesignBaseClass, int>("Y");
+
+    [Benchmark]
     public InitIntClass InvokeDelegate()
     {
         this.setDelegate(this.initInt, 999);
@@ -246,6 +379,44 @@ public class InitOnlyBenchmark
     }
 
     [Benchmark]
+    public void InvokeStructSetter()
+    {
+        this.designStructSetter(in this.designStruct, 999);
+    }
+
+    [Benchmark]
+    public DesignDerivedClass InvokeClassSetter()
+    {
+        this.designClassSetter(this.designDerivedClass, 999);
+        return this.designDerivedClass;
+    }
+
+    [Benchmark]
+    public int InvokeStructRefGet()
+    {
+        return this.structRefField(in this.designStruct);
+    }
+
+    [Benchmark]
+    public int InvokeClassRefGet()
+    {
+        return this.classRefField(this.designDerivedClass);
+    }
+
+    [Benchmark]
+    public void InvokeStructRefSet()
+    {
+        this.structRefField(in this.designStruct) = 99;
+    }
+
+    [Benchmark]
+    public DesignDerivedClass InvokeClassRefSet()
+    {
+        this.classRefField(this.designDerivedClass) = 99;
+        return this.designDerivedClass;
+    }
+
+    /*[Benchmark]
     public NormalIntClass? DeserializeNormalInt()
     {
         return TinyhandSerializer.Deserialize<NormalIntClass>(this.normalIntByte);
@@ -267,5 +438,5 @@ public class InitOnlyBenchmark
     public RecordClass2? DeserializeRecord2()
     {
         return TinyhandSerializer.Deserialize<RecordClass2>(this.recordClassByte);
-    }
+    }*/
 }

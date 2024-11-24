@@ -585,8 +585,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
         this.MethodCondition_Clone = MethodCondition.StaticMethod;
 
-        // Char.IsWhiteSpace();
-        var className = this.FullName.RemoveWhitespace();
+        var className = this.FullName.RemoveWhitespace(); // Class<T1, T2> -> Class<T1,T2>
         var serializeInterface = $"Tinyhand.ITinyhandSerialize<{className}>";
         var serializeName = $"{serializeInterface}.Serialize";
         var deserializeName = $"{serializeInterface}.Deserialize";
@@ -601,10 +600,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            if (this.MethodCompare_Serialize(ms))
-            {//
+            /*if (this.MethodCompare_Serialize(ms))
+            {// For debugging
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_Information, ms.Locations.FirstOrDefault(), $"Serialize {serializeName} - {ms.Name} - {x.LocalName}");
-            }
+            }*/
 
             if (ms.Name == "Serialize" && this.MethodCompare_Serialize(ms))
             {
@@ -4516,7 +4515,4 @@ ModuleInitializerClass_Added:
 
         return true;
     }
-
-    private string GetTypeIdentifierString()
-        => $"0x{FarmHash.Hash64(this.FullName).ToString("x")}ul";
 }
