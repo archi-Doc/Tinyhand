@@ -38,6 +38,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string IStringConvertible = "Arc.Crypto.IStringConvertible";
     public static readonly string IIntegralityObject = "ValueLink.Integrality.IIntegralityObject";
 
+    public static readonly DiagnosticDescriptor Warning_Information = new DiagnosticDescriptor(
+        id: "TGxxx", title: "Information", messageFormat: "Diagnostic information {0}",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
     public static readonly DiagnosticDescriptor Error_NotPartial = new DiagnosticDescriptor(
         id: "TG001", title: "Partial class/struct", messageFormat: "'{0}' must be a partial class/struct",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
