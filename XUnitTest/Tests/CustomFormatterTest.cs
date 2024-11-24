@@ -73,7 +73,7 @@ public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize<Tinyhan
         }
     }
 
-    static void ITinyhandSerialize<CustomFormatterGenericClass<T>>.Serialize(ref TinyhandWriter writer, scoped ref CustomFormatterGenericClass<T>? value, TinyhandSerializerOptions options)
+    public static void Serialize(ref TinyhandWriter writer, scoped ref CustomFormatterGenericClass<T>? value, TinyhandSerializerOptions options)
     {
         writer.Write(value.ID + 1);
         options.Resolver.GetFormatter<T>().Serialize(ref writer, value.TValue, options);

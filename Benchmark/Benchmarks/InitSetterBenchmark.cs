@@ -8,6 +8,10 @@ using Tinyhand;
 
 namespace Benchmark.InitOnly;
 
+public delegate void TestByRefAction<T1, T2>(ref T1 arg1, T2 arg2);
+
+public delegate void TestByInAction<T1, T2>(in T1 arg1, T2 arg2);
+
 [TinyhandObject]
 public partial class NormalIntClass
 {
@@ -69,6 +73,39 @@ public partial class InitIntClass
     }
 }
 
+[TinyhandObject]
+[MessagePack.MessagePackObject]
+public partial struct InitIntStruct
+{
+    [Key(0)]
+    [MessagePack.Key(0)]
+    public int X { get; init; }
+
+    [Key(1)]
+    [MessagePack.Key(1)]
+    public int Y { get; init; }
+
+    [Key(2)]
+    [MessagePack.Key(2)]
+    public string A { get; init; } = default!;
+
+    [Key(3)]
+    [MessagePack.Key(3)]
+    public string B { get; init; } = default!;
+
+    public InitIntStruct(int x, int y, string a, string b)
+    {
+        this.X = x;
+        this.Y = y;
+        this.A = a;
+        this.B = b;
+    }
+
+    public InitIntStruct()
+    {
+    }
+}
+
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial record RecordClass(int X, int Y, string A, string B);
 
@@ -97,10 +134,14 @@ public class InitOnlyBenchmark
     private byte[] initIntByte = default!;
     private RecordClass recordClass = default!;
     private byte[] recordClassByte = default!;
+    private InitIntStruct initIntStruct;
 
     private readonly Action<InitIntClass, int> setDelegate;
     private readonly Action<InitIntClass, int> setDelegateFast;
     private readonly Action<InitIntClass, int> setDelegate2;
+
+    private readonly TestByInAction<InitIntStruct, int> setStructDelegate;
+    private readonly TestByRefAction<InitIntStruct, int> setStructDelegate2;
 
     public InitOnlyBenchmark()
     {
@@ -111,6 +152,10 @@ public class InitOnlyBenchmark
         this.setDelegate = this.CreateDelegate();
         this.setDelegateFast = this.CreateDelegateFast();
         this.setDelegate2 = this.CreateDelegate2();
+
+        this.initIntStruct = new InitIntStruct(1, 2, "a", "b");
+        this.setStructDelegate = this.CreateStructDelegate();
+        this.setStructDelegate2 = this.CreateStructDelegate2();
     }
 
     [GlobalSetup]
@@ -152,6 +197,20 @@ public class InitOnlyBenchmark
     }
 
     [Benchmark]
+    public TestByInAction<InitIntStruct, int> CreateStructDelegate()
+    {
+        var mi = typeof(InitIntStruct).GetProperty("X")!.GetSetMethod(true)!;
+        return (TestByInAction<InitIntStruct, int>)Delegate.CreateDelegate(typeof(TestByInAction<InitIntStruct, int>), mi);
+    }
+
+    [Benchmark]
+    public TestByRefAction<InitIntStruct, int> CreateStructDelegate2()
+    {
+        var mi = typeof(InitIntStruct).GetProperty("X")!.GetSetMethod(true)!;
+        return (TestByRefAction<InitIntStruct, int>)Delegate.CreateDelegate(typeof(TestByRefAction<InitIntStruct, int>), mi);
+    }
+
+    [Benchmark]
     public InitIntClass InvokeDelegate()
     {
         this.setDelegate(this.initInt, 999);
@@ -170,6 +229,20 @@ public class InitOnlyBenchmark
     {
         this.setDelegate2(this.initInt, 999);
         return this.initInt;
+    }
+
+    [Benchmark]
+    public int InvokeStructDelegate()
+    {
+        this.setStructDelegate(in this.initIntStruct, 999);
+        return this.initIntStruct.X;
+    }
+
+    [Benchmark]
+    public int InvokeStructDelegate2()
+    {
+        this.setStructDelegate2(ref this.initIntStruct, 999);
+        return this.initIntStruct.X;
     }
 
     [Benchmark]

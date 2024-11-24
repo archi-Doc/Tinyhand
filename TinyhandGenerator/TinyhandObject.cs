@@ -585,12 +585,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         this.MethodCondition_Reconstruct = MethodCondition.StaticMethod;
         this.MethodCondition_Clone = MethodCondition.StaticMethod;
 
-        var serializeInterface = $"Tinyhand.ITinyhandSerialize<{this.FullName}>";
+        // Char.IsWhiteSpace();
+        var className = this.FullName.RemoveWhitespace();
+        var serializeInterface = $"Tinyhand.ITinyhandSerialize<{className}>";
         var serializeName = $"{serializeInterface}.Serialize";
         var deserializeName = $"{serializeInterface}.Deserialize";
         var getTypeIdentifierName = $"{serializeInterface}.GetTypeIdentifier"; // GetTypeIdentifierCode
-        var reconstructName = $"Tinyhand.ITinyhandReconstruct<{this.FullName}>.Reconstruct";
-        var cloneName = $"Tinyhand.ITinyhandClone<{this.FullName}>.Clone";
+        var reconstructName = $"Tinyhand.ITinyhandReconstruct<{className}>.Reconstruct";
+        var cloneName = $"Tinyhand.ITinyhandClone<{className}>.Clone";
 
         foreach (var x in this.GetMembers(VisceralTarget.Method))
         {
@@ -601,7 +603,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
             if (this.MethodCompare_Serialize(ms))
             {//
-                this.Body.ReportDiagnostic(TinyhandBody.Warning_Information, ms.Locations.FirstOrDefault(), $"Serialize {serializeName} - {ms.Name} - {x.FullName}");
+                this.Body.ReportDiagnostic(TinyhandBody.Warning_Information, ms.Locations.FirstOrDefault(), $"Serialize {serializeName} - {ms.Name} - {x.LocalName}");
             }
 
             if (ms.Name == "Serialize" && this.MethodCompare_Serialize(ms))
