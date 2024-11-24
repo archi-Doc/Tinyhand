@@ -43,7 +43,7 @@ public static class TinyhandHelper
     }
 
     public static ulong GetTypeIdentifier(this Type type)
-    {
+    {//
         const int Length = 256;
         Span<char> buffer = stackalloc char[Length];
         var remaining = Length;
