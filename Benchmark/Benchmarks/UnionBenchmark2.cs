@@ -14,7 +14,7 @@ namespace Benchmark.Union2;
 [TinyhandUnion(6, typeof(Class6))]
 [TinyhandUnion(7, typeof(Class7))]
 [TinyhandUnion(8, typeof(Class8))]
-[TinyhandUnion(9, typeof(Class9))]
+[TinyhandUnion(9, typeof(Class9<int>))]
 public partial interface IUnion
 {
 }
@@ -72,8 +72,24 @@ public partial class Class8 : BaseClass, IUnion
 }
 
 [TinyhandObject]
-public partial class Class9 : BaseClass, IUnion
+public partial class Class9<T> : BaseClass, IUnion
 {
+    public Class9()
+    {
+        this.Value = default!;
+    }
+
+    public Class9(T value)
+    {
+        this.Value = value;
+    }
+
+    [Key(1)]
+    public T Value { get; set; }
+
+    // private static ulong identifier;
+
+    // public static ulong GetTypeIdentifier() => identifier != 0 ? identifier : (identifier = Arc.Crypto.FarmHash.Hash64(typeof(Class9<T>).Name!));
 }
 
 [Config(typeof(BenchmarkConfig))]
@@ -84,9 +100,13 @@ public class UnionBenchmark2
 
     public UnionBenchmark2()
     {
-        this.union = (IUnion)new Class9();
+        this.union = (IUnion)new Class9<int>(2);
         this.bytes = TinyhandSerializer.Serialize(this.union);
         var u = TinyhandSerializer.DeserializeObject<IUnion>(this.bytes);
+
+        var identifier = this.union.GetTypeIdentifier();
+        identifier = TinyhandSerializer.GetTypeIdentifierObject<Class9<int>>();
+        identifier = TinyhandSerializer.GetTypeIdentifierObject<Class9<string>>();
     }
 
     [GlobalSetup]
@@ -105,4 +125,12 @@ public class UnionBenchmark2
     {
         return TinyhandSerializer.DeserializeObject<IUnion>(this.bytes);
     }
+
+    [Benchmark]
+    public ulong GetTypeIdentifier_Instance()
+        => this.union.GetTypeIdentifier();
+
+    [Benchmark]
+    public ulong GetTypeIdentifier_Static()
+        => TinyhandSerializer.GetTypeIdentifierObject<Class9<int>>();
 }

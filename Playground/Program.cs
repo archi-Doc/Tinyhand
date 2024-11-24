@@ -148,11 +148,35 @@ public partial class GenericTestClass2<T>
     public T Value { get; set; } = default!;
 }
 
+[TinyhandObject]
+public partial class IdentifierClass<T>
+{
+    public IdentifierClass()
+    {
+    }
+
+    public IdentifierClass(T value)
+    {
+        this.Value = value;
+    }
+
+    [Key(0)]
+    public T Value { get; set; } = default!;
+}
+
 
 internal class Program
 {
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
+
+        var tc = new IdentifierClass<int>(3);
+        var identifier = ((ITinyhandSerialize)tc).GetTypeIdentifier();
+        var identifier2 = TinyhandSerializer.GetTypeIdentifierObject<IdentifierClass<int>>();
+
+        var tc2 = new IdentifierClass<string>("3");
+        identifier = ((ITinyhandSerialize)tc2).GetTypeIdentifier();
+        identifier2 = TinyhandSerializer.GetTypeIdentifierObject<IdentifierClass<string>>();
     }
 }

@@ -3342,7 +3342,9 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_GetTypeIdentifier == MethodCondition.StaticMethod)
             {// GetTypeIdentifierCode
-                ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => {this.GetTypeIdentifierString()};");
+               // ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => 0x{FarmHash.Hash64(this.FullName).ToString("x")}ul;");
+                ssb.AppendLine($"private static ulong __type_identifier__;");
+                ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => __type_identifier__ != 0 ? __type_identifier__ : (__type_identifier__ = typeof({this.RegionalName}).GetTypeIdentifier());");
             }
 
             if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
@@ -3368,7 +3370,7 @@ ModuleInitializerClass_Added:
 
             ssb.AppendLine("void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)");
             ssb.AppendLine("  => TinyhandSerializer.SerializeObject(ref writer, this, options);");
-            ssb.AppendLine($"ulong ITinyhandSerialize.GetTypeIdentifier() => {this.GetTypeIdentifierString()};"); // GetTypeIdentifierCode
+            ssb.AppendLine($"ulong ITinyhandSerialize.GetTypeIdentifier() => TinyhandSerializer.GetTypeIdentifierObject<{this.RegionalName}>();"); // GetTypeIdentifierCode
         }
 
         this.GenerateAddProperty(ssb, info);
