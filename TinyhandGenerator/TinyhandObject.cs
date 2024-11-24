@@ -599,6 +599,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
+            if (this.MethodCompare_Serialize(ms))
+            {//
+                this.Body.ReportDiagnostic(TinyhandBody.Warning_Information, ms.Locations.FirstOrDefault(), $"Serialize {serializeName} - {ms.Name}");
+            }
+
             if (ms.Name == "Serialize" && this.MethodCompare_Serialize(ms))
             {
                 this.MethodCondition_Serialize = MethodCondition.Declared;
@@ -1992,7 +1997,7 @@ ModuleInitializerClass_Added:
             foreach (var x in array)
             {
                 if (x.RequiresSetter)
-                {
+                {//
                     ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
                     if (this.Kind == VisceralObjectKind.Struct)
                     {// Struct

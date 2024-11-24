@@ -98,8 +98,19 @@ public class InitOnlyBenchmark
     private RecordClass recordClass = default!;
     private byte[] recordClassByte = default!;
 
+    private readonly Action<InitIntClass, int> setDelegate;
+    private readonly Action<InitIntClass, int> setDelegateFast;
+    private readonly Action<InitIntClass, int> setDelegate2;
+
     public InitOnlyBenchmark()
     {
+        var d = this.CreateDelegate2();
+        var c = new InitIntClass(1, 2, "a", "b");
+        d(c, 33);
+
+        this.setDelegate = this.CreateDelegate();
+        this.setDelegateFast = this.CreateDelegateFast();
+        this.setDelegate2 = this.CreateDelegate2();
     }
 
     [GlobalSetup]
@@ -131,6 +142,34 @@ public class InitOnlyBenchmark
         var mi = type.GetMethod("set_X")!;
         var exp = Expression.Parameter(typeof(int));
         return Expression.Lambda<Action<InitIntClass, int>>(Expression.Call(expType, mi!, exp), expType, exp).CompileFast();
+    }
+
+    [Benchmark]
+    public Action<InitIntClass, int> CreateDelegate2()
+    {
+        var mi = typeof(InitIntClass).GetProperty("X")!.GetSetMethod(true)!;
+        return (Action<InitIntClass, int>)Delegate.CreateDelegate(typeof(Action<InitIntClass, int>), mi);
+    }
+
+    [Benchmark]
+    public InitIntClass InvokeDelegate()
+    {
+        this.setDelegate(this.initInt, 999);
+        return this.initInt;
+    }
+
+    [Benchmark]
+    public InitIntClass InvokeDelegateFast()
+    {
+        this.setDelegateFast(this.initInt, 999);
+        return this.initInt;
+    }
+
+    [Benchmark]
+    public InitIntClass InvokeDelegate2()
+    {
+        this.setDelegate2(this.initInt, 999);
+        return this.initInt;
     }
 
     [Benchmark]

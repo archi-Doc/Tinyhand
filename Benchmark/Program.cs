@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Benchmark.InitOnly;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
@@ -46,7 +47,7 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<Struct128Benchmark>();
+        DebugRun<InitOnlyBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
