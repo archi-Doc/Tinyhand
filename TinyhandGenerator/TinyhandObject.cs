@@ -601,7 +601,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
             if (this.MethodCompare_Serialize(ms))
             {//
-                this.Body.ReportDiagnostic(TinyhandBody.Warning_Information, ms.Locations.FirstOrDefault(), $"Serialize {serializeName} - {ms.Name}");
+                this.Body.ReportDiagnostic(TinyhandBody.Warning_Information, ms.Locations.FirstOrDefault(), $"Serialize {serializeName} - {ms.Name} - {x.FullName}");
             }
 
             if (ms.Name == "Serialize" && this.MethodCompare_Serialize(ms))
