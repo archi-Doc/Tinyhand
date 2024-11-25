@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Arc.Visceral;
 
-internal interface IGeneratorInformation
+public interface IGeneratorInformation
 {
     public bool AttachDebugger { get; }
 
