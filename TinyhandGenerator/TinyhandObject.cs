@@ -1956,21 +1956,20 @@ ModuleInitializerClass_Added:
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresGetAccessor || x.RequiresSetAccessor))
         {// Requirement: Field -> RefField delegate, Property -> Getter/Setter delegate
             if (x.Kind == VisceralObjectKind.Field)
-            {
+            {// Field
                 x.RefFieldDelegate = this.Identifier.GetIdentifier();
             }
             else
-            {//
-            }
+            {// Property
+                if (x.RequiresGetAccessor)
+                {
+                    x.GetterDelegate = this.Identifier.GetIdentifier();
+                }
 
-            if (x.RequiresGetAccessor)
-            {
-                x.GetterDelegate = this.Identifier.GetIdentifier();
-            }
-
-            if (x.RequiresSetAccessor)
-            {
-                x.SetterDelegate = this.Identifier.GetIdentifier();
+                if (x.RequiresSetAccessor)
+                {
+                    x.SetterDelegate = this.Identifier.GetIdentifier();
+                }
             }
         }
     }
@@ -2018,10 +2017,10 @@ ModuleInitializerClass_Added:
         ssb.AppendLine($"private static bool {initializeFlag} = {initializeMethod}();");
         using (var scopeMethod = ssb.ScopeBrace($"private static bool {initializeMethod}()"))
         {
-            ssb.AppendLine($"var type = typeof({this.LocalName});");
+            /*ssb.AppendLine($"var type = typeof({this.LocalName});");
             ssb.AppendLine("var expType = Expression.Parameter(type);");
             ssb.AppendLine("ParameterExpression exp;");
-            ssb.AppendLine("ParameterExpression exp2;");
+            ssb.AppendLine("ParameterExpression exp2;");*/
             foreach (var x in array)
             {
                 if (x.Kind == VisceralObjectKind.Property)
@@ -2043,7 +2042,7 @@ ModuleInitializerClass_Added:
                     continue;
                 }
 
-                if (x.SetterDelegate is not null)
+                /*if (x.SetterDelegate is not null)
                 {
                     ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
                     if (this.Kind == VisceralObjectKind.Struct)
@@ -2068,7 +2067,7 @@ ModuleInitializerClass_Added:
                     {
                         ssb.AppendLine($"{x.GetterDelegate} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(Expression.Convert(expType, typeof({x.ContainingObject!.FullName})), \"{x.SimpleName}\"), expType).CompileFast();");
                     }
-                }
+                }*/
             }
 
             ssb.AppendLine("return true;");
