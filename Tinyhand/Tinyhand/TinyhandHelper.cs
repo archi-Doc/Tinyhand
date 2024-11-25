@@ -42,8 +42,8 @@ public static class TinyhandHelper
         }
     }
 
-    public static ulong GetTypeIdentifier(this Type type)
-    {//
+    /*public static ulong GetTypeIdentifier(this Type type)
+    {
         const int Length = 256;
         Span<char> buffer = stackalloc char[Length];
         var remaining = Length;
@@ -101,7 +101,7 @@ public static class TinyhandHelper
         }
 
         return FarmHash.Hash64(buffer.Slice(0, Length - remaining));
-    }
+    }*/
 
     public static Utf8Hashtable<int> ReservedTable { get; } = new();
 

@@ -65,6 +65,12 @@ public struct DesignStruct
     private int Y;
 
     private readonly int Z;
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "Y")]
+    public static extern ref int RefY(in DesignStruct obj);
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "Z")]
+    public static extern ref int RefZ(in DesignStruct obj);
 }
 
 public class DesignBaseClass
@@ -261,6 +267,9 @@ public class InitOnlyBenchmark
         v = structRefField(in designStruct);
         structRefField(in designStruct) = 3;
         v = structRefField(in designStruct);
+
+        DesignStruct.RefY(in designStruct) = 10;
+        DesignStruct.RefZ(in designStruct) = 20;
 
         var setter2 = (Action<DesignBaseClass, int>)Delegate.CreateDelegate(typeof(Action<DesignBaseClass, int>), typeof(DesignBaseClass).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);
         var getter2 = (Func<DesignBaseClass, int>)Delegate.CreateDelegate(typeof(Func<DesignBaseClass, int>), typeof(DesignBaseClass).GetProperty("X", VisceralHelper.TargetBindingFlags)!.GetGetMethod(true)!);

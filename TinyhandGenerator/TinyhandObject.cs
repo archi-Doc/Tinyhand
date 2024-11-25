@@ -3342,9 +3342,15 @@ ModuleInitializerClass_Added:
 
             if (this.MethodCondition_GetTypeIdentifier == MethodCondition.StaticMethod)
             {// GetTypeIdentifierCode
-               // ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => 0x{FarmHash.Hash64(this.FullName).ToString("x")}ul;");
-                ssb.AppendLine($"private static ulong __type_identifier__;");
-                ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => __type_identifier__ != 0 ? __type_identifier__ : (__type_identifier__ = typeof({this.RegionalName}).GetTypeIdentifier());");
+                if (this.Generics_IsGeneric)
+                {// Generics
+                    ssb.AppendLine($"private static ulong __type_identifier__;");
+                    ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => __type_identifier__ != 0 ? __type_identifier__ : (__type_identifier__ = Arc.Visceral.VisceralHelper.TypeToFarmHash64(typeof({this.RegionalName})));");
+                }
+                else
+                {// Non-generics
+                    ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => 0x{FarmHash.Hash64(this.FullName).ToString("x")}ul;");
+                }
             }
 
             if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
