@@ -1935,7 +1935,15 @@ ModuleInitializerClass_Added:
 
         // Exclusive to Primary
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresGetAccessor || x.RequiresSetAccessor))
-        {// Requirement: Property -> Getter/Setter delegate, Field -> RefField delegate
+        {// Requirement: Field -> RefField delegate, Property -> Getter/Setter delegate
+            if (x.Kind == VisceralObjectKind.Field)
+            {
+                x.RefFieldDelegate = this.Identifier.GetIdentifier();
+            }
+            else
+            {//
+            }
+
             if (x.RequiresGetAccessor)
             {
                 x.GetterDelegate = this.Identifier.GetIdentifier();
@@ -1968,16 +1976,13 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateRefFieldDelegate(ScopingStringBuilder ssb, string refFieldDelegate)
-    {
-    }
-
     internal void GenerateAccessorDelegate(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         // Ref field delegate
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RefFieldDelegate is not null))
         {
-            x.GenerateRefFieldDelegate(ssb, x.RefFieldDelegate!);
+            ssb.AppendLine($"[UnsafeAccessor(UnsafeAccessorKind.Field, Name = \"{x.SimpleName}\")]");
+            ssb.AppendLine($"private static extern ref {x.TypeObject!.FullName} {x.RefFieldDelegate}({x.InIfStruct}{x.ContainingObject!.FullName} obj);");
         }
 
         // Getter/Setter delegate

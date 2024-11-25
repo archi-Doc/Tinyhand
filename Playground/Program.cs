@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Runtime.CompilerServices;
 using Arc.Collections;
 using Arc.Crypto;
 using Tinyhand;
@@ -7,6 +8,50 @@ using Tinyhand.IO;
 using ValueLink;
 
 namespace Playground;
+
+[TinyhandObject]
+public partial struct DesignStruct
+{
+    [Key(0)]
+    private int X { get; set; }
+
+    [Key(1)]
+    private int Y;
+
+    [Key(2)]
+    private readonly int Z;
+}
+
+[TinyhandObject]
+public partial class DesignBaseClass
+{
+    protected DesignBaseClass()
+    {
+    }
+
+    [Key(0)]
+    private int X { get; set; }
+
+    [Key(1)]
+    private int Y;
+
+    [Key(2)]
+    private readonly int Z;
+
+    [Key(3)]
+    public int A { get; set; }
+}
+
+[TinyhandObject]
+public partial class DesignDerivedClass : DesignBaseClass
+{
+    public static DesignDerivedClass New()
+        => new();
+
+    protected DesignDerivedClass()
+    {
+    }
+}
 
 /*[TinyhandObject]
 public partial class TestClass3<T>
