@@ -241,7 +241,7 @@ public partial class DerivedPrivateIntClass : PrivateIntClass
     }
 }
 
-    [TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitKeyAsName = true)]
 public partial record RecordClass(int X, int Y, string A, string B);
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -497,7 +497,7 @@ public class InitOnlyBenchmark
 
     [Benchmark]
     public NormalIntClass? DeserializeNormalInt()
-    {// 32
+    {// 33
         return TinyhandSerializer.Deserialize<NormalIntClass>(this.normalIntByte);
     }
 
@@ -515,13 +515,13 @@ public class InitOnlyBenchmark
 
     [Benchmark]
     public RecordClass2? DeserializeRecord2()
-    {// 44
+    {// 48
         return TinyhandSerializer.Deserialize<RecordClass2>(this.recordClassByte);
     }
 
     [Benchmark]
     public DerivedPrivateIntClass? DeserializeDerivedPrivateInt()
-    {// 36
+    {// 33
         return TinyhandSerializer.Deserialize<DerivedPrivateIntClass>(this.privateIntByte);
     }
 }
