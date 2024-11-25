@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Arc.Visceral;
 
-public static class VisceralHelper
+internal static class VisceralHelper
 {
     public static string RemoveWhitespace(this string input)
         => new string(input.ToCharArray().Where(c => !char.IsWhiteSpace(c)).ToArray());
@@ -908,7 +908,8 @@ public static class VisceralHelper
         }
     }
 
-    private static string TypeToName(Type type, bool appendNamespace)
+    private static string
+        TypeToName(Type type, bool appendNamespace)
     {
         if (type.IsArray)
         {

@@ -364,7 +364,6 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         ssb.AddUsing("System.Linq.Expressions");
         ssb.AddUsing("System.Runtime.CompilerServices");
         ssb.AddUsing("System.Threading.Tasks");
-        ssb.AddUsing("FastExpressionCompiler");
         ssb.AddUsing("Tinyhand");
         ssb.AddUsing("Tinyhand.IO");
         ssb.AddUsing("Tinyhand.Resolvers");
