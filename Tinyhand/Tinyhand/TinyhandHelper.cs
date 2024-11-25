@@ -42,67 +42,6 @@ public static class TinyhandHelper
         }
     }
 
-    /*public static ulong GetTypeIdentifier(this Type type)
-    {
-        const int Length = 256;
-        Span<char> buffer = stackalloc char[Length];
-        var remaining = Length;
-        int count;
-
-        var str = type.Namespace; // Namespace
-        if (str is not null)
-        {
-            count = Math.Min(remaining, str.Length);
-            str.AsSpan(0, count).CopyTo(buffer.Slice(Length - remaining));
-            remaining -= count;
-            if (remaining == 0)
-            {
-                return FarmHash.Hash64(buffer.Slice(0, Length - remaining));
-            }
-        }
-
-        str = type.Name; // Name
-        if (str is not null)
-        {
-            count = Math.Min(remaining, str.Length);
-            str.AsSpan(0, count).CopyTo(buffer.Slice(Length - remaining));
-            remaining -= count;
-            if (remaining == 0)
-            {
-                return FarmHash.Hash64(buffer.Slice(0, Length - remaining));
-            }
-        }
-
-        for (var i = 0; i < type.GenericTypeArguments.Length; i++)
-        {
-            str = type.GenericTypeArguments[i].Namespace; // GenericType(Namespace)
-            if (str is not null)
-            {
-                count = Math.Min(remaining, str.Length);
-                str.AsSpan(0, count).CopyTo(buffer.Slice(Length - remaining));
-                remaining -= count;
-                if (remaining == 0)
-                {
-                    return FarmHash.Hash64(buffer.Slice(0, Length - remaining));
-                }
-            }
-
-            str = type.GenericTypeArguments[i].Name; // GenericType(Name)
-            if (str is not null)
-            {
-                count = Math.Min(remaining, str.Length);
-                str.AsSpan(0, count).CopyTo(buffer.Slice(Length - remaining));
-                remaining -= count;
-                if (remaining == 0)
-                {
-                    return FarmHash.Hash64(buffer.Slice(0, Length - remaining));
-                }
-            }
-        }
-
-        return FarmHash.Hash64(buffer.Slice(0, Length - remaining));
-    }*/
-
     public static Utf8Hashtable<int> ReservedTable { get; } = new();
 
     public static Utf8Hashtable<TinyhandModifierType> ModifierTable { get; } = new();

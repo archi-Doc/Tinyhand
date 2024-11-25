@@ -119,12 +119,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public TinyhandObject? ClosedGenericHint { get; private set; }
 
-    public string? GetterDelegate { get; private set; } // GetterDelegate(class), GetterDelegate(in struct)
-
-    public string? SetterDelegate { get; private set; } // SetterDelegate(class, value), SetterDelegate(in struct, value)
-
-    public string? RefFieldDelegate { get; private set; } // ref RefFieldDelegate(class), ref RefFieldDelegate(in struct)
-
     public bool RequiresUnsafeDeserialize { get; private set; }
 
     public string UnsafeDeserializeString => this.RequiresUnsafeDeserialize ? "unsafe " : string.Empty;
@@ -166,6 +160,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public bool RequiresGetAccessor { get; private set; }
 
     public bool RequiresSetAccessor { get; private set; }
+
+    public string? GetterDelegate { get; private set; } // GetterDelegate(class), GetterDelegate(in struct)
+
+    public string? SetterDelegate { get; private set; } // SetterDelegate(class, value), SetterDelegate(in struct, value)
+
+    public string? RefFieldDelegate { get; private set; } // ref RefFieldDelegate(class), ref RefFieldDelegate(in struct)
 
     private ReconstructCondition reconstructCondition;
 
@@ -1909,8 +1909,8 @@ ModuleInitializerClass_Added:
             // StringKey fields
             // this.GenerateStringKeyFields(ssb, info);
 
-            // Init-only property delegates
-            this.GenerateGetterSetterDelegate(ssb, info);
+            // Generate accessor delegates (getter, setter, ref field)
+            this.GenerateAccessorDelegate(ssb, info);
 
             if (this.Children?.Count > 0)
             {// Generate children and loader.
@@ -1962,14 +1962,25 @@ ModuleInitializerClass_Added:
         // Init setter delegates
         for (var n = 0; n < this.Members.Length; n++)
         {
-            this.Members[n].SetterDelegate = od.Members[n].SetterDelegate;
             this.Members[n].GetterDelegate = od.Members[n].GetterDelegate;
+            this.Members[n].SetterDelegate = od.Members[n].SetterDelegate;
+            this.Members[n].RefFieldDelegate = od.Members[n].RefFieldDelegate;
         }
     }
 
-    internal void GenerateGetterSetterDelegate(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateRefFieldDelegate(ScopingStringBuilder ssb, string refFieldDelegate)
     {
-        // Array
+    }
+
+    internal void GenerateAccessorDelegate(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        // Ref field delegate
+        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RefFieldDelegate is not null))
+        {
+            x.GenerateRefFieldDelegate(ssb, x.RefFieldDelegate!);
+        }
+
+        // Getter/Setter delegate
         var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetAccessor || x.RequiresGetAccessor).ToArray();
         if (array.Length == 0)
         {
@@ -1992,7 +2003,7 @@ ModuleInitializerClass_Added:
             foreach (var x in array)
             {
                 if (x.RequiresSetAccessor)
-                {//
+                {
                     ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
                     if (this.Kind == VisceralObjectKind.Struct)
                     {// Struct
