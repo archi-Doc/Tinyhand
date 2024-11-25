@@ -3302,7 +3302,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start()
         {
-            if (x.SetterDelegate != null || x.IsReadOnly)
+            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
             {// TypeName vd;
                 initSetter = ssb.ScopeFullObject("vd");
                 ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
@@ -3316,7 +3316,12 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegate != null)
+                if (x.RefFieldDelegate is not null)
+                {// RefFieldDelegate(obj) = vd;
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
+                }
+                else if (x.SetterDelegate is not null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
                     ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
@@ -3652,7 +3657,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start()
         {
-            if (x.SetterDelegate != null || x.IsReadOnly)
+            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
             {// TypeName vd;
                 initSetter = ssb.ScopeFullObject("vd");
                 ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
@@ -3666,7 +3671,12 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegate != null)
+                if (x.RefFieldDelegate is not null)
+                {// RefFieldDelegate(obj) = vd;
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
+                }
+                else if (x.SetterDelegate is not null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
                     ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
@@ -3772,7 +3782,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start()
         {
-            if (x.SetterDelegate != null || x.IsReadOnly)
+            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
             {// TypeName vd;
                 initSetter = ssb.ScopeFullObject("vd");
                 ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
@@ -3786,7 +3796,12 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegate != null)
+                if (x.RefFieldDelegate is not null)
+                {// RefFieldDelegate(obj) = vd;
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
+                }
+                else if (x.SetterDelegate is not null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
                     ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
@@ -3868,7 +3883,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start(bool brace = false)
         {
-            if (x.SetterDelegate != null || x.IsReadOnly)
+            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
             {// TypeName vd;
                 if (brace)
                 {
@@ -3887,7 +3902,12 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegate != null)
+                if (x.RefFieldDelegate is not null)
+                {// RefFieldDelegate(obj) = vd;
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
+                }
+                else if (x.SetterDelegate is not null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
                     ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
@@ -3969,7 +3989,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start()
         {
-            if (x.SetterDelegate != null || x.IsReadOnly)
+            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
             {// TypeName vd;
                 initSetter = ssb.ScopeFullObject("vd");
                 ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
@@ -3983,7 +4003,12 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegate != null)
+                if (x.RefFieldDelegate is not null)
+                {// RefFieldDelegate(obj) = vd;
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
+                }
+                else if (x.SetterDelegate is not null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
                     ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
@@ -4046,7 +4071,7 @@ ModuleInitializerClass_Added:
 
             void InitSetter_Start(bool brace = false)
             {
-                if (x.SetterDelegate != null || x.IsReadOnly)
+                if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
                 {// TypeName vd;
                     if (brace)
                     {
@@ -4065,7 +4090,12 @@ ModuleInitializerClass_Added:
                     initSetter.Dispose();
                     initSetter = null;
 
-                    if (x.SetterDelegate != null)
+                    if (x.RefFieldDelegate is not null)
+                    {// RefFieldDelegate(obj) = vd;
+                        var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                        ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
+                    }
+                    else if (x.SetterDelegate is not null)
                     {// SetterDelegate!(obj, vd);
                         var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
                         ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
