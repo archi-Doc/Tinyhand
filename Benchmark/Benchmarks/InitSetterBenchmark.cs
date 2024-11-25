@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
-using FastExpressionCompiler;
+// using FastExpressionCompiler;
 using Tinyhand;
 
 #pragma warning disable CS0169
@@ -273,7 +273,7 @@ public class InitOnlyBenchmark
     private InitIntStruct initIntStruct;
 
     private readonly Action<InitIntClass, int> setDelegate;
-    private readonly Action<InitIntClass, int> setDelegateFast;
+    // private readonly Action<InitIntClass, int> setDelegateFast;
     private readonly Action<InitIntClass, int> setDelegate2;
 
     private readonly TestByInAction<InitIntStruct, int> setStructDelegate;
@@ -352,7 +352,7 @@ public class InitOnlyBenchmark
         d(c, 33);
 
         this.setDelegate = this.CreateDelegate();
-        this.setDelegateFast = this.CreateDelegateFast();
+        // this.setDelegateFast = this.CreateDelegateFast();
         this.setDelegate2 = this.CreateDelegate2();
 
         this.initIntStruct = new InitIntStruct(1, 2, "a", "b");
@@ -375,7 +375,7 @@ public class InitOnlyBenchmark
         return Expression.Lambda<Action<InitIntClass, int>>(Expression.Call(expType, mi!, exp), expType, exp).Compile();
     }
 
-    [Benchmark]
+    /*[Benchmark]
     public Action<InitIntClass, int> CreateDelegateFast()
     {
         var type = typeof(InitIntClass);
@@ -383,7 +383,7 @@ public class InitOnlyBenchmark
         var mi = type.GetMethod("set_X")!;
         var exp = Expression.Parameter(typeof(int));
         return Expression.Lambda<Action<InitIntClass, int>>(Expression.Call(expType, mi!, exp), expType, exp).CompileFast();
-    }
+    }*/
 
     [Benchmark]
     public Action<InitIntClass, int> CreateDelegate2()
