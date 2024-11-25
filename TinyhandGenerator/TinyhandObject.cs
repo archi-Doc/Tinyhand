@@ -123,6 +123,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public string? GetterDelegateIdentifier { get; private set; }
 
+    public string? RefFieldDelegate { get; private set; }
+
     public bool RequiresUnsafeDeserialize { get; private set; }
 
     public string UnsafeDeserializeString => this.RequiresUnsafeDeserialize ? "unsafe " : string.Empty;
@@ -1908,7 +1910,7 @@ ModuleInitializerClass_Added:
             // this.GenerateStringKeyFields(ssb, info);
 
             // Init-only property delegates
-            this.GenerateInitSetters(ssb, info);
+            this.GenerateGetterSetterDelegate(ssb, info);
 
             if (this.Children?.Count > 0)
             {// Generate children and loader.
@@ -1931,7 +1933,7 @@ ModuleInitializerClass_Added:
     {// Prepare Primary TinyhandObject
         this.PrepareTrie();
 
-        // Init setter delegates
+        // Setter delegates
         var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetter).ToArray();
         if (array.Length != 0)
         {
@@ -1941,7 +1943,7 @@ ModuleInitializerClass_Added:
             }
         }
 
-        // Init getter delegates
+        // Getter delegates
         array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresGetter).ToArray();
         if (array.Length != 0)
         {
@@ -1971,7 +1973,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateInitSetters(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateGetterSetterDelegate(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         // Array
         var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetter || x.RequiresGetter).ToArray();
@@ -1991,10 +1993,8 @@ ModuleInitializerClass_Added:
         {
             ssb.AppendLine($"var type = typeof({this.LocalName});");
             ssb.AppendLine("var expType = Expression.Parameter(type);");
-            // ssb.AppendLine("System.Reflection.MethodInfo mi;");
             ssb.AppendLine("ParameterExpression exp;");
             ssb.AppendLine("ParameterExpression exp2;");
-            // ssb.AppendLine("FieldInfo fi;");
             foreach (var x in array)
             {
                 if (x.RequiresSetter)
@@ -2010,20 +2010,6 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
                         ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
                     }
-
-                    /*if (x.Kind == VisceralObjectKind.Property)
-                    {// Property
-                        ssb.AppendLine($"mi = type.GetMethod(\"set_{x.SimpleName}\")!;");
-                        ssb.AppendLine($"exp = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
-                        ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Call(expType, mi!, exp), expType, exp).CompileFast();");
-                    }
-                    else
-                    {// Field
-                        // ssb.AppendLine($"fi = typeof({x.ContainingObject!.FullName}).GetField(\"{x.SimpleName}\", BindingFlags.NonPublic | BindingFlags.Instance)!;");
-                        ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
-                        ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
-                        ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Assign(Expression.Field(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
-                    }*/
                 }
 
                 if (x.RequiresGetter)
@@ -2036,21 +2022,6 @@ ModuleInitializerClass_Added:
                     {
                         ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(Expression.Convert(expType, typeof({x.ContainingObject!.FullName})), \"{x.SimpleName}\"), expType).CompileFast();");
                     }
-
-                    /*if (x.Kind == VisceralObjectKind.Property)
-                    {// Property
-                        ssb.AppendLine($"mi = type.GetMethod(\"get_{x.SimpleName}\")!;");
-                        ssb.AppendLine($"exp = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
-                        ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Call(expType, mi!" +
-                            $"), expType).CompileFast();");
-                    }
-                    else
-                    {// Field
-                        // ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
-                        // ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Field(exp, \"{x.SimpleName}\")).CompileFast();");
-
-                        ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.Field(Expression.Convert(expType, typeof({x.ContainingObject!.FullName})), \"{x.SimpleName}\"), expType).CompileFast();");
-                    }*/
                 }
             }
 

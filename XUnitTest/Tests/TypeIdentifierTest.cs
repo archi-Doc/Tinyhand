@@ -23,6 +23,11 @@ public class TypeIdentifierTest
         t.GetTypeIdentifier().Is(identifier);
         TinyhandSerializer.GetTypeIdentifierObject<GenericsTestClass<string>>().Is(identifier);
 
+        t = (ITinyhandSerialize)new GenericsTestClass<int>();
+        identifier = FarmHash.Hash64("Tinyhand.Tests.GenericsTestClass<int>");
+        t.GetTypeIdentifier().Is(identifier);
+        TinyhandSerializer.GetTypeIdentifierObject<GenericsTestClass<int>>().Is(identifier);
+
         t = (ITinyhandSerialize)(new GenericsTestClass<string>.GenericsNestedClass<double>());
         identifier = FarmHash.Hash64("Tinyhand.Tests.GenericsTestClass<string>.GenericsNestedClass<double>");
         t.GetTypeIdentifier().Is(identifier);
