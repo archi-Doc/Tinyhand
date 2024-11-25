@@ -1935,7 +1935,7 @@ ModuleInitializerClass_Added:
 
         // Exclusive to Primary
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresGetAccessor || x.RequiresSetAccessor))
-        {
+        {// Requirement: Property -> Getter/Setter delegate, Field -> RefField delegate
             if (x.RequiresGetAccessor)
             {
                 x.GetterDelegate = this.Identifier.GetIdentifier();
@@ -1981,17 +1981,15 @@ ModuleInitializerClass_Added:
         }
 
         // Getter/Setter delegate
-        var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetAccessor || x.RequiresGetAccessor).ToArray();
+        var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.GetterDelegate is not null || x.SetterDelegate is not null).ToArray();
         if (array.Length == 0)
         {
             return;
         }
 
-        // Identifier
-        var initializeFlag = this.Identifier.GetIdentifier(); // Exclusive to Primary
-        var initializeMethod = this.Identifier.GetIdentifier(); // Exclusive to Primary
-
-        // initializeFlag / initializeMethod
+        // InitializeFlag/Method
+        var initializeFlag = this.Identifier.GetIdentifier();
+        var initializeMethod = this.Identifier.GetIdentifier();
         ssb.AppendLine();
         ssb.AppendLine($"private static bool {initializeFlag} = {initializeMethod}();");
         using (var scopeMethod = ssb.ScopeBrace($"private static bool {initializeMethod}()"))
@@ -2002,7 +2000,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("ParameterExpression exp2;");
             foreach (var x in array)
             {
-                if (x.RequiresSetAccessor)
+                if (x.SetterDelegate is not null)
                 {
                     ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
                     if (this.Kind == VisceralObjectKind.Struct)
@@ -2017,7 +2015,7 @@ ModuleInitializerClass_Added:
                     }
                 }
 
-                if (x.RequiresGetAccessor)
+                if (x.GetterDelegate is not null)
                 {
                     if (this == x.ContainingObject)
                     {
@@ -2037,7 +2035,7 @@ ModuleInitializerClass_Added:
         ssb.AppendLine();
         foreach (var x in array)
         {
-            if (x.RequiresSetAccessor)
+            if (x.SetterDelegate is not null)
             {
                 if (this.Kind == VisceralObjectKind.Struct)
                 {
@@ -2049,7 +2047,7 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            if (x.RequiresGetAccessor)
+            if (x.GetterDelegate is not null)
             {
                 ssb.AppendLine($"private static Func<{this.LocalName}, {x.TypeObject!.FullName}>? {x.GetterDelegate};");
             }
@@ -2722,8 +2720,8 @@ ModuleInitializerClass_Added:
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
             {
                 string sourceName;
-                if (x.RequiresGetAccessor)
-                {
+                if (x.GetterDelegate is not null)
+                {// Getter delegate
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
                     sourceName = $"{prefix}{x.GetterDelegate}!({sourceObject})";
                 }
@@ -4194,8 +4192,8 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? v1 = null;
         ScopingStringBuilder.IScope v2;
-        if (x.RequiresGetAccessor)
-        {
+        if (x.GetterDelegate is not null)
+        {// Getter delegate
             v1 = ssb.ScopeBrace(string.Empty);
             var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
             ssb.AppendLine($"var vd = {prefix}{x.GetterDelegate}!({ssb.FullObject});");
