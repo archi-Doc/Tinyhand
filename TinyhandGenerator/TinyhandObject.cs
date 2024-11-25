@@ -167,6 +167,25 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public string? RefFieldDelegate { get; private set; } // ref RefFieldDelegate(class), ref RefFieldDelegate(in struct)
 
+    public string RefFieldOrGetterDelegate
+    {
+        get
+        {
+            if (this.RefFieldDelegate is not null)
+            {
+                return this.RefFieldDelegate;
+            }
+            else if (this.GetterDelegate is not null)
+            {
+                return this.GetterDelegate + "!";
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+    }
+
     private ReconstructCondition reconstructCondition;
 
     public ReconstructCondition ReconstructCondition
@@ -2744,15 +2763,10 @@ ModuleInitializerClass_Added:
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
             {
                 string sourceName;
-                if (x.RefFieldDelegate is not null)
-                {// Ref field delegate
+                if (x.RefFieldDelegate is not null || x.GetterDelegate is not null)
+                {// Ref field or getter delegate
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    sourceName = $"{prefix}{x.RefFieldDelegate}({sourceObject})";
-                }
-                else if (x.GetterDelegate is not null)
-                {// Getter delegate
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    sourceName = $"{prefix}{x.GetterDelegate}!({sourceObject})";
+                    sourceName = $"{prefix}{x.RefFieldOrGetterDelegate}({sourceObject})";
                 }
                 else
                 {// Hidden members
@@ -4221,18 +4235,11 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? v1 = null;
         ScopingStringBuilder.IScope v2;
-        if (x.RefFieldDelegate is not null)
-        {// Ref field delegate
+        if (x.RefFieldDelegate is not null || x.GetterDelegate is not null)
+        {// Ref field or getter delegate
             v1 = ssb.ScopeBrace(string.Empty);
             var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-            ssb.AppendLine($"var vd = {prefix}{x.RefFieldDelegate}({ssb.FullObject});");
-            v2 = ssb.ScopeFullObject("vd");
-        }
-        else if (x.GetterDelegate is not null)
-        {// Getter delegate
-            v1 = ssb.ScopeBrace(string.Empty);
-            var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-            ssb.AppendLine($"var vd = {prefix}{x.GetterDelegate}!({ssb.FullObject});");
+            ssb.AppendLine($"var vd = {prefix}{x.RefFieldOrGetterDelegate}({ssb.FullObject});");
             v2 = ssb.ScopeFullObject("vd");
         }
         else
