@@ -119,11 +119,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public TinyhandObject? ClosedGenericHint { get; private set; }
 
-    public string? SetterDelegateIdentifier { get; private set; }
+    public string? GetterDelegate { get; private set; } // GetterDelegate(class), GetterDelegate(in struct)
 
-    public string? GetterDelegateIdentifier { get; private set; }
+    public string? SetterDelegate { get; private set; } // SetterDelegate(class, value), SetterDelegate(in struct, value)
 
-    public string? RefFieldDelegate { get; private set; }
+    public string? RefFieldDelegate { get; private set; } // ref RefFieldDelegate(class), ref RefFieldDelegate(in struct)
 
     public bool RequiresUnsafeDeserialize { get; private set; }
 
@@ -163,9 +163,9 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public MethodCondition MethodCondition_ReadCustomRecord { get; private set; }
 
-    public bool RequiresGetter { get; private set; }
+    public bool RequiresGetAccessor { get; private set; }
 
-    public bool RequiresSetter { get; private set; }
+    public bool RequiresSetAccessor { get; private set; }
 
     private ReconstructCondition reconstructCondition;
 
@@ -1460,13 +1460,13 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         // Requires getter/setter
         if (this.IsInitOnly)
         {
-            this.RequiresSetter = true;
+            this.RequiresSetAccessor = true;
         }
         else if (this.Kind == VisceralObjectKind.Property)
         {
             if (this.IsReadOnly)
             {
-                this.RequiresSetter = true;
+                this.RequiresSetAccessor = true;
             }
         }
 
@@ -1478,20 +1478,20 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 {
                     if (!this.Field_IsPublic)
                     {
-                        this.RequiresGetter = true;
-                        this.RequiresSetter = true;
+                        this.RequiresGetAccessor = true;
+                        this.RequiresSetAccessor = true;
                     }
                 }
                 else if (this.Kind == VisceralObjectKind.Property)
                 {
                     if (!this.Property_IsPublicGetter)
                     {
-                        this.RequiresGetter = true;
+                        this.RequiresGetAccessor = true;
                     }
 
                     if (!this.Property_IsPublicSetter)
                     {
-                        this.RequiresSetter = true;
+                        this.RequiresSetAccessor = true;
                     }
                 }
             }
@@ -1501,20 +1501,20 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 {
                     if (this.Field_IsPrivate)
                     {
-                        this.RequiresGetter = true;
-                        this.RequiresSetter = true;
+                        this.RequiresGetAccessor = true;
+                        this.RequiresSetAccessor = true;
                     }
                 }
                 else if (this.Kind == VisceralObjectKind.Property)
                 {
                     if (this.Property_IsPrivateGetter)
                     {
-                        this.RequiresGetter = true;
+                        this.RequiresGetAccessor = true;
                     }
 
                     if (this.Property_IsPrivateSetter)
                     {
-                        this.RequiresSetter = true;
+                        this.RequiresSetAccessor = true;
                     }
                 }
             }
@@ -1536,15 +1536,15 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             }
 
             this.ObjectFlag |= TinyhandObjectFlag.AddPropertyTarget;
-            this.RequiresGetter = false;
+            this.RequiresGetAccessor = false;
             if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
             {// Repeatable read
-                this.RequiresSetter = false; // Main
+                this.RequiresSetAccessor = false; // Main
                 // this.ObjectFlag |= TinyhandObjectFlag.IsRepeatableRead; // Alternative
             }
             else
             {// Other
-                this.RequiresSetter = false;
+                this.RequiresSetAccessor = false;
             }
         }
 
@@ -1933,23 +1933,17 @@ ModuleInitializerClass_Added:
     {// Prepare Primary TinyhandObject
         this.PrepareTrie();
 
-        // Setter delegates
-        var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetter).ToArray();
-        if (array.Length != 0)
+        // Exclusive to Primary
+        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresGetAccessor || x.RequiresSetAccessor))
         {
-            foreach (var x in array)
+            if (x.RequiresGetAccessor)
             {
-                x.SetterDelegateIdentifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
+                x.GetterDelegate = this.Identifier.GetIdentifier();
             }
-        }
 
-        // Getter delegates
-        array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresGetter).ToArray();
-        if (array.Length != 0)
-        {
-            foreach (var x in array)
+            if (x.RequiresSetAccessor)
             {
-                x.GetterDelegateIdentifier = this.Identifier.GetIdentifier(); // Exclusive to Primary
+                x.SetterDelegate = this.Identifier.GetIdentifier();
             }
         }
     }
@@ -1968,15 +1962,15 @@ ModuleInitializerClass_Added:
         // Init setter delegates
         for (var n = 0; n < this.Members.Length; n++)
         {
-            this.Members[n].SetterDelegateIdentifier = od.Members[n].SetterDelegateIdentifier;
-            this.Members[n].GetterDelegateIdentifier = od.Members[n].GetterDelegateIdentifier;
+            this.Members[n].SetterDelegate = od.Members[n].SetterDelegate;
+            this.Members[n].GetterDelegate = od.Members[n].GetterDelegate;
         }
     }
 
     internal void GenerateGetterSetterDelegate(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         // Array
-        var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetter || x.RequiresGetter).ToArray();
+        var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresSetAccessor || x.RequiresGetAccessor).ToArray();
         if (array.Length == 0)
         {
             return;
@@ -1997,30 +1991,30 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("ParameterExpression exp2;");
             foreach (var x in array)
             {
-                if (x.RequiresSetter)
+                if (x.RequiresSetAccessor)
                 {//
                     ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
                     if (this.Kind == VisceralObjectKind.Struct)
                     {// Struct
                         ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}).MakeByRefType());");
-                        ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<ByRefAction<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
+                        ssb.AppendLine($"{x.SetterDelegate} = Expression.Lambda<ByRefAction<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
                     }
                     else
                     {// Class
                         ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
-                        ssb.AppendLine($"{x.SetterDelegateIdentifier} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
+                        ssb.AppendLine($"{x.SetterDelegate} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
                     }
                 }
 
-                if (x.RequiresGetter)
+                if (x.RequiresGetAccessor)
                 {
                     if (this == x.ContainingObject)
                     {
-                        ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(expType, \"{x.SimpleName}\"), expType).CompileFast();");
+                        ssb.AppendLine($"{x.GetterDelegate} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(expType, \"{x.SimpleName}\"), expType).CompileFast();");
                     }
                     else
                     {
-                        ssb.AppendLine($"{x.GetterDelegateIdentifier} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(Expression.Convert(expType, typeof({x.ContainingObject!.FullName})), \"{x.SimpleName}\"), expType).CompileFast();");
+                        ssb.AppendLine($"{x.GetterDelegate} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(Expression.Convert(expType, typeof({x.ContainingObject!.FullName})), \"{x.SimpleName}\"), expType).CompileFast();");
                     }
                 }
             }
@@ -2032,21 +2026,21 @@ ModuleInitializerClass_Added:
         ssb.AppendLine();
         foreach (var x in array)
         {
-            if (x.RequiresSetter)
+            if (x.RequiresSetAccessor)
             {
                 if (this.Kind == VisceralObjectKind.Struct)
                 {
-                    ssb.AppendLine($"private static ByRefAction<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegateIdentifier};");
+                    ssb.AppendLine($"private static ByRefAction<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegate};");
                 }
                 else
                 {
-                    ssb.AppendLine($"private static Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegateIdentifier};");
+                    ssb.AppendLine($"private static Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegate};");
                 }
             }
 
-            if (x.RequiresGetter)
+            if (x.RequiresGetAccessor)
             {
-                ssb.AppendLine($"private static Func<{this.LocalName}, {x.TypeObject!.FullName}>? {x.GetterDelegateIdentifier};");
+                ssb.AppendLine($"private static Func<{this.LocalName}, {x.TypeObject!.FullName}>? {x.GetterDelegate};");
             }
         }
 
@@ -2717,10 +2711,10 @@ ModuleInitializerClass_Added:
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
             {
                 string sourceName;
-                if (x.RequiresGetter)
+                if (x.RequiresGetAccessor)
                 {
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    sourceName = $"{prefix}{x.GetterDelegateIdentifier}!({sourceObject})";
+                    sourceName = $"{prefix}{x.GetterDelegate}!({sourceObject})";
                 }
                 else
                 {// Hidden members
@@ -3256,7 +3250,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start()
         {
-            if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+            if (x.SetterDelegate != null || x.IsReadOnly)
             {// TypeName vd;
                 initSetter = ssb.ScopeFullObject("vd");
                 ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
@@ -3270,10 +3264,10 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegateIdentifier != null)
+                if (x.SetterDelegate != null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
+                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
                 {
@@ -3606,7 +3600,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start()
         {
-            if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+            if (x.SetterDelegate != null || x.IsReadOnly)
             {// TypeName vd;
                 initSetter = ssb.ScopeFullObject("vd");
                 ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
@@ -3620,10 +3614,10 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegateIdentifier != null)
+                if (x.SetterDelegate != null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
+                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
                 {
@@ -3726,7 +3720,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start()
         {
-            if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+            if (x.SetterDelegate != null || x.IsReadOnly)
             {// TypeName vd;
                 initSetter = ssb.ScopeFullObject("vd");
                 ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
@@ -3740,10 +3734,10 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegateIdentifier != null)
+                if (x.SetterDelegate != null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
+                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
                 {
@@ -3822,7 +3816,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start(bool brace = false)
         {
-            if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+            if (x.SetterDelegate != null || x.IsReadOnly)
             {// TypeName vd;
                 if (brace)
                 {
@@ -3841,10 +3835,10 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegateIdentifier != null)
+                if (x.SetterDelegate != null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
+                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
                 {
@@ -3923,7 +3917,7 @@ ModuleInitializerClass_Added:
 
         void InitSetter_Start()
         {
-            if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+            if (x.SetterDelegate != null || x.IsReadOnly)
             {// TypeName vd;
                 initSetter = ssb.ScopeFullObject("vd");
                 ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
@@ -3937,10 +3931,10 @@ ModuleInitializerClass_Added:
                 initSetter.Dispose();
                 initSetter = null;
 
-                if (x.SetterDelegateIdentifier != null)
+                if (x.SetterDelegate != null)
                 {// SetterDelegate!(obj, vd);
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
+                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
                 }
                 else if (x.IsReadOnly)
                 {
@@ -4000,7 +3994,7 @@ ModuleInitializerClass_Added:
 
             void InitSetter_Start(bool brace = false)
             {
-                if (x.SetterDelegateIdentifier != null || x.IsReadOnly)
+                if (x.SetterDelegate != null || x.IsReadOnly)
                 {// TypeName vd;
                     if (brace)
                     {
@@ -4019,10 +4013,10 @@ ModuleInitializerClass_Added:
                     initSetter.Dispose();
                     initSetter = null;
 
-                    if (x.SetterDelegateIdentifier != null)
+                    if (x.SetterDelegate != null)
                     {// SetterDelegate!(obj, vd);
                         var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                        ssb.AppendLine($"{prefix}{x.SetterDelegateIdentifier}!({this.InIfStruct}{destObject}, vd);");
+                        ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
                     }
                     else if (x.IsReadOnly)
                     {
@@ -4189,11 +4183,11 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? v1 = null;
         ScopingStringBuilder.IScope v2;
-        if (x.RequiresGetter)
+        if (x.RequiresGetAccessor)
         {
             v1 = ssb.ScopeBrace(string.Empty);
             var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-            ssb.AppendLine($"var vd = {prefix}{x.GetterDelegateIdentifier}!({ssb.FullObject});");
+            ssb.AppendLine($"var vd = {prefix}{x.GetterDelegate}!({ssb.FullObject});");
             v2 = ssb.ScopeFullObject("vd");
         }
         else
