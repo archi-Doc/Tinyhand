@@ -2744,7 +2744,12 @@ ModuleInitializerClass_Added:
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
             {
                 string sourceName;
-                if (x.GetterDelegate is not null)
+                if (x.RefFieldDelegate is not null)
+                {// Ref field delegate
+                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+                    sourceName = $"{prefix}{x.RefFieldDelegate}({sourceObject})";
+                }
+                else if (x.GetterDelegate is not null)
                 {// Getter delegate
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
                     sourceName = $"{prefix}{x.GetterDelegate}!({sourceObject})";
@@ -4216,7 +4221,14 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? v1 = null;
         ScopingStringBuilder.IScope v2;
-        if (x.GetterDelegate is not null)
+        if (x.RefFieldDelegate is not null)
+        {// Ref field delegate
+            v1 = ssb.ScopeBrace(string.Empty);
+            var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
+            ssb.AppendLine($"var vd = {prefix}{x.RefFieldDelegate}({ssb.FullObject});");
+            v2 = ssb.ScopeFullObject("vd");
+        }
+        else if (x.GetterDelegate is not null)
         {// Getter delegate
             v1 = ssb.ScopeBrace(string.Empty);
             var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
