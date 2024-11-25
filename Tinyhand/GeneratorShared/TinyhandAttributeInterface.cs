@@ -10,6 +10,8 @@ namespace Tinyhand;
 
 public delegate void ByRefAction<T1, T2>(in T1 arg1, T2 arg2); // For struct setter.
 
+public delegate void ByRefFunc<T1, T2>(in T1 arg1, T2 arg2); // For struct getter.
+
 /// <summary>
 /// Specifies the accessibility of the generated property.
 /// </summary>

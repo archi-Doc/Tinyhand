@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Arc.Crypto;
 
@@ -12,6 +13,8 @@ namespace Arc.Visceral;
 
 public static class VisceralHelper
 {
+    public const BindingFlags TargetBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+
     public static string? Primitives_ShortenFullName(string fullName) => fullName switch
     {
         "System.Void" => "void",

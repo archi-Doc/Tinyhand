@@ -2005,6 +2005,25 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("ParameterExpression exp2;");
             foreach (var x in array)
             {
+                if (x.Kind == VisceralObjectKind.Property)
+                {// Delegate.CreateDelegate
+                    if (x.GetterDelegate is not null)
+                    {
+                        var delegateName = this.Kind == VisceralObjectKind.Struct ? "ByRefFunc" : "Func";
+                        var delegateType = $"{delegateName}<{this.LocalName}, {x.TypeObject!.FullName}>";
+                        ssb.AppendLine($"{x.GetterDelegate} = ({delegateType})Delegate.CreateDelegate(typeof({delegateType}), typeof({x.ContainingObject!.FullName}).GetProperty(\"{x.SimpleName}\", Arc.Visceral.VisceralHelper.TargetBindingFlags)!.GetGetMethod(true)!);");
+                    }
+
+                    if (x.SetterDelegate is not null)
+                    {
+                        var delegateName = this.Kind == VisceralObjectKind.Struct ? "ByRefAction" : "Action";
+                        var delegateType = $"{delegateName}<{this.LocalName}, {x.TypeObject!.FullName}>";
+                        ssb.AppendLine($"{x.SetterDelegate} = ({delegateType})Delegate.CreateDelegate(typeof({delegateType}), typeof({x.ContainingObject!.FullName}).GetProperty(\"{x.SimpleName}\", Arc.Visceral.VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);");
+                    }
+
+                    continue;
+                }
+
                 if (x.SetterDelegate is not null)
                 {
                     ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");

@@ -200,7 +200,48 @@ public partial struct InitIntStruct
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject]
+public partial class PrivateIntClass
+{
+    [Key(0)]
+    private int X { get; set; }
+
+    [Key(1)]
+    private int Y;
+
+    [Key(2)]
+    private string A = default!;
+
+    [Key(3)]
+    private string B = default!;
+
+    public PrivateIntClass(int x, int y, string a, string b)
+    {
+        this.X = x;
+        this.Y = y;
+        this.A = a;
+        this.B = b;
+    }
+
+    public PrivateIntClass()
+    {
+    }
+}
+
+[TinyhandObject]
+public partial class DerivedPrivateIntClass : PrivateIntClass
+{
+    public DerivedPrivateIntClass(int x, int y, string a, string b)
+        : base(x, y, a, b)
+    {
+    }
+
+    public DerivedPrivateIntClass()
+    {
+    }
+}
+
+    [TinyhandObject(ImplicitKeyAsName = true)]
 public partial record RecordClass(int X, int Y, string A, string B);
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -226,6 +267,7 @@ public class InitOnlyBenchmark
     private byte[] normalIntByte = default!;
     private InitIntClass initInt = default!;
     private byte[] initIntByte = default!;
+    private byte[] privateIntByte = default!;
     private RecordClass recordClass = default!;
     private byte[] recordClassByte = default!;
     private InitIntStruct initIntStruct;
@@ -302,6 +344,8 @@ public class InitOnlyBenchmark
         this.initIntByte = TinyhandSerializer.Serialize(this.initInt);
         this.recordClass = new RecordClass(1, 2, "A", "B");
         this.recordClassByte = TinyhandSerializer.Serialize(this.recordClass);
+        var derivedPrivateIntClass = new DerivedPrivateIntClass(1, 2, "A", "B");
+        this.privateIntByte = TinyhandSerializer.Serialize(derivedPrivateIntClass);
 
         var d = this.CreateDelegate2();
         var c = new InitIntClass(1, 2, "a", "b");
@@ -378,7 +422,7 @@ public class InitOnlyBenchmark
     public TestClassRefField<DesignBaseClass, int> CreateClassRefField()
         => VisceralHelper.CreateClassRefField<DesignBaseClass, int>("Y");*/
 
-    [Benchmark]
+    /*[Benchmark]
     public InitIntClass InvokeDelegate()
     {
         this.setDelegate(this.initInt, 999);
@@ -397,7 +441,7 @@ public class InitOnlyBenchmark
     {
         this.setDelegate2(this.initInt, 999);
         return this.initInt;
-    }
+    }*/
 
     /*[Benchmark]
     public int InvokeStructDelegate()
@@ -451,27 +495,33 @@ public class InitOnlyBenchmark
         return this.designDerivedClass;
     }*/
 
-    /*[Benchmark]
+    [Benchmark]
     public NormalIntClass? DeserializeNormalInt()
-    {
+    {// 32
         return TinyhandSerializer.Deserialize<NormalIntClass>(this.normalIntByte);
     }
 
     [Benchmark]
     public InitIntClass? DeserializeInitInt()
-    {
+    {// 37
         return TinyhandSerializer.Deserialize<InitIntClass>(this.initIntByte);
     }
 
     [Benchmark]
     public RecordClass? DeserializeRecord()
-    {
+    {// 48
         return TinyhandSerializer.Deserialize<RecordClass>(this.recordClassByte);
     }
 
     [Benchmark]
     public RecordClass2? DeserializeRecord2()
-    {
+    {// 44
         return TinyhandSerializer.Deserialize<RecordClass2>(this.recordClassByte);
-    }*/
+    }
+
+    [Benchmark]
+    public DerivedPrivateIntClass? DeserializeDerivedPrivateInt()
+    {// 36
+        return TinyhandSerializer.Deserialize<DerivedPrivateIntClass>(this.privateIntByte);
+    }
 }
