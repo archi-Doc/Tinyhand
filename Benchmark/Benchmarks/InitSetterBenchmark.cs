@@ -258,6 +258,13 @@ public partial class RecordClass2
     public RecordClass2()
     {
     }
+
+    private static class __visceral__
+    {
+        static __visceral__()
+        {
+        }
+    }
 }
 
 [Config(typeof(BenchmarkConfig))]

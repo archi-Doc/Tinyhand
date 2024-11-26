@@ -163,13 +163,13 @@ public static partial class TinyhandSerializerExtensions
         return value.TryDeserialize(ref reader, options);
     }
 
-    /// <summary>
+    /* /// <summary>
     /// Gets the type identifier (FarmHash.Hash64(Type.FullName)) for the specified value.
     /// </summary>
     /// <param name="value">The value to get the type identifier for.</param>
     /// <returns>The type identifier.</returns>
     public static ulong GetTypeIdentifier(this ITinyhandSerialize value)
-        => value.GetTypeIdentifier(); // GetTypeIdentifierCode
+        => value.GetTypeIdentifier(); // GetTypeIdentifierCode */
 
     /// <summary>
     /// Serializes the specified value using the provided TinyhandWriter and options.

@@ -215,13 +215,5 @@ internal class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
-
-        var tc = new IdentifierClass<int>(3);
-        var identifier = ((ITinyhandSerialize)tc).GetTypeIdentifier();
-        var identifier2 = TinyhandSerializer.GetTypeIdentifierObject<IdentifierClass<int>>();
-
-        var tc2 = new IdentifierClass<string>("3");
-        identifier = ((ITinyhandSerialize)tc2).GetTypeIdentifier();
-        identifier2 = TinyhandSerializer.GetTypeIdentifierObject<IdentifierClass<string>>();
     }
 }
