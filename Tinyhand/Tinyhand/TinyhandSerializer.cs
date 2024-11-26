@@ -321,7 +321,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     [return: NotNullIfNotNull("value")]
     public static T? CloneObject<T>(in T? obj, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandClone<T>
+        where T : ITinyhandCloneable<T>
     {
         options = options ?? DefaultOptions;
         return T.Clone(ref Unsafe.AsRef(in obj), options);

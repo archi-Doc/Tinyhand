@@ -15,7 +15,7 @@ public partial class CloneTestClass1
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-public partial class CloneTestClass2 : ITinyhandClone<CloneTestClass2>
+public partial class CloneTestClass2 : ITinyhandCloneable<CloneTestClass2>
 {
     public int X { get; set; }
 
@@ -28,7 +28,7 @@ public partial class CloneTestClass2 : ITinyhandClone<CloneTestClass2>
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-public partial class CloneTestClass3 : ITinyhandClone<CloneTestClass3>
+public partial class CloneTestClass3 : ITinyhandCloneable<CloneTestClass3>
 {
     public int X { get; set; }
 

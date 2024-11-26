@@ -378,7 +378,7 @@ public interface ITinyhandReconstruct<T>
 /// If this interface is implemented, Tinyhand use it instead of the generated code.
 /// </summary>
 /// <typeparam name="T">The type to be cloned.</typeparam>
-public interface ITinyhandClone<T>
+public interface ITinyhandCloneable<T>
 {
     static abstract T? Clone(scoped ref T? value, TinyhandSerializerOptions options);
 }
