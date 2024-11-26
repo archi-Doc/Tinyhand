@@ -34,6 +34,51 @@ public enum PropertyAccessibility
 }
 
 /// <summary>
+/// Attribute to specify a method to be called before serialization.<br/>
+/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnSerializingAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called after serialization.<br/>
+/// Callbacks are not inherited by derived classes.<br/>
+/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnSerializedAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called before deserialization.<br/>
+/// Callbacks are not inherited by derived classes.<br/>
+/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnDeserializingAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called after deserialization.<br/>
+/// Callbacks are not inherited by derived classes.<br/>
+/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnDeserializedAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called before reconstruction.<br/>
+/// Callbacks are not inherited by derived classes.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnReconstructingAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called after reconstruction.<br/>
+/// Callbacks are not inherited by derived classes.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnReconstructedAttribute : Attribute;
+
+/// <summary>
 /// Enables serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = true)]
@@ -285,32 +330,9 @@ public sealed class TinyhandGeneratorOptionAttribute : Attribute
 }
 
 /// <summary>
-/// An interface for defining functions that are called during the serialization, deserialization, and reconstruction of objects.
-/// </summary>
-public interface ITinyhandSerializationCallback
-{
-    /// <summary>
-    /// Called immediately after the object is reconstructed (an instance was created but not deserialized).
-    /// </summary>
-    void OnAfterReconstruct();
-
-    /// <summary>
-    /// Called after the object is deserialized.<br/>
-    /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
-    /// </summary>
-    void OnAfterDeserialize();
-
-    /// <summary>
-    /// Called before the object is serialized.<br/>
-    /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
-    /// </summary>
-    void OnBeforeSerialize();
-}
-
-/// <summary>
 /// An interface for serialize/deserialize methods.
 /// </summary>
-public interface ITinyhandSerialize
+public interface ITinyhandSerializable
 {
     /// <summary>
     /// Serializes the object to the specified writer.
@@ -338,7 +360,7 @@ public interface ITinyhandSerialize
 /// If this interface is implemented, Tinyhand use it instead of the generated code.
 /// </summary>
 /// <typeparam name="T">The type to be serialized.</typeparam>
-public interface ITinyhandSerialize<T>
+public interface ITinyhandSerializable<T>
 {
     /// <summary>
     /// Serializes the object to the specified writer.
@@ -368,7 +390,7 @@ public interface ITinyhandSerialize<T>
 /// If this interface is implemented, Tinyhand use it instead of the generated code.
 /// </summary>
 /// <typeparam name="T">The type to be reconstructed.</typeparam>
-public interface ITinyhandReconstruct<T>
+public interface ITinyhandReconstructable<T>
 {
     static abstract void Reconstruct([NotNull] scoped ref T? value, TinyhandSerializerOptions options);
 }
@@ -378,7 +400,7 @@ public interface ITinyhandReconstruct<T>
 /// If this interface is implemented, Tinyhand use it instead of the generated code.
 /// </summary>
 /// <typeparam name="T">The type to be cloned.</typeparam>
-public interface ITinyhandClone<T>
+public interface ITinyhandCloneable<T>
 {
     static abstract T? Clone(scoped ref T? value, TinyhandSerializerOptions options);
 }

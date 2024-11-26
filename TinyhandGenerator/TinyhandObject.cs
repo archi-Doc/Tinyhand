@@ -51,13 +51,9 @@ public enum TinyhandObjectFlag
     HiddenMember = 1 << 10,
     AddPropertyTarget = 1 << 11,
 
-    HasITinyhandSerializationCallback = 1 << 16, // Has ITinyhandSerializationCallback interface
-    HasExplicitOnBeforeSerialize = 1 << 17, // ITinyhandSerializationCallback.OnBeforeSerialize()
-    HasExplicitOnAfterDeserialize = 1 << 18, // ITinyhandSerializationCallback.OnAfterDeserialize()
-    HasExplicitOnAfterReconstruct = 1 << 19, // ITinyhandSerializationCallback.OnAfterReconstruct()
-    HasITinyhandSerialize = 1 << 20, // Has ITinyhandSerialize interface
+    HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
-    InterfaceImplemented = 1 << 24, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandClone
+    InterfaceImplemented = 1 << 24, // ITinyhandSerializable, ITinyhandReconstructable, ITinyhandCloneable
     HasIStructualObject = 1 << 25, // Has IStructualObject interface
     HasITinyhandCustomJournal = 1 << 26, // Has ITinyhandCustomJournal interface
     HasValueLinkObject = 1 << 27, // Has ValueLinkgObject attribute
@@ -98,6 +94,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members is not static && property or field
 
     public IEnumerable<TinyhandObject> MembersWithFlag(TinyhandObjectFlag flag) => this.Members.Where(x => x.ObjectFlag.HasFlag(flag));
+
+    public List<CallbackMethod>? CallbackMethods { get; private set; }
 
     public object? DefaultValue { get; private set; }
 
@@ -607,12 +605,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         this.MethodCondition_Clone = MethodCondition.StaticMethod;
 
         var className = this.FullName.RemoveWhitespace(); // Class<T1, T2> -> Class<T1,T2>
-        var serializeInterface = $"Tinyhand.ITinyhandSerialize<{className}>";
+        var serializeInterface = $"Tinyhand.ITinyhandSerializable<{className}>";
         var serializeName = $"{serializeInterface}.Serialize";
         var deserializeName = $"{serializeInterface}.Deserialize";
         var getTypeIdentifierName = $"{serializeInterface}.GetTypeIdentifier"; // GetTypeIdentifierCode
-        var reconstructName = $"Tinyhand.ITinyhandReconstruct<{className}>.Reconstruct";
-        var cloneName = $"Tinyhand.ITinyhandClone<{className}>.Clone";
+        var reconstructName = $"Tinyhand.ITinyhandReconstructable<{className}>.Reconstruct";
+        var cloneName = $"Tinyhand.ITinyhandCloneable<{className}>.Clone";
 
         foreach (var x in this.GetMembers(VisceralTarget.Method))
         {
@@ -629,22 +627,22 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             if (ms.Name == "Serialize" && this.MethodCompare_Serialize(ms))
             {
                 this.MethodCondition_Serialize = MethodCondition.Declared;
-                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializable;
             }
             else if (ms.Name == serializeName && this.MethodCompare_Serialize(ms))
             {
                 this.MethodCondition_Serialize = MethodCondition.ExplicitlyDeclared;
-                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializable;
             }
             else if (ms.Name == "Deserialize" && this.MethodCompare_Deserialize(ms))
             {
                 this.MethodCondition_Deserialize = MethodCondition.Declared;
-                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializable;
             }
             else if (ms.Name == deserializeName && this.MethodCompare_Deserialize(ms))
             {
                 this.MethodCondition_Deserialize = MethodCondition.ExplicitlyDeclared;
-                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializable;
             }
             else if (ms.Name == "GetTypeIdentifier" && this.MethodCompare_GetTypeIdentifier(ms))
             {// GetTypeIdentifierCode
@@ -733,26 +731,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
-        // ITinyhandSerializationCallback
-        if (this.Interfaces.Any(x => x.FullName == "Tinyhand.ITinyhandSerializationCallback"))
-        {
-            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializationCallback;
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnBeforeSerialize"))
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnBeforeSerialize;
-            }
-
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterDeserialize"))
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnAfterDeserialize;
-            }
-
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterReconstruct"))
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnAfterReconstruct;
-            }
-        }
-
         // Members: Property
         var list = new List<TinyhandObject>();
         foreach (var x in this.AllMembers.Where(x => x.Kind == VisceralObjectKind.Property))
@@ -775,6 +753,21 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         this.Members = list.ToArray();
+
+        // Callback methods
+        foreach (var method in this.GetMembers(VisceralTarget.Method))
+        {
+            if (method.ContainingObject != this)
+            {
+                continue;
+            }
+
+            if (CallbackMethod.TryCreate(method) is { } callbackMethod)
+            {
+                this.CallbackMethods ??= new();
+                this.CallbackMethods.Add(callbackMethod);
+            }
+        }
     }
 
     public void ConfigureRelation()
@@ -963,8 +956,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         this.CheckObject_Key();
 
         // ReconstructTarget
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
-        {// ITinyhandSerialize is implemented.
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
+        {// ITinyhandSerializable is implemented.
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.Target))
             {
                 if (x.TypeObject?.Kind.IsReferenceType() == true)
@@ -1049,8 +1042,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void CheckObject_Key()
     {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
-        {// ITinyhandSerialize is implemented. KeyAttribute is ignored.
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
+        {// ITinyhandSerializable is implemented. KeyAttribute is ignored.
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.Target))
             {
                 if (x.KeyAttribute != null)
@@ -1385,8 +1378,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         }
 
         // ReconstructTarget
-        if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
-        {// ITinyhandSerialize is implemented.
+        if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
+        {// ITinyhandSerializable is implemented.
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) && this.TypeObject.Kind.IsReferenceType())
             { // Target && Reference type
                 this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
@@ -1835,14 +1828,14 @@ ModuleInitializerClass_Added:
         var interfaceString = string.Empty;
         if (this.ObjectAttribute != null)
         {
-            interfaceString = $" : ITinyhandSerialize<{this.RegionalName}>, ITinyhandReconstruct<{this.RegionalName}>, ITinyhandClone<{this.RegionalName}>";
+            interfaceString = $" : ITinyhandSerializable<{this.RegionalName}>, ITinyhandReconstructable<{this.RegionalName}>, ITinyhandCloneable<{this.RegionalName}>";
 
             if (this.ObjectAttribute.Structual && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject))
             {
                 interfaceString += $", {TinyhandBody.IStructualObject}";
             }
 
-            interfaceString += $", ITinyhandSerialize";
+            interfaceString += $", ITinyhandSerializable";
         }
 
         // Prepare generator information
@@ -2098,47 +2091,18 @@ ModuleInitializerClass_Added:
         ssb.AppendLine();
     }
 
-    internal void Generate_OnBeforeSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void Generate_CallbackMethod(ScopingStringBuilder ssb, CallbackKind kind)
     {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
+        if (this.CallbackMethods is null)
         {
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnBeforeSerialize))
-            {
-                ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnBeforeSerialize();");
-            }
-            else
-            {
-                ssb.AppendLine($"{ssb.FullObject}.OnBeforeSerialize();");
-            }
+            return;
         }
-    }
 
-    internal void Generate_OnAfterDeserialize(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
+        foreach (var x in this.CallbackMethods)
         {
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnAfterDeserialize))
+            if (x.Kind == kind)
             {
-                ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterDeserialize();");
-            }
-            else
-            {
-                ssb.AppendLine($"{ssb.FullObject}.OnAfterDeserialize();");
-            }
-        }
-    }
-
-    internal void Generate_OnAfterReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
-        {
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnAfterReconstruct))
-            {
-                ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterReconstruct();");
-            }
-            else
-            {
-                ssb.AppendLine($"{ssb.FullObject}.OnAfterReconstruct();");
+                x.Generate(ssb);
             }
         }
     }
@@ -2146,7 +2110,7 @@ ModuleInitializerClass_Added:
     internal void GenerateSerialize_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {// static abstract
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static void ITinyhandSerialize<{this.RegionalName}>.Serialize(ref TinyhandWriter writer, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static void ITinyhandSerializable<{this.RegionalName}>.Serialize(ref TinyhandWriter writer, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -2191,8 +2155,7 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            // ITinyhandSerializationCallback.OnBeforeSerialize
-            this.Generate_OnBeforeSerialize(ssb, info);
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnSerializing); // CallbackMethodCode
 
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
             {// String Key
@@ -2202,6 +2165,8 @@ ModuleInitializerClass_Added:
             {// Int Key
                 this.GenerateSerializerIntKey(ssb, info);
             }
+
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnSerialized); // CallbackMethodCode
 
             if (lockScope != null)
             {
@@ -2238,7 +2203,7 @@ ModuleInitializerClass_Added:
         }
         else if (this.MethodCondition_Serialize == MethodCondition.ExplicitlyDeclared)
         {// Explicitly declared (Interface.Method())
-            ssb.AppendLine($"((ITinyhandSerialize){ssb.FullObject}).Serialize(ref writer, options);");
+            ssb.AppendLine($"((ITinyhandSerializable){ssb.FullObject}).Serialize(ref writer, options);");
         }
         else
         {// Member method
@@ -2255,7 +2220,7 @@ ModuleInitializerClass_Added:
         }
         else if (this.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared)
         {// Explicitly declared (Interface.Method())
-            ssb.AppendLine($"((ITinyhandSerialize){name}).Deserialize(ref reader, options);");
+            ssb.AppendLine($"((ITinyhandSerializable){name}).Deserialize(ref reader, options);");
         }
         else
         {// Member method
@@ -2368,22 +2333,6 @@ ModuleInitializerClass_Added:
         ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
-    /*internal void GenerateFormatter_ReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
-    {
-        if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
-        {// Static method
-            ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref {name}, options);");
-        }
-        else if (this.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
-        {// Explicitly declared (Interface.Method())
-            ssb.AppendLine($"((ITinyhandReconstruct){name}).Reconstruct(options);");
-        }
-        else
-        {// Member method
-            ssb.AppendLine($"{name}.Reconstruct(options);");
-        }
-    }*/
-
     internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
         if (!reuseInstance)
@@ -2427,7 +2376,7 @@ ModuleInitializerClass_Added:
         }
         else if (this.MethodCondition_Clone == MethodCondition.ExplicitlyDeclared)
         {// Explicitly declared (Interface.Method())
-            ssb.AppendLine($"return (value as ITinyhandClone<{this.FullName}>)?.DeepClone(options);");
+            ssb.AppendLine($"return (value as ITinyhandCloneable<{this.FullName}>)?.DeepClone(options);");
         }
         else
         {// Member method
@@ -2474,7 +2423,7 @@ ModuleInitializerClass_Added:
     internal void GenerateDeserialize_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandSerialize<{this.RegionalName}>.Deserialize(ref TinyhandReader reader, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandSerializable<{this.RegionalName}>.Deserialize(ref TinyhandReader reader, scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -2647,20 +2596,21 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructing); // CallbackMethodCode
+
             foreach (var x in this.Members)
             {
                 this.GenerateReconstructCore(ssb, info, x);
             }
 
-            // ITinyhandSerializationCallback.OnAfterReconstruct
-            this.Generate_OnAfterReconstruct(ssb, info);
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
 
     internal void GenerateReconstruct_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandReconstruct<{this.RegionalName}>.Reconstruct([NotNull] scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandReconstructable<{this.RegionalName}>.Reconstruct([NotNull] scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -2677,13 +2627,14 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
             }
 
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructing); // CallbackMethodCode
+
             foreach (var x in this.Members)
             {
                 this.GenerateReconstructCore(ssb, info, x);
             }
 
-            // ITinyhandSerializationCallback.OnAfterReconstruct
-            this.Generate_OnAfterReconstruct(ssb, info);
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
 
@@ -2741,7 +2692,7 @@ ModuleInitializerClass_Added:
     internal void GenerateClone_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName}{this.QuestionMarkIfReferenceType} ITinyhandClone<{this.RegionalName}>.Clone(scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}{this.RegionalName}{this.QuestionMarkIfReferenceType} ITinyhandCloneable<{this.RegionalName}>.Clone(scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var sourceObject = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
@@ -3366,11 +3317,11 @@ ModuleInitializerClass_Added:
                 if (this.Generics_IsGeneric)
                 {// Generics
                     ssb.AppendLine($"private static ulong __type_identifier__;");
-                    ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => __type_identifier__ != 0 ? __type_identifier__ : (__type_identifier__ = Arc.Visceral.VisceralHelper.TypeToFarmHash64(typeof({this.RegionalName})));");
+                    ssb.AppendLine($"static ulong ITinyhandSerializable<{this.RegionalName}>.GetTypeIdentifier() => __type_identifier__ != 0 ? __type_identifier__ : (__type_identifier__ = Arc.Visceral.VisceralHelper.TypeToFarmHash64(typeof({this.RegionalName})));");
                 }
                 else
                 {// Non-generics
-                    ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => 0x{FarmHash.Hash64(this.FullName).ToString("x")}ul;");
+                    ssb.AppendLine($"static ulong ITinyhandSerializable<{this.RegionalName}>.GetTypeIdentifier() => 0x{FarmHash.Hash64(this.FullName).ToString("x")}ul;");
                 }
             }*/
 
@@ -3384,8 +3335,8 @@ ModuleInitializerClass_Added:
                 this.GenerateClone_Method2(ssb, info);
             }
 
-            // ITinyhandSerialize
-            ssb.AppendLine("void ITinyhandSerialize.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)");
+            // ITinyhandSerializable
+            ssb.AppendLine("void ITinyhandSerializable.Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)");
             if (this.Kind.IsReferenceType())
             {
                 ssb.AppendLine("{ var rt = this; TinyhandSerializer.DeserializeObject(ref reader, ref rt, options); }");
@@ -3395,9 +3346,9 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine("  => TinyhandSerializer.DeserializeObject(ref reader, ref Unsafe.AsRef(in this)!, options);");
             }
 
-            ssb.AppendLine("void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)");
+            ssb.AppendLine("void ITinyhandSerializable.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)");
             ssb.AppendLine("  => TinyhandSerializer.SerializeObject(ref writer, this, options);");
-            // ssb.AppendLine($"ulong ITinyhandSerialize.GetTypeIdentifier() => TinyhandSerializer.GetTypeIdentifierObject<{this.RegionalName}>();"); // GetTypeIdentifierCode
+            // ssb.AppendLine($"ulong ITinyhandSerializable.GetTypeIdentifier() => TinyhandSerializer.GetTypeIdentifierObject<{this.RegionalName}>();"); // GetTypeIdentifierCode
         }
 
         this.GenerateAddProperty(ssb, info);
@@ -4158,6 +4109,7 @@ ModuleInitializerClass_Added:
                 this.GenerateDeserialize_LockEnter(ssb, info);
             }
 
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserializing); // CallbackMethodCode
             foreach (var x in this.IntKey_Array)
             {
                 this.GenerateDeserializeCore(ssb, info, x);
@@ -4166,11 +4118,12 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("while (numberOfData-- > 0) reader.Skip();");
 
             this.GenerateReconstructRemaining(ssb, info);
+
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
         }
 
         using (var finallyScope = ssb.ScopeBrace("finally"))
         {
-            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
             {// LockObject
                 this.GenerateDeserialize_LockExit(ssb, info);
@@ -4206,6 +4159,7 @@ ModuleInitializerClass_Added:
                 this.GenerateDeserialize_LockEnter(ssb, info);
             }
 
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserializing); // CallbackMethodCode
             using (var loop = ssb.ScopeBrace("while (numberOfData-- > 0)"))
             {
                 var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
@@ -4239,11 +4193,12 @@ ModuleInitializerClass_Added:
             }
 
             this.GenerateReconstructRemaining(ssb, info);
+
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
         }
 
         using (var finallyScope = ssb.ScopeBrace("finally"))
         {
-            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
             {// LockObject
                 this.GenerateDeserialize_LockExit(ssb, info);
@@ -4325,7 +4280,7 @@ ModuleInitializerClass_Added:
             else if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                 (withNullable.Object.ObjectAttribute != null ||
                 withNullable.Object.HasITinyhandSerializeConstraint()))
-            {// TinyhandObject or Type parameter with ITinyhandSerialize constraint.
+            {// TinyhandObject or Type parameter with ITinyhandSerializable constraint.
                 using (ssb.ScopeBrace(string.Empty))
                 {
                     ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
@@ -4541,7 +4496,7 @@ ModuleInitializerClass_Added:
     {
         if (this.symbol is ITypeParameterSymbol tps)
         {
-            return tps.ConstraintTypes.Any(x => x.Name == "ITinyhandSerialize");
+            return tps.ConstraintTypes.Any(x => x.Name == "ITinyhandSerializable");
         }
 
         return false;

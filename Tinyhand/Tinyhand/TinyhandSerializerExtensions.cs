@@ -14,7 +14,7 @@ public static partial class TinyhandSerializerExtensions
     /// </summary>
     /// <param name="value">The value to calculate the hash for.</param>
     /// <returns>The XXHash3 hash value.</returns>
-    public static ulong GetXxHash3(this ITinyhandSerialize value)
+    public static ulong GetXxHash3(this ITinyhandSerializable value)
     {
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
@@ -40,7 +40,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="options">The serialization options. If null, default options will be used.</param>
     /// <returns>A byte array containing the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
-    public static byte[] Serialize(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
+    public static byte[] Serialize(this ITinyhandSerializable value, TinyhandSerializerOptions? options = null)
     {
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
@@ -61,7 +61,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="options">The serialization options. If null, default options will be used.</param>
     /// <returns>A <see cref="BytePool.RentMemory"/> containing the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
-    public static BytePool.RentMemory SerializeToRentMemory(this ITinyhandSerialize value, TinyhandSerializerOptions? options = null)
+    public static BytePool.RentMemory SerializeToRentMemory(this ITinyhandSerializable value, TinyhandSerializerOptions? options = null)
     {
         var writer = TinyhandWriter.CreateFromBytePool();
         try
@@ -82,7 +82,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
     /// <returns>A byte array with the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static byte[] SerializeSignature(this ITinyhandSerialize value, int level)
+    public static byte[] SerializeSignature(this ITinyhandSerializable value, int level)
     {
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         writer.Level = level;
@@ -104,7 +104,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
     /// <returns>A byte array with the serialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static BytePool.RentMemory SerializeSignatureToRentMemory(this ITinyhandSerialize value, int level)
+    public static BytePool.RentMemory SerializeSignatureToRentMemory(this ITinyhandSerializable value, int level)
     {
         var writer = TinyhandWriter.CreateFromBytePool();
         writer.Level = level;
@@ -119,7 +119,7 @@ public static partial class TinyhandSerializerExtensions
         }
     }
 
-    public static bool TryDeserialize(this ITinyhandSerialize value, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+    public static bool TryDeserialize(this ITinyhandSerializable value, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
         try
@@ -157,7 +157,7 @@ public static partial class TinyhandSerializerExtensions
         }
     }
 
-    public static bool TryDeserialize(this ITinyhandSerialize value, ReadOnlySpan<byte> data, TinyhandSerializerOptions? options = null)
+    public static bool TryDeserialize(this ITinyhandSerializable value, ReadOnlySpan<byte> data, TinyhandSerializerOptions? options = null)
     {
         var reader = new TinyhandReader(data);
         return value.TryDeserialize(ref reader, options);
@@ -168,7 +168,7 @@ public static partial class TinyhandSerializerExtensions
     /// </summary>
     /// <param name="value">The value to get the type identifier for.</param>
     /// <returns>The type identifier.</returns>
-    public static ulong GetTypeIdentifier(this ITinyhandSerialize value)
+    public static ulong GetTypeIdentifier(this ITinyhandSerializable value)
         => value.GetTypeIdentifier(); // GetTypeIdentifierCode */
 
     /// <summary>
@@ -178,7 +178,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="writer">The TinyhandWriter to use for serialization.</param>
     /// <param name="options">The serialization options. If null, default options will be used.</param>
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
-    internal static void SerializeInternal(this ITinyhandSerialize value, ref TinyhandWriter writer, TinyhandSerializerOptions? options = null)
+    internal static void SerializeInternal(this ITinyhandSerializable value, ref TinyhandWriter writer, TinyhandSerializerOptions? options = null)
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
         try

@@ -7,13 +7,13 @@ using Xunit;
 namespace Tinyhand.Tests;
 
 [TinyhandObject]
-public partial class CustomFormatterClass : ITinyhandSerialize<Tinyhand.Tests.CustomFormatterClass>
+public partial class CustomFormatterClass : ITinyhandSerializable<Tinyhand.Tests.CustomFormatterClass>
 {
     public int ID { get; set; }
 
     public string Name { get; set; } = default!;
 
-    static void Tinyhand.ITinyhandSerialize<Tinyhand.Tests.CustomFormatterClass>.Deserialize(ref TinyhandReader reader, scoped ref CustomFormatterClass? value, TinyhandSerializerOptions options)
+    static void Tinyhand.ITinyhandSerializable<Tinyhand.Tests.CustomFormatterClass>.Deserialize(ref TinyhandReader reader, scoped ref CustomFormatterClass? value, TinyhandSerializerOptions options)
     {
         value ??= new CustomFormatterClass();
 
@@ -32,7 +32,7 @@ public partial class CustomFormatterClass : ITinyhandSerialize<Tinyhand.Tests.Cu
         }
     }
 
-    static void ITinyhandSerialize<CustomFormatterClass>.Serialize(ref TinyhandWriter writer, scoped ref CustomFormatterClass? value, TinyhandSerializerOptions options)
+    static void ITinyhandSerializable<CustomFormatterClass>.Serialize(ref TinyhandWriter writer, scoped ref CustomFormatterClass? value, TinyhandSerializerOptions options)
     {
         writer.Write(value.ID + 1);
         writer.Write(value.Name + "Mock");
@@ -48,7 +48,7 @@ public partial class CustomFormatterClass : ITinyhandSerialize<Tinyhand.Tests.Cu
 }
 
 [TinyhandObject]
-public partial class CustomFormatterGenericClass<T> : ITinyhandSerialize<Tinyhand.Tests.CustomFormatterGenericClass<T>>
+public partial class CustomFormatterGenericClass<T> : ITinyhandSerializable<Tinyhand.Tests.CustomFormatterGenericClass<T>>
 {
     public int ID { get; set; }
 

@@ -335,7 +335,7 @@ public partial class HolderV0
 }
 
 [TinyhandObject]
-public partial class Callback1 : ITinyhandSerializationCallback
+public partial class Callback1
 {
     [Key(0)]
     public int X { get; set; }
@@ -354,23 +354,26 @@ public partial class Callback1 : ITinyhandSerializationCallback
     {
     }
 
+    [TinyhandOnSerializing]
     public void OnBeforeSerialize()
     {
         this.CalledBefore = true;
     }
 
+    [TinyhandOnDeserialized]
     public void OnAfterDeserialize()
     {
         this.CalledAfter = true;
     }
 
+    [TinyhandOnReconstructed]
     public void OnAfterReconstruct()
     {
     }
 }
 
 [TinyhandObject]
-public partial class Callback1_2 : ITinyhandSerializationCallback
+public partial class Callback1_2
 {
     [Key(0)]
     public int X { get; set; }
@@ -390,23 +393,26 @@ public partial class Callback1_2 : ITinyhandSerializationCallback
     {
     }
 
-    void ITinyhandSerializationCallback.OnBeforeSerialize()
+    [TinyhandOnSerializing]
+    void OnBeforeSerialize()
     {
         this.CalledBefore = true;
     }
 
-    void ITinyhandSerializationCallback.OnAfterDeserialize()
+    [TinyhandOnDeserialized]
+    void OnAfterDeserialize()
     {
         this.CalledAfter = true;
     }
 
-    void ITinyhandSerializationCallback.OnAfterReconstruct()
+    [TinyhandOnReconstructed]
+    void OnAfterReconstruct()
     {
     }
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-public partial struct Callback2 : ITinyhandSerializationCallback
+public partial struct Callback2
 {
     public static bool CalledAfter = false;
 
@@ -427,23 +433,26 @@ public partial struct Callback2 : ITinyhandSerializationCallback
         this.onAfter = onAfter;
     }
 
+    [TinyhandOnSerializing]
     public void OnBeforeSerialize()
     {
         this.onBefore();
     }
 
+    [TinyhandOnDeserialized]
     public void OnAfterDeserialize()
     {
         CalledAfter = true;
     }
 
+    [TinyhandOnReconstructed]
     public void OnAfterReconstruct()
     {
     }
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-public partial struct Callback2_2 : ITinyhandSerializationCallback
+public partial struct Callback2_2
 {
     public int X { get; set; }
 
@@ -464,17 +473,20 @@ public partial struct Callback2_2 : ITinyhandSerializationCallback
         this.onAfter = onAfter;
     }
 
-    void ITinyhandSerializationCallback.OnBeforeSerialize()
+    [TinyhandOnSerializing]
+    void OnBeforeSerialize()
     {
         this.onBefore();
     }
 
-    void ITinyhandSerializationCallback.OnAfterDeserialize()
+    [TinyhandOnDeserialized]
+    void OnAfterDeserialize()
     {
         CalledAfter = true;
     }
 
-    void ITinyhandSerializationCallback.OnAfterReconstruct()
+    [TinyhandOnReconstructed]
+    void OnAfterReconstruct()
     {
     }
 }

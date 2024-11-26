@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Arc.Collections;
 using Arc.Crypto;
 using Tinyhand;
@@ -20,14 +21,21 @@ public partial struct DesignStruct
 
     [Key(2)]
     private readonly int Z;
+
+    [TinyhandOnSerializing]
+    public void OnSerializing()
+    {
+    }
 }
 
-[TinyhandObject]
+[TinyhandObject(LockObject = "lockObject")]
 public partial class DesignBaseClass
 {
     protected DesignBaseClass()
     {
     }
+
+    protected readonly Lock lockObject = new();
 
     [Key(0)]
     private int X { get; set; }
@@ -40,6 +48,36 @@ public partial class DesignBaseClass
 
     [Key(3)]
     public int A { get; set; }
+
+    [TinyhandOnSerializing]
+    private void OnSerializing()
+    {
+    }
+
+    [TinyhandOnSerialized]
+    protected void OnSerialized()
+    {
+    }
+
+    [TinyhandOnDeserializing]
+    protected void OnDeserializing()
+    {
+    }
+
+    [TinyhandOnDeserialized]
+    protected void OnDeserialized()
+    {
+    }
+
+    [TinyhandOnReconstructing]
+    protected void OnReconstructing()
+    {
+    }
+
+    [TinyhandOnReconstructed]
+    protected void OnReconstructed()
+    {
+    }
 }
 
 [TinyhandObject]
@@ -105,7 +143,7 @@ public partial class Credential : CertificateToken<TestClass>
 
 [TinyhandObject]
 public partial class CertificateToken<T>
-    where T : ITinyhandSerialize<T>
+    where T : ITinyhandSerializable<T>
 {
     private const char Identifier = 'C';
 
@@ -154,7 +192,7 @@ public partial class TestClass
 /*[TinyhandObject]
 [ValueLinkObject(Integrality = true)]
 public partial class GenericIntegralityClass2<T>
-    where T : ITinyhandSerialize<T>
+    where T : ITinyhandSerializable<T>
 {
     [Link(Primary = true, Unique = true, Type = ChainType.Unordered, TargetMember = "Id2")]
     public GenericIntegralityClass2()
@@ -180,7 +218,7 @@ public partial class GenericTestClass3 : GenericTestClass2<TestClass>
 
 [TinyhandObject]
 public partial class GenericTestClass2<T>
-    where T : ITinyhandSerialize<T>
+    where T : ITinyhandSerializable<T>
 {
     public GenericTestClass2()
     {

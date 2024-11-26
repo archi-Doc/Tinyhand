@@ -86,7 +86,7 @@ public class GetXxHashBenchmark
         => GetXxHash3b(this.array);
 
     public static ulong GetXxHash3a<T>(in T? value)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         if (initialBuffer == null)
         {
@@ -111,7 +111,7 @@ public class GetXxHashBenchmark
     }
 
     public static ulong GetXxHash3b<T>(in T? value)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         if (initialBuffer == null)
         {

@@ -69,7 +69,7 @@ public partial class NormalIntClass
 }
 
 [TinyhandObject]
-public partial class CustomIntClass : ITinyhandSerialize<CustomIntClass>
+public partial class CustomIntClass : ITinyhandSerializable<CustomIntClass>
 {
     public int X { get; set; }
 

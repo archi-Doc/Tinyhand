@@ -139,7 +139,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_KeyIgnored = new DiagnosticDescriptor(
-        id: "TG025", title: "Key ignored", messageFormat: "KeyAttribute is ignored since ITinyhandSerialize is implemented",
+        id: "TG025", title: "Key ignored", messageFormat: "KeyAttribute is ignored since ITinyhandSerializable is implemented",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_DefaultInterface = new DiagnosticDescriptor(
@@ -249,6 +249,14 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly DiagnosticDescriptor Warning_ConvertToString = new DiagnosticDescriptor(
         id: "TG052", title: "IStringConvertible", messageFormat: "IStringConvertible is required to convert to string",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_CallbackMetohd = new DiagnosticDescriptor(
+        id: "TG053", title: "CallbackMetohd", messageFormat: "Callback function must be an instance method with no arguments",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_CallbackAttribute = new DiagnosticDescriptor(
+        id: "TG054", title: "CallbackMetohd", messageFormat: "Callback attributes are exclusive",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)

@@ -84,24 +84,27 @@ public partial class ExplicitKeyClass
 }
 
 [TinyhandObject]
-public partial class SampleCallback : ITinyhandSerializationCallback
+public partial class SampleCallback
 {
     [Key(0)]
     public int Key { get; set; }
 
-    public void OnBeforeSerialize()
+    [TinyhandOnSerializing]
+    public void OnSerializing()
     {
-        Console.WriteLine("OnBeforeSerialize");
+        Console.WriteLine("OnSerializing");
     }
 
-    public void OnAfterDeserialize()
+    [TinyhandOnDeserialized]
+    public void OnDeserialized()
     {
-        Console.WriteLine("OnAfterDeserialize");
+        Console.WriteLine("OnDeserialized");
     }
 
-    public void OnAfterReconstruct()
+    [TinyhandOnReconstructed]
+    public void OnReconstructed()
     {
-        Console.WriteLine("OnAfterReconstruct");
+        Console.WriteLine("OnReconstructed");
     }
 }
 

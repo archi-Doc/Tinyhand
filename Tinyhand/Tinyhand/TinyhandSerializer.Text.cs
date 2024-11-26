@@ -22,7 +22,7 @@ public static partial class TinyhandSerializer
     /// <returns>A byte array with the serialized value (UTF-8).</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeObjectToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         options = options ?? DefaultOptions;
         var binary = SerializeObject(value, options);
@@ -56,7 +56,7 @@ public static partial class TinyhandSerializer
     /// <returns>A byte array with the serialized value (UTF-8).</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static BytePool.RentMemory SerializeObjectToUtf8RentMemory<T>(T value, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         options = options ?? DefaultOptions;
         var rentMemory = SerializeObjectToRentMemory(value, options);
@@ -84,7 +84,7 @@ public static partial class TinyhandSerializer
     }
 
     public static T? DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         var value = default(T);
         DeserializeObjectFromUtf8(utf8, ref value, options);
@@ -92,7 +92,7 @@ public static partial class TinyhandSerializer
     }
 
     public static void DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, scoped ref T? value, TinyhandSerializerOptions? options = null)
-    where T : ITinyhandSerialize<T>
+    where T : ITinyhandSerializable<T>
     {
         options = options ?? DefaultOptions;
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
