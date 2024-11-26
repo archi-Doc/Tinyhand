@@ -75,7 +75,7 @@ public class VisceralAttribute : IComparable<VisceralAttribute>
         {
             if (x.Kind == TypedConstantKind.Array)
             {
-                //this.ConstructorArguments[n++] = ValueToString(x);
+                // this.ConstructorArguments[n++] = ValueToString(x);
                 if (x.Values.Length > 0)
                 {
                     this.ConstructorArguments[n++] = x.Values[0];
