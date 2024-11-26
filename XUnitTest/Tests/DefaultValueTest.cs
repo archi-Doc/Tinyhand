@@ -58,6 +58,7 @@ public partial class DefaultTestClass
     public DefaultTestEnum Enum;
 
     [DefaultValue("Test")]
+    // [DefaultValue(new[] { "1", "2" })]
     public DefaultTestClassName NameClass { get; set; }
 }
 
