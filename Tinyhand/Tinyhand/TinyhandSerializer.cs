@@ -230,7 +230,7 @@ public static partial class TinyhandSerializer
     }
 
     public static void DeserializeAndReconstructObject<T>(ref TinyhandReader reader, [NotNull] scoped ref T? value, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>, ITinyhandReconstruct<T>
+        where T : ITinyhandSerialize<T>, ITinyhandReconstructable<T>
     {
         options = options ?? DefaultOptions;
         T.Deserialize(ref reader, ref value, options);
@@ -251,7 +251,7 @@ public static partial class TinyhandSerializer
     }
 
     public static T DeserializeAndReconstructObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>, ITinyhandReconstruct<T>
+        where T : ITinyhandSerialize<T>, ITinyhandReconstructable<T>
     {
         options = options ?? DefaultOptions;
         var value = default(T);
@@ -297,14 +297,14 @@ public static partial class TinyhandSerializer
     /// <param name="obj">The object to reconstruct.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     public static void ReconstructObject<T>([NotNull] scoped ref T? obj, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandReconstruct<T>
+        where T : ITinyhandReconstructable<T>
     {
         options = options ?? DefaultOptions;
         T.Reconstruct(ref obj, options);
     }
 
     public static T ReconstructObject<T>(TinyhandSerializerOptions? options = null)
-        where T : ITinyhandReconstruct<T>
+        where T : ITinyhandReconstructable<T>
     {
         var obj = default(T);
         options = options ?? DefaultOptions;

@@ -57,7 +57,7 @@ public enum TinyhandObjectFlag
     HasExplicitOnAfterReconstruct = 1 << 19, // ITinyhandSerializationCallback.OnAfterReconstruct()
     HasITinyhandSerialize = 1 << 20, // Has ITinyhandSerialize interface
     CanCreateInstance = 1 << 23, // Can create an instance
-    InterfaceImplemented = 1 << 24, // ITinyhandSerialize, ITinyhandReconstruct, ITinyhandCloneable
+    InterfaceImplemented = 1 << 24, // ITinyhandSerialize, ITinyhandReconstructable, ITinyhandCloneable
     HasIStructualObject = 1 << 25, // Has IStructualObject interface
     HasITinyhandCustomJournal = 1 << 26, // Has ITinyhandCustomJournal interface
     HasValueLinkObject = 1 << 27, // Has ValueLinkgObject attribute
@@ -611,7 +611,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         var serializeName = $"{serializeInterface}.Serialize";
         var deserializeName = $"{serializeInterface}.Deserialize";
         var getTypeIdentifierName = $"{serializeInterface}.GetTypeIdentifier"; // GetTypeIdentifierCode
-        var reconstructName = $"Tinyhand.ITinyhandReconstruct<{className}>.Reconstruct";
+        var reconstructName = $"Tinyhand.ITinyhandReconstructable<{className}>.Reconstruct";
         var cloneName = $"Tinyhand.ITinyhandCloneable<{className}>.Clone";
 
         foreach (var x in this.GetMembers(VisceralTarget.Method))
@@ -1835,7 +1835,7 @@ ModuleInitializerClass_Added:
         var interfaceString = string.Empty;
         if (this.ObjectAttribute != null)
         {
-            interfaceString = $" : ITinyhandSerialize<{this.RegionalName}>, ITinyhandReconstruct<{this.RegionalName}>, ITinyhandCloneable<{this.RegionalName}>";
+            interfaceString = $" : ITinyhandSerialize<{this.RegionalName}>, ITinyhandReconstructable<{this.RegionalName}>, ITinyhandCloneable<{this.RegionalName}>";
 
             if (this.ObjectAttribute.Structual && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject))
             {
@@ -2368,22 +2368,6 @@ ModuleInitializerClass_Added:
         ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
-    /*internal void GenerateFormatter_ReconstructCore(ScopingStringBuilder ssb, GeneratorInformation info, string name)
-    {
-        if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
-        {// Static method
-            ssb.AppendLine($"{this.FullName}.Reconstruct{this.GenericsNumberString}(ref {name}, options);");
-        }
-        else if (this.MethodCondition_Reconstruct == MethodCondition.ExplicitlyDeclared)
-        {// Explicitly declared (Interface.Method())
-            ssb.AppendLine($"((ITinyhandReconstruct){name}).Reconstruct(options);");
-        }
-        else
-        {// Member method
-            ssb.AppendLine($"{name}.Reconstruct(options);");
-        }
-    }*/
-
     internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
         if (!reuseInstance)
@@ -2660,7 +2644,7 @@ ModuleInitializerClass_Added:
     internal void GenerateReconstruct_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
-        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandReconstruct<{this.RegionalName}>.Reconstruct([NotNull] scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
+        var methodCode = $"static {this.UnsafeDeserializeString}void ITinyhandReconstructable<{this.RegionalName}>.Reconstruct([NotNull] scoped ref {this.RegionalName}{this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)";
         var objectCode = "v";
 
         using (var m = ssb.ScopeBrace(methodCode))
