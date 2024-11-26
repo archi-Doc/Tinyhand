@@ -250,6 +250,14 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG052", title: "IStringConvertible", messageFormat: "IStringConvertible is required to convert to string",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Error_CallbackMetohd = new DiagnosticDescriptor(
+        id: "TG053", title: "CallbackMetohd", messageFormat: "Callback function must be an instance method with no arguments",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Error_CallbackAttribute = new DiagnosticDescriptor(
+        id: "TG054", title: "CallbackMetohd", messageFormat: "Callback attributes are exclusive",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {

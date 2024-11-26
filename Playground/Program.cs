@@ -45,6 +45,36 @@ public partial class DesignBaseClass
 
     [Key(3)]
     public int A { get; set; }
+
+    [TinyhandOnSerializing]
+    protected void OnSerializing()
+    {
+    }
+
+    [TinyhandOnSerialized]
+    protected void OnSerialized()
+    {
+    }
+
+    [TinyhandOnDeserializing]
+    protected void OnDeserializing()
+    {
+    }
+
+    [TinyhandOnDeserialized]
+    protected void OnDeserialized()
+    {
+    }
+
+    [TinyhandOnReconstructing]
+    protected void OnReconstructing()
+    {
+    }
+
+    [TinyhandOnReconstructed]
+    protected void OnReconstructed()
+    {
+    }
 }
 
 [TinyhandObject]

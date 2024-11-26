@@ -51,11 +51,12 @@ public enum TinyhandObjectFlag
     HiddenMember = 1 << 10,
     AddPropertyTarget = 1 << 11,
 
-    HasITinyhandSerializationCallback = 1 << 16, // Has ITinyhandSerializationCallback interface
-    HasExplicitOnBeforeSerialize = 1 << 17, // ITinyhandSerializationCallback.OnBeforeSerialize()
-    HasExplicitOnAfterDeserialize = 1 << 18, // ITinyhandSerializationCallback.OnAfterDeserialize()
-    HasExplicitOnAfterReconstruct = 1 << 19, // ITinyhandSerializationCallback.OnAfterReconstruct()
-    HasITinyhandSerialize = 1 << 20, // Has ITinyhandSerializable interface
+    HasITinyhandSerializationCallback = 1 << 18, // Has ITinyhandSerializationCallback interface
+    HasExplicitOnBeforeSerialize = 1 << 19, // ITinyhandSerializationCallback.OnBeforeSerialize()
+    HasExplicitOnAfterDeserialize = 1 << 20, // ITinyhandSerializationCallback.OnAfterDeserialize()
+    HasExplicitOnAfterReconstruct = 1 << 21, // ITinyhandSerializationCallback.OnAfterReconstruct()
+
+    HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
     InterfaceImplemented = 1 << 24, // ITinyhandSerializable, ITinyhandReconstructable, ITinyhandCloneable
     HasIStructualObject = 1 << 25, // Has IStructualObject interface
@@ -98,6 +99,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members is not static && property or field
 
     public IEnumerable<TinyhandObject> MembersWithFlag(TinyhandObjectFlag flag) => this.Members.Where(x => x.ObjectFlag.HasFlag(flag));
+
+    public List<CallbackMethod>? CallbackMethods { get; private set; }
 
     public object? DefaultValue { get; private set; }
 
@@ -629,22 +632,22 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             if (ms.Name == "Serialize" && this.MethodCompare_Serialize(ms))
             {
                 this.MethodCondition_Serialize = MethodCondition.Declared;
-                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializable;
             }
             else if (ms.Name == serializeName && this.MethodCompare_Serialize(ms))
             {
                 this.MethodCondition_Serialize = MethodCondition.ExplicitlyDeclared;
-                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializable;
             }
             else if (ms.Name == "Deserialize" && this.MethodCompare_Deserialize(ms))
             {
                 this.MethodCondition_Deserialize = MethodCondition.Declared;
-                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializable;
             }
             else if (ms.Name == deserializeName && this.MethodCompare_Deserialize(ms))
             {
                 this.MethodCondition_Deserialize = MethodCondition.ExplicitlyDeclared;
-                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
+                this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializable;
             }
             else if (ms.Name == "GetTypeIdentifier" && this.MethodCompare_GetTypeIdentifier(ms))
             {// GetTypeIdentifierCode
@@ -775,6 +778,16 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         this.Members = list.ToArray();
+
+        // Callback methods
+        foreach (var method in this.GetMembers(VisceralTarget.Method))
+        {
+            if (CallbackMethod.TryCreate(method) is { } callbackMethod)
+            {
+                this.CallbackMethods ??= new();
+                this.CallbackMethods.Add(callbackMethod);
+            }
+        }
     }
 
     public void ConfigureRelation()
@@ -963,7 +976,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         this.CheckObject_Key();
 
         // ReconstructTarget
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
         {// ITinyhandSerializable is implemented.
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.Target))
             {
@@ -1049,7 +1062,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void CheckObject_Key()
     {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
         {// ITinyhandSerializable is implemented. KeyAttribute is ignored.
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.Target))
             {
@@ -1385,7 +1398,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         }
 
         // ReconstructTarget
-        if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerialize))
+        if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
         {// ITinyhandSerializable is implemented.
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) && this.TypeObject.Kind.IsReferenceType())
             { // Target && Reference type
@@ -2143,6 +2156,22 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal void Generate_CallbackMethod(ScopingStringBuilder ssb, CallbackKind kind)
+    {
+        if (this.CallbackMethods is null)
+        {
+            return;
+        }
+
+        foreach (var x in this.CallbackMethods)
+        {
+            if (x.Kind == kind)
+            {
+                x.Generate(ssb);
+            }
+        }
+    }
+
     internal void GenerateSerialize_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {// static abstract
         info.GeneratingStaticMethod = true;
@@ -2193,6 +2222,7 @@ ModuleInitializerClass_Added:
 
             // ITinyhandSerializationCallback.OnBeforeSerialize
             this.Generate_OnBeforeSerialize(ssb, info);
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnSerializing); // CallbackMethodCode
 
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
             {// String Key
@@ -2202,6 +2232,8 @@ ModuleInitializerClass_Added:
             {// Int Key
                 this.GenerateSerializerIntKey(ssb, info);
             }
+
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnSerialized); // CallbackMethodCode
 
             if (lockScope != null)
             {
@@ -2631,6 +2663,8 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructing); // CallbackMethodCode
+
             foreach (var x in this.Members)
             {
                 this.GenerateReconstructCore(ssb, info, x);
@@ -2638,6 +2672,7 @@ ModuleInitializerClass_Added:
 
             // ITinyhandSerializationCallback.OnAfterReconstruct
             this.Generate_OnAfterReconstruct(ssb, info);
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
 
@@ -2661,6 +2696,8 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
             }
 
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructing); // CallbackMethodCode
+
             foreach (var x in this.Members)
             {
                 this.GenerateReconstructCore(ssb, info, x);
@@ -2668,6 +2705,7 @@ ModuleInitializerClass_Added:
 
             // ITinyhandSerializationCallback.OnAfterReconstruct
             this.Generate_OnAfterReconstruct(ssb, info);
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
 
@@ -4142,6 +4180,7 @@ ModuleInitializerClass_Added:
                 this.GenerateDeserialize_LockEnter(ssb, info);
             }
 
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserializing); // CallbackMethodCode
             foreach (var x in this.IntKey_Array)
             {
                 this.GenerateDeserializeCore(ssb, info, x);
@@ -4155,6 +4194,7 @@ ModuleInitializerClass_Added:
         using (var finallyScope = ssb.ScopeBrace("finally"))
         {
             this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
             {// LockObject
                 this.GenerateDeserialize_LockExit(ssb, info);
@@ -4190,6 +4230,7 @@ ModuleInitializerClass_Added:
                 this.GenerateDeserialize_LockEnter(ssb, info);
             }
 
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserializing); // CallbackMethodCode
             using (var loop = ssb.ScopeBrace("while (numberOfData-- > 0)"))
             {
                 var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
@@ -4228,6 +4269,7 @@ ModuleInitializerClass_Added:
         using (var finallyScope = ssb.ScopeBrace("finally"))
         {
             this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
             {// LockObject
                 this.GenerateDeserialize_LockExit(ssb, info);

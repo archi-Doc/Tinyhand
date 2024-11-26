@@ -62,6 +62,12 @@ public sealed class TinyhandOnDeserializingAttribute : Attribute;
 public sealed class TinyhandOnDeserializedAttribute : Attribute;
 
 /// <summary>
+/// Attribute to specify a method to be called before reconstruction.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnReconstructingAttribute : Attribute;
+
+/// <summary>
 /// Attribute to specify a method to be called after reconstruction.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
