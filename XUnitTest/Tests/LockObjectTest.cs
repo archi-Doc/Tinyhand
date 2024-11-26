@@ -86,22 +86,40 @@ public partial class LockObjectClass5 : LockObjectClass4
 }
 
 [TinyhandObject(LockObject = "lockObject")]
-public partial class LockObjectClass6 : ITinyhandSerializationCallback
+public partial class LockObjectClass6
 {
     [Key(0)]
     public int X { get; set; }
 
     protected Lock lockObject = new();
 
-    void ITinyhandSerializationCallback.OnAfterReconstruct()
+    [TinyhandOnSerializing]
+    private void OnSerializing()
     {
     }
 
-    void ITinyhandSerializationCallback.OnAfterDeserialize()
+    [TinyhandOnSerialized]
+    protected void OnSerialized()
     {
     }
 
-    void ITinyhandSerializationCallback.OnBeforeSerialize()
+    [TinyhandOnDeserializing]
+    protected void OnDeserializing()
+    {
+    }
+
+    [TinyhandOnDeserialized]
+    protected void OnDeserialized()
+    {
+    }
+
+    [TinyhandOnReconstructing]
+    protected void OnReconstructing()
+    {
+    }
+
+    [TinyhandOnReconstructed]
+    protected void OnReconstructed()
     {
     }
 }
