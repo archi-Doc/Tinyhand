@@ -34,6 +34,40 @@ public enum PropertyAccessibility
 }
 
 /// <summary>
+/// Attribute to specify a method to be called before serialization.<br/>
+/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnSerializingAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called after serialization.<br/>
+/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnSerializedAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called before deserialization.<br/>
+/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnDeserializingAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called after deserialization.<br/>
+/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnDeserializedAttribute : Attribute;
+
+/// <summary>
+/// Attribute to specify a method to be called after reconstruction.
+/// </summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+public sealed class TinyhandOnReconstructedAttribute : Attribute;
+
+/// <summary>
 /// Enables serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = true)]
