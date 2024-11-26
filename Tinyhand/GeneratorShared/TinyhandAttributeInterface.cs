@@ -330,29 +330,6 @@ public sealed class TinyhandGeneratorOptionAttribute : Attribute
 }
 
 /// <summary>
-/// An interface for defining functions that are called during the serialization, deserialization, and reconstruction of objects.
-/// </summary>
-public interface ITinyhandSerializationCallback
-{
-    /// <summary>
-    /// Called immediately after the object is reconstructed (an instance was created but not deserialized).
-    /// </summary>
-    void OnAfterReconstruct();
-
-    /// <summary>
-    /// Called after the object is deserialized.<br/>
-    /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
-    /// </summary>
-    void OnAfterDeserialize();
-
-    /// <summary>
-    /// Called before the object is serialized.<br/>
-    /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
-    /// </summary>
-    void OnBeforeSerialize();
-}
-
-/// <summary>
 /// An interface for serialize/deserialize methods.
 /// </summary>
 public interface ITinyhandSerializable

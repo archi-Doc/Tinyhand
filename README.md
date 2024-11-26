@@ -790,23 +790,29 @@ static void ITinyhandSerialize<LockObjectClass>.Serialize(ref TinyhandWriter wri
 
 ### Serialization Callback
 
-Objects implementing the `ITinyhandSerializationCallback` interface will receive `OnBeforeSerialize` and `OnAfterDeserialize` calls during serialization/deserialization.
-
 ```csharp
 [TinyhandObject]
-public partial class SampleCallback : ITinyhandSerializationCallback
+public partial class SampleCallback
 {
     [Key(0)]
     public int Key { get; set; }
 
-    public void OnBeforeSerialize()
+    [TinyhandOnSerializing]
+    public void OnSerializing()
     {
-        Console.WriteLine("OnBefore");
+        Console.WriteLine("OnSerializing");
     }
 
-    public void OnAfterDeserialize()
+    [TinyhandOnDeserialized]
+    public void OnDeserialized()
     {
-        Console.WriteLine("OnAfter");
+        Console.WriteLine("OnDeserialized");
+    }
+
+    [TinyhandOnReconstructed]
+    public void OnReconstructed()
+    {
+        Console.WriteLine("OnReconstructed");
     }
 }
 ```

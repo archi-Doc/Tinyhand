@@ -51,11 +51,6 @@ public enum TinyhandObjectFlag
     HiddenMember = 1 << 10,
     AddPropertyTarget = 1 << 11,
 
-    HasITinyhandSerializationCallback = 1 << 18, // Has ITinyhandSerializationCallback interface
-    HasExplicitOnBeforeSerialize = 1 << 19, // ITinyhandSerializationCallback.OnBeforeSerialize()
-    HasExplicitOnAfterDeserialize = 1 << 20, // ITinyhandSerializationCallback.OnAfterDeserialize()
-    HasExplicitOnAfterReconstruct = 1 << 21, // ITinyhandSerializationCallback.OnAfterReconstruct()
-
     HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
     InterfaceImplemented = 1 << 24, // ITinyhandSerializable, ITinyhandReconstructable, ITinyhandCloneable
@@ -733,26 +728,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             else
             {
                 this.MethodCondition_ReadCustomRecord = MethodCondition.Declared;
-            }
-        }
-
-        // ITinyhandSerializationCallback
-        if (this.Interfaces.Any(x => x.FullName == "Tinyhand.ITinyhandSerializationCallback"))
-        {
-            this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerializationCallback;
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnBeforeSerialize"))
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnBeforeSerialize;
-            }
-
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterDeserialize"))
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnAfterDeserialize;
-            }
-
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == "Tinyhand.ITinyhandSerializationCallback.OnAfterReconstruct"))
-            {
-                this.ObjectFlag |= TinyhandObjectFlag.HasExplicitOnAfterReconstruct;
             }
         }
 
@@ -2116,51 +2091,6 @@ ModuleInitializerClass_Added:
         ssb.AppendLine();
     }
 
-    internal void Generate_OnBeforeSerialize(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
-        {
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnBeforeSerialize))
-            {
-                ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnBeforeSerialize();");
-            }
-            else
-            {
-                ssb.AppendLine($"{ssb.FullObject}.OnBeforeSerialize();");
-            }
-        }
-    }
-
-    internal void Generate_OnAfterDeserialize(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
-        {
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnAfterDeserialize))
-            {
-                ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterDeserialize();");
-            }
-            else
-            {
-                ssb.AppendLine($"{ssb.FullObject}.OnAfterDeserialize();");
-            }
-        }
-    }
-
-    internal void Generate_OnAfterReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializationCallback))
-        {
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasExplicitOnAfterReconstruct))
-            {
-                ssb.AppendLine($"((Tinyhand.ITinyhandSerializationCallback){ssb.FullObject}).OnAfterReconstruct();");
-            }
-            else
-            {
-                ssb.AppendLine($"{ssb.FullObject}.OnAfterReconstruct();");
-            }
-        }
-    }
-
     internal void Generate_CallbackMethod(ScopingStringBuilder ssb, CallbackKind kind)
     {
         if (this.CallbackMethods is null)
@@ -2225,8 +2155,6 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            // ITinyhandSerializationCallback.OnBeforeSerialize
-            this.Generate_OnBeforeSerialize(ssb, info);
             this.Generate_CallbackMethod(ssb, CallbackKind.OnSerializing); // CallbackMethodCode
 
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
@@ -2675,8 +2603,6 @@ ModuleInitializerClass_Added:
                 this.GenerateReconstructCore(ssb, info, x);
             }
 
-            // ITinyhandSerializationCallback.OnAfterReconstruct
-            this.Generate_OnAfterReconstruct(ssb, info);
             this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
@@ -2708,8 +2634,6 @@ ModuleInitializerClass_Added:
                 this.GenerateReconstructCore(ssb, info, x);
             }
 
-            // ITinyhandSerializationCallback.OnAfterReconstruct
-            this.Generate_OnAfterReconstruct(ssb, info);
             this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
@@ -4195,7 +4119,6 @@ ModuleInitializerClass_Added:
 
             this.GenerateReconstructRemaining(ssb, info);
 
-            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
             this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
         }
 
@@ -4271,7 +4194,6 @@ ModuleInitializerClass_Added:
 
             this.GenerateReconstructRemaining(ssb, info);
 
-            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
             this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
         }
 
