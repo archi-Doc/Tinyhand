@@ -105,7 +105,7 @@ public partial class Credential : CertificateToken<TestClass>
 
 [TinyhandObject]
 public partial class CertificateToken<T>
-    where T : ITinyhandSerialize<T>
+    where T : ITinyhandSerializable<T>
 {
     private const char Identifier = 'C';
 
@@ -154,7 +154,7 @@ public partial class TestClass
 /*[TinyhandObject]
 [ValueLinkObject(Integrality = true)]
 public partial class GenericIntegralityClass2<T>
-    where T : ITinyhandSerialize<T>
+    where T : ITinyhandSerializable<T>
 {
     [Link(Primary = true, Unique = true, Type = ChainType.Unordered, TargetMember = "Id2")]
     public GenericIntegralityClass2()
@@ -180,7 +180,7 @@ public partial class GenericTestClass3 : GenericTestClass2<TestClass>
 
 [TinyhandObject]
 public partial class GenericTestClass2<T>
-    where T : ITinyhandSerialize<T>
+    where T : ITinyhandSerializable<T>
 {
     public GenericTestClass2()
     {

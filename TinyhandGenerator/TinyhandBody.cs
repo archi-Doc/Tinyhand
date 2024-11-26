@@ -139,7 +139,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_KeyIgnored = new DiagnosticDescriptor(
-        id: "TG025", title: "Key ignored", messageFormat: "KeyAttribute is ignored since ITinyhandSerialize is implemented",
+        id: "TG025", title: "Key ignored", messageFormat: "KeyAttribute is ignored since ITinyhandSerializable is implemented",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_DefaultInterface = new DiagnosticDescriptor(

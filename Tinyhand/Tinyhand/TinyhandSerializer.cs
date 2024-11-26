@@ -94,7 +94,7 @@ public static partial class TinyhandSerializer
     /// <param name="value">The value to calculate the hash for.</param>
     /// <returns>The XXHash3 hash value.</returns>
     public static ulong GetXxHash3<T>(in T? value)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
@@ -114,7 +114,7 @@ public static partial class TinyhandSerializer
     }
 
     public static byte[] SerializeObject<T>(in T? value)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
@@ -133,7 +133,7 @@ public static partial class TinyhandSerializer
     }
 
     public static byte[] SerializeObject<T>(in T? value, TinyhandSerializerOptions? options)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         options = options ?? DefaultOptions;
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
@@ -164,14 +164,14 @@ public static partial class TinyhandSerializer
     }
 
     public static void SerializeObject<T>(ref TinyhandWriter writer, in T? value, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
         T.Serialize(ref writer, ref Unsafe.AsRef(in value), options);
     }
 
     public static BytePool.RentMemory SerializeObjectToRentMemory<T>(in T? value, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
         var writer = TinyhandWriter.CreateFromBytePool();
@@ -191,7 +191,7 @@ public static partial class TinyhandSerializer
     }
 
     public static T? DeserializeObject<T>(ReadOnlySpan<byte> data)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         var reader = new TinyhandReader(data);
 
@@ -208,7 +208,7 @@ public static partial class TinyhandSerializer
     }
 
     public static void DeserializeObject<T>(ReadOnlySpan<byte> data, ref T? value)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         var reader = new TinyhandReader(data);
 
@@ -223,14 +223,14 @@ public static partial class TinyhandSerializer
     }
 
     public static void DeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         options = options ?? DefaultOptions;
         T.Deserialize(ref reader, ref value, options);
     }
 
     public static void DeserializeAndReconstructObject<T>(ref TinyhandReader reader, [NotNull] scoped ref T? value, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>, ITinyhandReconstructable<T>
+        where T : ITinyhandSerializable<T>, ITinyhandReconstructable<T>
     {
         options = options ?? DefaultOptions;
         T.Deserialize(ref reader, ref value, options);
@@ -242,7 +242,7 @@ public static partial class TinyhandSerializer
     }
 
     public static T? DeserializeObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         options = options ?? DefaultOptions;
         var value = default(T);
@@ -251,7 +251,7 @@ public static partial class TinyhandSerializer
     }
 
     public static T DeserializeAndReconstructObject<T>(ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
-        where T : ITinyhandSerialize<T>, ITinyhandReconstructable<T>
+        where T : ITinyhandSerializable<T>, ITinyhandReconstructable<T>
     {
         options = options ?? DefaultOptions;
         var value = default(T);
@@ -266,7 +266,7 @@ public static partial class TinyhandSerializer
     }
 
     public static bool TryDeserializeObject<T>(ReadOnlySpan<byte> data, [MaybeNullWhen(false)] out T value)
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
     {
         var reader = new TinyhandReader(data);
         try
@@ -288,7 +288,7 @@ public static partial class TinyhandSerializer
     /// <typeparam name="T">The type to get the identifier for.</typeparam>
     /// <returns>The type identifier.</returns>
     public static ulong GetTypeIdentifierObject<T>()
-        where T : ITinyhandSerialize<T>
+        where T : ITinyhandSerializable<T>
         => T.GetTypeIdentifier(); // GetTypeIdentifierCode */
 
     /// <summary>

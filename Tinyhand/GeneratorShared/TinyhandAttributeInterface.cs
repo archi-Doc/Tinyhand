@@ -310,7 +310,7 @@ public interface ITinyhandSerializationCallback
 /// <summary>
 /// An interface for serialize/deserialize methods.
 /// </summary>
-public interface ITinyhandSerialize
+public interface ITinyhandSerializable
 {
     /// <summary>
     /// Serializes the object to the specified writer.
@@ -338,7 +338,7 @@ public interface ITinyhandSerialize
 /// If this interface is implemented, Tinyhand use it instead of the generated code.
 /// </summary>
 /// <typeparam name="T">The type to be serialized.</typeparam>
-public interface ITinyhandSerialize<T>
+public interface ITinyhandSerializable<T>
 {
     /// <summary>
     /// Serializes the object to the specified writer.
