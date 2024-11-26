@@ -908,8 +908,7 @@ internal static class VisceralHelper
         }
     }
 
-    private static string
-        TypeToName(Type type, bool appendNamespace)
+    private static string TypeToName(Type type, bool appendNamespace)
     {
         if (type.IsArray)
         {
