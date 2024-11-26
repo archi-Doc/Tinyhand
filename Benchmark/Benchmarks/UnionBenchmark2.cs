@@ -103,10 +103,6 @@ public class UnionBenchmark2
         this.union = (IUnion)new Class9<int>(2);
         this.bytes = TinyhandSerializer.Serialize(this.union);
         var u = TinyhandSerializer.DeserializeObject<IUnion>(this.bytes);
-
-        var identifier = this.union.GetTypeIdentifier();
-        identifier = TinyhandSerializer.GetTypeIdentifierObject<Class9<int>>();
-        identifier = TinyhandSerializer.GetTypeIdentifierObject<Class9<string>>();
     }
 
     [GlobalSetup]
@@ -125,12 +121,4 @@ public class UnionBenchmark2
     {
         return TinyhandSerializer.DeserializeObject<IUnion>(this.bytes);
     }
-
-    [Benchmark]
-    public ulong GetTypeIdentifier_Instance()
-        => this.union.GetTypeIdentifier();
-
-    [Benchmark]
-    public ulong GetTypeIdentifier_Static()
-        => TinyhandSerializer.GetTypeIdentifierObject<Class9<int>>();
 }

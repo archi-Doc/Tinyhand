@@ -326,11 +326,11 @@ public interface ITinyhandSerialize
     /// <param name="options">The deserialization options to use.</param>
     void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
 
-    /// <summary>
+    /*/// <summary>
     /// Gets the type identifier (FarmHash.Hash64(Type.FullName)) for the object.
     /// </summary>
     /// <returns>The type identifier.</returns>
-    ulong GetTypeIdentifier(); // GetTypeIdentifierCode
+    ulong GetTypeIdentifier(); // GetTypeIdentifierCode */
 }
 
 /// <summary>
@@ -356,11 +356,11 @@ public interface ITinyhandSerialize<T>
     /// <param name="options">The deserialization options to use.</param>
     static abstract void Deserialize(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions options);
 
-    /// <summary>
+    /* /// <summary>
     /// Gets the type identifier (FarmHash.Hash64(Type.FullName)) for the object.
     /// </summary>
     /// <returns>The type identifier.</returns>
-    static abstract ulong GetTypeIdentifier(); // GetTypeIdentifierCode
+    static abstract ulong GetTypeIdentifier(); // GetTypeIdentifierCode */
 }
 
 /// <summary>

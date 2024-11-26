@@ -647,7 +647,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandSerialize;
             }
             else if (ms.Name == "GetTypeIdentifier" && this.MethodCompare_GetTypeIdentifier(ms))
-            {
+            {// GetTypeIdentifierCode
                 this.MethodCondition_GetTypeIdentifier = MethodCondition.Declared;
             }
             else if (ms.Name == getTypeIdentifierName && this.MethodCompare_GetTypeIdentifier(ms))
@@ -3361,7 +3361,7 @@ ModuleInitializerClass_Added:
                 this.GenerateDeserialize_Method2(ssb, info);
             }
 
-            if (this.MethodCondition_GetTypeIdentifier == MethodCondition.StaticMethod)
+            /*if (this.MethodCondition_GetTypeIdentifier == MethodCondition.StaticMethod)
             {// GetTypeIdentifierCode
                 if (this.Generics_IsGeneric)
                 {// Generics
@@ -3372,7 +3372,7 @@ ModuleInitializerClass_Added:
                 {// Non-generics
                     ssb.AppendLine($"static ulong ITinyhandSerialize<{this.RegionalName}>.GetTypeIdentifier() => 0x{FarmHash.Hash64(this.FullName).ToString("x")}ul;");
                 }
-            }
+            }*/
 
             if (this.MethodCondition_Reconstruct == MethodCondition.StaticMethod)
             {
@@ -3397,7 +3397,7 @@ ModuleInitializerClass_Added:
 
             ssb.AppendLine("void ITinyhandSerialize.Serialize(ref TinyhandWriter writer, TinyhandSerializerOptions options)");
             ssb.AppendLine("  => TinyhandSerializer.SerializeObject(ref writer, this, options);");
-            ssb.AppendLine($"ulong ITinyhandSerialize.GetTypeIdentifier() => TinyhandSerializer.GetTypeIdentifierObject<{this.RegionalName}>();"); // GetTypeIdentifierCode
+            // ssb.AppendLine($"ulong ITinyhandSerialize.GetTypeIdentifier() => TinyhandSerializer.GetTypeIdentifierObject<{this.RegionalName}>();"); // GetTypeIdentifierCode
         }
 
         this.GenerateAddProperty(ssb, info);

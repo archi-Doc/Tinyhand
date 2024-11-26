@@ -282,14 +282,14 @@ public static partial class TinyhandSerializer
         }
     }
 
-    /// <summary>
+    /* /// <summary>
     /// Gets the type identifier (FarmHash.Hash64(Type.FullName)).
     /// </summary>
     /// <typeparam name="T">The type to get the identifier for.</typeparam>
     /// <returns>The type identifier.</returns>
     public static ulong GetTypeIdentifierObject<T>()
         where T : ITinyhandSerialize<T>
-        => T.GetTypeIdentifier(); // GetTypeIdentifierCode
+        => T.GetTypeIdentifier(); // GetTypeIdentifierCode */
 
     /// <summary>
     /// Creates a new object and sets valid values to the object members.
