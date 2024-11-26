@@ -42,6 +42,7 @@ public sealed class TinyhandOnSerializingAttribute : Attribute;
 
 /// <summary>
 /// Attribute to specify a method to be called after serialization.<br/>
+/// Callbacks are not inherited by derived classes.<br/>
 /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
@@ -49,6 +50,7 @@ public sealed class TinyhandOnSerializedAttribute : Attribute;
 
 /// <summary>
 /// Attribute to specify a method to be called before deserialization.<br/>
+/// Callbacks are not inherited by derived classes.<br/>
 /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
@@ -56,19 +58,22 @@ public sealed class TinyhandOnDeserializingAttribute : Attribute;
 
 /// <summary>
 /// Attribute to specify a method to be called after deserialization.<br/>
+/// Callbacks are not inherited by derived classes.<br/>
 /// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class TinyhandOnDeserializedAttribute : Attribute;
 
 /// <summary>
-/// Attribute to specify a method to be called before reconstruction.
+/// Attribute to specify a method to be called before reconstruction.<br/>
+/// Callbacks are not inherited by derived classes.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class TinyhandOnReconstructingAttribute : Attribute;
 
 /// <summary>
-/// Attribute to specify a method to be called after reconstruction.
+/// Attribute to specify a method to be called after reconstruction.<br/>
+/// Callbacks are not inherited by derived classes.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class TinyhandOnReconstructedAttribute : Attribute;

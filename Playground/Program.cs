@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Arc.Collections;
 using Arc.Crypto;
 using Tinyhand;
@@ -27,12 +28,14 @@ public partial struct DesignStruct
     }
 }
 
-[TinyhandObject]
+[TinyhandObject(LockObject = "lockObject")]
 public partial class DesignBaseClass
 {
     protected DesignBaseClass()
     {
     }
+
+    protected readonly Lock lockObject = new();
 
     [Key(0)]
     private int X { get; set; }
@@ -47,7 +50,7 @@ public partial class DesignBaseClass
     public int A { get; set; }
 
     [TinyhandOnSerializing]
-    protected void OnSerializing()
+    private void OnSerializing()
     {
     }
 

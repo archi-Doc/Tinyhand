@@ -782,6 +782,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         // Callback methods
         foreach (var method in this.GetMembers(VisceralTarget.Method))
         {
+            if (method.ContainingObject != this)
+            {
+                continue;
+            }
+
             if (CallbackMethod.TryCreate(method) is { } callbackMethod)
             {
                 this.CallbackMethods ??= new();
@@ -4189,12 +4194,13 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("while (numberOfData-- > 0) reader.Skip();");
 
             this.GenerateReconstructRemaining(ssb, info);
+
+            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
         }
 
         using (var finallyScope = ssb.ScopeBrace("finally"))
         {
-            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
-            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
             {// LockObject
                 this.GenerateDeserialize_LockExit(ssb, info);
@@ -4264,12 +4270,13 @@ ModuleInitializerClass_Added:
             }
 
             this.GenerateReconstructRemaining(ssb, info);
+
+            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
         }
 
         using (var finallyScope = ssb.ScopeBrace("finally"))
         {
-            this.Generate_OnAfterDeserialize(ssb, info); // ITinyhandSerializationCallback.OnAfterDeserialize
-            this.Generate_CallbackMethod(ssb, CallbackKind.OnDeserialized); // CallbackMethodCode
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
             {// LockObject
                 this.GenerateDeserialize_LockExit(ssb, info);
