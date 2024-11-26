@@ -24,6 +24,41 @@ public enum LockObjectType
     Lockable,
 }
 
+public sealed class TinyhandOnSerializingAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandOnSerializing";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+}
+
+public sealed class TinyhandOnSerializedAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandOnSerialized";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+}
+
+public sealed class TinyhandOnDeserializingAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandOnDeserializing";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+}
+
+public sealed class TinyhandOnDeserializedAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandOnDeserialized";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+}
+
+public sealed class TinyhandOnReconstructedAttributeMock
+{
+    public static readonly string SimpleName = "TinyhandOnReconstructed";
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "Tinyhand." + Name;
+}
+
 public sealed class TinyhandObjectAttributeMock
 {
     public static readonly string SimpleName = "TinyhandObject";

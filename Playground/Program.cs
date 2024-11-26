@@ -20,6 +20,11 @@ public partial struct DesignStruct
 
     [Key(2)]
     private readonly int Z;
+
+    [TinyhandOnSerializing]
+    public void OnSerializing()
+    {
+    }
 }
 
 [TinyhandObject]
