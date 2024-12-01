@@ -7,8 +7,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Unicode;
 using System.Threading;
+using Arc;
 using Arc.Collections;
-using Arc.Crypto;
 using Arc.IO;
 
 #pragma warning disable SA1124

@@ -2,7 +2,7 @@
 
 using System;
 using System.Linq;
-using Arc.Crypto;
+using Arc;
 using BenchmarkDotNet.Attributes;
 using Tinyhand;
 

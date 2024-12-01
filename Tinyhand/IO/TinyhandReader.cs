@@ -10,8 +10,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Arc;
 using Arc.Collections;
-using Arc.Crypto;
 
 #pragma warning disable SA1615 // Element return value should be documented
 
