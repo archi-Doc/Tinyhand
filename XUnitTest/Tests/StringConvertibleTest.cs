@@ -16,12 +16,13 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
     [Key(0)]
     public byte[] Byte16 { get; set; } = [];
 
-    public static bool TryParse(ReadOnlySpan<char> source, out StringConvertibleTestClass? instance)
+    public static bool TryParse(ReadOnlySpan<char> source, out StringConvertibleTestClass? instance, out int read)
     {
+        instance = null;
+        read = 0;
         if (source.Length < MaxStringLength ||
             source[0] != '@')
         {
-            instance = null;
             return false;
         }
 
@@ -29,12 +30,12 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
         var b = Base64.Url.FromStringToByteArray(source);
         if (b.Length != 16)
         {
-            instance = null;
             return false;
         }
 
         instance = new();
         instance.Byte16 = b;
+        read = source.Length + 1;
         return true;
     }
 
@@ -83,7 +84,8 @@ public class StringConvertibleTest
         var tc = new StringConvertibleTestClass();
         tc.Byte16 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,];
         var st = tc.ConvertToString();
-        StringConvertibleTestClass.TryParse(st, out var tc2);
+        StringConvertibleTestClass.TryParse(st, out var tc2, out var read);
+        read.Is(st.Length);
 
         var tc3 = new StringConvertibleTestClass2();
         tc3.Class1 = tc2!;
