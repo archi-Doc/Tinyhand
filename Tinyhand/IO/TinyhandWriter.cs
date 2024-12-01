@@ -1240,24 +1240,16 @@ public ref struct TinyhandWriter
             return;
         }
 
-        int length = 0;
-        try
+        var length = obj.GetStringLength();
+        if (length < 0)
         {
-            length = obj.GetStringLength();
-        }
-        catch
-        {
+            length = T.MaxStringLength;
         }
 
-        if (length == 0)
+        if (length < 0)
         {
-            try
-            {
-                length = T.MaxStringLength;
-            }
-            catch
-            {
-            }
+            this.WriteNil();
+            return;
         }
 
         char[]? pooledName = default;

@@ -1110,7 +1110,7 @@ public ref partial struct TinyhandReader
         var st = this.ReadString();
         if (st is not null)
         {
-            T.TryParse(st, out instance);
+            T.TryParse(st, out instance, out _);
         }
     }
 
@@ -1123,7 +1123,7 @@ public ref partial struct TinyhandReader
             return default;
         }
 
-        T.TryParse(st, out var instance);
+        T.TryParse(st, out var instance, out _);
         return instance;
     }
 
