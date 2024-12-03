@@ -25,6 +25,11 @@ public static class TinyhandComposer
     [ThreadStatic]
     private static byte[]? initialBuffer;
 
+    public static string ComposeToString(Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
+    {
+        return TinyhandHelper.GetTextFromUtf8(Compose(element, option));
+    }
+
     public static byte[] Compose(Element element, TinyhandComposeOption option = TinyhandComposeOption.Standard)
     {
         if (initialBuffer == null)
@@ -104,6 +109,10 @@ public static class TinyhandComposer
                     this.ComposeGroup(ref writer, g);
                     break;
 
+                case ElementType.Modifier:
+                    this.ComposeModifier(ref writer, (Modifier)element);
+                    break;
+
                 case ElementType.LineFeed:
                     if (this.useContextualInformation)
                     {
@@ -164,6 +173,12 @@ public static class TinyhandComposer
             {
                 writer.WriteSpan(TinyhandConstants.IndentSpan);
             }
+        }
+
+        private void ComposeModifier(ref TinyhandRawWriter writer, Modifier element)
+        {
+            writer.WriteUInt8(TinyhandConstants.ModifierPrefix);
+            writer.WriteSpan(element.ModifierUtf8);
         }
 
         private void ComposeValue(ref TinyhandRawWriter writer, Value element)

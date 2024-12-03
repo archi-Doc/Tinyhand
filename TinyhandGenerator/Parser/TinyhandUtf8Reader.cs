@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Tinyhand;
 
-public enum TinyhandAtomType
+internal enum TinyhandAtomType
 {
     None, // None
     Separator, // , ;
@@ -35,7 +35,7 @@ public enum TinyhandAtomType
     Value_False, // false
 }
 
-public enum TinyhandModifierType
+internal enum TinyhandModifierType
 {
     None,
     Bool,
@@ -53,13 +53,7 @@ public enum TinyhandModifierType
     Optional,
 }
 
-public struct TinyhandUtf8LinePosition
-{
-    public int LineNumber;
-    public int BytePositionInLine;
-}
-
-public ref struct TinyhandUtf8Reader
+internal ref struct TinyhandUtf8Reader
 {
     private const int InitialLinePosition = 1;
 
