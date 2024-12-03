@@ -14,7 +14,7 @@ using System.Text;
 
 namespace Tinyhand.Tree;
 
-public enum ElementType
+internal enum ElementType
 {
     /// <summary>
     /// None.
@@ -52,7 +52,7 @@ public enum ElementType
     Comment,
 }
 
-public enum ValueElementType
+internal enum ValueElementType
 {
     Identifier, // objectA
     SpecialIdentifier, // @mode
@@ -68,7 +68,7 @@ public enum ValueElementType
 /// <summary>
 /// Tinyhand Modifier.
 /// </summary>
-public class Modifier : Element
+internal class Modifier : Element
 {
     public Modifier()
         : this(Array.Empty<byte>())
@@ -124,7 +124,7 @@ public class Modifier : Element
 /// <summary>
 /// A base class for TinyhandValue/TinyhandAssignment and other classes.
 /// </summary>
-public class Element
+internal class Element
 {
     internal Element? parent;
     internal Element? contextualChain;
@@ -200,7 +200,7 @@ public class Element
 /// <summary>
 /// TinyhandValue.
 /// </summary>
-public class Value : Element
+internal class Value : Element
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Value"/> class.
@@ -218,7 +218,7 @@ public class Value : Element
 /// <summary>
 /// TinyhandLineFeed.
 /// </summary>
-public class LineFeed : Element
+internal class LineFeed : Element
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LineFeed"/> class.
@@ -234,7 +234,7 @@ public class LineFeed : Element
 /// <summary>
 /// TinyhandComment.
 /// </summary>
-public class Comment : Element
+internal class Comment : Element
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Comment"/> class.
@@ -280,7 +280,7 @@ public class Comment : Element
     }
 }
 
-public class Value_Identifier : Value
+internal class Value_Identifier : Value
 {
     public Value_Identifier(bool isSpecial, byte[] identifierUtf8)
         : base(ValueElementType.Identifier)
@@ -325,7 +325,7 @@ public class Value_Identifier : Value
     public override string ToString() => "Identifier: " + this.IdentifierUtf16;
 }
 
-public class Value_Bool : Value
+internal class Value_Bool : Value
 {
     public Value_Bool()
         : base(ValueElementType.Value_Bool)
@@ -343,7 +343,7 @@ public class Value_Bool : Value
     public override string ToString() => "Bool: " + this.ValueBool.ToString();
 }
 
-public class Value_Null : Value
+internal class Value_Null : Value
 {
     public Value_Null()
         : base(ValueElementType.Value_Null)
@@ -359,7 +359,7 @@ public class Value_Null : Value
     public override string ToString() => "Null";
 }
 
-public class Value_Long : Value
+internal class Value_Long : Value
 {
     public Value_Long()
         : base(ValueElementType.Value_Long)
@@ -377,7 +377,7 @@ public class Value_Long : Value
     public long ValueLong { get; set; }
 }
 
-public class Value_ULong : Value
+internal class Value_ULong : Value
 {
     public Value_ULong()
         : base(ValueElementType.Value_ULong)
@@ -395,7 +395,7 @@ public class Value_ULong : Value
     public ulong ValueULong { get; set; }
 }
 
-public class Value_Double : Value
+internal class Value_Double : Value
 {
     public Value_Double()
         : base(ValueElementType.Value_Double)
@@ -413,7 +413,7 @@ public class Value_Double : Value
     public double ValueDouble { get; set; }
 }
 
-public class Value_String : Value
+internal class Value_String : Value
 {
     public Value_String()
         : this(Array.Empty<byte>())
@@ -506,7 +506,7 @@ public class Value_String : Value
     }
 }
 
-public class Value_Binary : Value
+internal class Value_Binary : Value
 {
     public Value_Binary()
         : this(null)
@@ -536,7 +536,7 @@ public class Value_Binary : Value
 /// <summary>
 /// A base class for TinyhandValue/TinyhandAssignment and other classes.
 /// </summary>
-public class Assignment : Element
+internal class Assignment : Element
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Assignment"/> class.
@@ -651,7 +651,7 @@ public class Assignment : Element
 /// <summary>
 /// TinyhandGroup holds multiple Elements.
 /// </summary>
-public class Group : Element, IEnumerable<Element>
+internal class Group : Element, IEnumerable<Element>
 {
     public static Group Empty = new Group();
 
