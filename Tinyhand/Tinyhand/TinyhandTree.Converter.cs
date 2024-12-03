@@ -424,14 +424,14 @@ public static class TinyhandTreeConverter
                     {
                         var utf8 = reader.ValueSpan;
                         writer.WriteStringHeader(utf8.Length + 1);
-                        writer.WriteRawUInt8(TinyhandConstants.AtSign);
+                        writer.WriteRawUInt8(TinyhandConstants.IdentifierPrefix);
                         writer.WriteSpan(utf8);
                         count++;
                     }
 
                     break;
 
-                case TinyhandAtomType.Modifier: // i32: key(1): required
+                case TinyhandAtomType.Modifier: // &i32, &key(1), &required
                     break;
 
                 case TinyhandAtomType.Assignment: // =
@@ -651,7 +651,7 @@ public static class TinyhandTreeConverter
                 case ValueElementType.SpecialIdentifier:
                     var utf8 = ((Value_Identifier)v).IdentifierUtf8;
                     writer.WriteStringHeader(utf8.Length + 1);
-                    writer.WriteRawUInt8(TinyhandConstants.AtSign);
+                    writer.WriteRawUInt8(TinyhandConstants.IdentifierPrefix);
                     writer.WriteSpan(utf8);
                     break;
             }

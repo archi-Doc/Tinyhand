@@ -22,7 +22,7 @@ public enum TinyhandAtomType
     EndGroup, // }
     Identifier, // objectA
     SpecialIdentifier, // @mode
-    Modifier, // i32, key(1), required
+    Modifier, // &i32, &key(1), &required
     Assignment, // =
     Comment, // // comment
     Value_Base64, // b"Base64"
@@ -332,16 +332,23 @@ public ref struct TinyhandUtf8Reader
                     return true;
                 }
 
-                if (this.ProcessModifier())
-                {
-                    this.AddPosition(this.ValueSpan.Length);
-                    return true;
+                if (this.ValueSpan[0] == TinyhandConstants.ModifierPrefix)
+                {// Modifier
+                    this.ValueSpan = this.ValueSpan.Slice(1);
+                    this.AddPosition(1);
+                    if (this.ProcessModifier())
+                    {
+                        this.AddPosition(this.ValueSpan.Length);
+                        return true;
+                    }
                 }
-
-                if (this.ProcessIdentifier())
-                {
-                    this.AddPosition(this.ValueSpan.Length);
-                    return true;
+                else
+                {// Other
+                    if (this.ProcessIdentifier())
+                    {
+                        this.AddPosition(this.ValueSpan.Length);
+                        return true;
+                    }
                 }
 
 Unexpected_Symbol:
@@ -356,7 +363,7 @@ Unexpected_Symbol:
     {
         var type = TinyhandAtomType.Identifier;
 
-        if (this.ValueSpan[0] == TinyhandConstants.AtSign)
+        if (this.ValueSpan[0] == TinyhandConstants.IdentifierPrefix)
         { // @ Special Identifier
             type = TinyhandAtomType.SpecialIdentifier;
             this.ValueSpan = this.ValueSpan.Slice(1);

@@ -175,7 +175,7 @@ public static class TinyhandComposer
                     var i = (Value_Identifier)element;
                     if (i.IsSpecial)
                     {
-                        writer.WriteUInt8(TinyhandConstants.AtSign);
+                        writer.WriteUInt8(TinyhandConstants.IdentifierPrefix);
                     }
                     writer.WriteSpan(i.IdentifierUtf8);
                     break;
