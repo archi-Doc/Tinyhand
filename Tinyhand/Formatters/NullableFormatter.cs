@@ -19,16 +19,15 @@ public sealed class NullableFormatter<T> : ITinyhandFormatter<T?>
         }
     }
 
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
     {
         if (reader.IsNil)
         {
             reader.ReadNil();
-            return null;
         }
         else
         {
-            return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
+            value = options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
         }
     }
 
@@ -62,15 +61,14 @@ public sealed class StaticNullableFormatter<T> : ITinyhandFormatter<T?>
         }
     }
 
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
         }
         else
         {
-            return this.underlyingFormatter.Deserialize(ref reader, options);
+            value = this.underlyingFormatter.Deserialize(ref reader, options);
         }
     }
 

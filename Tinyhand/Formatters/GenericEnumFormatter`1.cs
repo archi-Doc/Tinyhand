@@ -68,9 +68,9 @@ public sealed class GenericEnumFormatter<T> : ITinyhandFormatter<T>
         this.serializer(ref writer, ref value!);
     }
 
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
     {
-        return this.deserializer(ref reader);
+        value = this.deserializer(ref reader);
     }
 
     public T Reconstruct(TinyhandSerializerOptions options) => default!;

@@ -35,115 +35,113 @@ using Tinyhand.IO;
 
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Formatters
-{<# foreach(var t in allTypes) {  #>
+namespace Tinyhand.Formatters;
+<# foreach(var t in allTypes) {  #>
 
-    public sealed class <#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>>
+public sealed class <#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>>
+{
+    public static readonly <#= t.Name #>Formatter Instance = new ();
+
+    private <#= t.Name #>Formatter()
     {
-        public static readonly <#= t.Name #>Formatter Instance = new ();
-
-        private <#= t.Name #>Formatter()
-        {
-        }
-
-        public void Serialize(ref TinyhandWriter writer, <#= t.Simple #> value, TinyhandSerializerOptions options)
-        {
-            writer.Write(value);
-        }
-
-        public <#= t.Simple #> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-        {
-            return reader.Read<#= t.Name #>();
-        }
-
-        public <#= t.Simple #> Reconstruct(TinyhandSerializerOptions options) => default;
-
-        public <#= t.Simple #> Clone(<#= t.Simple #> value, TinyhandSerializerOptions options) => value;
     }
 
-    public sealed class Nullable<#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>?>
+    public void Serialize(ref TinyhandWriter writer, <#= t.Simple #> value, TinyhandSerializerOptions options)
     {
-        public static readonly Nullable<#= t.Name #>Formatter Instance = new ();
-
-        private Nullable<#= t.Name #>Formatter()
-        {
-        }
-
-        public void Serialize(ref TinyhandWriter writer, <#= t.Simple #>? value, TinyhandSerializerOptions options)
-        {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
-            {
-                writer.Write(value.Value);
-            }
-        }
-
-        public <#= t.Simple #>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-        {
-            if (reader.TryReadNil())
-            {
-                return default;
-            }
-            else
-            {
-                return reader.Read<#= t.Name #>();
-            }
-        }
-
-        public <#= t.Simple #>? Reconstruct(TinyhandSerializerOptions options) => default(<#= t.Simple #>);
-
-        public <#= t.Simple #>? Clone(<#= t.Simple #>? value, TinyhandSerializerOptions options) => value;
+        writer.Write(value);
     }
+
+    public void Deserialize(ref TinyhandReader reader, ref <#= t.Simple #> value, TinyhandSerializerOptions options)
+    {
+        value = reader.Read<#= t.Name #>();
+    }
+
+    public <#= t.Simple #> Reconstruct(TinyhandSerializerOptions options) => default;
+
+    public <#= t.Simple #> Clone(<#= t.Simple #> value, TinyhandSerializerOptions options) => value;
+}
+
+public sealed class Nullable<#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>?>
+{
+    public static readonly Nullable<#= t.Name #>Formatter Instance = new ();
+
+    private Nullable<#= t.Name #>Formatter()
+    {
+    }
+
+    public void Serialize(ref TinyhandWriter writer, <#= t.Simple #>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+        }
+        else
+        {
+            writer.Write(value.Value);
+        }
+    }
+
+    public void Deserialize(ref TinyhandReader reader, ref <#= t.Simple #>? value, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+        }
+        else
+        {
+            value = reader.Read<#= t.Name #>();
+        }
+    }
+
+    public <#= t.Simple #>? Reconstruct(TinyhandSerializerOptions options) => default(<#= t.Simple #>);
+
+    public <#= t.Simple #>? Clone(<#= t.Simple #>? value, TinyhandSerializerOptions options) => value;
+}
 <# if(t.Name != "UInt8") { #>
 
-    public sealed class <#= t.Name #>ArrayFormatter : ITinyhandFormatter<<#= t.Simple #>[]>
+public sealed class <#= t.Name #>ArrayFormatter : ITinyhandFormatter<<#= t.Simple #>[]>
+{
+    public static readonly <#= t.Name #>ArrayFormatter Instance = new ();
+
+    private <#= t.Name #>ArrayFormatter()
     {
-        public static readonly <#= t.Name #>ArrayFormatter Instance = new ();
-
-        private <#= t.Name #>ArrayFormatter()
-        {
-        }
-
-        public void Serialize(ref TinyhandWriter writer, <#= t.Simple #>[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, value);
-
-        public <#= t.Simple #>[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader);
-
-        public <#= t.Simple #>[] Reconstruct(TinyhandSerializerOptions options) => new <#= t.Simple #>[0];
-
-        public <#= t.Simple #>[]? Clone(<#= t.Simple #>[]? value, TinyhandSerializerOptions options)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            else
-            {
-                var array = new <#= t.Simple #>[value.Length];
-                Array.Copy(value, array, value.Length);
-                return array;
-            }
-        }
     }
 
-    public sealed class <#= t.Name #>ListFormatter : ITinyhandFormatter<List<<#= t.Simple #>>>
+    public void Serialize(ref TinyhandWriter writer, <#= t.Simple #>[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, value);
+
+    public void Deserialize(ref TinyhandReader reader, ref <#= t.Simple #>[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader, ref value);
+
+    public <#= t.Simple #>[] Reconstruct(TinyhandSerializerOptions options) => new <#= t.Simple #>[0];
+
+    public <#= t.Simple #>[]? Clone(<#= t.Simple #>[]? value, TinyhandSerializerOptions options)
     {
-        public static readonly <#= t.Name #>ListFormatter Instance = new ();
-
-        private <#= t.Name #>ListFormatter()
+        if (value == null)
         {
+            return null;
         }
-
-        public void Serialize(ref TinyhandWriter writer, List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, value);
-
-        public List<<#= t.Simple #>>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader);
-
-        public List<<#= t.Simple #>> Reconstruct(TinyhandSerializerOptions options) => new List<<#= t.Simple #>>();
-
-        public List<<#= t.Simple #>>? Clone(List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => value == null ? null : new List<<#= t.Simple #>>(value);
+        else
+        {
+            var array = new <#= t.Simple #>[value.Length];
+            Array.Copy(value, array, value.Length);
+            return array;
+        }
     }
-<# } #>
-<# } #>
 }
+
+public sealed class <#= t.Name #>ListFormatter : ITinyhandFormatter<List<<#= t.Simple #>>>
+{
+    public static readonly <#= t.Name #>ListFormatter Instance = new ();
+
+    private <#= t.Name #>ListFormatter()
+    {
+    }
+
+    public void Serialize(ref TinyhandWriter writer, List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, value);
+
+    public void Deserialize(ref TinyhandReader reader, ref List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>List(ref reader, ref value);
+
+    public List<<#= t.Simple #>> Reconstruct(TinyhandSerializerOptions options) => new List<<#= t.Simple #>>();
+
+    public List<<#= t.Simple #>>? Clone(List<<#= t.Simple #>>? value, TinyhandSerializerOptions options) => value == null ? null : new List<<#= t.Simple #>>(value);
+}
+<# } #>
+<# } #>

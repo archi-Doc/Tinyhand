@@ -33,18 +33,17 @@ public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
         }
     }
 
-    public ImmutableArray<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ImmutableArray<T> value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
         }
         else
         {
             var len = reader.ReadArrayHeader();
             if (len == 0)
             {
-                return ImmutableArray<T>.Empty;
+                return;
             }
 
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
@@ -62,7 +61,7 @@ public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
                 reader.Depth--;
             }
 
-            return builder.MoveToImmutable();
+            value = builder.MoveToImmutable();
         }
     }
 

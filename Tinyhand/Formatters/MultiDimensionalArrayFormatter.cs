@@ -38,11 +38,10 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
         }
     }
 
-    public T[,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T[,]? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
         }
         else
         {
@@ -58,7 +57,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
             var jLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
 
-            var array = new T[iLength, jLength];
+            value = new T[iLength, jLength];
 
             var i = 0;
             var j = -1;
@@ -78,15 +77,13 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
                         i++;
                     }
 
-                    array[i, j] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
+                    value[i, j] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return array;
         }
     }
 
@@ -158,11 +155,10 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
         }
     }
 
-    public T[,,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T[,,]? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
         }
         else
         {
@@ -179,7 +175,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
             var kLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
 
-            var array = new T[iLength, jLength, kLength];
+            value = new T[iLength, jLength, kLength];
 
             var i = 0;
             var j = 0;
@@ -206,15 +202,13 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
                         i++;
                     }
 
-                    array[i, j, k] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
+                    value[i, j, k] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return array;
         }
     }
 
@@ -296,11 +290,10 @@ public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]
         }
     }
 
-    public T[,,,]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T[,,,]? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
         }
         else
         {
@@ -317,7 +310,7 @@ public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]
             var kLength = reader.ReadInt32();
             var lLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
-            var array = new T[iLength, jLength, kLength, lLength];
+            value = new T[iLength, jLength, kLength, lLength];
 
             var i = 0;
             var j = 0;
@@ -352,15 +345,13 @@ public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]
                         i++;
                     }
 
-                    array[i, j, k, l] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
+                    value[i, j, k, l] = formatter.Deserialize(ref reader, options)!; // ?? formatter.Reconstruct(options);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return array;
         }
     }
 
