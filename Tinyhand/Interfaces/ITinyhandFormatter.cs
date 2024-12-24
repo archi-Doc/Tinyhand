@@ -1,9 +1,21 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 
 namespace Tinyhand;
+
+public static class ITinyhandFormatterExtension
+{
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T? Deserialize<T>(this ITinyhandFormatter<T> f, ref TinyhandReader reader, TinyhandSerializerOptions options)
+    {
+        T? value = default;
+        f.Deserialize(ref reader, ref value, options);
+        return value;
+    }
+}
 
 /// <summary>
 /// A base interface for <see cref="ITinyhandFormatter{T}"/> so that all generic implementations can be detected by a common base type.
@@ -30,9 +42,9 @@ public interface ITinyhandFormatter<T> : ITinyhandFormatter
     /// Deserializes a value.
     /// </summary>
     /// <param name="reader">The reader to deserialize from.</param>
+    /// <param name="value">The original value before deserialization and the value after deserialization.</param>
     /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
-    /// <returns>The deserialized value.</returns>
-    T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
+    void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options);
 
     /// <summary>
     /// Create a new object.

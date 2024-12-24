@@ -235,33 +235,30 @@ public sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T>>
         }
     }
 
-    public OrderedList<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref OrderedList<T>? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
         }
         else
         {
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            var list = new OrderedList<T>((int)len);
+            value ??= new OrderedList<T>((int)len);
             options.Security.DepthStep(ref reader);
             try
             {
                 for (var i = 0; i < len; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list.Add(formatter.Deserialize(ref reader, options)!);
+                    value.Add(formatter.Deserialize(ref reader, options)!);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return list;
         }
     }
 
@@ -314,33 +311,30 @@ public sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedList
         }
     }
 
-    public UnorderedList<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref UnorderedList<T>? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
         }
         else
         {
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            var list = new UnorderedList<T>((int)len);
+            value ??= new UnorderedList<T>((int)len);
             options.Security.DepthStep(ref reader);
             try
             {
                 for (var i = 0; i < len; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list.Add(formatter.Deserialize(ref reader, options)!);
+                    value.Add(formatter.Deserialize(ref reader, options)!);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return list;
         }
     }
 
@@ -393,33 +387,30 @@ public sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unorder
         }
     }
 
-    public UnorderedLinkedList<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref UnorderedLinkedList<T>? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
         }
         else
         {
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            var list = new UnorderedLinkedList<T>();
+            value ??= new UnorderedLinkedList<T>();
             options.Security.DepthStep(ref reader);
             try
             {
                 for (var i = 0; i < len; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list.AddLast(formatter.Deserialize(ref reader, options)!);
+                    value.AddLast(formatter.Deserialize(ref reader, options)!);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return list;
         }
     }
 
