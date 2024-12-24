@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System.Diagnostics.CodeAnalysis;
 using Tinyhand.IO;
 
 namespace Tinyhand;
@@ -46,5 +47,6 @@ public interface ITinyhandFormatter<T> : ITinyhandFormatter
     /// <param name="value">The value to be cloned.</param>
     /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
     /// <returns>The new object.</returns>
+    [return: NotNullIfNotNull(nameof(value))]
     T? Clone(T? value, TinyhandSerializerOptions options);
 }
