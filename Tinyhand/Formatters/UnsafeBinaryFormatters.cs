@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Runtime.InteropServices;
 using Tinyhand.IO;
 
 #pragma warning disable SA1121 // Use built-in type alias
@@ -32,7 +33,7 @@ public sealed class NativeGuidFormatter : ITinyhandFormatter<Guid>
         writer.Write(valueSpan);
     }
 
-    public unsafe Guid Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public unsafe void Deserialize(ref TinyhandReader reader, ref Guid value, TinyhandSerializerOptions options)
     {
         if (!BitConverter.IsLittleEndian)
         {
@@ -45,10 +46,7 @@ public sealed class NativeGuidFormatter : ITinyhandFormatter<Guid>
             throw new TinyhandException("Invalid Guid Size.");
         }
 
-        Guid result;
-        var resultSpan = new Span<byte>(&result, sizeof(Guid));
-        span.CopyTo(resultSpan);
-        return result;
+        span.CopyTo(MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref value, 1)));
     }
 
     public Guid Reconstruct(TinyhandSerializerOptions options)
@@ -84,7 +82,7 @@ public sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
         writer.Write(valueSpan);
     }
 
-    public unsafe Decimal Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public unsafe void Deserialize(ref TinyhandReader reader, ref Decimal value, TinyhandSerializerOptions options)
     {
         if (!BitConverter.IsLittleEndian)
         {
@@ -97,10 +95,7 @@ public sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
             throw new TinyhandException("Invalid decimal Size.");
         }
 
-        decimal result;
-        var resultSpan = new Span<byte>(&result, sizeof(decimal));
-        span.CopyTo(resultSpan);
-        return result;
+        span.CopyTo(MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref value, 1)));
     }
 
     public Decimal Reconstruct(TinyhandSerializerOptions options)

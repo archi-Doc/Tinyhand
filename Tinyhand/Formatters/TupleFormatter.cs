@@ -4,7 +4,10 @@
  * CHANGE THE .tt FILE INSTEAD. */
 
 using System;
+using System.Buffers;
 using Tinyhand.IO;
+
+#pragma warning disable SA1649 // File name should match first type name
 
 namespace Tinyhand.Formatters;
 
@@ -25,13 +28,9 @@ public sealed class TupleFormatter<T1> : ITinyhandFormatter<Tuple<T1>>
         }
     }
 
-    public Tuple<T1>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Tuple<T1>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
             if (count != 1)
@@ -45,7 +44,7 @@ public sealed class TupleFormatter<T1> : ITinyhandFormatter<Tuple<T1>>
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
 
-                return new Tuple<T1>(item1!);
+                value = new Tuple<T1>(item1!);
             }
             finally
             {
@@ -90,13 +89,9 @@ public sealed class TupleFormatter<T1, T2> : ITinyhandFormatter<Tuple<T1, T2>>
         }
     }
 
-    public Tuple<T1, T2>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
             if (count != 2)
@@ -111,7 +106,7 @@ public sealed class TupleFormatter<T1, T2> : ITinyhandFormatter<Tuple<T1, T2>>
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
                 var item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
 
-                return new Tuple<T1, T2>(item1!, item2!);
+                value = new Tuple<T1, T2>(item1!, item2!);
             }
             finally
             {
@@ -158,13 +153,9 @@ public sealed class TupleFormatter<T1, T2, T3> : ITinyhandFormatter<Tuple<T1, T2
         }
     }
 
-    public Tuple<T1, T2, T3>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
             if (count != 3)
@@ -180,7 +171,7 @@ public sealed class TupleFormatter<T1, T2, T3> : ITinyhandFormatter<Tuple<T1, T2
                 var item2 = resolver.GetFormatter<T2>().Deserialize(ref reader, options);
                 var item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, options);
 
-                return new Tuple<T1, T2, T3>(item1!, item2!, item3!);
+                value = new Tuple<T1, T2, T3>(item1!, item2!, item3!);
             }
             finally
             {
@@ -229,13 +220,9 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : ITinyhandFormatter<Tuple<T1
         }
     }
 
-    public Tuple<T1, T2, T3, T4>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
             if (count != 4)
@@ -252,7 +239,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : ITinyhandFormatter<Tuple<T1
                 var item3 = resolver.GetFormatter<T3>().Deserialize(ref reader, options);
                 var item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, options);
 
-                return new Tuple<T1, T2, T3, T4>(item1!, item2!, item3!, item4!);
+                value = new Tuple<T1, T2, T3, T4>(item1!, item2!, item3!, item4!);
             }
             finally
             {
@@ -303,13 +290,9 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : ITinyhandFormatter<Tupl
         }
     }
 
-    public Tuple<T1, T2, T3, T4, T5>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4, T5>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
             if (count != 5)
@@ -327,7 +310,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : ITinyhandFormatter<Tupl
                 var item4 = resolver.GetFormatter<T4>().Deserialize(ref reader, options);
                 var item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, options);
 
-                return new Tuple<T1, T2, T3, T4, T5>(item1!, item2!, item3!, item4!, item5!);
+                value = new Tuple<T1, T2, T3, T4, T5>(item1!, item2!, item3!, item4!, item5!);
             }
             finally
             {
@@ -380,13 +363,9 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : ITinyhandFormatter<
         }
     }
 
-    public Tuple<T1, T2, T3, T4, T5, T6>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4, T5, T6>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
             if (count != 6)
@@ -405,7 +384,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : ITinyhandFormatter<
                 var item5 = resolver.GetFormatter<T5>().Deserialize(ref reader, options);
                 var item6 = resolver.GetFormatter<T6>().Deserialize(ref reader, options);
 
-                return new Tuple<T1, T2, T3, T4, T5, T6>(item1!, item2!, item3!, item4!, item5!, item6!);
+                value = new Tuple<T1, T2, T3, T4, T5, T6>(item1!, item2!, item3!, item4!, item5!, item6!);
             }
             finally
             {
@@ -460,13 +439,9 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : ITinyhandFormat
         }
     }
 
-    public Tuple<T1, T2, T3, T4, T5, T6, T7>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4, T5, T6, T7>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
             if (count != 7)
@@ -486,7 +461,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : ITinyhandFormat
                 var item6 = resolver.GetFormatter<T6>().Deserialize(ref reader, options);
                 var item7 = resolver.GetFormatter<T7>().Deserialize(ref reader, options);
 
-                return new Tuple<T1, T2, T3, T4, T5, T6, T7>(item1!, item2!, item3!, item4!, item5!, item6!, item7!);
+                value = new Tuple<T1, T2, T3, T4, T5, T6, T7>(item1!, item2!, item3!, item4!, item5!, item6!, item7!);
             }
             finally
             {
@@ -544,13 +519,9 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : ITinyhan
         }
     }
 
-    public Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return default;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
             if (count != 8)
@@ -571,7 +542,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : ITinyhan
                 var item7 = resolver.GetFormatter<T7>().Deserialize(ref reader, options);
                 var item8 = resolver.GetFormatter<TRest>().Deserialize(ref reader, options);
 
-                return new Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>(item1!, item2!, item3!, item4!, item5!, item6!, item7!, item8!);
+                value = new Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>(item1!, item2!, item3!, item4!, item5!, item6!, item7!, item8!);
             }
             finally
             {
