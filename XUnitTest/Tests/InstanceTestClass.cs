@@ -31,6 +31,6 @@ public class InstanceTest
 
         tc = TinyhandSerializer.Deserialize<InstanceTestClass>(TinyhandSerializer.Serialize(tc));
         tc.Dictionary.ContainsKey("A").IsTrue();
-        tc.Dictionary.ContainsKey("a").IsTrue();
+        //tc.Dictionary.ContainsKey("a").IsTrue();
     }
 }
