@@ -67,11 +67,10 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
         }
     }
 
-    public TDictionary? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref TDictionary? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default(TDictionary);
         }
         else
         {
@@ -89,8 +88,8 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
                     var key = keyFormatter.Deserialize(ref reader, options);
-                    var value = valueFormatter.Deserialize(ref reader, options);
-                    this.Add(dict, i, key!, value!, options);
+                    var v = valueFormatter.Deserialize(ref reader, options);
+                    this.Add(dict, i, key!, v!, options);
                 }
             }
             finally
@@ -98,7 +97,7 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
                 reader.Depth--;
             }
 
-            return this.Complete(dict);
+            value = this.Complete(dict);
         }
     }
 

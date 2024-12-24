@@ -32,22 +32,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static byte[]? DeserializeUInt8Array(ref TinyhandReader reader)
+    public static void DeserializeUInt8Array(ref TinyhandReader reader, ref byte[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new byte[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new byte[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new byte[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadUInt8();
+                value[i] = reader.ReadUInt8();
             }
-
-            return array;
         }
     }
 
@@ -69,22 +66,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<byte>? DeserializeUInt8List(ref TinyhandReader reader)
+    public static void DeserializeUInt8List(ref TinyhandReader reader, ref List<byte>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<byte>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<byte>(len);
+            value ??= new List<byte>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadUInt8());
+                value.Add(reader.ReadUInt8());
             }
-
-            return list;
         }
     }
 
@@ -121,22 +115,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static sbyte[]? DeserializeInt8Array(ref TinyhandReader reader)
+    public static void DeserializeInt8Array(ref TinyhandReader reader, ref sbyte[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new sbyte[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new sbyte[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new sbyte[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadInt8();
+                value[i] = reader.ReadInt8();
             }
-
-            return array;
         }
     }
 
@@ -158,22 +149,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<sbyte>? DeserializeInt8List(ref TinyhandReader reader)
+    public static void DeserializeInt8List(ref TinyhandReader reader, ref List<sbyte>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<sbyte>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<sbyte>(len);
+            value ??= new List<sbyte>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadInt8());
+                value.Add(reader.ReadInt8());
             }
-
-            return list;
         }
     }
 
@@ -210,22 +198,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static ushort[]? DeserializeUInt16Array(ref TinyhandReader reader)
+    public static void DeserializeUInt16Array(ref TinyhandReader reader, ref ushort[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new ushort[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new ushort[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new ushort[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadUInt16();
+                value[i] = reader.ReadUInt16();
             }
-
-            return array;
         }
     }
 
@@ -247,22 +232,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<ushort>? DeserializeUInt16List(ref TinyhandReader reader)
+    public static void DeserializeUInt16List(ref TinyhandReader reader, ref List<ushort>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<ushort>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<ushort>(len);
+            value ??= new List<ushort>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadUInt16());
+                value.Add(reader.ReadUInt16());
             }
-
-            return list;
         }
     }
 
@@ -299,22 +281,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static short[]? DeserializeInt16Array(ref TinyhandReader reader)
+    public static void DeserializeInt16Array(ref TinyhandReader reader, ref short[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new short[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new short[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new short[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadInt16();
+                value[i] = reader.ReadInt16();
             }
-
-            return array;
         }
     }
 
@@ -336,22 +315,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<short>? DeserializeInt16List(ref TinyhandReader reader)
+    public static void DeserializeInt16List(ref TinyhandReader reader, ref List<short>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<short>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<short>(len);
+            value ??= new List<short>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadInt16());
+                value.Add(reader.ReadInt16());
             }
-
-            return list;
         }
     }
 
@@ -388,22 +364,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static uint[]? DeserializeUInt32Array(ref TinyhandReader reader)
+    public static void DeserializeUInt32Array(ref TinyhandReader reader, ref uint[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new uint[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new uint[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new uint[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadUInt32();
+                value[i] = reader.ReadUInt32();
             }
-
-            return array;
         }
     }
 
@@ -425,22 +398,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<uint>? DeserializeUInt32List(ref TinyhandReader reader)
+    public static void DeserializeUInt32List(ref TinyhandReader reader, ref List<uint>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<uint>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<uint>(len);
+            value ??= new List<uint>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadUInt32());
+                value.Add(reader.ReadUInt32());
             }
-
-            return list;
         }
     }
 
@@ -477,22 +447,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static int[]? DeserializeInt32Array(ref TinyhandReader reader)
+    public static void DeserializeInt32Array(ref TinyhandReader reader, ref int[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new int[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new int[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new int[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadInt32();
+                value[i] = reader.ReadInt32();
             }
-
-            return array;
         }
     }
 
@@ -514,22 +481,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<int>? DeserializeInt32List(ref TinyhandReader reader)
+    public static void DeserializeInt32List(ref TinyhandReader reader, ref List<int>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<int>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<int>(len);
+            value ??= new List<int>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadInt32());
+                value.Add(reader.ReadInt32());
             }
-
-            return list;
         }
     }
 
@@ -566,22 +530,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static ulong[]? DeserializeUInt64Array(ref TinyhandReader reader)
+    public static void DeserializeUInt64Array(ref TinyhandReader reader, ref ulong[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new ulong[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new ulong[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new ulong[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadUInt64();
+                value[i] = reader.ReadUInt64();
             }
-
-            return array;
         }
     }
 
@@ -603,22 +564,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<ulong>? DeserializeUInt64List(ref TinyhandReader reader)
+    public static void DeserializeUInt64List(ref TinyhandReader reader, ref List<ulong>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<ulong>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<ulong>(len);
+            value ??= new List<ulong>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadUInt64());
+                value.Add(reader.ReadUInt64());
             }
-
-            return list;
         }
     }
 
@@ -655,22 +613,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static long[]? DeserializeInt64Array(ref TinyhandReader reader)
+    public static void DeserializeInt64Array(ref TinyhandReader reader, ref long[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new long[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new long[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new long[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadInt64();
+                value[i] = reader.ReadInt64();
             }
-
-            return array;
         }
     }
 
@@ -692,22 +647,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<long>? DeserializeInt64List(ref TinyhandReader reader)
+    public static void DeserializeInt64List(ref TinyhandReader reader, ref List<long>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<long>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<long>(len);
+            value ??= new List<long>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadInt64());
+                value.Add(reader.ReadInt64());
             }
-
-            return list;
         }
     }
 
@@ -744,22 +696,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static float[]? DeserializeSingleArray(ref TinyhandReader reader)
+    public static void DeserializeSingleArray(ref TinyhandReader reader, ref float[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new float[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new float[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new float[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadSingle();
+                value[i] = reader.ReadSingle();
             }
-
-            return array;
         }
     }
 
@@ -781,22 +730,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<float>? DeserializeSingleList(ref TinyhandReader reader)
+    public static void DeserializeSingleList(ref TinyhandReader reader, ref List<float>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<float>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<float>(len);
+            value ??= new List<float>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadSingle());
+                value.Add(reader.ReadSingle());
             }
-
-            return list;
         }
     }
 
@@ -833,22 +779,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static double[]? DeserializeDoubleArray(ref TinyhandReader reader)
+    public static void DeserializeDoubleArray(ref TinyhandReader reader, ref double[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new double[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new double[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new double[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadDouble();
+                value[i] = reader.ReadDouble();
             }
-
-            return array;
         }
     }
 
@@ -870,22 +813,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<double>? DeserializeDoubleList(ref TinyhandReader reader)
+    public static void DeserializeDoubleList(ref TinyhandReader reader, ref List<double>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<double>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<double>(len);
+            value ??= new List<double>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadDouble());
+                value.Add(reader.ReadDouble());
             }
-
-            return list;
         }
     }
 
@@ -922,22 +862,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static bool[]? DeserializeBooleanArray(ref TinyhandReader reader)
+    public static void DeserializeBooleanArray(ref TinyhandReader reader, ref bool[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new bool[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new bool[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new bool[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadBoolean();
+                value[i] = reader.ReadBoolean();
             }
-
-            return array;
         }
     }
 
@@ -959,22 +896,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<bool>? DeserializeBooleanList(ref TinyhandReader reader)
+    public static void DeserializeBooleanList(ref TinyhandReader reader, ref List<bool>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<bool>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<bool>(len);
+            value ??= new List<bool>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadBoolean());
+                value.Add(reader.ReadBoolean());
             }
-
-            return list;
         }
     }
 
@@ -1011,22 +945,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static char[]? DeserializeCharArray(ref TinyhandReader reader)
+    public static void DeserializeCharArray(ref TinyhandReader reader, ref char[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new char[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new char[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new char[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadChar();
+                value[i] = reader.ReadChar();
             }
-
-            return array;
         }
     }
 
@@ -1048,22 +979,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<char>? DeserializeCharList(ref TinyhandReader reader)
+    public static void DeserializeCharList(ref TinyhandReader reader, ref List<char>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<char>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<char>(len);
+            value ??= new List<char>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadChar());
+                value.Add(reader.ReadChar());
             }
-
-            return list;
         }
     }
 
@@ -1100,22 +1028,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static DateTime[]? DeserializeDateTimeArray(ref TinyhandReader reader)
+    public static void DeserializeDateTimeArray(ref TinyhandReader reader, ref DateTime[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new DateTime[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new DateTime[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new DateTime[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadDateTime();
+                value[i] = reader.ReadDateTime();
             }
-
-            return array;
         }
     }
 
@@ -1137,22 +1062,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<DateTime>? DeserializeDateTimeList(ref TinyhandReader reader)
+    public static void DeserializeDateTimeList(ref TinyhandReader reader, ref List<DateTime>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<DateTime>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<DateTime>(len);
+            value ??= new List<DateTime>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadDateTime());
+                value.Add(reader.ReadDateTime());
             }
-
-            return list;
         }
     }
 
@@ -1189,22 +1111,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static Int128[]? DeserializeInt128Array(ref TinyhandReader reader)
+    public static void DeserializeInt128Array(ref TinyhandReader reader, ref Int128[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new Int128[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new Int128[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new Int128[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadInt128();
+                value[i] = reader.ReadInt128();
             }
-
-            return array;
         }
     }
 
@@ -1226,22 +1145,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<Int128>? DeserializeInt128List(ref TinyhandReader reader)
+    public static void DeserializeInt128List(ref TinyhandReader reader, ref List<Int128>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<Int128>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<Int128>(len);
+            value ??= new List<Int128>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadInt128());
+                value.Add(reader.ReadInt128());
             }
-
-            return list;
         }
     }
 
@@ -1278,22 +1194,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static UInt128[]? DeserializeUInt128Array(ref TinyhandReader reader)
+    public static void DeserializeUInt128Array(ref TinyhandReader reader, ref UInt128[]? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new UInt128[0];
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new UInt128[len];
-            for (int i = 0; i < array.Length; i++)
+            value = new UInt128[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadUInt128();
+                value[i] = reader.ReadUInt128();
             }
-
-            return array;
         }
     }
 
@@ -1315,22 +1228,19 @@ public static partial class Builtin
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static List<UInt128>? DeserializeUInt128List(ref TinyhandReader reader)
+    public static void DeserializeUInt128List(ref TinyhandReader reader, ref List<UInt128>? value)
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<UInt128>();
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<UInt128>(len);
+            value ??= new List<UInt128>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadUInt128());
+                value.Add(reader.ReadUInt128());
             }
-
-            return list;
         }
     }
 

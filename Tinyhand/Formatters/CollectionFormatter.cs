@@ -35,33 +35,30 @@ public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
         }
     }
 
-    public T[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T[]? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
         }
         else
         {
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            var array = new T[len];
+            value = new T[len];
             options.Security.DepthStep(ref reader);
             try
             {
-                for (int i = 0; i < array.Length; i++)
+                for (int i = 0; i < value.Length; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    array[i] = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);
+                    value[i] = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return array;
         }
     }
 
@@ -105,9 +102,9 @@ public sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
         writer.Write(value.Span);
     }
 
-    public Memory<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Memory<byte> value, TinyhandSerializerOptions options)
     {
-        return new Memory<byte>(reader.ReadBytesToArray());
+        value = new Memory<byte>(reader.ReadBytesToArray());
     }
 
     public Memory<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -132,9 +129,9 @@ public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
         writer.Write(value.Span);
     }
 
-    public ReadOnlyMemory<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ReadOnlyMemory<byte> value, TinyhandSerializerOptions options)
     {
-        return new ReadOnlyMemory<byte>(reader.ReadBytesToArray());
+        value = new ReadOnlyMemory<byte>(reader.ReadBytesToArray());
     }
 
     public ReadOnlyMemory<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -163,9 +160,9 @@ public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlyS
         }
     }
 
-    public ReadOnlySequence<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ReadOnlySequence<byte> value, TinyhandSerializerOptions options)
     {
-        return new ReadOnlySequence<byte>(reader.ReadBytesToArray());
+        value = new ReadOnlySequence<byte>(reader.ReadBytesToArray());
     }
 
     public ReadOnlySequence<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -196,9 +193,9 @@ public sealed class ByteArraySegmentFormatter : ITinyhandFormatter<ArraySegment<
         }
     }
 
-    public ArraySegment<byte> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ArraySegment<byte> value, TinyhandSerializerOptions options)
     {
-        return new ArraySegment<byte>(reader.ReadBytesToArray());
+        value = new ArraySegment<byte>(reader.ReadBytesToArray());
     }
 
     public ArraySegment<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -217,9 +214,9 @@ public sealed class MemoryFormatter<T> : ITinyhandFormatter<Memory<T>>
         formatter.Serialize(ref writer, value, options);
     }
 
-    public Memory<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Memory<T> value, TinyhandSerializerOptions options)
     {
-        return options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
+        value = options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
     }
 
     public Memory<T> Reconstruct(TinyhandSerializerOptions options)
@@ -246,9 +243,9 @@ public sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemo
         }
     }
 
-    public ReadOnlyMemory<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ReadOnlyMemory<T> value, TinyhandSerializerOptions options)
     {
-        return options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
+        value = options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
     }
 
     public ReadOnlyMemory<T> Reconstruct(TinyhandSerializerOptions options)
@@ -277,9 +274,9 @@ public sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnlySe
         }
     }
 
-    public ReadOnlySequence<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ReadOnlySequence<T> value, TinyhandSerializerOptions options)
     {
-        return new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options) ?? Array.Empty<T>());
+        value = new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options) ?? Array.Empty<T>());
     }
 
     public ReadOnlySequence<T> Reconstruct(TinyhandSerializerOptions options)
@@ -305,16 +302,15 @@ public sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment<T
         }
     }
 
-    public ArraySegment<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ArraySegment<T> value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
         }
         else
         {
             var array = options.Resolver.GetFormatter<T[]>().Deserialize(ref reader, options);
-            return array == null ? ArraySegment<T>.Empty : new ArraySegment<T>(array);
+            value = array == null ? ArraySegment<T>.Empty : new ArraySegment<T>(array);
         }
     }
 
@@ -354,33 +350,30 @@ public sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
         }
     }
 
-    public List<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref List<T>? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
         }
         else
         {
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            var list = new List<T>((int)len);
+            value ??= new List<T>((int)len);
             options.Security.DepthStep(ref reader);
             try
             {
                 for (int i = 0; i < len; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list.Add(formatter.Deserialize(ref reader, options)!);
+                    value.Add(formatter.Deserialize(ref reader, options)!);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return list;
         }
     }
 
@@ -482,11 +475,10 @@ public abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerat
         }
     }
 
-    public TCollection? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref TCollection? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default(TCollection);
         }
         else
         {
@@ -509,7 +501,7 @@ public abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerat
                 reader.Depth--;
             }
 
-            return this.Complete(list);
+            value = this.Complete(list);
         }
     }
 
@@ -871,11 +863,10 @@ public sealed class InterfaceGroupingFormatter<TKey, TElement> : ITinyhandFormat
         }
     }
 
-    public IGrouping<TKey, TElement>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref IGrouping<TKey, TElement>? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
         }
         else
         {
@@ -890,8 +881,8 @@ public sealed class InterfaceGroupingFormatter<TKey, TElement> : ITinyhandFormat
             try
             {
                 var key = options.Resolver.GetFormatter<TKey>().Deserialize(ref reader, options);
-                var value = options.Resolver.GetFormatter<IEnumerable<TElement>>().Deserialize(ref reader, options);
-                return new Grouping<TKey, TElement>(key!, value!);
+                var element = options.Resolver.GetFormatter<IEnumerable<TElement>>().Deserialize(ref reader, options);
+                value = new Grouping<TKey, TElement>(key!, element!);
             }
             finally
             {
@@ -1034,33 +1025,30 @@ public sealed class NonGenericListFormatter<T> : ITinyhandFormatter<T>
         }
     }
 
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default(T);
         }
 
         ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
 
         var count = reader.ReadArrayHeader();
 
-        var list = new T();
+        value ??= new T();
         options.Security.DepthStep(ref reader);
         try
         {
             for (int i = 0; i < count; i++)
             {
                 reader.CancellationToken.ThrowIfCancellationRequested();
-                list.Add(formatter.Deserialize(ref reader, options));
+                value.Add(formatter.Deserialize(ref reader, options));
             }
         }
         finally
         {
             reader.Depth--;
         }
-
-        return list;
     }
 
     public T Reconstruct(TinyhandSerializerOptions options)
@@ -1114,17 +1102,18 @@ public sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<
         }
     }
 
-    public ICollection? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ICollection? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default(ICollection);
+            return;
         }
 
         var count = reader.ReadArrayHeader();
         if (count == 0)
         {
-            return Array.Empty<object>();
+            value ??= Array.Empty<object>();
+            return;
         }
 
         ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
@@ -1144,7 +1133,7 @@ public sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<
             reader.Depth--;
         }
 
-        return list;
+        value = list;
     }
 
     public ICollection Reconstruct(TinyhandSerializerOptions options)
@@ -1222,17 +1211,18 @@ public sealed class NonGenericInterfaceEnumerableFormatter : ITinyhandFormatter<
         }
     }
 
-    public IEnumerable? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref IEnumerable? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default(IEnumerable);
+            return;
         }
 
         var count = reader.ReadArrayHeader();
         if (count == 0)
         {
-            return Array.Empty<object>();
+            value ??= Array.Empty<object>();
+            return;
         }
 
         ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
@@ -1252,7 +1242,7 @@ public sealed class NonGenericInterfaceEnumerableFormatter : ITinyhandFormatter<
             reader.Depth--;
         }
 
-        return list;
+        value = list;
     }
 
     public IEnumerable Reconstruct(TinyhandSerializerOptions options)
@@ -1304,17 +1294,18 @@ public sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
         }
     }
 
-    public IList? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref IList? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default(IList);
+            return;
         }
 
         var count = reader.ReadArrayHeader();
         if (count == 0)
         {
-            return Array.Empty<object>();
+            value ??= Array.Empty<object>();
+            return;
         }
 
         ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
@@ -1334,7 +1325,7 @@ public sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
             reader.Depth--;
         }
 
-        return list;
+        value = list;
     }
 
     public IList Reconstruct(TinyhandSerializerOptions options)
@@ -1385,11 +1376,11 @@ public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
         }
     }
 
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
+            return;
         }
 
         ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
@@ -1404,8 +1395,8 @@ public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
             {
                 reader.CancellationToken.ThrowIfCancellationRequested();
                 var key = formatter.Deserialize(ref reader, options)!;
-                var value = formatter.Deserialize(ref reader, options);
-                dict.Add(key, value);
+                var v = formatter.Deserialize(ref reader, options);
+                dict.Add(key, v);
             }
         }
         finally
@@ -1413,7 +1404,7 @@ public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
             reader.Depth--;
         }
 
-        return dict;
+        value = dict;
     }
 
     public T Reconstruct(TinyhandSerializerOptions options)
@@ -1468,11 +1459,11 @@ public sealed class NonGenericInterfaceDictionaryFormatter : ITinyhandFormatter<
         }
     }
 
-    public IDictionary? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref IDictionary? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
+            return;
         }
 
         ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
@@ -1487,8 +1478,8 @@ public sealed class NonGenericInterfaceDictionaryFormatter : ITinyhandFormatter<
             {
                 reader.CancellationToken.ThrowIfCancellationRequested();
                 var key = formatter.Deserialize(ref reader, options)!;
-                var value = formatter.Deserialize(ref reader, options)!;
-                dict.Add(key, value);
+                var v = formatter.Deserialize(ref reader, options)!;
+                dict.Add(key, v);
             }
         }
         finally
@@ -1496,7 +1487,7 @@ public sealed class NonGenericInterfaceDictionaryFormatter : ITinyhandFormatter<
             reader.Depth--;
         }
 
-        return dict;
+        value = dict;
     }
 
     public IDictionary Reconstruct(TinyhandSerializerOptions options)

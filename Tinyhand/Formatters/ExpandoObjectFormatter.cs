@@ -16,11 +16,11 @@ public class ExpandoObjectFormatter : ITinyhandFormatter<ExpandoObject>
     {
     }
 
-    public ExpandoObject? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ExpandoObject? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
+            return;
         }
 
         var result = new ExpandoObject();
@@ -38,8 +38,8 @@ public class ExpandoObjectFormatter : ITinyhandFormatter<ExpandoObject>
                 for (int i = 0; i < count; i++)
                 {
                     string key = keyFormatter.Deserialize(ref reader, options) ?? string.Empty;
-                    object value = valueFormatter.Deserialize(ref reader, options)!;
-                    dictionary.Add(key, value);
+                    object v = valueFormatter.Deserialize(ref reader, options)!;
+                    dictionary.Add(key, v);
                 }
             }
             finally
@@ -48,7 +48,7 @@ public class ExpandoObjectFormatter : ITinyhandFormatter<ExpandoObject>
             }
         }
 
-        return result;
+        value = result;
     }
 
     public void Serialize(ref TinyhandWriter writer, ExpandoObject? value, TinyhandSerializerOptions options)
