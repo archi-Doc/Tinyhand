@@ -190,55 +190,6 @@ public class NonSerializeClass
 {
 }
 
-class __gen__tf__0000<T> : ITinyhandFormatter<GenericsIntClass<T>>
-{
-    public void Serialize(ref TinyhandWriter writer, GenericsIntClass<T>? v, TinyhandSerializerOptions options)
-    {
-        if (v == null) { writer.WriteNil(); return; }
-        // v.Serialize(ref writer, options);
-
-        writer.WriteArrayHeader(3);
-        options.Resolver.GetFormatter<T>().Serialize(ref writer, v.X, options);
-        options.Resolver.GetFormatter<T>().Serialize(ref writer, v.Y, options);
-        options.Resolver.GetFormatter<T[]>().Serialize(ref writer, v.A, options);
-    }
-
-    public GenericsIntClass<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => this.Deserialize(null!, ref reader, options);
-
-    public GenericsIntClass<T>? Deserialize(GenericsIntClass<T> reuse, ref TinyhandReader reader, TinyhandSerializerOptions options)
-    {
-        if (reader.TryReadNil()) return default;
-
-        // load data (complicated)
-
-        if (reuse == null)
-        {
-            reuse = new GenericsIntClass<T>(); // Constructor
-        }
-        else
-        {
-            // reuse.Deserialize();
-        }
-
-        // OnAfterDeserialize
-
-        return reuse;
-    }
-
-    public GenericsIntClass<T> Reconstruct(TinyhandSerializerOptions options)
-    {
-        var v = new GenericsIntClass<T>();
-        // v.Reconstruct(options);
-        return v;
-    }
-
-    public GenericsIntClass<T>? Clone(GenericsIntClass<T>? value, TinyhandSerializerOptions options)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-
 // [TinyhandObject]
 public partial record NormalIntRecord(int X, int Y, string A, string B);
 

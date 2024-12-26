@@ -210,42 +210,52 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                 if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
                 {
                     value = reader.ReadInt8();
+                    return;
                 }
                 else if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
                 {
                     value = reader.ReadUInt8();
+                    return;
                 }
                 else if (code == MessagePackCode.Int8)
                 {
                     value = reader.ReadInt8();
+                    return;
                 }
                 else if (code == MessagePackCode.Int16)
                 {
                     value = reader.ReadInt16();
+                    return;
                 }
                 else if (code == MessagePackCode.Int32)
                 {
                     value = reader.ReadInt32();
+                    return;
                 }
                 else if (code == MessagePackCode.Int64)
                 {
                     value = reader.ReadInt64();
+                    return;
                 }
                 else if (code == MessagePackCode.UInt8)
                 {
                     value = reader.ReadUInt8();
+                    return;
                 }
                 else if (code == MessagePackCode.UInt16)
                 {
                     value = reader.ReadUInt16();
+                    return;
                 }
                 else if (code == MessagePackCode.UInt32)
                 {
                     value = reader.ReadUInt32();
+                    return;
                 }
                 else if (code == MessagePackCode.UInt64)
                 {
                     value = reader.ReadUInt64();
+                    return;
                 }
 
                 throw new TinyhandException("Invalid primitive bytes.");
@@ -258,13 +268,13 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                 if (reader.NextCode == MessagePackCode.Float32)
                 {
                     value = reader.ReadSingle();
+                    return;
                 }
                 else
                 {
                     value = reader.ReadDouble();
+                    return;
                 }
-
-                return;
 
             case MessagePackType.String:
                 value = reader.ReadString();
