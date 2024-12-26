@@ -191,7 +191,7 @@ public class ListCoder : ITinyhandCoder
             {
                 if (this.elementCoder != null)
                 {// {this.element.FullNameWithNullable} lv;
-                    ssb.AppendLine($"{this.element.FullNameWithNullable} lv;");
+                    ssb.AppendLine($"{this.element.FullNameWithNullable} lv = default;");
                 }
 
                 using (var c2 = ssb.ScopeBrace("for (int i = 0; i < len; i++)"))
