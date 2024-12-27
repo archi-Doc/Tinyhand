@@ -13,22 +13,20 @@ internal ref struct ValueAssignment
     private GeneratorInformation info;
     private TinyhandObject? parent;
     private TinyhandObject? @object;
-    private bool emptyBrace;
 
     private ScopingStringBuilder.IScope? initSetter;
     private ScopingStringBuilder.IScope? braceScope;
 
-    public ValueAssignment(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject parent, TinyhandObject @object, bool emptyBrace = false)
+    public ValueAssignment(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject parent, TinyhandObject @object)
     {
         this.ssb = ssb;
         this.destObject = this.ssb.FullObject;
         this.info = info;
         this.parent = parent;
         this.@object = @object;
-        this.emptyBrace = emptyBrace;
     }
 
-    public void Start()
+    public void Start(bool brace = false)
     {
         var withNullable = this.@object?.TypeObjectWithNullable;
         if (this.ssb is null || this.info is null || this.parent is null || this.@object is null || withNullable is null)
@@ -38,9 +36,9 @@ internal ref struct ValueAssignment
 
         if (this.@object.RefFieldDelegate is not null || this.@object.SetterDelegate is not null || this.@object.IsReadOnly)
         {// TypeName vd;
-            if (this.emptyBrace)
+            if (brace)
             {
-                this.ssb.ScopeBrace(string.Empty);
+                this.braceScope = this.ssb.ScopeBrace(string.Empty);
             }
 
             this.initSetter = this.ssb.ScopeFullObject("vd");
@@ -48,7 +46,7 @@ internal ref struct ValueAssignment
         }
     }
 
-    public void End()
+    public void End(bool @fixed = false)
     {
         var withNullable = this.@object?.TypeObjectWithNullable;
         if (this.ssb is null || this.info is null || this.parent is null || this.@object is null || withNullable is null)
@@ -74,13 +72,26 @@ internal ref struct ValueAssignment
             else if (this.@object.IsReadOnly)
             {
                 if (withNullable.Object.IsUnmanagedType)
-                {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                    this.ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.parent.GetSourceName(this.destObject, this.@object)}) *ptr = vd;");
+                {
+                    if (this.parent.Kind == VisceralObjectKind.Struct && @fixed)
+                    {// *(ulong*)&value.Id0 = vd;
+                        this.ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{this.parent.GetSourceName(this.destObject, this.@object)} = vd;"); // {destObject}.{x.SimpleName}
+                    }
+                    else
+                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
+                        this.ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.parent.GetSourceName(this.destObject, this.@object)}) *ptr = vd;");
+                    }
                 }
                 else
                 {// Unsafe.AsRef(in {this.array) = vd;
                     this.ssb.AppendLine($"Unsafe.AsRef(in {this.parent.GetSourceName(this.destObject, this.@object)}) = vd;"); // {destObject}.{x.SimpleName}
                 }
+            }
+
+            if (this.braceScope != null)
+            {
+                this.braceScope.Dispose();
+                this.braceScope = null;
             }
         }
     }
