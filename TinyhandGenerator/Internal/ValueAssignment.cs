@@ -75,11 +75,11 @@ internal ref struct ValueAssignment
             {
                 if (withNullable.Object.IsUnmanagedType)
                 {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                    this.ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.destObject}.{this.@object.SimpleName}) *ptr = vd;");
+                    this.ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.parent.GetSourceName(this.destObject, this.@object)}) *ptr = vd;");
                 }
                 else
                 {// Unsafe.AsRef(in {this.array) = vd;
-                    this.ssb.AppendLine($"Unsafe.AsRef(in {this.destObject}.{this.@object.SimpleName}) = vd;");
+                    this.ssb.AppendLine($"Unsafe.AsRef(in {this.parent.GetSourceName(this.destObject, this.@object)}) = vd;"); // {destObject}.{x.SimpleName}
                 }
             }
         }
