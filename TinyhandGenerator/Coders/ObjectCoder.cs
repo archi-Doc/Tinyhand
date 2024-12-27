@@ -100,19 +100,19 @@ internal class ObjectCoder : ITinyhandCoder
     {
         if (!this.NonNullableReference)
         {// Value type or Nullable reference type
-            ssb.AppendLine($"var v3 = {ssb.FullObject};");
-            ssb.AppendLine($"TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, ref v3, options);");
-            ssb.AppendLine($"{ssb.FullObject} = v3;");
+            //ssb.AppendLine($"var v3 = {ssb.FullObject};");
+            //ssb.AppendLine($"TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, ref v3, options);");
+            //ssb.AppendLine($"{ssb.FullObject} = v3;");
 
-            //ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, options);");
+            ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, options);");
         }
         else
         {// Non-nullable reference type
-            ssb.AppendLine($"var v3 = {ssb.FullObject};");
-            ssb.AppendLine($"TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, ref v3, options);");
-            ssb.AppendLine($"{ssb.FullObject} = v3;");
+            //ssb.AppendLine($"var v3 = {ssb.FullObject};");
+            //ssb.AppendLine($"TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, ref v3, options);");
+            //ssb.AppendLine($"{ssb.FullObject} = v3;");
 
-            //ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, options);");
+            ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, options);");
         }
     }
 
