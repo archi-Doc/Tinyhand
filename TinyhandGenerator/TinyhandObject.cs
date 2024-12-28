@@ -2268,18 +2268,6 @@ ModuleInitializerClass_Added:
 
     internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance, bool convertToString)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
-        /*if (this.Kind == VisceralObjectKind.Interface)
-        {
-            if (!reuseInstance)
-            {// New Instance
-            }
-            else
-            {// Reuse Instance
-            }
-
-            return;
-        }*/
-
         if (this.Kind == VisceralObjectKind.TypeParameter)
         {
             if (!reuseInstance)

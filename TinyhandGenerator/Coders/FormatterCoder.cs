@@ -312,18 +312,10 @@ internal class FormatterCoder : ITinyhandCoder
     {
         if (!this.NonNullableReference)
         {// Value type or Nullable reference type
-            //ssb.AppendLine($"var v3 = {ssb.FullObject};");
-            //ssb.AppendLine($"options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize<{this.FullNameWithNullable}>(ref reader, ref v3, options);");
-            //ssb.AppendLine($"{ssb.FullObject} = v3;");
-
             ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, options);");
         }
         else
         {// Non-nullable reference type
-            //ssb.AppendLine($"var v3 = {ssb.FullObject};");
-            //ssb.AppendLine($"options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader, ref v3);");
-            //ssb.AppendLine($"{ssb.FullObject} = v3;");
-
             ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader);");
         }
     }

@@ -107,6 +107,10 @@ internal ref struct ValueAssignment
                     this.ssb.AppendLine($"Unsafe.AsRef(in {this.parent.GetSourceName(this.destObject, this.@object)}) = vd;"); // {destObject}.{x.SimpleName}
                 }
             }
+            else
+            {
+                this.ssb.AppendLine($"{this.destObject} = vd;");
+            }
 
             if (this.braceScope != null)
             {
