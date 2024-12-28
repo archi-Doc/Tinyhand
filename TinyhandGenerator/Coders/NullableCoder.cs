@@ -44,6 +44,8 @@ public class NullableCoder : ITinyhandCoder
         this.elementCoder = elementCoder;
     }
 
+    public bool RequiresRefValue => true;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"if (!{ssb.FullObject}.HasValue) writer.WriteNil();");
@@ -82,14 +84,16 @@ public class NullableCoder : ITinyhandCoder
 
         void CodeDeserializerCore()
         {
-            if (this.elementCoder == null)
+            ssb.AppendLine($"options.Resolver.GetFormatter<{this.element.FullNameWithNullable}?>().Deserialize(ref reader, ref {ssb.FullObject}, options);");
+
+            /*if (this.elementCoder == null)
             {// use option.Resolver.GetFormatter<T>()
                 ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullNameWithNullable}>().Deserialize(ref reader, options)!;");
             }
             else
             {// use Coder
                 this.elementCoder.CodeDeserializer(ssb, info);
-            }
+            }*/
         }
     }
 

@@ -36,4 +36,6 @@ public interface ITinyhandCoder
     /// <param name="info">The generator information.</param>
     /// <param name="sourceObject">The name of the source object.</param>
     void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject);
+
+    bool RequiresRefValue { get; }
 }

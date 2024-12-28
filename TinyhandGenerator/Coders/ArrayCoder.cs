@@ -43,6 +43,8 @@ public class ArrayCoder : ITinyhandCoder
         this.nullableAnnotation = nullableAnnotation;
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         // if (this.block == null) // XUnitTest static issue
@@ -241,6 +243,8 @@ public class GenericArrayCoder : ITinyhandCoder
         this.element = element;
         this.nullableAnnotation = nullableAnnotation;
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked = false)
     {

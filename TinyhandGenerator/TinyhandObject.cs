@@ -3177,6 +3177,11 @@ ModuleInitializerClass_Added:
             var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
             if (coder != null)
             {
+                if (coder.RequiresRefValue)
+                {
+                    assignment.RefValue(true);
+                }
+
                 coder.CodeDeserializer(ssb, info, true);
             }
             else
@@ -3464,10 +3469,15 @@ ModuleInitializerClass_Added:
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue,  x.KeyAttribute?.ConvertToString == true);
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue, x.KeyAttribute?.ConvertToString == true);
                 }
                 else if (coder != null)
                 {
+                    if (coder.RequiresRefValue)
+                    {
+                        assignment.RefValue(true);
+                    }
+
                     coder.CodeDeserializer(ssb, info, true);
                 }
                 else
@@ -3554,6 +3564,11 @@ ModuleInitializerClass_Added:
                 }
                 else if (coder != null)
                 {
+                    if (coder.RequiresRefValue)
+                    {
+                        assignment.RefValue(true);
+                    }
+
                     coder.CodeDeserializer(ssb, info, true);
                 }
                 else

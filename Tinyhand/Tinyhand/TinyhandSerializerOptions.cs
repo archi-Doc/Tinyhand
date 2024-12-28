@@ -23,6 +23,21 @@ public static class TinyhandSerializerOptionsExtension
         return formatter!.Deserialize(ref reader, options) ?? formatter!.Reconstruct(options);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void DeserializeAndReconstruct<T>(this TinyhandSerializerOptions options, ref TinyhandReader reader, ref T value)
+    {
+        ITinyhandFormatter<T>? formatter;
+
+        formatter = options.Resolver.TryGetFormatter<T>();
+        if (formatter == null)
+        {
+            Throw(typeof(T), options.Resolver);
+        }
+
+        formatter!.Deserialize(ref reader, ref value!, options);
+        value ??= formatter!.Reconstruct(options);
+    }
+
     private static void Throw(Type t, IFormatterResolver resolver)
     {
         throw new FormatterNotRegisteredException(t.FullName + " is not registered in resolver: " + resolver.GetType());
