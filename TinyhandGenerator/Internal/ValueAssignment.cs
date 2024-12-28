@@ -63,7 +63,7 @@ internal ref struct ValueAssignment
         }
 
         var sourceName = this.parent.GetSourceName(this.destObject, this.@object);
-        if (this.@object.Kind == VisceralObjectKind.TypeParameter)
+        if (withNullable.Object.Kind == VisceralObjectKind.TypeParameter)
         {
             if (reuse)
             {// Reuse Instance

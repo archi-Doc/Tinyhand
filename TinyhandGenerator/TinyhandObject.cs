@@ -3181,14 +3181,16 @@ ModuleInitializerClass_Added:
             }
             else
             {
+                assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
                 {// T?
-                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                    ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, ref vd, options);");
                 }
                 else
                 {// T
                     ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
-                    ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");//
+                    ssb.AppendLine($"f.Deserialize(ref reader, ref vd!, options);");
+                    ssb.AppendLine($"vd ??= f.Reconstruct(options);");
                 }
             }
 
@@ -3475,14 +3477,16 @@ ModuleInitializerClass_Added:
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                     }
 
+                    assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
                     {// T?
-                        ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                        ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, ref vd, options);");
                     }
                     else
                     {// T
                         ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
-                        ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");//
+                        ssb.AppendLine($"f.Deserialize(ref reader, ref vd!, options);");
+                        ssb.AppendLine($"vd ??= f.Reconstruct(options);");
                     }
                 }
 
@@ -3559,14 +3563,16 @@ ModuleInitializerClass_Added:
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                     }
 
+                    assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
                     {// T?
-                        ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                        ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, ref vd, options);");
                     }
                     else
                     {// T
                         ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
-                        ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");//
+                        ssb.AppendLine($"f.Deserialize(ref reader, ref vd!, options);");
+                        ssb.AppendLine($"vd ??= f.Reconstruct(options);");
                     }
                 }
 
