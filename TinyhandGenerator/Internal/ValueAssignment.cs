@@ -47,22 +47,50 @@ internal ref struct ValueAssignment
         }
     }
 
-    public void RefValue()
+    public void RefValue(bool reuse)
     {
         var withNullable = this.@object?.TypeObjectWithNullable;
-        if (this.ssb is null || withNullable is null)
+        if (this.ssb is null || this.info is null || this.parent is null || this.@object is null || withNullable is null)
         {
             return;
         }
 
+        var prefix = string.Empty;
         if (this.temporaryValue is null)
         {
             this.temporaryValue = this.ssb.ScopeFullObject("vd");
-            this.ssb.AppendLine($"{withNullable.FullNameWithNullable} vd = {this.destObject};");
+            prefix = $"{withNullable.FullNameWithNullable} ";
+        }
+
+        var sourceName = this.parent.GetSourceName(this.destObject, this.@object);
+        if (this.@object.Kind == VisceralObjectKind.TypeParameter)
+        {
+            if (reuse)
+            {// Reuse Instance
+                this.ssb.AppendLine($"{prefix}vd = {sourceName}!;");
+            }
+            else
+            {// New Instance
+                this.ssb.AppendLine($"{prefix}vd = default!;");
+            }
         }
         else
         {
-            this.ssb.AppendLine($"vd = {this.destObject};");
+            if (reuse)
+            {// Reuse Instance
+                if (this.@object.Kind.IsReferenceType())
+                {// Reference type
+                    this.ssb.AppendLine($"{prefix}vd = {sourceName} ?? {withNullable.Object.NewInstanceCode()};");
+                }
+                else
+                {// Value type
+                    this.ssb.AppendLine($"{prefix}vd = {sourceName}!;");
+                }
+            }
+            else
+            {// New Instance
+                this.ssb.AppendLine($"{prefix}vd = {withNullable.Object.NewInstanceCode()}!;");
+            }
         }
     }
 
@@ -109,7 +137,7 @@ internal ref struct ValueAssignment
             }
             else
             {
-                this.ssb.AppendLine($"{this.destObject} = vd;");
+                this.ssb.AppendLine($"{this.parent.GetSourceName(this.destObject, this.@object)} = vd;");
             }
 
             if (this.braceScope != null)

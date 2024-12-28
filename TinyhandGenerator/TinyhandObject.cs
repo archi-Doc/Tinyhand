@@ -2266,60 +2266,28 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance, bool convertToString)
+    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, object? defaultValue, bool convertToString)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
-        if (this.Kind == VisceralObjectKind.TypeParameter)
-        {
-            if (!reuseInstance)
-            {// New Instance
-                ssb.AppendLine($"{this.FullName} v2 = default!;");
-            }
-            else
-            {// Reuse Instance
-                ssb.AppendLine($"var v2 = {originalName};");
-            }
-        }
-        else
-        {
-            if (!reuseInstance)
-            {// New Instance
-                ssb.AppendLine($"var v2 = {this.NewInstanceCode()};");
-            }
-            else
-            {// Reuse Instance
-                if (this.Kind.IsReferenceType())
-                {// Reference type
-                    ssb.AppendLine($"var v2 = {originalName} ?? {this.NewInstanceCode()};");
-                }
-                else
-                {// Value type
-                    ssb.AppendLine($"var v2 = {originalName};");
-                }
-            }
-        }
-
         if (defaultValue != null)
         {
             if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
             {
-                ssb.AppendLine($"v2.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+                ssb.AppendLine($"vd.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
             }
             else if (this.MethodCondition_SetDefaultValue == MethodCondition.ExplicitlyDeclared)
             {
-                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})v2).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})vd).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
             }
         }
 
         if (convertToString)
         {
-            ssb.AppendLine($"reader.TryReadStringConvertible<{this.FullName}>(ref v2!);");
+            ssb.AppendLine($"reader.TryReadStringConvertible<{this.FullName}>(ref vd!);");
         }
         else
         {
-            ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref v2!, options);");
+            ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref vd!, options);");
         }
-
-        ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
     internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
@@ -3493,7 +3461,8 @@ ModuleInitializerClass_Added:
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget), x.KeyAttribute?.ConvertToString == true);
+                    assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue,  x.KeyAttribute?.ConvertToString == true);
                 }
                 else if (coder != null)
                 {
@@ -3576,7 +3545,8 @@ ModuleInitializerClass_Added:
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget), x.KeyAttribute?.ConvertToString == true);
+                    assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue, x.KeyAttribute?.ConvertToString == true);
                 }
                 else if (coder != null)
                 {
