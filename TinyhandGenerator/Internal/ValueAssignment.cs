@@ -15,7 +15,7 @@ internal ref struct ValueAssignment
     private TinyhandObject? parent;
     private TinyhandObject? @object;
 
-    private ScopingStringBuilder.IScope? initSetter;
+    private ScopingStringBuilder.IScope? temporaryValue;
     private ScopingStringBuilder.IScope? braceScope;
 
     public ValueAssignment(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject parent, TinyhandObject @object)
@@ -42,8 +42,27 @@ internal ref struct ValueAssignment
                 this.braceScope = this.ssb.ScopeBrace(string.Empty);
             }
 
-            this.initSetter = this.ssb.ScopeFullObject("vd");
+            this.temporaryValue = this.ssb.ScopeFullObject("vd");
             this.ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
+        }
+    }
+
+    public void RefValue()
+    {
+        var withNullable = this.@object?.TypeObjectWithNullable;
+        if (this.ssb is null || withNullable is null)
+        {
+            return;
+        }
+
+        if (this.temporaryValue is null)
+        {
+            this.temporaryValue = this.ssb.ScopeFullObject("vd");
+            this.ssb.AppendLine($"{withNullable.FullNameWithNullable} vd = {this.destObject};");
+        }
+        else
+        {
+            this.ssb.AppendLine($"vd = {this.destObject};");
         }
     }
 
@@ -55,10 +74,10 @@ internal ref struct ValueAssignment
             return;
         }
 
-        if (this.initSetter != null)
+        if (this.temporaryValue != null)
         {
-            this.initSetter.Dispose();
-            this.initSetter = null;
+            this.temporaryValue.Dispose();
+            this.temporaryValue = null;
 
             if (this.@object.RefFieldDelegate is not null)
             {// RefFieldDelegate(obj) = vd;
