@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using Arc.Visceral;
+using Microsoft.CodeAnalysis;
 using Tinyhand.Generator;
 
 namespace TinyhandGenerator.Internal;
@@ -46,7 +47,7 @@ internal ref struct ValueAssignment
         }
     }
 
-    public void End(bool @fixed = false)
+    public void End(bool isFixedObject = false)
     {
         var withNullable = this.@object?.TypeObjectWithNullable;
         if (this.ssb is null || this.info is null || this.parent is null || this.@object is null || withNullable is null)
@@ -73,8 +74,8 @@ internal ref struct ValueAssignment
             {
                 if (withNullable.Object.IsUnmanagedType)
                 {
-                    if (this.parent.Kind == VisceralObjectKind.Struct && @fixed)
-                    {// *(ulong*)&value.Id0 = vd;
+                    if (this.parent.Kind == VisceralObjectKind.Struct && isFixedObject)
+                    {// Already fixed -> *(ulong*)&value.Id0 = vd;
                         this.ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{this.parent.GetSourceName(this.destObject, this.@object)} = vd;"); // {destObject}.{x.SimpleName}
                     }
                     else

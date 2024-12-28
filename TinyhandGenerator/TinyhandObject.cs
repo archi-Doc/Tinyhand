@@ -3783,12 +3783,9 @@ ModuleInitializerClass_Added:
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
             {// Coder
-                using (var c = ssb.ScopeBrace(string.Empty))
-                {
-                    assignment.Start();
-                    coder.CodeClone(ssb, info, sourceObject);
-                    assignment.End(true);
-                }
+                assignment.Start(true);
+                coder.CodeClone(ssb, info, sourceObject);
+                assignment.End(true);
             }
             else
             {// Other
