@@ -160,7 +160,6 @@ public class ListCoder : ITinyhandCoder
                     // ssb.AppendLine("#nullable disable", false);
                     using (var element = ssb.ScopeObject("[i]", false))
                     {
-                        ssb.AppendLine("writer.CancellationToken.ThrowIfCancellationRequested();");
                         if (this.elementCoder == null)
                         {// use option.Resolver.GetFormatter<T>()
                             ssb.AppendLine($"formatter.Serialize(ref writer, {ssb.FullObject}, options);");
@@ -193,7 +192,6 @@ public class ListCoder : ITinyhandCoder
             {
                 using (var c2 = ssb.ScopeBrace("for (int i = 0; i < len; i++)"))
                 {// list[i]
-                    ssb.AppendLine("reader.CancellationToken.ThrowIfCancellationRequested();");
                     if (this.elementCoder == null)
                     {// use option.Resolver.GetFormatter<T>()
                         ssb.AppendLine("list.Add(formatter.Deserialize(ref reader, options)!);");

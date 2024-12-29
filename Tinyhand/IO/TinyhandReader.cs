@@ -41,11 +41,6 @@ public ref partial struct TinyhandReader
     }
 
     /// <summary>
-    /// Gets or sets the cancellation token for this deserialization operation.
-    /// </summary>
-    public CancellationToken CancellationToken { get; set; }
-
-    /// <summary>
     /// Gets or sets the present depth of the object graph being deserialized.
     /// </summary>
     public int Depth { get; set; }
@@ -58,7 +53,6 @@ public ref partial struct TinyhandReader
     /// <returns>The new reader.</returns>
     public TinyhandReader Clone(ReadOnlySpan<byte> span) => new TinyhandReader(span)
     {
-        CancellationToken = this.CancellationToken,
         Depth = this.Depth,
     };
 

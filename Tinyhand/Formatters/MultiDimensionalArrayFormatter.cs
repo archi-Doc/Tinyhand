@@ -32,7 +32,6 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
             writer.WriteArrayHeader(value.Length);
             foreach (T item in value)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, item, options);
             }
         }
@@ -66,7 +65,6 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
             {
                 for (int loop = 0; loop < maxLen; loop++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     if (j < jLength - 1)
                     {
                         j++;
@@ -149,7 +147,6 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
             writer.WriteArrayHeader(value.Length);
             foreach (T item in value)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, item, options);
             }
         }
@@ -185,7 +182,6 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
             {
                 for (int loop = 0; loop < maxLen; loop++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     if (k < kLength - 1)
                     {
                         k++;
@@ -284,7 +280,6 @@ public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]
             writer.WriteArrayHeader(value.Length);
             foreach (T item in value)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, item, options);
             }
         }
@@ -321,7 +316,6 @@ public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]
             {
                 for (int loop = 0; loop < maxLen; loop++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     if (l < lLength - 1)
                     {
                         l++;

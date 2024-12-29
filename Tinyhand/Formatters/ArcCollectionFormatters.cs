@@ -229,7 +229,6 @@ public sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T>>
             writer.WriteArrayHeader(c);
             for (var i = 0; i < c; i++)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, value[i], options);
             }
         }
@@ -251,7 +250,6 @@ public sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T>>
             {
                 for (var i = 0; i < len; i++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     value.Add(formatter.Deserialize(ref reader, options)!);
                 }
             }
@@ -305,7 +303,6 @@ public sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedList
             writer.WriteArrayHeader(c);
             for (var i = 0; i < c; i++)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, value[i], options);
             }
         }
@@ -327,7 +324,6 @@ public sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedList
             {
                 for (var i = 0; i < len; i++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     value.Add(formatter.Deserialize(ref reader, options)!);
                 }
             }
@@ -381,7 +377,6 @@ public sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unorder
             writer.WriteArrayHeader(c);
             foreach (var x in value)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 formatter.Serialize(ref writer, x, options);
             }
         }
@@ -403,7 +398,6 @@ public sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unorder
             {
                 for (var i = 0; i < len; i++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     value.AddLast(formatter.Deserialize(ref reader, options)!);
                 }
             }

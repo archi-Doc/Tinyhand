@@ -54,7 +54,6 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
             {
                 while (e.MoveNext())
                 {
-                    writer.CancellationToken.ThrowIfCancellationRequested();
                     KeyValuePair<TKey, TValue> item = e.Current;
                     keyFormatter.Serialize(ref writer, item.Key, options);
                     valueFormatter.Serialize(ref writer, item.Value, options);
@@ -86,7 +85,6 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
             {
                 for (int i = 0; i < len; i++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     var key = keyFormatter.Deserialize(ref reader, options);
                     var v = valueFormatter.Deserialize(ref reader, options);
                     this.Add(dict, i, key!, v!, options);
