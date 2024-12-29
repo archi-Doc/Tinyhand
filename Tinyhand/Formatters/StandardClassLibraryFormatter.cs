@@ -37,20 +37,18 @@ public sealed class DecimalFormatter : ITinyhandFormatter<decimal>
         }
     }
 
-    public decimal Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref decimal value, TinyhandSerializerOptions options)
     {
         var span = reader.ReadStringSpan();
-        if (System.Buffers.Text.Utf8Parser.TryParse(span, out decimal result, out var bytesConsumed))
+        if (!System.Buffers.Text.Utf8Parser.TryParse(span, out value, out var bytesConsumed))
         {
-            if (span.Length != bytesConsumed)
-            {
-                throw new TinyhandException("Unexpected length of string.");
-            }
-
-            return result;
+            throw new TinyhandException("Can't parse to decimal, input string was not in a correct format.");
         }
 
-        throw new TinyhandException("Can't parse to decimal, input string was not in a correct format.");
+        if (span.Length != bytesConsumed)
+        {
+            throw new TinyhandException("Unexpected length of string.");
+        }
     }
 
     public decimal Reconstruct(TinyhandSerializerOptions options)
@@ -75,9 +73,9 @@ public sealed class TimeSpanFormatter : ITinyhandFormatter<TimeSpan>
         return;
     }
 
-    public TimeSpan Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref TimeSpan value, TinyhandSerializerOptions options)
     {
-        return new TimeSpan(reader.ReadInt64());
+        value = new TimeSpan(reader.ReadInt64());
     }
 
     public TimeSpan Reconstruct(TinyhandSerializerOptions options)
@@ -104,10 +102,9 @@ public sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffset>
         return;
     }
 
-    public DateTimeOffset Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref DateTimeOffset value, TinyhandSerializerOptions options)
     {
         var count = reader.ReadArrayHeader();
-
         if (count != 2)
         {
             throw new TinyhandException("Invalid DateTimeOffset format.");
@@ -116,7 +113,7 @@ public sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffset>
         DateTime utc = reader.ReadDateTime();
         var dtOffsetMinutes = reader.ReadInt16();
 
-        return new DateTimeOffset(utc.Ticks, TimeSpan.FromMinutes(dtOffsetMinutes));
+        value = new DateTimeOffset(utc.Ticks, TimeSpan.FromMinutes(dtOffsetMinutes));
     }
 
     public DateTimeOffset Reconstruct(TinyhandSerializerOptions options)
@@ -143,7 +140,7 @@ public sealed class GuidFormatter : ITinyhandFormatter<Guid>
         writer.WriteString(bytes);
     }
 
-    public Guid Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Guid value, TinyhandSerializerOptions options)
     {
         var span = reader.ReadStringSpan();
         if (span.Length != 36)
@@ -152,7 +149,7 @@ public sealed class GuidFormatter : ITinyhandFormatter<Guid>
         }
 
         var result = new GuidBits(span);
-        return result.Value;
+        value = result.Value;
     }
 
     public Guid Reconstruct(TinyhandSerializerOptions options)
@@ -183,15 +180,14 @@ public sealed class UriFormatter : ITinyhandFormatter<Uri>
         }
     }
 
-    public Uri? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Uri? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
         }
         else
         {
-            return new Uri(reader.ReadString() ?? string.Empty, UriKind.RelativeOrAbsolute);
+            value = new Uri(reader.ReadString() ?? string.Empty, UriKind.RelativeOrAbsolute);
         }
     }
 
@@ -223,15 +219,14 @@ public sealed class VersionFormatter : ITinyhandFormatter<Version>
         }
     }
 
-    public Version? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Version? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
         }
         else
         {
-            return new Version(reader.ReadString() ?? string.Empty);
+            value = new Version(reader.ReadString() ?? string.Empty);
         }
     }
 
@@ -254,7 +249,7 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<Key
         return;
     }
 
-    public KeyValuePair<TKey, TValue> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref KeyValuePair<TKey, TValue> value, TinyhandSerializerOptions options)
     {
         var count = reader.ReadArrayHeader();
         if (count != 2)
@@ -267,8 +262,8 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<Key
         try
         {
             var key = resolver.GetFormatter<TKey>().Deserialize(ref reader, options);
-            var value = resolver.GetFormatter<TValue>().Deserialize(ref reader, options);
-            return new KeyValuePair<TKey, TValue>(key!, value!);
+            var v = resolver.GetFormatter<TValue>().Deserialize(ref reader, options);
+            value = new KeyValuePair<TKey, TValue>(key!, v!);
         }
         finally
         {
@@ -314,11 +309,11 @@ public sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<Key
         return;
     }
 
-    public KeyValueList<TKey, TValue>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref KeyValueList<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
+            return;
         }
         else
         {
@@ -326,22 +321,20 @@ public sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<Key
             var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
             var count = reader.ReadMapHeader2();
-            var list = new KeyValueList<TKey, TValue>(count);
+            value ??= new KeyValueList<TKey, TValue>(count);
             options.Security.DepthStep(ref reader);
             try
             {
                 for (int i = 0; i < count; i++)
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
-                    list.Add(new(keyFormatter.Deserialize(ref reader, options)!, valueFormatter.Deserialize(ref reader, options)!));
+                    value.Add(new(keyFormatter.Deserialize(ref reader, options)!, valueFormatter.Deserialize(ref reader, options)!));
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            return list;
         }
     }
 
@@ -393,15 +386,11 @@ public sealed class StringBuilderFormatter : ITinyhandFormatter<StringBuilder>
         }
     }
 
-    public StringBuilder? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref StringBuilder? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
+        if (!reader.TryReadNil())
         {
-            return null;
-        }
-        else
-        {
-            return new StringBuilder(reader.ReadString());
+            value = new StringBuilder(reader.ReadString());
         }
     }
 
@@ -440,23 +429,17 @@ public sealed class BitArrayFormatter : ITinyhandFormatter<BitArray>
         }
     }
 
-    public BitArray? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref BitArray? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return null;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             var len = reader.ReadArrayHeader();
 
-            var array = new BitArray(len);
+            value = new BitArray(len);
             for (int i = 0; i < len; i++)
             {
-                array[i] = reader.ReadBoolean();
+                value[i] = reader.ReadBoolean();
             }
-
-            return array;
         }
     }
 
@@ -482,10 +465,10 @@ public sealed class BigIntegerFormatter : ITinyhandFormatter<System.Numerics.Big
         return;
     }
 
-    public System.Numerics.BigInteger Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref System.Numerics.BigInteger value, TinyhandSerializerOptions options)
     {
         reader.TryReadBytes(out var span);
-        return new System.Numerics.BigInteger(span);
+        value = new System.Numerics.BigInteger(span);
     }
 
     public System.Numerics.BigInteger Reconstruct(TinyhandSerializerOptions options)
@@ -512,20 +495,18 @@ public sealed class ComplexFormatter : ITinyhandFormatter<System.Numerics.Comple
         return;
     }
 
-    public System.Numerics.Complex Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref System.Numerics.Complex value, TinyhandSerializerOptions options)
     {
         var count = reader.ReadArrayHeader();
-
         if (count != 2)
         {
             throw new TinyhandException("Invalid Complex format.");
         }
 
         var real = reader.ReadDouble();
-
         var imaginary = reader.ReadDouble();
 
-        return new System.Numerics.Complex(real, imaginary);
+        value = new System.Numerics.Complex(real, imaginary);
     }
 
     public System.Numerics.Complex Reconstruct(TinyhandSerializerOptions options)
@@ -551,13 +532,9 @@ public sealed class LazyFormatter<T> : ITinyhandFormatter<Lazy<T>>
         }
     }
 
-    public Lazy<T>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Lazy<T>? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
-        {
-            return null;
-        }
-        else
+        if (!reader.TryReadNil())
         {
             options.Security.DepthStep(ref reader);
             try
@@ -567,11 +544,11 @@ public sealed class LazyFormatter<T> : ITinyhandFormatter<Lazy<T>>
                 var v = resolver.GetFormatter<T>().Deserialize(ref reader, options);
                 if (v != null)
                 {
-                    return new Lazy<T>(() => v);
+                    value = new Lazy<T>(() => v);
                 }
                 else
                 {
-                    return new Lazy<T>(() => resolver.GetFormatter<T>().Reconstruct(options));
+                    value = new Lazy<T>(() => resolver.GetFormatter<T>().Reconstruct(options));
                 }
             }
             finally
@@ -614,14 +591,12 @@ public sealed class TypeFormatter<T> : ITinyhandFormatter<T>
         }
     }
 
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
     {
-        if (reader.TryReadNil())
+        if (!reader.TryReadNil())
         {
-            return null;
+            value = (T?)Type.GetType(reader.ReadString() ?? string.Empty, throwOnError: true);
         }
-
-        return (T?)Type.GetType(reader.ReadString() ?? string.Empty, throwOnError: true);
     }
 
     public T Reconstruct(TinyhandSerializerOptions options)

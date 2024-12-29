@@ -349,12 +349,11 @@ public static partial class TinyhandSerializer
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The new object.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static T Clone<T>(T obj, TinyhandSerializerOptions? options = null)
+    [return: NotNullIfNotNull("obj")]
+    public static T? Clone<T>(T? obj, TinyhandSerializerOptions? options = null)
     {
         options = options ?? DefaultOptions;
-#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-        return options.Resolver.GetFormatter<T>().Clone(obj, options)!;
-#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+        return options.Resolver.GetFormatter<T>().Clone(obj, options);
     }
 
     /// <summary>

@@ -47,6 +47,8 @@ public sealed class <#= t.Name #>Coder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject});");
@@ -76,6 +78,8 @@ public sealed class Nullable<#= t.Name #>Coder : ITinyhandCoder
     private Nullable<#= t.Name #>Coder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -130,6 +134,8 @@ public sealed class <#= t.Name #>ArrayCoder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>Array(ref writer, {ssb.FullObject});");
@@ -158,6 +164,8 @@ public sealed class Nullable<#= t.Name #>ArrayCoder : ITinyhandCoder
     private Nullable<#= t.Name #>ArrayCoder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -188,6 +196,8 @@ public sealed class <#= t.Name #>ListCoder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.Serialize<#= t.Name #>List(ref writer, {ssb.FullObject});");
@@ -216,6 +226,8 @@ public sealed class Nullable<#= t.Name #>ListCoder : ITinyhandCoder
     private Nullable<#= t.Name #>ListCoder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {

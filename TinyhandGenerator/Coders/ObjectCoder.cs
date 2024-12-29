@@ -84,6 +84,8 @@ internal class ObjectCoder : ITinyhandCoder
         this.NonNullableReference = nonNullableReference;
     }
 
+    public bool RequiresRefValue => true;
+
     public string FullName { get; }
 
     public string FullNameWithNullable { get; }
@@ -100,13 +102,11 @@ internal class ObjectCoder : ITinyhandCoder
     {
         if (!this.NonNullableReference)
         {// Value type or Nullable reference type
-            ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, options);");
-            // ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, options);");
+            ssb.AppendLine($"TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, ref {ssb.FullObject}, options);");
         }
         else
         {// Non-nullable reference type
-            ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, options);");
-            // ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader);");
+            ssb.AppendLine($"TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, ref {ssb.FullObject}, options);");
         }
     }
 

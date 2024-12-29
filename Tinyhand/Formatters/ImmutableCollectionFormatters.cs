@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Tinyhand.IO;
 
@@ -33,18 +34,17 @@ public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
         }
     }
 
-    public ImmutableArray<T> Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref ImmutableArray<T> value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default;
         }
         else
         {
             var len = reader.ReadArrayHeader();
             if (len == 0)
             {
-                return ImmutableArray<T>.Empty;
+                return;
             }
 
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
@@ -62,7 +62,7 @@ public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
                 reader.Depth--;
             }
 
-            return builder.MoveToImmutable();
+            value = builder.MoveToImmutable();
         }
     }
 
@@ -120,7 +120,7 @@ public class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBas
 {
     protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
     protected override ImmutableDictionary<TKey, TValue> Complete(ImmutableDictionary<TKey, TValue>.Builder intermediateCollection)
@@ -128,9 +128,15 @@ public class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBas
         return intermediateCollection.ToImmutable();
     }
 
-    protected override ImmutableDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
+    protected override ImmutableDictionary<TKey, TValue>.Builder Create(ImmutableDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
+        var builder = ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
+        if (reuse is not null)
+        {
+            builder.AddRange(reuse);
+        }
+
+        return builder;
     }
 
     protected override ImmutableDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(ImmutableDictionary<TKey, TValue> source)
@@ -167,7 +173,7 @@ public class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryFormat
 {
     protected override void Add(ImmutableSortedDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
     protected override ImmutableSortedDictionary<TKey, TValue> Complete(ImmutableSortedDictionary<TKey, TValue>.Builder intermediateCollection)
@@ -175,9 +181,15 @@ public class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryFormat
         return intermediateCollection.ToImmutable();
     }
 
-    protected override ImmutableSortedDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
+    protected override ImmutableSortedDictionary<TKey, TValue>.Builder Create(ImmutableSortedDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return ImmutableSortedDictionary.CreateBuilder<TKey, TValue>();
+        var builder = ImmutableSortedDictionary.CreateBuilder<TKey, TValue>();
+        if (reuse is not null)
+        {
+            builder.AddRange(reuse);
+        }
+
+        return builder;
     }
 
     protected override ImmutableSortedDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(ImmutableSortedDictionary<TKey, TValue> source)
@@ -270,7 +282,7 @@ public class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryFor
 {
     protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
     protected override IImmutableDictionary<TKey, TValue> Complete(ImmutableDictionary<TKey, TValue>.Builder intermediateCollection)
@@ -278,9 +290,15 @@ public class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryFor
         return intermediateCollection.ToImmutable();
     }
 
-    protected override ImmutableDictionary<TKey, TValue>.Builder Create(int count, TinyhandSerializerOptions options)
+    protected override ImmutableDictionary<TKey, TValue>.Builder Create(IImmutableDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
+        var builder = ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
+        if (reuse is not null)
+        {
+            builder.AddRange(reuse);
+        }
+
+        return builder;
     }
 }
 

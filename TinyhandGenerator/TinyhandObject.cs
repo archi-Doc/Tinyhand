@@ -9,6 +9,7 @@ using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Tinyhand.Coders;
 using TinyhandGenerator;
+using TinyhandGenerator.Internal;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1204 // Static elements should appear before instance elements
@@ -2265,72 +2266,28 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance, bool convertToString)
+    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, object? defaultValue, bool convertToString)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
-        /*if (this.Kind == VisceralObjectKind.Interface)
-        {
-            if (!reuseInstance)
-            {// New Instance
-            }
-            else
-            {// Reuse Instance
-            }
-
-            return;
-        }*/
-
-        if (this.Kind == VisceralObjectKind.TypeParameter)
-        {
-            if (!reuseInstance)
-            {// New Instance
-                ssb.AppendLine($"{this.FullName} v2 = default!;");
-            }
-            else
-            {// Reuse Instance
-                ssb.AppendLine($"var v2 = {originalName};");
-            }
-        }
-        else
-        {
-            if (!reuseInstance)
-            {// New Instance
-                ssb.AppendLine($"var v2 = {this.NewInstanceCode()};");
-            }
-            else
-            {// Reuse Instance
-                if (this.Kind.IsReferenceType())
-                {// Reference type
-                    ssb.AppendLine($"var v2 = {originalName} ?? {this.NewInstanceCode()};");
-                }
-                else
-                {// Value type
-                    ssb.AppendLine($"var v2 = {originalName};");
-                }
-            }
-        }
-
         if (defaultValue != null)
         {
             if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
             {
-                ssb.AppendLine($"v2.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+                ssb.AppendLine($"vd.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
             }
             else if (this.MethodCondition_SetDefaultValue == MethodCondition.ExplicitlyDeclared)
             {
-                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})v2).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})vd).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
             }
         }
 
         if (convertToString)
         {
-            ssb.AppendLine($"reader.TryReadStringConvertible<{this.FullName}>(ref v2!);");
+            ssb.AppendLine($"reader.TryReadStringConvertible<{this.FullName}>(ref vd!);");
         }
         else
         {
-            ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref v2!, options);");
+            ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref vd!, options);");
         }
-
-        ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
 
     internal void GenerateFormatter_Reconstruct2(ScopingStringBuilder ssb, GeneratorInformation info, string originalName, object? defaultValue, bool reuseInstance)
@@ -3197,7 +3154,7 @@ ModuleInitializerClass_Added:
         }
 
         var count = 0;
-        ScopingStringBuilder.IScope? initSetter = null;
+        var assignment = new ValueAssignment(ssb, info, this, x);
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
@@ -3215,27 +3172,34 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"return (({TinyhandBody.IStructualObject}){ssb.FullObject}).ReadRecord(ref reader);");
             }*/
 
-            InitSetter_Start();
+            assignment.Start();
 
             var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
             if (coder != null)
             {
+                if (coder.RequiresRefValue)
+                {
+                    assignment.RefValue(true);
+                }
+
                 coder.CodeDeserializer(ssb, info, true);
             }
             else
             {
+                assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                 if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
                 {// T?
-                    ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                    ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, ref vd, options);");
                 }
                 else
                 {// T
                     ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
-                    ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
+                    ssb.AppendLine($"f.Deserialize(ref reader, ref vd!, options);");
+                    ssb.AppendLine($"vd ??= f.Reconstruct(options);");
                 }
             }
 
-            InitSetter_End();
+            assignment.End();
 
             this.GenerateJournal_SetParent(ssb, x, destObject, ref count);
 
@@ -3248,46 +3212,6 @@ ModuleInitializerClass_Added:
             ssb.AppendLine("if (reader.IsNext_Key()) goto KeyLoop;");
 
             ssb.AppendLine("return true;");
-        }
-
-        void InitSetter_Start()
-        {
-            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
-            {// TypeName vd;
-                initSetter = ssb.ScopeFullObject("vd");
-                ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
-            }
-        }
-
-        void InitSetter_End()
-        {
-            if (initSetter != null)
-            {
-                initSetter.Dispose();
-                initSetter = null;
-
-                if (x.RefFieldDelegate is not null)
-                {// RefFieldDelegate(obj) = vd;
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
-                }
-                else if (x.SetterDelegate is not null)
-                {// SetterDelegate!(obj, vd);
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
-                }
-                else if (x.IsReadOnly)
-                {
-                    if (withNullable.Object.IsUnmanagedType)
-                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
-                    }
-                    else
-                    {// Unsafe.AsRef(in {this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef(in {this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
-                    }
-                }
-            }
         }
     }
 
@@ -3530,7 +3454,7 @@ ModuleInitializerClass_Added:
         }
 
         var count = 0;
-        ScopingStringBuilder.IScope? initSetter = null;
+        var assignment = new ValueAssignment(ssb, info, this, x);
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeMember(ssb, x))
         {
@@ -3539,15 +3463,21 @@ ModuleInitializerClass_Added:
             var exclude = x.KeyAttribute?.Exclude == true ? "!options.IsExcludeMode && " : string.Empty;
             using (var valid = ssb.ScopeBrace($"if ({exclude}numberOfData-- > 0 && !reader.TryReadNil())"))
             {
-                InitSetter_Start();
+                assignment.Start();
 
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget), x.KeyAttribute?.ConvertToString == true);
+                    assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue, x.KeyAttribute?.ConvertToString == true);
                 }
                 else if (coder != null)
                 {
+                    if (coder.RequiresRefValue)
+                    {
+                        assignment.RefValue(true);
+                    }
+
                     coder.CodeDeserializer(ssb, info, true);
                 }
                 else
@@ -3557,34 +3487,36 @@ ModuleInitializerClass_Added:
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                     }
 
+                    assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
                     {// T?
-                        ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                        ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, ref vd, options);");
                     }
                     else
                     {// T
                         ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
-                        ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
+                        ssb.AppendLine($"f.Deserialize(ref reader, ref vd!, options);");
+                        ssb.AppendLine($"vd ??= f.Reconstruct(options);");
                     }
                 }
 
-                InitSetter_End();
+                assignment.End();
             }
 
             if (x!.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    InitSetter_Start();
+                    assignment.Start();
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
-                    InitSetter_End();
+                    assignment.End();
                 }
             }
             else if (x.ReconstructState == ReconstructState.Do)
             {
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    InitSetter_Start();
+                    assignment.Start();
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -3598,51 +3530,11 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
                     }
 
-                    InitSetter_End();
+                    assignment.End();
                 }
             }
 
             this.GenerateJournal_SetParent(ssb, x, destObject, ref count);
-        }
-
-        void InitSetter_Start()
-        {
-            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
-            {// TypeName vd;
-                initSetter = ssb.ScopeFullObject("vd");
-                ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
-            }
-        }
-
-        void InitSetter_End()
-        {
-            if (initSetter != null)
-            {
-                initSetter.Dispose();
-                initSetter = null;
-
-                if (x.RefFieldDelegate is not null)
-                {// RefFieldDelegate(obj) = vd;
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
-                }
-                else if (x.SetterDelegate is not null)
-                {// SetterDelegate!(obj, vd);
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
-                }
-                else if (x.IsReadOnly)
-                {
-                    if (withNullable.Object.IsUnmanagedType)
-                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
-                    }
-                    else
-                    {// Unsafe.AsRef(in {this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef(in {this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
-                    }
-                }
-            }
         }
     }
 
@@ -3655,23 +3547,28 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        ScopingStringBuilder.IScope? initSetter = null;
-        var destObject = ssb.FullObject; // Hidden members
+        var assignment = new ValueAssignment(ssb, info, this, x);
         using (var m = this.ScopeMember(ssb, x))
         {
             var originalName = ssb.FullObject;
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
             using (var valid = ssb.ScopeBrace($"if (!reader.TryReadNil())"))
             {
-                InitSetter_Start();
+                assignment.Start();
 
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget), x.KeyAttribute?.ConvertToString == true);
+                    assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue, x.KeyAttribute?.ConvertToString == true);
                 }
                 else if (coder != null)
                 {
+                    if (coder.RequiresRefValue)
+                    {
+                        assignment.RefValue(true);
+                    }
+
                     coder.CodeDeserializer(ssb, info, true);
                 }
                 else
@@ -3681,35 +3578,36 @@ ModuleInitializerClass_Added:
                         this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                     }
 
+                    assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     if (x.HasNullableAnnotation || withNullable.Object.Kind.IsValueType() || x.TypeObject?.IsTypeParameterWithValueTypeConstraint() == true)
                     {// T?
-                        ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, options);");
+                        ssb.AppendLine($"options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Deserialize(ref reader, ref vd, options);");
                     }
                     else
                     {// T
                         ssb.AppendLine($"var f = options.Resolver.GetFormatter<{withNullable.Object.FullName}>();");
-                        ssb.AppendLine($"{ssb.FullObject} = f.Deserialize(ref reader, options) ?? f.Reconstruct(options);");
+                        ssb.AppendLine($"f.Deserialize(ref reader, ref vd!, options);");
+                        ssb.AppendLine($"vd ??= f.Reconstruct(options);");
                     }
                 }
 
-                InitSetter_End();
+                assignment.End();
             }
 
             if (x!.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    InitSetter_Start();
+                    assignment.Start();
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
-
-                    InitSetter_End();
+                    assignment.End();
                 }
             }
             else if (x.ReconstructState == ReconstructState.Do)
             {
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    InitSetter_Start();
+                    assignment.Start();
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -3723,51 +3621,11 @@ ModuleInitializerClass_Added:
                         ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.Object.FullName}>().Reconstruct(options);");
                     }
 
-                    InitSetter_End();
+                    assignment.End();
                 }
             }
 
             // this.GenerateJournal_SetParent(ssb, "this");
-        }
-
-        void InitSetter_Start()
-        {
-            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
-            {// TypeName vd;
-                initSetter = ssb.ScopeFullObject("vd");
-                ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
-            }
-        }
-
-        void InitSetter_End()
-        {
-            if (initSetter != null)
-            {
-                initSetter.Dispose();
-                initSetter = null;
-
-                if (x.RefFieldDelegate is not null)
-                {// RefFieldDelegate(obj) = vd;
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
-                }
-                else if (x.SetterDelegate is not null)
-                {// SetterDelegate!(obj, vd);
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
-                }
-                else if (x.IsReadOnly)
-                {
-                    if (withNullable.Object.IsUnmanagedType)
-                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
-                    }
-                    else
-                    {// Unsafe.AsRef(in {this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef(in {this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
-                    }
-                }
-            }
         }
     }
 
@@ -3780,8 +3638,7 @@ ModuleInitializerClass_Added:
         }
 
         var count = 0;
-        ScopingStringBuilder.IScope? initSetter = null;
-        ScopingStringBuilder.IScope? emptyBrace = null;
+        var assignment = new ValueAssignment(ssb, info, this, x);
         var destObject = ssb.FullObject; // Hidden members
 
         using (var c2 = this.ScopeSimpleMember(ssb, x))
@@ -3789,9 +3646,9 @@ ModuleInitializerClass_Added:
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
             {// Default
-                InitSetter_Start(true);
+                assignment.Start(true);
                 ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
-                InitSetter_End();
+                assignment.End();
                 return;
             }
 
@@ -3807,79 +3664,28 @@ ModuleInitializerClass_Added:
             {// TinyhandObject. For the purpose of default value and instance reuse.
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
-                    InitSetter_Start();
+                    assignment.Start();
                     withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    InitSetter_End();
+                    assignment.End();
                 }
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
             {// Coder
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
-                    InitSetter_Start();
+                    assignment.Start();
                     coder.CodeReconstruct(ssb, info);
-                    InitSetter_End();
+                    assignment.End();
                 }
             }
             else
             {// Default constructor
-                InitSetter_Start(true);
+                assignment.Start(true);
                 ssb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()};");
-                InitSetter_End();
+                assignment.End();
             }
 
             this.GenerateJournal_SetParent(ssb, x, destObject, ref count);
-        }
-
-        void InitSetter_Start(bool brace = false)
-        {
-            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
-            {// TypeName vd;
-                if (brace)
-                {
-                    emptyBrace = ssb.ScopeBrace(string.Empty);
-                }
-
-                initSetter = ssb.ScopeFullObject("vd");
-                ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
-            }
-        }
-
-        void InitSetter_End()
-        {
-            if (initSetter != null)
-            {
-                initSetter.Dispose();
-                initSetter = null;
-
-                if (x.RefFieldDelegate is not null)
-                {// RefFieldDelegate(obj) = vd;
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
-                }
-                else if (x.SetterDelegate is not null)
-                {// SetterDelegate!(obj, vd);
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
-                }
-                else if (x.IsReadOnly)
-                {
-                    if (withNullable.Object.IsUnmanagedType)
-                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
-                    }
-                    else
-                    {// Unsafe.AsRef(in {this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef(in {destObject}.{x.SimpleName}) = vd;");
-                    }
-                }
-
-                if (emptyBrace != null)
-                {
-                    emptyBrace.Dispose();
-                    emptyBrace = null;
-                }
-            }
         }
     }
 
@@ -3891,9 +3697,7 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        ScopingStringBuilder.IScope? initSetter = null;
-        var destObject = ssb.FullObject;
-
+        ValueAssignment assignment = new(ssb, info, this, x);
         using (var c = ssb.ScopeObject(x.SimpleNameOrAddedProperty))
         {
             var originalName = ssb.FullObject;
@@ -3901,9 +3705,9 @@ ModuleInitializerClass_Added:
             {// Default
                 using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
                 {
-                    InitSetter_Start();
+                    assignment.Start();
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
-                    InitSetter_End();
+                    assignment.End();
                 }
 
                 return;
@@ -3914,7 +3718,7 @@ ModuleInitializerClass_Added:
 
             using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
             {
-                InitSetter_Start();
+                assignment.Start();
 
                 if (x.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated || x.ReconstructState == ReconstructState.Do)
                 {// T
@@ -3933,47 +3737,7 @@ ModuleInitializerClass_Added:
                     }
                 }
 
-                InitSetter_End();
-            }
-        }
-
-        void InitSetter_Start()
-        {
-            if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
-            {// TypeName vd;
-                initSetter = ssb.ScopeFullObject("vd");
-                ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
-            }
-        }
-
-        void InitSetter_End()
-        {
-            if (initSetter != null)
-            {
-                initSetter.Dispose();
-                initSetter = null;
-
-                if (x.RefFieldDelegate is not null)
-                {// RefFieldDelegate(obj) = vd;
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
-                }
-                else if (x.SetterDelegate is not null)
-                {// SetterDelegate!(obj, vd);
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
-                }
-                else if (x.IsReadOnly)
-                {
-                    if (withNullable.Object.IsUnmanagedType)
-                    {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                        ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
-                    }
-                    else
-                    {// Unsafe.AsRef(in {this.array) = vd;
-                        ssb.AppendLine($"Unsafe.AsRef(in {destObject}.{x.SimpleName}) = vd;");
-                    }
-                }
+                assignment.End();
             }
         }
     }
@@ -3986,26 +3750,21 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        ScopingStringBuilder.IScope? initSetter = null;
-        ScopingStringBuilder.IScope? emptyBrace = null;
-        var destObject = ssb.FullObject; // Hidden members
+        var assignment = new ValueAssignment(ssb, info, this, x);
         using (var d = this.ScopeSimpleMember(ssb, x))
         {
             if (withNullable.Object.ObjectAttribute != null &&
                 withNullable.Object.ObjectAttribute.UseResolver == false)
             {// TinyhandObject.
-                InitSetter_Start(true);
+                assignment.Start(true);
                 ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject({sourceObject}, options)!;");
-                InitSetter_End();
+                assignment.End(true);
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
             {// Coder
-                using (var c = ssb.ScopeBrace(string.Empty))
-                {
-                    InitSetter_Start();
-                    coder.CodeClone(ssb, info, sourceObject);
-                    InitSetter_End();
-                }
+                assignment.Start(true);
+                coder.CodeClone(ssb, info, sourceObject);
+                assignment.End(true);
             }
             else
             {// Other
@@ -4014,76 +3773,9 @@ ModuleInitializerClass_Added:
                     this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                 }
 
-                InitSetter_Start(true);
+                assignment.Start(true);
                 ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
-                InitSetter_End();
-            }
-
-            void InitSetter_Start(bool brace = false)
-            {
-                if (x.RefFieldDelegate is not null || x.SetterDelegate is not null || x.IsReadOnly)
-                {// TypeName vd;
-                    if (brace)
-                    {
-                        emptyBrace = ssb.ScopeBrace(string.Empty);
-                    }
-
-                    initSetter = ssb.ScopeFullObject("vd");
-                    ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
-                }
-            }
-
-            void InitSetter_End()
-            {
-                if (initSetter != null)
-                {
-                    initSetter.Dispose();
-                    initSetter = null;
-
-                    if (x.RefFieldDelegate is not null)
-                    {// RefFieldDelegate(obj) = vd;
-                        var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                        ssb.AppendLine($"{prefix}{x.RefFieldDelegate}({this.InIfStruct}{destObject}) = vd;");
-                    }
-                    else if (x.SetterDelegate is not null)
-                    {// SetterDelegate!(obj, vd);
-                        var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                        ssb.AppendLine($"{prefix}{x.SetterDelegate}!({this.InIfStruct}{destObject}, vd);");
-                    }
-                    else if (x.IsReadOnly)
-                    {
-                        /*if (this.Kind == VisceralObjectKind.Struct)
-                        {// *(ulong*)&value.Id0 = vd;
-                            ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{destObject}.{x.SimpleName} = vd;");
-                        }
-                        else
-                        {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                            ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{destObject}.{x.SimpleName}) *ptr = vd;");
-                        }*/
-
-                        if (!withNullable.Object.IsUnmanagedType)
-                        {// Unsafe.AsRef(in {this.array) = vd;
-                            ssb.AppendLine($"Unsafe.AsRef(in {this.GetSourceName(destObject, x)}) = vd;"); // {destObject}.{x.SimpleName}
-                        }
-                        else
-                        {
-                            if (this.Kind == VisceralObjectKind.Struct)
-                            {// *(ulong*)&value.Id0 = vd;
-                                ssb.AppendLine($"*({withNullable.FullNameWithNullable}*)&{this.GetSourceName(destObject, x)} = vd;"); // {destObject}.{x.SimpleName}
-                            }
-                            else
-                            {// fixed (ulong* ptr = &this.Id0) *ptr = 11;
-                                ssb.AppendLine($"fixed ({withNullable.FullNameWithNullable}* ptr = &{this.GetSourceName(destObject, x)}) *ptr = vd;"); // {destObject}.{x.SimpleName}
-                            }
-                        }
-                    }
-
-                    if (emptyBrace != null)
-                    {
-                        emptyBrace.Dispose();
-                        emptyBrace = null;
-                    }
-                }
+                assignment.End(true);
             }
         }
     }

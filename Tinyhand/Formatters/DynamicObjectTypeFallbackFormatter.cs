@@ -85,9 +85,9 @@ public sealed class DynamicObjectTypeFallbackFormatter : ITinyhandFormatter<obje
         serializerDelegate(formatter, ref writer, value, options);
     }
 
-    public object? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref object? value, TinyhandSerializerOptions options)
     {
-        return PrimitiveObjectFormatter.Instance.Deserialize(ref reader, options);
+        value = PrimitiveObjectFormatter.Instance.Deserialize(ref reader, options);
     }
 
     public object Reconstruct(TinyhandSerializerOptions options)

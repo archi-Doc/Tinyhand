@@ -17,9 +17,9 @@ public class NilFormatter : ITinyhandFormatter<Nil>
         writer.WriteNil();
     }
 
-    public Nil Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Nil value, TinyhandSerializerOptions options)
     {
-        return reader.ReadNil();
+        value = reader.ReadNil();
     }
 
     public Nil Reconstruct(TinyhandSerializerOptions options)
@@ -44,9 +44,9 @@ public class NullableNilFormatter : ITinyhandFormatter<Nil?>
         writer.WriteNil();
     }
 
-    public Nil? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref Nil? value, TinyhandSerializerOptions options)
     {
-        return reader.ReadNil();
+        value = reader.ReadNil();
     }
 
     public Nil? Reconstruct(TinyhandSerializerOptions options)

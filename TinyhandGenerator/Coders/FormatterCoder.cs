@@ -299,6 +299,8 @@ internal class FormatterCoder : ITinyhandCoder
         this.NonNullableReference = nonNullableReference;
     }
 
+    public bool RequiresRefValue => true;
+
     public string FullNameWithNullable { get; }
 
     public bool NonNullableReference { get; }
@@ -312,11 +314,11 @@ internal class FormatterCoder : ITinyhandCoder
     {
         if (!this.NonNullableReference)
         {// Value type or Nullable reference type
-            ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, options);");
+            ssb.AppendLine($"options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Deserialize(ref reader, ref {ssb.FullObject}, options);");
         }
         else
         {// Non-nullable reference type
-            ssb.AppendLine($"{ssb.FullObject} = options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader);");
+            ssb.AppendLine($"options.DeserializeAndReconstruct<{this.FullNameWithNullable}>(ref reader, ref {ssb.FullObject});");
         }
     }
 

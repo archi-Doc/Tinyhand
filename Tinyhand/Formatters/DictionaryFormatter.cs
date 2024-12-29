@@ -67,11 +67,10 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
         }
     }
 
-    public TDictionary? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref TDictionary? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return default(TDictionary);
         }
         else
         {
@@ -81,7 +80,7 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
 
             var len = reader.ReadMapHeader2();
 
-            TIntermediate dict = this.Create(len, options);
+            TIntermediate dict = this.Create(value, len, options);
             options.Security.DepthStep(ref reader);
             try
             {
@@ -89,8 +88,8 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
                 {
                     reader.CancellationToken.ThrowIfCancellationRequested();
                     var key = keyFormatter.Deserialize(ref reader, options);
-                    var value = valueFormatter.Deserialize(ref reader, options);
-                    this.Add(dict, i, key!, value!, options);
+                    var v = valueFormatter.Deserialize(ref reader, options);
+                    this.Add(dict, i, key!, v!, options);
                 }
             }
             finally
@@ -98,13 +97,13 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
                 reader.Depth--;
             }
 
-            return this.Complete(dict);
+            value = this.Complete(dict);
         }
     }
 
     public TDictionary Reconstruct(TinyhandSerializerOptions options)
     {
-        return this.Complete(this.Create(0, options));
+        return this.Complete(this.Create(default, 0, options));
     }
 
     public TDictionary? Clone(TDictionary? value, TinyhandSerializerOptions options)
@@ -139,7 +138,7 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
             }
         }
 
-        var dict = this.Create(count, options);
+        var dict = this.Create(default, count, options);
         var e = this.GetSourceEnumerator(value);
         try
         {
@@ -164,7 +163,7 @@ public abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEnum
     protected abstract TEnumerator GetSourceEnumerator(TDictionary source);
 
     // abstraction for deserialize
-    protected abstract TIntermediate Create(int count, TinyhandSerializerOptions options);
+    protected abstract TIntermediate Create(TDictionary? reuse, int count, TinyhandSerializerOptions options);
 
     protected abstract void Add(TIntermediate collection, int index, TKey key, TValue value, TinyhandSerializerOptions options);
 
@@ -194,7 +193,7 @@ public sealed class DictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<
 {
     protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
     protected override Dictionary<TKey, TValue> Complete(Dictionary<TKey, TValue> intermediateCollection)
@@ -202,9 +201,9 @@ public sealed class DictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<
         return intermediateCollection;
     }
 
-    protected override Dictionary<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override Dictionary<TKey, TValue> Create(Dictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new Dictionary<TKey, TValue>(count, options.Security.GetEqualityComparer<TKey>());
+        return reuse ?? new Dictionary<TKey, TValue>(count, options.Security.GetEqualityComparer<TKey>());
     }
 
     protected override Dictionary<TKey, TValue>.Enumerator GetSourceEnumerator(Dictionary<TKey, TValue> source)
@@ -218,12 +217,12 @@ public sealed class GenericDictionaryFormatter<TKey, TValue, TDictionary> : Dict
 {
     protected override void Add(TDictionary collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
-    protected override TDictionary Create(int count, TinyhandSerializerOptions options)
+    protected override TDictionary Create(TDictionary? reuse, int count, TinyhandSerializerOptions options)
     {
-        return CollectionHelpers<TDictionary, IEqualityComparer<TKey>>.CreateHashCollection(count, options.Security.GetEqualityComparer<TKey>());
+        return reuse ?? CollectionHelpers<TDictionary, IEqualityComparer<TKey>>.CreateHashCollection(count, options.Security.GetEqualityComparer<TKey>());
     }
 }
 
@@ -232,12 +231,12 @@ public sealed class InterfaceDictionaryFormatter<TKey, TValue> : DictionaryForma
 {
     protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
-    protected override Dictionary<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override Dictionary<TKey, TValue> Create(IDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new Dictionary<TKey, TValue>(count, options.Security.GetEqualityComparer<TKey>());
+        return (reuse as Dictionary<TKey, TValue>) ?? new Dictionary<TKey, TValue>(count, options.Security.GetEqualityComparer<TKey>());
     }
 
     protected override IDictionary<TKey, TValue> Complete(Dictionary<TKey, TValue> intermediateCollection)
@@ -251,12 +250,12 @@ public sealed class SortedListFormatter<TKey, TValue> : DictionaryFormatterBase<
 {
     protected override void Add(SortedList<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
-    protected override SortedList<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override SortedList<TKey, TValue> Create(SortedList<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new SortedList<TKey, TValue>(count);
+        return reuse ?? new SortedList<TKey, TValue>(count);
     }
 }
 
@@ -265,7 +264,7 @@ public sealed class SortedDictionaryFormatter<TKey, TValue> : DictionaryFormatte
 {
     protected override void Add(SortedDictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
     protected override SortedDictionary<TKey, TValue> Complete(SortedDictionary<TKey, TValue> intermediateCollection)
@@ -273,9 +272,9 @@ public sealed class SortedDictionaryFormatter<TKey, TValue> : DictionaryFormatte
         return intermediateCollection;
     }
 
-    protected override SortedDictionary<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override SortedDictionary<TKey, TValue> Create(SortedDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new SortedDictionary<TKey, TValue>();
+        return reuse ?? new SortedDictionary<TKey, TValue>();
     }
 
     protected override SortedDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(SortedDictionary<TKey, TValue> source)
@@ -289,7 +288,7 @@ public sealed class ReadOnlyDictionaryFormatter<TKey, TValue> : DictionaryFormat
 {
     protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
     protected override ReadOnlyDictionary<TKey, TValue> Complete(Dictionary<TKey, TValue> intermediateCollection)
@@ -297,9 +296,9 @@ public sealed class ReadOnlyDictionaryFormatter<TKey, TValue> : DictionaryFormat
         return new ReadOnlyDictionary<TKey, TValue>(intermediateCollection);
     }
 
-    protected override Dictionary<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override Dictionary<TKey, TValue> Create(ReadOnlyDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new Dictionary<TKey, TValue>(count, options.Security.GetEqualityComparer<TKey>());
+        return reuse is not null ? new(reuse) : new Dictionary<TKey, TValue>(count, options.Security.GetEqualityComparer<TKey>());
     }
 }
 
@@ -308,7 +307,7 @@ public sealed class InterfaceReadOnlyDictionaryFormatter<TKey, TValue> : Diction
 {
     protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.Add(key, value);
+        collection.TryAdd(key, value);
     }
 
     protected override IReadOnlyDictionary<TKey, TValue> Complete(Dictionary<TKey, TValue> intermediateCollection)
@@ -316,9 +315,9 @@ public sealed class InterfaceReadOnlyDictionaryFormatter<TKey, TValue> : Diction
         return intermediateCollection;
     }
 
-    protected override Dictionary<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override Dictionary<TKey, TValue> Create(IReadOnlyDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new Dictionary<TKey, TValue>(count, options.Security.GetEqualityComparer<TKey>());
+        return reuse is not null ? new(reuse) : new Dictionary<TKey, TValue>(count, options.Security.GetEqualityComparer<TKey>());
     }
 }
 
@@ -330,9 +329,9 @@ public sealed class ConcurrentDictionaryFormatter<TKey, TValue> : DictionaryForm
         collection.TryAdd(key, value);
     }
 
-    protected override ConcurrentDictionary<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override ConcurrentDictionary<TKey, TValue> Create(ConcurrentDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
         // concurrent dictionary can't access defaultConcurrecyLevel so does not use count overload.
-        return new ConcurrentDictionary<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
+        return reuse ?? new ConcurrentDictionary<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
     }
 }

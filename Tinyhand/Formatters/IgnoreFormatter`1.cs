@@ -13,10 +13,10 @@ public sealed class IgnoreFormatter<T> : ITinyhandFormatter<T>
         writer.WriteNil();
     }
 
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
     {
         reader.Skip();
-        return default(T);
+        value = default;
     }
 
     public T Reconstruct(TinyhandSerializerOptions options) => default(T)!;

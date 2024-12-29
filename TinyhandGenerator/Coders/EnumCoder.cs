@@ -77,6 +77,8 @@ public class EnumCoder : ITinyhandCoder
         }
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         if (info.EnumAsString)

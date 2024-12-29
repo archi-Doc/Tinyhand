@@ -29,8 +29,10 @@ public sealed class Struct128Formatter : ITinyhandFormatter<Struct128>
     public void Serialize(ref TinyhandWriter writer, Struct128 value, TinyhandSerializerOptions options)
         => writer.Write(value.AsSpan());
 
-    public Struct128 Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-        => DeserializeValue(ref reader, options);
+    public void Deserialize(ref TinyhandReader reader, ref Struct128 value, TinyhandSerializerOptions options)
+    {
+        value = DeserializeValue(ref reader, options);
+    }
 
     public Struct128 Reconstruct(TinyhandSerializerOptions options)
         => default;
@@ -60,8 +62,10 @@ public sealed class Struct256Formatter : ITinyhandFormatter<Struct256>
     public void Serialize(ref TinyhandWriter writer, Struct256 value, TinyhandSerializerOptions options)
         => writer.Write(value.AsSpan());
 
-    public Struct256 Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-        => DeserializeValue(ref reader, options);
+    public void Deserialize(ref TinyhandReader reader, ref Struct256 value, TinyhandSerializerOptions options)
+    {
+        value = DeserializeValue(ref reader, options);
+    }
 
     public Struct256 Reconstruct(TinyhandSerializerOptions options)
         => default;
@@ -86,9 +90,9 @@ public sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemory
         writer.Write(value.Span);
     }
 
-    public BytePool.RentMemory Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref BytePool.RentMemory value, TinyhandSerializerOptions options)
     {
-        return reader.ReadBytesToRentMemory();
+        value = reader.ReadBytesToRentMemory();
     }
 
     public BytePool.RentMemory Reconstruct(TinyhandSerializerOptions options)
@@ -120,9 +124,9 @@ public sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.Re
         writer.Write(value.Span);
     }
 
-    public BytePool.RentReadOnlyMemory Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref BytePool.RentReadOnlyMemory value, TinyhandSerializerOptions options)
     {
-        return reader.ReadBytesToRentMemory().ReadOnly;
+        value = reader.ReadBytesToRentMemory().ReadOnly;
     }
 
     public BytePool.RentReadOnlyMemory Reconstruct(TinyhandSerializerOptions options)
@@ -167,14 +171,14 @@ public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
         }
     }
 
-    public IPAddress? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref IPAddress? value, TinyhandSerializerOptions options)
     {
         if (!reader.TryReadBytes(out var span))
         {
-            return null;
+            return;
         }
 
-        return new IPAddress(span);
+        value = new IPAddress(span);
     }
 
     public IPAddress Reconstruct(TinyhandSerializerOptions options)
@@ -215,16 +219,16 @@ public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
         }
     }
 
-    public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref IPEndPoint? value, TinyhandSerializerOptions options)
     {
         if (!reader.TryReadBytes(out var span) ||
             span.Length < 4)
         {
-            return null;
+            return;
         }
 
         var port = BitConverter.ToInt32(span.Slice(span.Length - 4));
-        return new IPEndPoint(new IPAddress(span.Slice(0, span.Length - 4)), port);
+        value = new IPEndPoint(new IPAddress(span.Slice(0, span.Length - 4)), port);
     }
 
     public IPEndPoint Reconstruct(TinyhandSerializerOptions options)

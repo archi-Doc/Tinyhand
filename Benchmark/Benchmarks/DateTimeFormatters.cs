@@ -18,10 +18,10 @@ public sealed class NativeDateTimeFormatter : ITinyhandFormatter<DateTime>
         writer.Write(dateData);
     }
 
-    public DateTime Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref DateTime value, TinyhandSerializerOptions options)
     {
         var dateData = reader.ReadInt64();
-        return DateTime.FromBinary(dateData);
+        value = DateTime.FromBinary(dateData);
     }
 
     public DateTime Reconstruct(TinyhandSerializerOptions options)
@@ -52,27 +52,24 @@ public sealed class NativeDateTimeArrayFormatter : ITinyhandFormatter<DateTime[]
         }
     }
 
-    public DateTime[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref DateTime[]? value, TinyhandSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
-            return null;
         }
 
         var len = reader.ReadArrayHeader();
         if (len == 0)
         {
-            return Array.Empty<DateTime>();
+            return;
         }
 
-        var array = new DateTime[len];
-        for (int i = 0; i < array.Length; i++)
+        value = new DateTime[len];
+        for (int i = 0; i < value.Length; i++)
         {
             var dateData = reader.ReadInt64();
-            array[i] = DateTime.FromBinary(dateData);
+            value[i] = DateTime.FromBinary(dateData);
         }
-
-        return array;
     }
 
     public DateTime[] Reconstruct(TinyhandSerializerOptions options)

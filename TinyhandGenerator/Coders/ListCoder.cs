@@ -50,6 +50,8 @@ public class ListCoder : ITinyhandCoder
         this.nullableAnnotation = nullableAnnotation;
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         this.GenerateMethod(info);
@@ -189,11 +191,6 @@ public class ListCoder : ITinyhandCoder
             ssb.AppendLine("options.Security.DepthStep(ref reader);");
             using (var scopeSecurityTry = ssb.ScopeBrace("try"))
             {
-                if (this.elementCoder != null)
-                {// {this.element.FullNameWithNullable} lv;
-                    ssb.AppendLine($"{this.element.FullNameWithNullable} lv;");
-                }
-
                 using (var c2 = ssb.ScopeBrace("for (int i = 0; i < len; i++)"))
                 {// list[i]
                     ssb.AppendLine("reader.CancellationToken.ThrowIfCancellationRequested();");
@@ -203,6 +200,15 @@ public class ListCoder : ITinyhandCoder
                     }
                     else
                     {// use coder
+                        if (this.elementCoder.RequiresRefValue)
+                        {
+                            ssb.AppendLine($"{this.element.FullNameWithNullable} lv = default!;");
+                        }
+                        else
+                        {
+                            ssb.AppendLine($"{this.element.FullNameWithNullable} lv;");
+                        }
+
                         using (var listValue = ssb.ScopeObject("lv"))
                         {
                             this.elementCoder.CodeDeserializer(ssb, info);

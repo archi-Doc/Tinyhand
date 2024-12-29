@@ -170,6 +170,8 @@ public sealed class Struct128Coder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject}.AsSpan());");
@@ -198,6 +200,8 @@ public sealed class Struct256Coder : ITinyhandCoder
     private Struct256Coder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -228,6 +232,8 @@ public sealed class StringCoder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject});");
@@ -256,6 +262,8 @@ public sealed class NullableStringCoder : ITinyhandCoder
     private NullableStringCoder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -286,6 +294,8 @@ public sealed class StringArrayCoder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeStringArray(ref writer, {ssb.FullObject});");
@@ -314,6 +324,8 @@ public sealed class NullableStringArrayCoder : ITinyhandCoder
     private NullableStringArrayCoder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -344,6 +356,8 @@ public sealed class StringListCoder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeStringList(ref writer, {ssb.FullObject});");
@@ -372,6 +386,8 @@ public sealed class NullableStringListCoder : ITinyhandCoder
     private NullableStringListCoder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -402,6 +418,8 @@ public sealed class UInt8ArrayCoder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject});");
@@ -430,6 +448,8 @@ public sealed class NullableUInt8ArrayCoder : ITinyhandCoder
     private NullableUInt8ArrayCoder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -460,6 +480,8 @@ public sealed class Utf8StringCoder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"writer.WriteString({ssb.FullObject}.Value);");
@@ -489,6 +511,8 @@ public sealed class NullableUtf8StringCoder : ITinyhandCoder
     {
     }
 
+    public bool RequiresRefValue => false;
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine($"if ({ssb.FullObject} is null) writer.WriteNil(); else writer.WriteString({ssb.FullObject}.Value!.Value);");
@@ -517,6 +541,8 @@ public sealed class UInt8ListCoder : ITinyhandCoder
     private UInt8ListCoder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -569,6 +595,8 @@ public sealed class NullableUInt8ListCoder : ITinyhandCoder
     private NullableUInt8ListCoder()
     {
     }
+
+    public bool RequiresRefValue => false;
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {

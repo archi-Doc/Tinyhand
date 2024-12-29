@@ -22,9 +22,9 @@ public sealed class StringFormatter : ITinyhandFormatter<string>
         writer.Write(value);
     }
 
-    public string? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref string? value, TinyhandSerializerOptions options)
     {
-        return reader.ReadString(); // ?? string.Empty;
+        value ??= reader.ReadString(); // ?? string.Empty;
     }
 
     public string Reconstruct(TinyhandSerializerOptions options)
@@ -48,7 +48,7 @@ public sealed class StringArrayFormatter : ITinyhandFormatter<string[]>
 
     public void Serialize(ref TinyhandWriter writer, string[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeStringArray(ref writer, value);
 
-    public string[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref string[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader);
 
     public string[] Reconstruct(TinyhandSerializerOptions options)
     {
@@ -68,7 +68,7 @@ public sealed class StringListFormatter : ITinyhandFormatter<List<string>>
 
     public void Serialize(ref TinyhandWriter writer, List<string>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeStringList(ref writer, value);
 
-    public List<string>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.DeserializeStringList(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<string>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeStringList(ref reader);
 
     public List<string> Reconstruct(TinyhandSerializerOptions options)
     {
@@ -91,14 +91,12 @@ public sealed class ByteArrayFormatter : ITinyhandFormatter<byte[]>
         writer.Write(value);
     }
 
-    public byte[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref byte[]? value, TinyhandSerializerOptions options)
     {
-        if (!reader.TryReadBytes(out var span))
+        if (reader.TryReadBytes(out var span))
         {
-            return null;
+            value = span.ToArray();
         }
-
-        return span.ToArray();
     }
 
     public byte[] Reconstruct(TinyhandSerializerOptions options)
@@ -129,14 +127,12 @@ public sealed class ByteListFormatter : ITinyhandFormatter<List<byte>>
         }
     }
 
-    public List<byte>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref List<byte>? value, TinyhandSerializerOptions options)
     {
-        if (!reader.TryReadBytes(out var span))
+        if (reader.TryReadBytes(out var span))
         {
-            return null;
+            value = new(span.ToArray());
         }
-
-        return new List<byte>(span.ToArray());
     }
 
     public List<byte> Reconstruct(TinyhandSerializerOptions options)
@@ -171,18 +167,18 @@ public static partial class Builtin
     {
         if (reader.TryReadNil())
         {
-            return null; // new string[0];
+            return null;
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new string[len];
-            for (int i = 0; i < array.Length; i++)
+            var value = new string[len];
+            for (int i = 0; i < value.Length; i++)
             {
-                array[i] = reader.ReadString() ?? string.Empty;
+                value[i] = reader.ReadString() ?? string.Empty;
             }
 
-            return array;
+            return value;
         }
     }
 
@@ -260,18 +256,18 @@ public static partial class Builtin
     {
         if (reader.TryReadNil())
         {
-            return null; // new List<string>();
+            return null;
         }
         else
         {
             var len = reader.ReadArrayHeader();
-            var list = new List<string>(len);
+            var value = new List<string>(len);
             for (int i = 0; i < len; i++)
             {
-                list.Add(reader.ReadString() ?? string.Empty);
+                value.Add(reader.ReadString() ?? string.Empty);
             }
 
-            return list;
+            return value;
         }
     }
 }

@@ -15,82 +15,78 @@ using Tinyhand.IO;
 
 #pragma warning disable SA1649 // File name should match first type name
 
-namespace Tinyhand.Formatters
-{<# for(var i = 1; i <= 8; i++) {
+namespace Tinyhand.Formatters;
+<# for(var i = 1; i <= 8; i++) {
     Func<int, string> toT = x => "T" + ((x == 8) ? "Rest" : x.ToString());
     Func<int, string> toItem = x => ((x == 8) ? "Rest" : "Item" + x);
     var ts = string.Join(", ", Enumerable.Range(1, i).Select(x => toT(x)));
     var t = "Tuple<" + ts + ">";
+    var trest = i == 8 ? "\r\n    where TRest : notnull" : "";
 #>
 
-    public sealed class TupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>>
+public sealed class TupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>><#= trest #>
+{
+    public void Serialize(ref TinyhandWriter writer, <#= t #>? value, TinyhandSerializerOptions options)
     {
-        public void Serialize(ref TinyhandWriter writer, <#= t #>? value, TinyhandSerializerOptions options)
+        if (value == null)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-            }
-            else
-            {
-                writer.WriteArrayHeader(<#= i #>);
-
-                var resolver = options.Resolver;
-<# for(var j = 1; j <= i; j++) { #>
-                resolver.GetFormatter<<#= toT(j) #>>().Serialize(ref writer, value.<#= toItem(j) #>, options);
-<# } #>
-            }
+            writer.WriteNil();
         }
-
-        public <#= t #>? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
+        else
         {
-            if (reader.TryReadNil())
-            {
-                return default;
-            }
-            else
-            {
-                var count = reader.ReadArrayHeader();
-                if (count != <#= i #>)
-                {
-                    throw new TinyhandException("Invalid Tuple count");
-                }
-
-                var resolver = options.Resolver;
-                options.Security.DepthStep(ref reader);
-                try
-                {
-<# for(var j = 1; j <= i; j++) { #>
-                    var item<#= j #> = resolver.GetFormatter<<#= toT(j) #>>().Deserialize(ref reader, options);
-<# } #>
-
-                    return new Tuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "item" + x + "!")) #>);
-                }
-                finally
-                {
-                    reader.Depth--;
-                }
-            }
-        }
-
-        public <#= t #> Reconstruct(TinyhandSerializerOptions options)
-        {
-            return new Tuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "default!")) #>);
-        }
-
-        public <#= t #>? Clone(<#= t #>? value, TinyhandSerializerOptions options)
-        {
-            if (value == null)
-            {
-                return null;
-            }
+            writer.WriteArrayHeader(<#= i #>);
 
             var resolver = options.Resolver;
 <# for(var j = 1; j <= i; j++) { #>
-            var item<#= j #> = resolver.GetFormatter<<#= toT(j) #>>().Clone(value.<#= toItem(j) #>, options);
+            resolver.GetFormatter<<#= toT(j) #>>().Serialize(ref writer, value.<#= toItem(j) #>, options);
 <# } #>
-            return new Tuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "item" + x + "!")) #>);
         }
     }
+
+    public void Deserialize(ref TinyhandReader reader, ref <#= t #>? value, TinyhandSerializerOptions options)
+    {
+        if (!reader.TryReadNil())
+        {
+            var count = reader.ReadArrayHeader();
+            if (count != <#= i #>)
+            {
+                throw new TinyhandException("Invalid Tuple count");
+            }
+
+            var resolver = options.Resolver;
+            options.Security.DepthStep(ref reader);
+            try
+            {
+<# for(var j = 1; j <= i; j++) { #>
+                var item<#= j #> = resolver.GetFormatter<<#= toT(j) #>>().Deserialize(ref reader, options);
 <# } #>
+
+                value = new Tuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "item" + x + "!")) #>);
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+        }
+    }
+
+    public <#= t #> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new Tuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "default!")) #>);
+    }
+
+    public <#= t #>? Clone(<#= t #>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        var resolver = options.Resolver;
+<# for(var j = 1; j <= i; j++) { #>
+        var item<#= j #> = resolver.GetFormatter<<#= toT(j) #>>().Clone(value.<#= toItem(j) #>, options);
+<# } #>
+        return new Tuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "item" + x + "!")) #>);
+    }
 }
+<# } #>

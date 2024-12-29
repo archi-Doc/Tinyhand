@@ -10,12 +10,8 @@ public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
     public void Serialize(ref TinyhandWriter writer, T? v, TinyhandSerializerOptions options)
         => T.Serialize(ref writer, ref v, options);
 
-    public T? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-    {
-        var v = default(T);
-        T.Deserialize(ref reader, ref v, options);
-        return v;
-    }
+    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
+        => T.Deserialize(ref reader, ref value, options);
 
     public T Reconstruct(TinyhandSerializerOptions options)
     {
