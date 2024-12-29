@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-public class StandardClassLibraryFormatterTests : TestBase
+public class StandardClassLibraryFormatterTests
 {
     [Fact]
     public void SystemType_Serializable()
