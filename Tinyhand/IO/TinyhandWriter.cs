@@ -67,11 +67,6 @@ public ref struct TinyhandWriter
     public int Level { get; set; } = DefaultLevel;
 
     /// <summary>
-    /// Gets or sets the cancellation token for this serialization operation.
-    /// </summary>
-    public CancellationToken CancellationToken { get; set; } = default;
-
-    /// <summary>
     /// Gets the total number of bytes written by the writer.
     /// </summary>
     public long Written => this.writer.Written;
@@ -87,7 +82,6 @@ public ref struct TinyhandWriter
     public TinyhandWriter Clone(IBufferWriter<byte> writer) => new TinyhandWriter(writer)
     {
         Level = this.Level,
-        CancellationToken = this.CancellationToken,
     };
 
     /// <summary>
@@ -99,7 +93,6 @@ public ref struct TinyhandWriter
     public TinyhandWriter Clone(byte[] initialBuffer) => new TinyhandWriter(initialBuffer)
     {
         Level = this.Level,
-        CancellationToken = this.CancellationToken,
     };
 
     /// <summary>
@@ -110,7 +103,6 @@ public ref struct TinyhandWriter
     public TinyhandWriter Clone() => new TinyhandWriter()
     {
         Level = this.Level,
-        CancellationToken = this.CancellationToken,
     };
 
     public byte[] FlushAndGetArray() => this.writer.FlushAndGetArray();

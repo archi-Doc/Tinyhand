@@ -300,7 +300,6 @@ public sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<Key
             writer.WriteMapHeader(count);
             for (var i = 0; i < count; i++)
             {
-                writer.CancellationToken.ThrowIfCancellationRequested();
                 keyFormatter.Serialize(ref writer, value[i].Key, options);
                 valueFormatter.Serialize(ref writer, value[i].Value, options);
             }
@@ -327,7 +326,6 @@ public sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<Key
             {
                 for (int i = 0; i < count; i++)
                 {
-                    reader.CancellationToken.ThrowIfCancellationRequested();
                     value.Add(new(keyFormatter.Deserialize(ref reader, options)!, valueFormatter.Deserialize(ref reader, options)!));
                 }
             }
