@@ -19,9 +19,9 @@ public sealed class OrderedMapFormatter<TKey, TValue> : DictionaryFormatterBase<
         return intermediateCollection;
     }
 
-    protected override OrderedMap<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override OrderedMap<TKey, TValue> Create(OrderedMap<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new OrderedMap<TKey, TValue>();
+        return reuse ?? new OrderedMap<TKey, TValue>();
     }
 
     protected override OrderedMap<TKey, TValue>.Enumerator GetSourceEnumerator(OrderedMap<TKey, TValue> source)
@@ -71,9 +71,9 @@ public sealed class OrderedMultiMapFormatter<TKey, TValue> : DictionaryFormatter
         return intermediateCollection;
     }
 
-    protected override OrderedMultiMap<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override OrderedMultiMap<TKey, TValue> Create(OrderedMultiMap<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new OrderedMultiMap<TKey, TValue>();
+        return reuse ?? new OrderedMultiMap<TKey, TValue>();
     }
 
     protected override OrderedMultiMap<TKey, TValue>.Enumerator GetSourceEnumerator(OrderedMultiMap<TKey, TValue> source)
@@ -122,9 +122,9 @@ public sealed class UnorderedMapFormatter<TKey, TValue> : DictionaryFormatterBas
         return intermediateCollection;
     }
 
-    protected override UnorderedMap<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override UnorderedMap<TKey, TValue> Create(UnorderedMap<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new UnorderedMap<TKey, TValue>();
+        return reuse ?? new UnorderedMap<TKey, TValue>();
     }
 
     protected override UnorderedMap<TKey, TValue>.Enumerator GetSourceEnumerator(UnorderedMap<TKey, TValue> source)
@@ -174,9 +174,9 @@ public sealed class UnorderedMultiMapFormatter<TKey, TValue> : DictionaryFormatt
         return intermediateCollection;
     }
 
-    protected override UnorderedMultiMap<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override UnorderedMultiMap<TKey, TValue> Create(UnorderedMultiMap<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new UnorderedMultiMap<TKey, TValue>();
+        return reuse ?? new UnorderedMultiMap<TKey, TValue>();
     }
 
     protected override UnorderedMultiMap<TKey, TValue>.Enumerator GetSourceEnumerator(UnorderedMultiMap<TKey, TValue> source)
@@ -454,9 +454,9 @@ public sealed class OrderedKeyValueListFormatter<TKey, TValue> : DictionaryForma
         return intermediateCollection;
     }
 
-    protected override OrderedKeyValueList<TKey, TValue> Create(int count, TinyhandSerializerOptions options)
+    protected override OrderedKeyValueList<TKey, TValue> Create(OrderedKeyValueList<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return new OrderedKeyValueList<TKey, TValue>();
+        return reuse ?? new OrderedKeyValueList<TKey, TValue>();
     }
 
     protected override OrderedKeyValueList<TKey, TValue>.Enumerator GetSourceEnumerator(OrderedKeyValueList<TKey, TValue> source)
