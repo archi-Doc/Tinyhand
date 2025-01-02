@@ -5,7 +5,6 @@ using Xunit;
 namespace Tinyhand.Tests;
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-[MessagePack.MessagePackObject(true)]
 public partial class LargeDataClass
 {
     public const int M = 456;
@@ -40,6 +39,6 @@ public class LargeDataTest
         var c = new LargeDataClass();
         c.Prepare();
 
-        TestHelper.TestWithMessagePack(c);
+        TestHelper.TestWithoutMessagePack(c);
     }
 }

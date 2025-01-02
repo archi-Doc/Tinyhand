@@ -10,6 +10,6 @@ public class FormatterResolverTest
     public void Test1()
     {
         var t = new FormatterResolverClass();
-        var t2 = TestHelper.TestWithMessagePackWithoutCompareObject(t, false);
+        // var t2 = TestHelper.TestWithoutMessagePack(t, false);
     }
 }

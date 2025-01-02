@@ -148,11 +148,11 @@ public partial class InitIntClass
 
     [Key(2)]
     [MessagePack.Key(2)]
-    public string A { get; init; } = default!;
+    public string A { get; set; } = string.Empty;
 
     [Key(3)]
     [MessagePack.Key(3)]
-    public string B { get; init; } = default!;
+    public string B { get; set; } = string.Empty;
 
     public InitIntClass(int x, int y, string a, string b)
     {
@@ -181,11 +181,11 @@ public partial struct InitIntStruct
 
     [Key(2)]
     [MessagePack.Key(2)]
-    public string A { get; init; } = default!;
+    public string A { get; set; } = string.Empty;
 
     [Key(3)]
     [MessagePack.Key(3)]
-    public string B { get; init; } = default!;
+    public string B { get; set; } = string.Empty;
 
     public InitIntStruct(int x, int y, string a, string b)
     {
