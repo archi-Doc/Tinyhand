@@ -6,74 +6,56 @@ namespace Tinyhand.Tests;
 
 [TinyhandUnion(0, typeof(UnionTestClassA))]
 [TinyhandUnion(1, typeof(UnionTestClassB))]
-[MessagePack.Union(0, typeof(UnionTestClassA))]
-[MessagePack.Union(1, typeof(UnionTestClassB))]
 public partial interface IUnionTestInterface
 {
     public int Id { get; set; }
 }
 
 [TinyhandObject]
-[MessagePack.MessagePackObject]
 public partial class UnionTestClassA : IUnionTestInterface
 {
     [Key(0)]
-    [MessagePack.Key(0)]
     public int X { get; set; }
 
     [IgnoreMember]
-    [MessagePack.IgnoreMember]
     public int Token;
 
     [Key(1)]
-    [MessagePack.Key(1)]
     public int Id { get; set; }
 }
 
 [TinyhandObject]
-[MessagePack.MessagePackObject]
 public partial class UnionTestClassB : IUnionTestInterface
 {
     [Key(0)]
-    [MessagePack.Key(0)]
     public string Name { get; set; }
 
     [IgnoreMember]
-    [MessagePack.IgnoreMember]
     public int Token;
 
     [Key(1)]
-    [MessagePack.Key(1)]
     public int Id { get; set; }
 }
 
 [TinyhandUnion(0, typeof(UnionTestSubA))]
 [TinyhandUnion(1, typeof(UnionTestSubB))]
-[MessagePack.MessagePackObject]
-[MessagePack.Union(0, typeof(UnionTestSubA))]
-[MessagePack.Union(1, typeof(UnionTestSubB))]
 public abstract partial class UnionTestBase
 {
     [Key(0)]
-    [MessagePack.Key(0)]
     public int ID { get; set; }
 }
 
 [TinyhandObject]
-[MessagePack.MessagePackObject]
 public partial class UnionTestSubA : UnionTestBase
 {
     [Key(1)]
-    [MessagePack.Key(1)]
     public string Name { get; set; }
 }
 
 [TinyhandObject]
-[MessagePack.MessagePackObject]
 public partial class UnionTestSubB : UnionTestBase
 {
     [Key(1)]
-    [MessagePack.Key(1)]
     public double Height { get; set; }
 }
 

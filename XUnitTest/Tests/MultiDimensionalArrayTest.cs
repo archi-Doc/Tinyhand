@@ -11,11 +11,6 @@ public class MultiDimensionalArrayTest
     private T Convert<T>(T value)
     {
         var b = TinyhandSerializer.Serialize<T>(value);
-        var b2 = MessagePack.MessagePackSerializer.Serialize<T>(value);
-        /*var seq = new Nerdbank.Streams.Sequence<byte>();
-        TinyhandSerializer.Serialize<T>(seq, value);
-        b = seq.AsReadOnlySequence.ToArray();*/
-        b.IsStructuralEqual(b2);
         return TinyhandSerializer.Deserialize<T>(b);
     }
 
