@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Project Path="Benchmark/Benchmark.csproj" />
+  <Project Path="Playground/Playground.csproj" />
+  <Project Path="QuickStart/QuickStart.csproj" />
+  <Project Path="TestAssembly/TestAssembly.csproj" />
+  <Project Path="TestPlugin/TestPlugin.csproj" />
+  <Project Path="Tinyhand/Tinyhand.csproj" />
+  <Project Path="TinyhandGenerator/TinyhandGenerator.csproj" />
+  <Project Path="TinyhandProcessor/TinyhandProcessor.csproj" />
+  <Project Path="TinyhandTest/TinyhandTest.csproj" />
+  <Project Path="XUnitTest/XUnitTest.csproj" />
+</Solution>

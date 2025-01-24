@@ -22,7 +22,7 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
     <PackageReference Include="MemoryPack" Version="1.21.3" />
     <PackageReference Include="MessagePack" Version="3.1.1" />
-    <PackageReference Include="protobuf-net" Version="3.2.45" />
+    <PackageReference Include="protobuf-net" Version="3.2.46" />
   </ItemGroup>
 
   <ItemGroup>
