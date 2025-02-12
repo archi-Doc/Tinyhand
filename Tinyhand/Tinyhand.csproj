@@ -34,14 +34,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arc.Collections" Version="1.21.2" />
+    <PackageReference Include="Arc.Collections" Version="1.22.1" />
     <PackageReference Include="Arc.Crypto" Version="1.39.1" />
     <PackageReference Include="Arc.Unit" Version="0.18.1" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Collections.Immutable" Version="9.0.1" />
+    <PackageReference Include="System.Collections.Immutable" Version="9.0.2" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.0" />
   </ItemGroup>
 

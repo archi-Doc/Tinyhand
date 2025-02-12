@@ -319,7 +319,7 @@ public static partial class TinyhandSerializer
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The new object.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    [return: NotNullIfNotNull("value")]
+    [return: NotNullIfNotNull(nameof(obj))]
     public static T? CloneObject<T>(in T? obj, TinyhandSerializerOptions? options = null)
         where T : ITinyhandCloneable<T>
     {
@@ -349,7 +349,7 @@ public static partial class TinyhandSerializer
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The new object.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    [return: NotNullIfNotNull("obj")]
+    [return: NotNullIfNotNull(nameof(obj))]
     public static T? Clone<T>(T? obj, TinyhandSerializerOptions? options = null)
     {
         options = options ?? DefaultOptions;
