@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Tinyhand.Generator;
 
-// [Generator]
+/* [Generator]
 public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
 {
     public bool AttachDebugger { get; private set; } = false;
@@ -55,11 +55,6 @@ public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
             }
 
             var compilation = context.Compilation;
-            /*var options = context.Compilation.Options.WithMetadataImportOptions(MetadataImportOptions.All);
-            var topLevelBinderFlagsProperty = typeof(CSharpCompilationOptions).GetProperty("TopLevelBinderFlags", BindingFlags.Instance | BindingFlags.NonPublic);
-            topLevelBinderFlagsProperty.SetValue(options, 1U  << 22);
-            var compilation = context.Compilation.WithOptions(options);*/
-
             this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
             if (this.tinyhandObjectAttributeSymbol == null)
             {
@@ -298,4 +293,4 @@ public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
             return false;
         }
     }
-}
+}*/
