@@ -98,8 +98,37 @@ internal static class TinyhandGroupStack
             return;
         }
 
+        var depth = GetDepth(groupStack);
         var dif = (indent - currentIndent) >> 1;
-        groupStack = (groupStack & ~0xFF_0000UL) | ((ulong)dif << 16);
+        if (dif > 0)
+        {
+            for (var i = 0; i < dif; i++)
+            {
+                groupStack &= ~BracketStackMask(depth);
+                depth++;
+                if (depth >= MaxDepth)
+                {
+                    throw new TinyhandException("The maximum depth of the group stack has been reached.");
+                }
+            }
+        }
+        else
+        {
+            for (var i = 0; i < -dif && depth > 0; i++)
+            {
+                if ((groupStack & BracketStackMask(depth)) == 0)
+                {// Indent
+                    depth--;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        groupStack = (groupStack & ~0xFF_FFFFUL) | ((ulong)dif << 16) | (ulong)depth << 8 | ((uint)indent);
     }
 
     public static string ToString(ulong groupStack)
