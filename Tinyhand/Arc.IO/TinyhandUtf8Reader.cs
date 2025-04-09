@@ -62,6 +62,40 @@ public struct TinyhandUtf8LinePosition
 public ref struct TinyhandUtf8Reader
 {
     private const int InitialLinePosition = 1;
+    private const int LineFeedFlag = 1 << 30; // 0x4000_0000
+    private const int BytePositionMask = ~LineFeedFlag;
+
+    public bool End => this.Position >= this.Length;
+
+    public int Length => this.buffer.Length;
+
+    public int Remaining => this.buffer.Length - this.Position;
+
+    public byte Current => this.buffer[this.Position];
+
+    public TinyhandAtomType AtomType { get; private set; }
+
+    public int AtomLineNumber { get; private set; }
+
+    public int AtomBytePositionInLine { get; private set; }
+
+    public ReadOnlySpan<byte> ValueSpan { get; private set; }
+
+    public TinyhandModifierType ValueModifierType { get; private set; }
+
+    public string ValueSpanToString => Encoding.UTF8.GetString(this.ValueSpan);
+
+    public long ValueLong { get; private set; }
+
+    public ulong ValueULong { get; private set; }
+
+    public double ValueDouble { get; private set; }
+
+    public byte[]? ValueBinary { get; private set; }
+
+    public int LineNumber => this.lineNumber;
+
+    public int BytePositionInLine => this.bytePositionInLine & BytePositionMask;
 
     private ReadOnlySpan<byte> buffer;
     private bool readContextualInformation;
@@ -106,40 +140,11 @@ public ref struct TinyhandUtf8Reader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void IncrementLineNumber()
     {
-        TinyhandGroupStack.LineFeed(ref this.groupStack);
         this.lineNumber++;
         this.bytePositionInLine = InitialLinePosition;
     }
 
-    public bool End => this.Position >= this.Length;
-
-    public int Length => this.buffer.Length;
-
-    public int Remaining => this.buffer.Length - this.Position;
-
-    public byte Current => this.buffer[this.Position];
-
-    public TinyhandAtomType AtomType { get; private set; }
-
-    public int AtomLineNumber { get; private set; }
-
-    public int AtomBytePositionInLine { get; private set; }
-
-    public ReadOnlySpan<byte> ValueSpan { get; private set; }
-
-    public TinyhandModifierType ValueModifierType { get; private set; }
-
-    public string ValueSpanToString => Encoding.UTF8.GetString(this.ValueSpan);
-
-    public long ValueLong { get; private set; }
-
-    public ulong ValueULong { get; private set; }
-
-    public double ValueDouble { get; private set; }
-
-    public byte[]? ValueBinary { get; private set; }
-
-    private string ExceptionMessage(string message) => string.Format($"Line: {this.lineNumber}, Byte Position: {this.bytePositionInLine}, {message}");
+    private string ExceptionMessage(string message) => string.Format($"Line: {this.lineNumber}, Byte Position: {this.BytePositionInLine}, {message}");
 
     internal void ThrowException(string message)
     {
@@ -284,9 +289,11 @@ public ref struct TinyhandUtf8Reader
             return false;
         }
 
-        if (TinyhandGroupStack.CheckLineFeed(ref this.groupStack))
+        if ((this.bytePositionInLine & LineFeedFlag) == 0)
         {
             TinyhandGroupStack.SetIndent(ref this.groupStack, this.bytePositionInLine - 1);
+            this.bytePositionInLine |= LineFeedFlag; // Set line feed flag.
+
             this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
             if (this.AtomType != TinyhandAtomType.None)
             {
@@ -295,8 +302,8 @@ public ref struct TinyhandUtf8Reader
         }
 
         var b = this.Current;
-        this.AtomLineNumber = this.lineNumber;
-        this.AtomBytePositionInLine = this.bytePositionInLine;
+        this.AtomLineNumber = this.LineNumber;
+        this.AtomBytePositionInLine = this.BytePositionInLine;
         switch (b)
         {
             case TinyhandConstants.OpenBrace: // {
@@ -314,7 +321,10 @@ public ref struct TinyhandUtf8Reader
                 return true;
 
             case TinyhandConstants.Quote: // "string"
-                return this.ReadQuote();
+                return this.ReadQuote(TinyhandConstants.Quote);
+
+            case TinyhandConstants.Quote2: // 'string'
+                return this.ReadQuote(TinyhandConstants.Quote2);
 
             case TinyhandConstants.EqualsSign: // =
                 this.AtomType = TinyhandAtomType.Assignment;
@@ -336,9 +346,10 @@ public ref struct TinyhandUtf8Reader
                     }
                 }
 
-                if (b == (byte)'b' && this.Remaining >= 2 && this.buffer[this.Position + 1] == TinyhandConstants.Quote)
-                { // Binary b"Base64"
-                    return this.ReadBinary();
+                if (b == (byte)'b' && this.Remaining >= 2 &&
+                    (this.buffer[this.Position + 1] == TinyhandConstants.Quote || this.buffer[this.Position + 1] == TinyhandConstants.Quote2))
+                { // Binary: b"Base64" or b'Base64'
+                    return this.ReadBinary(this.buffer[this.Position + 1]);
                 }
 
                 this.ReadRawString();
@@ -583,7 +594,7 @@ Unexpected_Symbol:
         this.ValueSpan = localBuffer.Slice(0, position);
     }
 
-    private int GetQuotedStringLength(ReadOnlySpan<byte> utf8)
+    private int GetQuotedStringLength(ReadOnlySpan<byte> utf8, byte q)
     {
         int count;
 
@@ -593,7 +604,7 @@ Unexpected_Symbol:
             {
                 this.ThrowException("\"Single-line literal\" cannot contain control characters. Use \"\"\"Multi-line literal\"\"\" instead.");
             }
-            else if (utf8[count] == TinyhandConstants.Quote)
+            else if (utf8[count] == q)
             { // "
                 return count;
             }
@@ -610,7 +621,7 @@ Unexpected_Symbol:
         return count;
     }
 
-    private int Get3QuotedStringLength(ReadOnlySpan<byte> utf8)
+    private int Get3QuotedStringLength(ReadOnlySpan<byte> utf8, byte q)
     {
         int count;
 
@@ -623,9 +634,9 @@ Unexpected_Symbol:
                     this.ThrowException("A literal can not contain control characters except CR/LF.");
                 }
             }
-            else if (utf8[count] == TinyhandConstants.Quote)
+            else if (utf8[count] == q)
             { // "
-                if ((count + 2 < utf8.Length) && utf8[count + 1] == TinyhandConstants.Quote && utf8[count + 2] == TinyhandConstants.Quote)
+                if ((count + 2 < utf8.Length) && utf8[count + 1] == q && utf8[count + 2] == q)
                 { // """
                     return count;
                 }
@@ -636,15 +647,15 @@ Unexpected_Symbol:
         return count;
     }
 
-    private bool ReadQuote()
+    private bool ReadQuote(byte q)
     {
         this.AddPosition(1); // Skip quote.
 
-        if (this.Remaining >= 2 && this.buffer[this.Position] == TinyhandConstants.Quote && this.buffer[this.Position + 1] == TinyhandConstants.Quote)
+        if (this.Remaining >= 2 && this.buffer[this.Position] == q && this.buffer[this.Position + 1] == q)
         { // """Triple quoted string""". Multi-line literal.
             this.AddPosition(2); // Skip 2 quotes.
             var stringSpan = this.buffer.Slice(this.Position);
-            var length = this.Get3QuotedStringLength(stringSpan);
+            var length = this.Get3QuotedStringLength(stringSpan, q);
             this.ValueSpan = stringSpan.Slice(0, length);
 
             this.AddPosition(length + 3); // String + 3 quotes.
@@ -652,9 +663,9 @@ Unexpected_Symbol:
             this.ValueLong = 1; // Triple quoted.
         }
         else
-        { // "single line string"
+        { // "single line string" or 'string'
             var stringSpan = this.buffer.Slice(this.Position);
-            var length = this.GetQuotedStringLength(stringSpan);
+            var length = this.GetQuotedStringLength(stringSpan, q);
             this.ValueSpan = TinyhandHelper.GetUnescapedSpan(stringSpan.Slice(0, length));
 
             this.AddPosition(length + 1); // String + quote.
@@ -663,13 +674,13 @@ Unexpected_Symbol:
         return true;
     }
 
-    private bool ReadBinary()
+    private bool ReadBinary(byte q)
     {
         this.AddPosition(2); // Skip b"
 
-        // "single line string"
+        // "single line string" or 'string'
         var stringSpan = this.buffer.Slice(this.Position);
-        var length = this.GetQuotedStringLength(stringSpan);
+        var length = this.GetQuotedStringLength(stringSpan, q);
         this.ValueSpan = stringSpan.Slice(0, length);
 
         // this.ValueBinary = Base64.DecodeFromBase64Utf8(this.ValueSpan);

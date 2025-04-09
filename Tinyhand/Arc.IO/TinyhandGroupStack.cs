@@ -9,6 +9,7 @@ internal static class TinyhandGroupStack
     public const int MaxDepth = 40;
     public const byte InvalidIndent = 0xFF;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TinyhandAtomType GetGroup(ref ulong groupStack)
     {
         var store = GetBracketStore(groupStack);
@@ -18,12 +19,12 @@ internal static class TinyhandGroupStack
         }
         else if (store > 0)
         {// {
-            groupStack = (groupStack & ~0xFFFF_FFFF_FF00_FFFFUL) | ((ulong)(store - 1) << 16);
+            groupStack = (groupStack & 0xFFFF_FFFF_FF00_FFFFUL) | ((ulong)(store - 1) << 16);
             return TinyhandAtomType.StartGroup;
         }
         else
         {// }
-            groupStack = (groupStack & ~0xFFFF_FFFF_FF00_FFFFUL) | ((ulong)(store + 1) << 16);
+            groupStack = (groupStack & 0xFFFF_FFFF_FF00_FFFFUL) | ((ulong)(store + 1) << 16);
             return TinyhandAtomType.EndGroup;
         }
     }
@@ -148,11 +149,11 @@ internal static class TinyhandGroupStack
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static byte GetCurrentIndent(ulong groupStack)
-        => (byte)(groupStack & 0xFF);
+        => (byte)groupStack;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static byte GetDepth(ulong groupStack)
-        => (byte)(groupStack >> 8 & 0xFF);
+        => (byte)(groupStack >> 8);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static sbyte GetBracketStore(ulong groupStack)
