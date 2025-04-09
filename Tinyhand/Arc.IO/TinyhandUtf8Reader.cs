@@ -90,6 +90,8 @@ public ref struct TinyhandUtf8Reader
         this.ValueBinary = null;
     }
 
+    private ulong groupStack;
+
     private int _position;
 
     public int Position => this._position;
@@ -104,6 +106,7 @@ public ref struct TinyhandUtf8Reader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void IncrementLineNumber()
     {
+        TinyhandGroupStack.LineFeed(ref this.groupStack);
         this.lineNumber++;
         this.bytePositionInLine = InitialLinePosition;
     }
@@ -160,7 +163,6 @@ public ref struct TinyhandUtf8Reader
 
     private void InitializeValue()
     {
-        this.AtomType = TinyhandAtomType.None;
         this.ValueSpan = ReadOnlySpan<byte>.Empty;
         this.ValueLong = 0;
         this.ValueDouble = 0;
@@ -253,7 +255,7 @@ public ref struct TinyhandUtf8Reader
             return true;
         }
         else
-        {
+        {// Other
             return false;
         }
     }
@@ -264,15 +266,32 @@ public ref struct TinyhandUtf8Reader
     /// <returns>True if the read is successful. False if no data is available (AtomType is set to None).</returns>
     public bool Read()
     {
+        this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
+        if (this.AtomType != TinyhandAtomType.None)
+        {
+            return true;
+        }
+
         this.InitializeValue();
 
         if (this.SkipWhiteSpace())
         { // Separator, (Comment, LineFeed)
             return true;
         }
+
         if (this.Position >= this.Length)
         { // No data left.
             return false;
+        }
+
+        if (TinyhandGroupStack.CheckLineFeed(ref this.groupStack))
+        {
+            TinyhandGroupStack.SetIndent(ref this.groupStack, this.bytePositionInLine - 1);
+            this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
+            if (this.AtomType != TinyhandAtomType.None)
+            {
+                return true;
+            }
         }
 
         var b = this.Current;
@@ -281,13 +300,15 @@ public ref struct TinyhandUtf8Reader
         switch (b)
         {
             case TinyhandConstants.OpenBrace: // {
-                this.AtomType = TinyhandAtomType.StartGroup;
+                TinyhandGroupStack.AddOpenBracket(ref this.groupStack);
+                this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
                 this.ValueSpan = this.buffer.Slice(this.Position, 1);
                 this.AddPosition(1);
                 return true;
 
             case TinyhandConstants.CloseBrace: // }
-                this.AtomType = TinyhandAtomType.EndGroup;
+                TinyhandGroupStack.AddCloseBracket(ref this.groupStack);
+                this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
                 this.ValueSpan = this.buffer.Slice(this.Position, 1);
                 this.AddPosition(1);
                 return true;
