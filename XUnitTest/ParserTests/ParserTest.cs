@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using Tinyhand;
 using Tinyhand.Tree;
 using Xunit;
@@ -46,6 +47,46 @@ public class ParserTest
         a = (Assignment)g2.ElementList[0];
         ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
         ((Value_Long)a.RightElement!).ValueLong.Is(12);
+
+        e = TinyhandParser.Parse("""
+            a= // Comment
+              b= 12
+            """);
+        g = (Group)e;
+        g.ElementList.Count.Is(1);
+        a = (Assignment)g.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
+        g2 = (Group)a.RightElement!;
+        g2.ElementList.Count.Is(1);
+        a = (Assignment)g2.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
+        ((Value_Long)a.RightElement!).ValueLong.Is(12);
+
+        e = TinyhandParser.Parse("""
+            a= {// Comment
+              b= 12
+            }
+            """);
+        g = (Group)e;
+        g.ElementList.Count.Is(1);
+        a = (Assignment)g.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
+        g2 = (Group)a.RightElement!;
+        g2.ElementList.Count.Is(1);
+        a = (Assignment)g2.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
+        ((Value_Long)a.RightElement!).ValueLong.Is(12);
+    }
+
+    [Fact]
+    public void TestException()
+    {
+        Assert.Throws<TinyhandException>(() => TinyhandParser.Parse("a={ b= 12 "));
+
+        Assert.Throws<TinyhandException>(() => TinyhandParser.Parse("""
+            a=
+             b= 12
+            """));
     }
 
     [Fact]

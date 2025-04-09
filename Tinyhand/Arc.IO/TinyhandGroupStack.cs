@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Tinyhand;
@@ -34,13 +35,13 @@ internal static class TinyhandGroupStack
         var depth = GetDepth(groupStack);
         if (depth >= MaxDepth)
         {
-            throw new TinyhandException("The maximum depth of the group stack has been reached.");
+            throw new InvalidOperationException("The maximum depth of the group stack has been reached.");
         }
 
         var store = GetBracketStore(groupStack);
         if (store != 0)
         {
-            throw new TinyhandException("The bracket store is not empty.");
+            throw new InvalidOperationException("The bracket store is not empty.");
         }
 
         var stackMask = BracketStackMask(depth);
@@ -59,12 +60,13 @@ internal static class TinyhandGroupStack
         var store = GetBracketStore(groupStack);
         if (store != 0)
         {
-            throw new TinyhandException("The bracket store is not empty.");
+            throw new InvalidOperationException("The bracket store is not empty.");
         }
 
         store = -1;
-        while (depth-- > 0)
+        while (depth > 0)
         {
+            depth--;
             var stackMask = BracketStackMask(depth);
             if ((groupStack & stackMask) == 0)
             {// Indent
@@ -80,26 +82,59 @@ internal static class TinyhandGroupStack
         groupStack = (groupStack & ~0xFF_FFFFUL) | ((ulong)store << 16) | ((ulong)depth << 8) | InvalidIndent;
     }
 
-    public static void SetIndent(ref ulong groupStack, int indent)
+    public static void TerminateIndent(ref ulong groupStack)
+    {
+        var depth = GetDepth(groupStack);
+        if (depth == 0)
+        {
+            return;
+        }
+
+        var store = GetBracketStore(groupStack);
+        if (store != 0)
+        {
+            throw new InvalidOperationException("The bracket store is not empty.");
+        }
+
+        while (depth > 0)
+        {
+            depth--;
+            var stackMask = BracketStackMask(depth);
+            if ((groupStack & stackMask) == 0)
+            {// Indent
+                store--;
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        groupStack = (groupStack & ~0xFF_FFFFUL) | ((ulong)store << 16) | ((ulong)depth << 8) | InvalidIndent;
+    }
+
+    public static bool TrySetIndent(ref ulong groupStack, int indent)
     {
         if ((indent & 1) != 0)
         {
-            throw new TinyhandException("The indent must be even.");
+            return false;
         }
 
         var currentIndent = GetCurrentIndent(groupStack);
         if (currentIndent == InvalidIndent)
         {// Set new indent
             SetCurrentIndent(ref groupStack, (byte)indent);
-            return;
+            return true;
         }
 
         if (indent == currentIndent)
         {
-            return;
+            return true;
         }
 
         var depth = GetDepth(groupStack);
+        var store = GetBracketStore(groupStack);
         var dif = (indent - currentIndent) >> 1;
         if (dif > 0)
         {
@@ -107,9 +142,10 @@ internal static class TinyhandGroupStack
             {
                 groupStack &= ~BracketStackMask(depth);
                 depth++;
+                store++;
                 if (depth >= MaxDepth)
                 {
-                    throw new TinyhandException("The maximum depth of the group stack has been reached.");
+                    throw new InvalidOperationException("The maximum depth of the group stack has been reached.");
                 }
             }
         }
@@ -117,9 +153,10 @@ internal static class TinyhandGroupStack
         {
             for (var i = 0; i < -dif && depth > 0; i++)
             {
-                if ((groupStack & BracketStackMask(depth)) == 0)
+                if ((groupStack & BracketStackMask((byte)(depth - 1))) == 0)
                 {// Indent
                     depth--;
+                    store--;
                     continue;
                 }
                 else
@@ -129,7 +166,8 @@ internal static class TinyhandGroupStack
             }
         }
 
-        groupStack = (groupStack & ~0xFF_FFFFUL) | ((ulong)dif << 16) | (ulong)depth << 8 | ((uint)indent);
+        groupStack = (groupStack & ~0xFF_FFFFUL) | ((ulong)store << 16) | (ulong)depth << 8 | ((uint)indent);
+        return true;
     }
 
     public static string ToString(ulong groupStack)

@@ -286,12 +286,18 @@ public ref struct TinyhandUtf8Reader
 
         if (this.Position >= this.Length)
         { // No data left.
-            return false;
+            TinyhandGroupStack.TerminateIndent(ref this.groupStack);
+            this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
+            return this.AtomType != TinyhandAtomType.None;
         }
 
         if ((this.bytePositionInLine & LineFeedFlag) == 0)
         {
-            TinyhandGroupStack.SetIndent(ref this.groupStack, this.bytePositionInLine - 1);
+            if (!TinyhandGroupStack.TrySetIndent(ref this.groupStack, this.bytePositionInLine - 1))
+            {
+                this.ThrowException("The indent must be even.");
+            }
+
             this.bytePositionInLine |= LineFeedFlag; // Set line feed flag.
 
             this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
