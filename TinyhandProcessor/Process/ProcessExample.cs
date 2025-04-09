@@ -36,7 +36,7 @@ public class TinyhandProcessCore_Example : IProcessCore
         }
         else if (element.TryGetRight_Value_String("file", out var valueFile))
         {
-            this.file = valueFile.ValueStringUtf16;
+            this.file = valueFile.Utf16;
         }
         else if (element is Value_String valueString)
         {
@@ -48,7 +48,7 @@ public class TinyhandProcessCore_Example : IProcessCore
                 return false;
             }*/
 
-            this.Environment.Log.Information(null, $"{valueString.ValueStringUtf16}");
+            this.Environment.Log.Information(null, $"{valueString.Utf16}");
         }
 
         return true;

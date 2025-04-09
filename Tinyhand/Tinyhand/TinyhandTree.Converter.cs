@@ -641,15 +641,15 @@ public static class TinyhandTreeConverter
                     break;
 
                 case ValueElementType.Value_String:
-                    writer.WriteString(((Value_String)v).ValueStringUtf8);
+                    writer.WriteString(((Value_String)v).Utf8);
                     break;
 
                 case ValueElementType.Identifier:
-                    writer.WriteString(((Value_Identifier)v).IdentifierUtf8);
+                    writer.WriteString(((Value_Identifier)v).Utf8);
                     break;
 
                 case ValueElementType.SpecialIdentifier:
-                    var utf8 = ((Value_Identifier)v).IdentifierUtf8;
+                    var utf8 = ((Value_Identifier)v).Utf8;
                     writer.WriteStringHeader(utf8.Length + 1);
                     writer.WriteRawUInt8(TinyhandConstants.IdentifierPrefix);
                     writer.WriteSpan(utf8);

@@ -32,7 +32,7 @@ internal class TinyhandGenerateMemberGroup
             {
                 if (assignment.LeftElement is Value_Identifier i)
                 {// Get the left element [Identifier]
-                    var identifier = i.IdentifierUtf16;
+                    var identifier = i.Utf16;
                     if (!VisceralHelper.IsValidIdentifier(identifier))
                     {// Invalid identifier
                         body.AddDiagnostic(TinyhandBody.Warning_InvalidIdentifier2, location, identifier, i.GetLinePositionString());
@@ -349,7 +349,7 @@ internal class TinyhandGenerateMemberGroup
         }
         else if (element is Value_String valueString)
         {// string
-            return ("string", valueString.ValueStringUtf16);
+            return ("string", valueString.Utf16);
         }
         else if (element is Value_Long valueLong)
         {// long

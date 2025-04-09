@@ -78,45 +78,45 @@ public class Modifier : Element
     public Modifier(byte[] modifierUtf8)
         : base(ElementType.Modifier)
     {
-        this.modifierUtf8 = modifierUtf8;
+        this.utf8 = modifierUtf8;
     }
 
     public Modifier(string valueStringUtf16)
         : base(ElementType.Modifier)
     {
-        this.modifierUtf16 = valueStringUtf16;
+        this.utf16 = valueStringUtf16;
     }
 
     public override object DeepCopy()
     {
         var instance = (Modifier)base.DeepCopy();
-        instance.modifierUtf8 = (byte[]?)this.modifierUtf8?.Clone();
+        instance.utf8 = (byte[]?)this.utf8?.Clone();
         return instance;
     }
 
-    public override string ToString() => "Modifier: " + this.ModifierUtf16;
+    public override string ToString() => "Modifier: " + this.Utf16;
 
-    private byte[]? modifierUtf8;
+    private byte[]? utf8;
 
-    public byte[] ModifierUtf8
+    public byte[] Utf8
     {
-        get => this.modifierUtf8 ??= Encoding.UTF8.GetBytes(this.modifierUtf16!);
+        get => this.utf8 ??= Encoding.UTF8.GetBytes(this.utf16!);
         set
         {
-            this.modifierUtf8 = value;
-            this.modifierUtf16 = null;
+            this.utf8 = value;
+            this.utf16 = null;
         }
     }
 
-    private string? modifierUtf16;
+    private string? utf16;
 
-    public string ModifierUtf16
+    public string Utf16
     {
-        get => this.modifierUtf16 ??= Encoding.UTF8.GetString(this.modifierUtf8!);
+        get => this.utf16 ??= Encoding.UTF8.GetString(this.utf8!);
         set
         {
-            this.modifierUtf8 = null;
-            this.modifierUtf16 = value;
+            this.utf8 = null;
+            this.utf16 = value;
         }
     }
 }
@@ -286,43 +286,43 @@ public class Value_Identifier : Value
         : base(ValueElementType.Identifier)
     {
         this.IsSpecial = isSpecial;
-        this.identifierUtf8 = identifierUtf8;
+        this.utf8 = identifierUtf8;
     }
 
     public override object DeepCopy()
     {
         var instance = (Value_Identifier)base.DeepCopy();
-        instance.identifierUtf8 = (byte[]?)this.identifierUtf8?.Clone();
+        instance.utf8 = (byte[]?)this.utf8?.Clone();
         return instance;
     }
 
     public bool IsSpecial { get; }
 
-    private byte[]? identifierUtf8;
+    private byte[]? utf8;
 
-    public byte[] IdentifierUtf8
+    public byte[] Utf8
     {
-        get => this.identifierUtf8 ??= Encoding.UTF8.GetBytes(this.identifierUtf16!);
+        get => this.utf8 ??= Encoding.UTF8.GetBytes(this.utf16!);
         set
         {
-            this.identifierUtf8 = value;
-            this.identifierUtf16 = null;
+            this.utf8 = value;
+            this.utf16 = null;
         }
     }
 
-    private string? identifierUtf16;
+    private string? utf16;
 
-    public string IdentifierUtf16
+    public string Utf16
     {
-        get => this.identifierUtf16 ??= Encoding.UTF8.GetString(this.identifierUtf8!);
+        get => this.utf16 ??= Encoding.UTF8.GetString(this.utf8!);
         set
         {
-            this.identifierUtf8 = null;
-            this.identifierUtf16 = value;
+            this.utf8 = null;
+            this.utf16 = value;
         }
     }
 
-    public override string ToString() => "Identifier: " + this.IdentifierUtf16;
+    public override string ToString() => "Identifier: " + this.Utf16;
 }
 
 public class Value_Bool : Value
@@ -423,60 +423,60 @@ public class Value_String : Value
     public Value_String(byte[] valueStringUtf8)
         : base(ValueElementType.Value_String)
     {
-        this.valueStringUtf8 = valueStringUtf8;
+        this.utf8 = valueStringUtf8;
     }
 
     public Value_String(Element original, byte[] valueStringUtf8)
         : base(ValueElementType.Value_String)
     {
         this.contextualChain = (Element?)original?.contextualChain?.DeepCopy();
-        this.valueStringUtf8 = valueStringUtf8;
+        this.utf8 = valueStringUtf8;
     }
 
     public Value_String(string valueStringUtf16)
         : base(ValueElementType.Value_String)
     {
-        this.valueStringUtf16 = valueStringUtf16;
+        this.utf16 = valueStringUtf16;
     }
 
     public override object DeepCopy()
     {
         var instance = (Value_String)base.DeepCopy();
-        instance.valueStringUtf8 = (byte[]?)this.valueStringUtf8?.Clone();
+        instance.utf8 = (byte[]?)this.utf8?.Clone();
         return instance;
     }
 
-    public override string ToString() => "String: " + this.ValueStringUtf16;
+    public override string ToString() => "String: " + this.Utf16;
 
     public bool IsTripleQuoted { get; set; }
 
-    private byte[]? valueStringUtf8;
+    private byte[]? utf8;
 
-    public byte[] ValueStringUtf8
+    public byte[] Utf8
     {
-        get => this.valueStringUtf8 ??= Encoding.UTF8.GetBytes(this.valueStringUtf16!);
+        get => this.utf8 ??= Encoding.UTF8.GetBytes(this.utf16!);
         set
         {
-            this.valueStringUtf8 = value;
-            this.valueStringUtf16 = null;
+            this.utf8 = value;
+            this.utf16 = null;
         }
     }
 
-    private string? valueStringUtf16;
+    private string? utf16;
 
-    public string ValueStringUtf16
+    public string Utf16
     {
-        get => this.valueStringUtf16 ??= Encoding.UTF8.GetString(this.valueStringUtf8!);
+        get => this.utf16 ??= Encoding.UTF8.GetString(this.utf8!);
         set
         {
-            this.valueStringUtf8 = null;
-            this.valueStringUtf16 = value;
+            this.utf8 = null;
+            this.utf16 = value;
         }
     }
 
     public bool HasTripleQuote()
     {
-        ReadOnlySpan<byte> s = this.ValueStringUtf8;
+        ReadOnlySpan<byte> s = this.Utf8;
 
         if (s.Length < 3)
         {

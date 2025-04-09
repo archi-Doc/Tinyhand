@@ -26,25 +26,25 @@ public class ParserTest
         g = (Group)e;
         g.ElementList.Count.Is(1);
         a = (Assignment)g.ElementList[0];
-        ((Value_Identifier)a.LeftElement!).IdentifierUtf16.Is("a");
-        ((Value_Identifier)a.RightElement!).IdentifierUtf16.Is("b");
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
+        ((Value_Identifier)a.RightElement!).Utf16.Is("b");
 
         e = TinyhandParser.Parse("\"a\"='x'");
         g = (Group)e;
         g.ElementList.Count.Is(1);
         a = (Assignment)g.ElementList[0];
-        ((Value_String)a.LeftElement!).ValueStringUtf16.Is("a");
-        ((Value_String)a.RightElement!).ValueStringUtf16.Is("x");
+        ((Value_String)a.LeftElement!).Utf16.Is("a");
+        ((Value_String)a.RightElement!).Utf16.Is("x");
 
         e = TinyhandParser.Parse("a={ b= 12}");
         g = (Group)e;
         g.ElementList.Count.Is(1);
         a = (Assignment)g.ElementList[0];
-        ((Value_Identifier)a.LeftElement!).IdentifierUtf16.Is("a");
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
         g2 = (Group)a.RightElement!;
         g2.ElementList.Count.Is(1);
         a = (Assignment)g2.ElementList[0];
-        ((Value_Identifier)a.LeftElement!).IdentifierUtf16.Is("b");
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
         ((Value_Long)a.RightElement!).ValueLong.Is(12);
     }
 
@@ -57,7 +57,7 @@ public class ParserTest
         var g = (Group)e;
         g.ElementList.Count.Is(4);
         ((Value_Long)g.ElementList[0]).ValueLong.Is(0);
-        ((Value_Identifier)g.ElementList[1]).IdentifierUtf16.Is("abc");
+        ((Value_Identifier)g.ElementList[1]).Utf16.Is("abc");
         ((Value_Long)g.ElementList[2]).ValueLong.Is(-123);
         ((Value_Double)g.ElementList[3]).ValueDouble.Is(1.2);
 
@@ -67,8 +67,8 @@ public class ParserTest
         e = TinyhandParser.Parse(st);
         g = (Group)e;
         g.ElementList.Count.Is(2);
-        ((Modifier)g.ElementList[0]).ModifierUtf16.Is("i32");
-        ((Modifier)g.ElementList[1]).ModifierUtf16.Is("key");
+        ((Modifier)g.ElementList[0]).Utf16.Is("i32");
+        ((Modifier)g.ElementList[1]).Utf16.Is("key");
 
         var st2 = TinyhandComposer.ComposeToString(e, TinyhandComposeOption.Simple);
         st2.Is(st);

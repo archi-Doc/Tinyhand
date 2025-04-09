@@ -343,18 +343,18 @@ public static class HashedString
                     string identifier;
                     if (string.IsNullOrEmpty(groupName))
                     {
-                        identifier = valueIdentifier.IdentifierUtf16;
+                        identifier = valueIdentifier.Utf16;
                     }
                     else
                     {
-                        identifier = groupName + "." + valueIdentifier.IdentifierUtf16;
+                        identifier = groupName + "." + valueIdentifier.Utf16;
                     }
 
                     if (assignment.RightElement is Value_String valueString)
                     {// Identifier = "String"
-                        if (valueString.ValueStringUtf16.Length <= MaxStringLength)
+                        if (valueString.Utf16.Length <= MaxStringLength)
                         {
-                            table.TryAdd(IdentifierToHash(identifier), valueString.ValueStringUtf16);
+                            table.TryAdd(IdentifierToHash(identifier), valueString.Utf16);
                         }
                     }
                     else if (assignment.RightElement is Group subgroup)

@@ -31,7 +31,7 @@ public static class TinyhandTreeHelper
                 return l.ValueLong > 0;
 
             case Value_String s:
-                var c = s.ValueStringUtf8;
+                var c = s.Utf8;
                 if (c.Length == 4 && (c[0] == (byte)'t' || c[0] == (byte)'T') &&
                     (c[1] == (byte)'r' || c[1] == (byte)'R') &&
                     (c[2] == (byte)'u' || c[2] == (byte)'U') &&
@@ -61,7 +61,7 @@ public static class TinyhandTreeHelper
                 return l.ValueLong == 0;
 
             case Value_String s:
-                var c = s.ValueStringUtf8;
+                var c = s.Utf8;
                 if (c.Length == 5 && (c[0] == (byte)'f' || c[0] == (byte)'F') &&
                     (c[1] == (byte)'a' || c[1] == (byte)'A') &&
                     (c[2] == (byte)'l' || c[2] == (byte)'L') &&
@@ -85,7 +85,7 @@ public static class TinyhandTreeHelper
             var left = assignment.LeftElement;
             if (left is Value_Identifier i)
             {
-                identifier = i.IdentifierUtf8;
+                identifier = i.Utf8;
                 return true;
             }
         }
@@ -101,7 +101,7 @@ public static class TinyhandTreeHelper
             var left = assignment.LeftElement;
             if (left is Value_Identifier i)
             {
-                identifier = i.IdentifierUtf16;
+                identifier = i.Utf16;
                 return true;
             }
         }
@@ -140,7 +140,7 @@ public static class TinyhandTreeHelper
         {
             if (assignment.LeftElement is Value_Identifier i)
             {
-                if (identifier == i.IdentifierUtf16)
+                if (identifier == i.Utf16)
                 {
                     value = assignment.RightElement as Value;
                     return value != null;

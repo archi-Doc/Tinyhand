@@ -178,7 +178,7 @@ public static class TinyhandComposer
         private void ComposeModifier(ref TinyhandRawWriter writer, Modifier element)
         {
             writer.WriteUInt8(TinyhandConstants.ModifierPrefix);
-            writer.WriteSpan(element.ModifierUtf8);
+            writer.WriteSpan(element.Utf8);
         }
 
         private void ComposeValue(ref TinyhandRawWriter writer, Value element)
@@ -192,7 +192,7 @@ public static class TinyhandComposer
                     {
                         writer.WriteUInt8(TinyhandConstants.IdentifierPrefix);
                     }
-                    writer.WriteSpan(i.IdentifierUtf8);
+                    writer.WriteSpan(i.Utf8);
                     break;
 
                 case ValueElementType.Value_Binary:
@@ -208,13 +208,13 @@ public static class TinyhandComposer
                     if (!s.IsTripleQuoted || s.HasTripleQuote())
                     { // Escape.
                         writer.WriteUInt8(TinyhandConstants.Quote);
-                        writer.WriteEscapedUtf8(s.ValueStringUtf8);
+                        writer.WriteEscapedUtf8(s.Utf8);
                         writer.WriteUInt8(TinyhandConstants.Quote);
                     }
                     else
                     { // """string"""
                         writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
-                        writer.WriteSpan(s.ValueStringUtf8);
+                        writer.WriteSpan(s.Utf8);
                         writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
                     }
                     break;

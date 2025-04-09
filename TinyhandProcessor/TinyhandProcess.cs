@@ -221,7 +221,7 @@ public class ProcessEnvironment : IProcessEnvironment
             { // identifier = "value"
                 if (identifier.SequenceEqual(ModeIdentifier))
                 { // "mode"
-                    if (x.TryGetRight_Value_String(out var valueString) && valueString.ValueStringUtf8.SequenceEqual(ProcessString))
+                    if (x.TryGetRight_Value_String(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString))
                     { // "process"
                         this.IsProcessMode = true;
                     }
@@ -277,7 +277,7 @@ public class ProcessEnvironment : IProcessEnvironment
     { // "process"
         if (element.TryGetRight_Value_String(out var valueString))
         { // Get ProcessCore.
-            if (this.ProcessCore.TryGetValue(valueString.ValueStringUtf16, out var info))
+            if (this.ProcessCore.TryGetValue(valueString.Utf16, out var info))
             { // Get an instance.
                 var instance = info.GetInstance(element);
                 if (instance != null)
@@ -289,7 +289,7 @@ public class ProcessEnvironment : IProcessEnvironment
             }
             else
             { // Cannot find matched ProcessCore.
-                this.Log.Fatal(valueString, $"Process name \"{valueString.ValueStringUtf16}\" is unknown.");
+                this.Log.Fatal(valueString, $"Process name \"{valueString.Utf16}\" is unknown.");
             }
         }
     }
@@ -298,9 +298,9 @@ public class ProcessEnvironment : IProcessEnvironment
     { // "root"
         if (element.TryGetRight_Value_String(out var valueString))
         {
-            if (Path.IsPathRooted(valueString.ValueStringUtf16))
+            if (Path.IsPathRooted(valueString.Utf16))
             {
-                this.RootFolder = valueString.ValueStringUtf16;
+                this.RootFolder = valueString.Utf16;
             }
             else
             {
@@ -313,13 +313,13 @@ public class ProcessEnvironment : IProcessEnvironment
     { // "source"
         if (element.TryGetRight_Value_String(out var valueString))
         {
-            if (Path.IsPathRooted(valueString.ValueStringUtf16))
+            if (Path.IsPathRooted(valueString.Utf16))
             {
-                this.SourceFolder = valueString.ValueStringUtf16;
+                this.SourceFolder = valueString.Utf16;
             }
             else
             {
-                this.SourceFolder = Path.Combine(this.RootFolder, valueString.ValueStringUtf16);
+                this.SourceFolder = Path.Combine(this.RootFolder, valueString.Utf16);
             }
         }
     }
@@ -328,13 +328,13 @@ public class ProcessEnvironment : IProcessEnvironment
     { // "destination"
         if (element.TryGetRight_Value_String(out var valueString))
         {
-            if (Path.IsPathRooted(valueString.ValueStringUtf16))
+            if (Path.IsPathRooted(valueString.Utf16))
             {
-                this.DestinationFolder = valueString.ValueStringUtf16;
+                this.DestinationFolder = valueString.Utf16;
             }
             else
             {
-                this.DestinationFolder = Path.Combine(this.RootFolder, valueString.ValueStringUtf16);
+                this.DestinationFolder = Path.Combine(this.RootFolder, valueString.Utf16);
             }
         }
     }
@@ -372,18 +372,18 @@ public class ProcessEnvironment : IProcessEnvironment
 
         Logger? newlogger = null;
 
-        if (stringValue.ValueStringUtf16 == "console")
+        if (stringValue.Utf16 == "console")
         { // Console logger
             newlogger = new ConsoleLogger(this);
         }
-        else if (stringValue.ValueStringUtf16 == "file")
+        else if (stringValue.Utf16 == "file")
         { // File logger
             string path = string.Empty;
             bool consoleFlag = false;
 
             if (element.TryGetRightGroup_Value_String("path", out stringValue))
             {
-                path = stringValue.ValueStringUtf16;
+                path = stringValue.Utf16;
                 if (!Path.IsPathRooted(path))
                 {
                     path = Path.Combine(this.GetPath(PathType.RootFolder), path);
@@ -429,20 +429,20 @@ public class ProcessEnvironment : IProcessEnvironment
                 this.Log.Error(stringValue, $"File logger could not open the file ({path}).");
             }
         }
-        else if (stringValue.ValueStringUtf16 == string.Empty)
+        else if (stringValue.Utf16 == string.Empty)
         { // Null logger.
             newlogger = new NullLogger(this);
         }
         else
         {
-            this.Log.Error(stringValue, $"Logger type \"{stringValue.ValueStringUtf16}\" is not registered.");
+            this.Log.Error(stringValue, $"Logger type \"{stringValue.Utf16}\" is not registered.");
         }
 
         if (newlogger != null)
         {
             if (element.TryGetRightGroup_Value_String("format", out var formatValue))
             {
-                if (Enum.TryParse<LogFormat>(formatValue.ValueStringUtf16, out var f))
+                if (Enum.TryParse<LogFormat>(formatValue.Utf16, out var f))
                 {
                     format = f;
                 }
