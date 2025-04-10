@@ -19,12 +19,12 @@ internal static class TinyhandGroupStack
         }
         else if (store > 0)
         {// {
-            groupStack = (groupStack & 0xFFFF_FFFF_FF00_FFFFUL) | ((ulong)(store - 1) << 16);
+            groupStack = (groupStack & 0xFFFF_FFFF_FF00_FFFFUL) | (((ulong)(store - 1) << 16) & 0xFF_0000);
             return TinyhandAtomType.StartGroup;
         }
         else
         {// }
-            groupStack = (groupStack & 0xFFFF_FFFF_FF00_FFFFUL) | ((ulong)(store + 1) << 16);
+            groupStack = (groupStack & 0xFFFF_FFFF_FF00_FFFFUL) | (((ulong)(store + 1) << 16) & 0xFF_0000);
             return TinyhandAtomType.EndGroup;
         }
     }
@@ -43,10 +43,9 @@ internal static class TinyhandGroupStack
             throw new InvalidOperationException("The bracket store is not empty.");
         }
 
-        var currentIndent = GetCurrentIndent(groupStack);
         var stackMask = BracketStackMask(depth);
         var mask = ~(0xFF_FFFFUL | stackMask);
-        groupStack = (groupStack & mask) | BracketStackMask(depth) | (1 << 16) | ((ulong)(depth + 1) << 8) | ((ulong)currentIndent + 2);
+        groupStack = (groupStack & mask) | BracketStackMask(depth) | (1 << 16) | ((ulong)(depth + 1) << 8);
     }
 
     public static void AddCloseBracket(ref ulong groupStack)
@@ -79,7 +78,7 @@ internal static class TinyhandGroupStack
             }
         }
 
-        groupStack = (groupStack & ~0xFF_FF00UL) | ((ulong)store << 16) | ((ulong)depth << 8);
+        groupStack = (groupStack & ~0xFF_FF00UL) | (((ulong)store << 16) & 0xFF_0000) | ((ulong)depth << 8);
     }
 
     public static void TerminateIndent(ref ulong groupStack)
@@ -111,7 +110,7 @@ internal static class TinyhandGroupStack
             }
         }
 
-        groupStack = (groupStack & ~0xFF_FF00UL) | ((ulong)store << 16) | ((ulong)depth << 8);
+        groupStack = (groupStack & ~0xFF_FF00UL) | (((ulong)store << 16) & 0xFF_0000) | ((ulong)depth << 8);
     }
 
     public static string? TrySetIndent(ref ulong groupStack, int indent)
@@ -122,12 +121,7 @@ internal static class TinyhandGroupStack
         }
 
         var depth = GetDepth(groupStack);
-        if (indent < depth * 2)
-        {
-            //return "The indent must be greater than the current depth.";
-        }
-
-        var currentIndent = GetCurrentIndent(groupStack);
+        var currentIndent = depth * 2;
         if (indent == currentIndent)
         {
             return default;
@@ -163,9 +157,14 @@ internal static class TinyhandGroupStack
                     break;
                 }
             }
+
+            if (indent < (depth * 2))
+            {
+                return "The indent must be greater than the current depth.";
+            }
         }
 
-        groupStack = (groupStack & ~0xFF_FFFFUL) | ((ulong)store << 16) | (ulong)depth << 8 | ((uint)indent);
+        groupStack = (groupStack & ~0xFF_FFFFUL) | (((ulong)store << 16) & 0xFF_0000) | (ulong)depth << 8 | ((uint)indent);//
         return default;
     }
 
@@ -173,20 +172,9 @@ internal static class TinyhandGroupStack
     {
         var depth = GetDepth(groupStack);
         var store = GetBracketStore(groupStack);
-        var currentIndent = GetCurrentIndent(groupStack);
         // var stack = groupStack >> 24;
-        return $"CurrentIndent: {currentIndent}, Depth: {depth}, Store: {store}";
+        return $"Depth: {depth}, Store: {store}";
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SetCurrentIndent(ref ulong groupStack, byte currentIndent)
-    {
-        groupStack = (groupStack & ~0xFFUL) | currentIndent;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static byte GetCurrentIndent(ulong groupStack)
-        => (byte)groupStack;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static byte GetDepth(ulong groupStack)

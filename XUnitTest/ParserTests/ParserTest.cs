@@ -23,7 +23,7 @@ public class ParserTest
             root = 
               a={1,2 ,b="c",}
               a={
-                12,
+                12,d
                 'z'#Comment
                   b=1.23 // Comment
                   c=abc}
