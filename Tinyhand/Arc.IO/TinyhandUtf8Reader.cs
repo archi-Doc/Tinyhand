@@ -293,9 +293,9 @@ public ref struct TinyhandUtf8Reader
 
         if ((this.bytePositionInLine & LineFeedFlag) == 0)
         {
-            if (!TinyhandGroupStack.TrySetIndent(ref this.groupStack, this.bytePositionInLine - 1))
+            if (TinyhandGroupStack.TrySetIndent(ref this.groupStack, this.bytePositionInLine - 1) is { } ex)
             {
-                this.ThrowException("The indent must be even.");
+                this.ThrowException(ex);
             }
 
             this.bytePositionInLine |= LineFeedFlag; // Set line feed flag.

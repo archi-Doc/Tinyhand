@@ -114,26 +114,31 @@ internal static class TinyhandGroupStack
         groupStack = (groupStack & ~0xFF_FFFFUL) | ((ulong)store << 16) | ((ulong)depth << 8) | InvalidIndent;
     }
 
-    public static bool TrySetIndent(ref ulong groupStack, int indent)
+    public static string? TrySetIndent(ref ulong groupStack, int indent)
     {
         if ((indent & 1) != 0)
         {
-            return false;
+            return "The indent must be even.";
         }
 
         var currentIndent = GetCurrentIndent(groupStack);
         if (currentIndent == InvalidIndent)
         {// Set new indent
             SetCurrentIndent(ref groupStack, (byte)indent);
-            return true;
+            return default;
         }
 
         if (indent == currentIndent)
         {
-            return true;
+            return default;
         }
 
         var depth = GetDepth(groupStack);
+        if (indent <= depth * 2)
+        {
+            return "The indent must be greater than the current depth.";
+        }
+
         var store = GetBracketStore(groupStack);
         var dif = (indent - currentIndent) >> 1;
         if (dif > 0)
@@ -167,7 +172,7 @@ internal static class TinyhandGroupStack
         }
 
         groupStack = (groupStack & ~0xFF_FFFFUL) | ((ulong)store << 16) | (ulong)depth << 8 | ((uint)indent);
-        return true;
+        return default;
     }
 
     public static string ToString(ulong groupStack)
