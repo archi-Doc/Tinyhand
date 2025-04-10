@@ -23,13 +23,13 @@ public class ParserTest
             root = 
               a={1,2 ,b="c",}
               a={
-              12,
-              'z'#Comment
-                b=1.23 // Comment
-                c=abc}
+                12,
+                'z'#Comment
+                  b=1.23 // Comment
+                  c=abc}
             root2=
               {
-              a=1
+                a=1
             }
             """);
     }
@@ -114,6 +114,20 @@ public class ParserTest
         Assert.Throws<TinyhandException>(() => TinyhandParser.Parse("""
             a=
              b= 12
+            """));
+
+        Assert.Throws<TinyhandException>(() => TinyhandParser.Parse("""
+            root = 
+              a={1,2 ,b="c",}
+              a={
+              12,
+              'z'#Comment
+                b=1.23 // Comment
+                c=abc}
+            root2=
+              {
+              a=1
+            }
             """));
     }
 
