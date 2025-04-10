@@ -66,7 +66,7 @@ internal static class TinyhandGroupStack
         store = -1;
         while (depth > 0)
         {
-            depth--;//
+            depth--;
             var stackMask = BracketStackMask(depth);
             if ((groupStack & stackMask) == 0)
             {// Indent
