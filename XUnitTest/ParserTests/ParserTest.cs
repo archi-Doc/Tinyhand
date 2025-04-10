@@ -18,6 +18,20 @@ public class ParserTest
         Group g, g2;
         Assignment a;
         Value_Identifier i;
+
+        e = TinyhandParser.Parse("""
+            root = 
+              a={1,2 ,b="c",}
+              a={
+            12,
+            'z'#Comment
+              b=1.23 // Comment
+              c=abc}
+            root2=
+            {
+              a=1
+            }
+            """);
     }
 
     [Fact]
