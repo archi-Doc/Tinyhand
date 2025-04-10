@@ -18,6 +18,15 @@ public class ParserTest
         Group g, g2;
         Assignment a;
         Value_Identifier i;
+    }
+
+    [Fact]
+    public void Test1()
+    {
+        Element e;
+        Group g, g2;
+        Assignment a;
+        Value_Identifier i;
 
         e = TinyhandParser.Parse(string.Empty);
         g = (Group)e;
@@ -64,7 +73,8 @@ public class ParserTest
 
         e = TinyhandParser.Parse("""
             a= {// Comment
-              b= 12
+              b= 12/*Comment*/
+                c = 'z'#Comment
             }
             """);
         g = (Group)e;
@@ -72,10 +82,14 @@ public class ParserTest
         a = (Assignment)g.ElementList[0];
         ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
         g2 = (Group)a.RightElement!;
-        g2.ElementList.Count.Is(1);
+        g2.ElementList.Count.Is(2);
         a = (Assignment)g2.ElementList[0];
         ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
         ((Value_Long)a.RightElement!).ValueLong.Is(12);
+        g2 = (Group)g2.ElementList[1];
+        a = (Assignment)g2.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("c");
+        ((Value_String)a.RightElement!).Utf16.Is("z");
     }
 
     [Fact]
@@ -90,7 +104,7 @@ public class ParserTest
     }
 
     [Fact]
-    public void Test1()
+    public void Test()
     {
         var st = "0, abc; -123 1.2";
         var e = TinyhandParser.Parse(st);

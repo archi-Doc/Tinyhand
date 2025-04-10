@@ -338,9 +338,14 @@ public ref struct TinyhandUtf8Reader
                 this.AddPosition(1);
                 return true;
 
-            case TinyhandConstants.Slash: // "//" or "/*"
+            case TinyhandConstants.Slash: // // or /*
                 this.AtomType = TinyhandAtomType.Comment;
                 this.ReadComment();
+                return true;
+
+            case TinyhandConstants.Sharp: // #
+                this.AtomType = TinyhandAtomType.Comment;
+                this.ReadComment2();
                 return true;
 
             default: // Number, Binary, Modifier/Value, Identifier/Limited identifier
@@ -581,6 +586,62 @@ Unexpected_Symbol:
         else
         { // Unexpected character.
             this.ThrowUnexpectedCharacterException(localBuffer[this.Position]);
+        }
+    }
+
+    private void ReadComment2()
+    {
+        var startPosition = this.Position;
+        this.AddPosition(1); // Skip slash.
+        if (this.Position == this.Length)
+        { // No data left.
+            return;
+        }
+
+        ReadOnlySpan<byte> localBuffer = this.buffer;
+        { // Single line comment.
+            for (var remaining = localBuffer.Length - this.Position; remaining > 0;)
+            {
+                var val = localBuffer[this.Position];
+
+                if (val == TinyhandConstants.LineFeed)
+                { // \n
+                    if (localBuffer[this.Position - 1] == TinyhandConstants.CarriageReturn)
+                    {
+                        this.ValueSpan = localBuffer.Slice(startPosition, this.Position - 1 - startPosition);
+                    }
+                    else
+                    {
+                        this.ValueSpan = localBuffer.Slice(startPosition, this.Position - startPosition);
+                    }
+
+                    if (!this.readContextualInformation)
+                    {
+                        this.AddPosition(1);
+                        this.IncrementLineNumber();
+                    }
+                    return;
+                }
+
+                if (val == 0xE2 && remaining >= 3 && localBuffer[this.Position + 1] == 0x80)
+                {
+                    if (localBuffer[this.Position + 2] == 0xA8 || localBuffer[this.Position + 2] == 0xA9)
+                    {// U+2028- U+2029, E2 80 A8 to E2 80 A9
+                        this.ValueSpan = localBuffer.Slice(startPosition, this.Position - startPosition);
+                        if (!this.readContextualInformation)
+                        {
+                            this.AddPosition(3);
+                            this.IncrementLineNumber();
+                        }
+
+                        return;
+                    }
+                }
+
+                // other
+                remaining--;
+                this.AddPosition(1);
+            }
         }
     }
 

@@ -24,6 +24,7 @@ public static class TinyhandConstants
     public const byte Quote2 = (byte)'\'';
     public const byte BackSlash = (byte)'\\';
     public const byte Slash = (byte)'/';
+    public const byte Sharp = (byte)'#';
     public const byte BackSpace = (byte)'\b';
     public const byte FormFeed = (byte)'\f';
     public const byte Asterisk = (byte)'*';
@@ -110,10 +111,12 @@ public static class TinyhandConstants
         FirstByteTable[TinyhandConstants.RightParenthesis] = 3;
         FirstByteTable[TinyhandConstants.Separator] = 3;
         FirstByteTable[TinyhandConstants.Separator2] = 3;
-        FirstByteTable[TinyhandConstants.OpenBracket] = 3;
-        FirstByteTable[TinyhandConstants.CloseBracket] = 3;
+        // FirstByteTable[TinyhandConstants.OpenBracket] = 3;
+        // FirstByteTable[TinyhandConstants.CloseBracket] = 3;
         FirstByteTable[TinyhandConstants.OpenBrace] = 3;
         FirstByteTable[TinyhandConstants.CloseBrace] = 3;
         FirstByteTable[TinyhandConstants.EqualsSign] = 3;
+        FirstByteTable[TinyhandConstants.Slash] = 3;
+        FirstByteTable[TinyhandConstants.Sharp] = 3;
     }
 }
