@@ -124,7 +124,7 @@ public ref struct TinyhandUtf8Reader
         this.ValueBinary = null;
     }
 
-    private ulong groupStack;
+    private TinyhandGroupStack groupStack;
 
     private int _position;
 
@@ -271,7 +271,7 @@ public ref struct TinyhandUtf8Reader
     /// <returns>True if the read is successful. False if no data is available (AtomType is set to None).</returns>
     public bool Read()
     {
-        this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
+        this.AtomType = this.groupStack.GetGroup();
         if (this.AtomType != TinyhandAtomType.None)
         {
             return true;
@@ -286,21 +286,21 @@ public ref struct TinyhandUtf8Reader
 
         if (this.Position >= this.Length)
         { // No data left.
-            TinyhandGroupStack.TerminateIndent(ref this.groupStack);
-            this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
+            this.groupStack.TerminateIndent();
+            this.AtomType = this.groupStack.GetGroup();
             return this.AtomType != TinyhandAtomType.None;
         }
 
         if ((this.bytePositionInLine & LineFeedFlag) == 0)
         {
-            if (TinyhandGroupStack.TrySetIndent(ref this.groupStack, this.bytePositionInLine - 1) is { } ex)
+            if (this.groupStack.TrySetIndent(this.bytePositionInLine - 1) is { } ex)
             {
                 this.ThrowException(ex);
             }
 
             this.bytePositionInLine |= LineFeedFlag; // Set line feed flag.
 
-            this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
+            this.AtomType = this.groupStack.GetGroup();
             if (this.AtomType != TinyhandAtomType.None)
             {
                 return true;
@@ -313,15 +313,15 @@ public ref struct TinyhandUtf8Reader
         switch (b)
         {
             case TinyhandConstants.OpenBrace: // {
-                TinyhandGroupStack.AddOpenBracket(ref this.groupStack);
-                this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
+                this.groupStack.AddOpenBracket();
+                this.AtomType = this.groupStack.GetGroup();
                 this.ValueSpan = this.buffer.Slice(this.Position, 1);
                 this.AddPosition(1);
                 return true;
 
             case TinyhandConstants.CloseBrace: // }
-                TinyhandGroupStack.AddCloseBracket(ref this.groupStack);
-                this.AtomType = TinyhandGroupStack.GetGroup(ref this.groupStack);
+                this.groupStack.AddCloseBracket();
+                this.AtomType = this.groupStack.GetGroup();
                 this.ValueSpan = this.buffer.Slice(this.Position, 1);
                 this.AddPosition(1);
                 return true;

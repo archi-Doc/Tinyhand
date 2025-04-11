@@ -2,74 +2,83 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Tinyhand;
 
-internal static class TinyhandGroupStack
-{// Bracket stack 40bits, Bracket store (sbyte 8bits), Depth (byte 8bits), Current indent (byte 8bits)
-    public const int MaxDepth = 40;
+[StructLayout(LayoutKind.Explicit, Size = 8)]
+internal struct TinyhandGroupStack
+{// Bracket stack 48bits, Bracket store (sbyte 8bits), Depth (byte 8bits)
+    public const int MaxDepth = 48;
+
+    [FieldOffset(0)]
+    private byte depth;
+
+    [FieldOffset(1)]
+    private sbyte bracketStore;
+
+    [FieldOffset(0)]
+    private ulong stack16;
+
+    // public byte Depth => this.depth;
+
+    public bool IsCurrentIndented => (this.stack16 & this.CurrentStackMask) == 0;
+
+    public bool IsPreviousIndented => (this.stack16 & this.PreviousStackMask) == 0;
+
+    private ulong CurrentStackMask => 1UL << (16 + this.depth);
+
+    private ulong PreviousStackMask => 1UL << (15 + this.depth);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TinyhandAtomType GetGroup(ref ulong groupStack)
+    public TinyhandAtomType GetGroup()
     {
-        var store = GetBracketStore(groupStack);
-        if (store == 0)
+        if (this.bracketStore == 0)
         {
             return TinyhandAtomType.None;
         }
-        else if (store > 0)
+        else if (this.bracketStore > 0)
         {// {
-            groupStack = (groupStack & 0xFFFF_FFFF_FF00_FFFFUL) | (((ulong)(store - 1) << 16) & 0xFF_0000);
+            this.bracketStore--;
             return TinyhandAtomType.StartGroup;
         }
         else
         {// }
-            groupStack = (groupStack & 0xFFFF_FFFF_FF00_FFFFUL) | (((ulong)(store + 1) << 16) & 0xFF_0000);
+            this.bracketStore++;
             return TinyhandAtomType.EndGroup;
         }
     }
 
-    public static void AddOpenBracket(ref ulong groupStack)
+    public void AddOpenBracket()
     {
-        var depth = GetDepth(groupStack);
-        if (depth >= MaxDepth)
-        {
-            throw new InvalidOperationException("The maximum depth of the group stack has been reached.");
-        }
-
-        var store = GetBracketStore(groupStack);
-        if (store != 0)
+        if (this.bracketStore != 0)
         {
             throw new InvalidOperationException("The bracket store is not empty.");
         }
 
-        var stackMask = BracketStackMask(depth);
-        var mask = ~(0xFF_FFFFUL | stackMask);
-        groupStack = (groupStack & mask) | BracketStackMask(depth) | (1 << 16) | ((ulong)(depth + 1) << 8);
+        this.IncrementDepth(true);
+        this.bracketStore = 1;
     }
 
-    public static void AddCloseBracket(ref ulong groupStack)
+    public void AddCloseBracket()
     {
-        var depth = GetDepth(groupStack);
-        if (depth == 0)
+        if (this.depth == 0)
         {
             throw new TinyhandException("The group stack is empty.");
         }
 
-        var store = GetBracketStore(groupStack);
-        if (store != 0)
+        if (this.bracketStore != 0)
         {
             throw new InvalidOperationException("The bracket store is not empty.");
         }
 
-        store = -1;
-        while (depth > 0)
+        this.bracketStore = -1;
+        while (this.depth > 0)
         {
-            depth--;
-            var stackMask = BracketStackMask(depth);
-            if ((groupStack & stackMask) == 0)
+            this.depth--;
+            if (this.IsCurrentIndented)
             {// Indent
-                store--;
+                this.bracketStore--;
                 continue;
             }
             else
@@ -77,31 +86,26 @@ internal static class TinyhandGroupStack
                 break;
             }
         }
-
-        groupStack = (groupStack & ~0xFF_FF00UL) | (((ulong)store << 16) & 0xFF_0000) | ((ulong)depth << 8);
     }
 
-    public static void TerminateIndent(ref ulong groupStack)
+    public void TerminateIndent()
     {
-        var depth = GetDepth(groupStack);
-        if (depth == 0)
+        if (this.depth == 0)
         {
             return;
         }
 
-        var store = GetBracketStore(groupStack);
-        if (store != 0)
+        if (this.bracketStore != 0)
         {
             throw new InvalidOperationException("The bracket store is not empty.");
         }
 
-        while (depth > 0)
+        while (this.depth > 0)
         {
-            depth--;
-            var stackMask = BracketStackMask(depth);
-            if ((groupStack & stackMask) == 0)
+            this.depth--;
+            if (this.IsCurrentIndented)
             {// Indent
-                store--;
+                this.bracketStore--;
                 continue;
             }
             else
@@ -109,47 +113,38 @@ internal static class TinyhandGroupStack
                 break;
             }
         }
-
-        groupStack = (groupStack & ~0xFF_FF00UL) | (((ulong)store << 16) & 0xFF_0000) | ((ulong)depth << 8);
     }
 
-    public static string? TrySetIndent(ref ulong groupStack, int indent)
+    public string? TrySetIndent(int indent)
     {
         if ((indent & 1) != 0)
         {
             return "The indent must be even.";
         }
 
-        var depth = GetDepth(groupStack);
-        var currentIndent = depth * 2;
+        var currentIndent = this.depth * 2;
         if (indent == currentIndent)
         {
             return default;
         }
 
-        var store = GetBracketStore(groupStack);
         var dif = (indent - currentIndent) >> 1;
         if (dif > 0)
         {
             for (var i = 0; i < dif; i++)
             {
-                groupStack &= ~BracketStackMask(depth);
-                depth++;
-                store++;
-                if (depth >= MaxDepth)
-                {
-                    throw new InvalidOperationException("The maximum depth of the group stack has been reached.");
-                }
+                this.IncrementDepth(false);
+                this.bracketStore++;
             }
         }
         else
         {
-            for (var i = 0; i < -dif && depth > 0; i++)
+            for (var i = 0; i < -dif && this.depth > 0; i++)
             {
-                if ((groupStack & BracketStackMask((byte)(depth - 1))) == 0)
+                if (this.IsPreviousIndented)
                 {// Indent
-                    depth--;
-                    store--;
+                    this.depth--;
+                    this.bracketStore--;
                     continue;
                 }
                 else
@@ -158,33 +153,35 @@ internal static class TinyhandGroupStack
                 }
             }
 
-            if (indent < (depth * 2))
+            if (indent < (this.depth * 2))
             {
                 return "The indent must be greater than the current depth.";
             }
         }
 
-        groupStack = (groupStack & ~0xFF_FFFFUL) | (((ulong)store << 16) & 0xFF_0000) | (ulong)depth << 8 | ((uint)indent);//
         return default;
     }
 
-    public static string ToString(ulong groupStack)
+    public override string ToString()
+        => $"Depth: {this.depth}, Store: {this.bracketStore}";
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void IncrementDepth(bool bracket)
     {
-        var depth = GetDepth(groupStack);
-        var store = GetBracketStore(groupStack);
-        // var stack = groupStack >> 24;
-        return $"Depth: {depth}, Store: {store}";
+        if (this.depth >= MaxDepth)
+        {
+            throw new InvalidOperationException("The maximum depth of the group stack has been reached.");
+        }
+
+        if (bracket)
+        {
+            this.stack16 |= this.CurrentStackMask;
+        }
+        else
+        {
+            this.stack16 &= ~this.CurrentStackMask;
+        }
+
+        this.depth++;
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static byte GetDepth(ulong groupStack)
-        => (byte)(groupStack >> 8);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static sbyte GetBracketStore(ulong groupStack)
-        => (sbyte)(groupStack >> 16);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ulong BracketStackMask(byte depth)
-        => 1UL << (depth + 24);
 }
