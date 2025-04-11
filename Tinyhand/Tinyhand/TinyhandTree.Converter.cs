@@ -190,7 +190,7 @@ public static class TinyhandTreeConverter
                         indents++;
 
                         // Next line + indent
-                        writer.WriteCRLF();
+                        writer.WriteLF();
                         writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                     }
 
@@ -208,7 +208,7 @@ public static class TinyhandTreeConverter
                             }
                             else
                             {// Next line + indent
-                                writer.WriteCRLF();
+                                writer.WriteLF();
                                 writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                             }
                         }
@@ -221,7 +221,7 @@ public static class TinyhandTreeConverter
 
                     if (options.Compose != TinyhandComposeOption.Simple)
                     {// Next line + indent
-                        writer.WriteCRLF();
+                        writer.WriteLF();
                         writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
                     }
 

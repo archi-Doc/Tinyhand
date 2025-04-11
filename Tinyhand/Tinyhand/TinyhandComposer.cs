@@ -116,7 +116,7 @@ public static class TinyhandComposer
                 case ElementType.LineFeed:
                     if (this.useContextualInformation)
                     {
-                        writer.WriteCRLF();
+                        writer.WriteLF();
                         // this.requireDelimiter = false;
                     }
                     break;
@@ -165,7 +165,7 @@ public static class TinyhandComposer
 
             if (!this.useContextualInformation)
             {
-                writer.WriteCRLF();
+                writer.WriteLF();
             }
 
             this.indent += indent;
