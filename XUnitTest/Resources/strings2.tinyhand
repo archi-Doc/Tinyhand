@@ -1,10 +1,8 @@
 NameD = "d"
-GroupA =
-{
-    NameY = "Y"
+GroupA = {
+  NameY = "Y"
 }
 
-GroupB =
-{
-    Test = "test"
+GroupB = {
+  Test = "test"
 }

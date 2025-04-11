@@ -291,7 +291,9 @@ public ref struct TinyhandUtf8Reader
             return this.AtomType != TinyhandAtomType.None;
         }
 
-        if ((this.bytePositionInLine & LineFeedFlag) == 0)
+        if ((this.bytePositionInLine & LineFeedFlag) == 0 &&
+            this.Current != TinyhandConstants.Slash &&
+            this.Current != TinyhandConstants.Sharp)
         {
             if (this.groupStack.TrySetIndent(this.bytePositionInLine - 1) is { } ex)
             {
@@ -352,7 +354,15 @@ public ref struct TinyhandUtf8Reader
                 return true;
 
             default: // Number, Binary, Modifier/Value, Identifier/Limited identifier
-                if (TinyhandHelper.IsDigit(b) || b == (byte)'+' || b == (byte)'-')
+                if (b == (byte)'+' && this.Remaining >= 2 && this.buffer[this.Position + 1] == ' ')
+                {// "+ "
+                    this.groupStack.AddIndent();
+                    this.AtomType = this.groupStack.GetGroup();
+                    this.ValueSpan = this.buffer.Slice(this.Position, 2);
+                    this.AddPosition(2);
+                    return true;
+                }
+                else if (TinyhandHelper.IsDigit(b) || b == (byte)'+' || b == (byte)'-')
                 { // Number
                     if (this.ReadNumber())
                     {

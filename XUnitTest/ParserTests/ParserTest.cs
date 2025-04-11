@@ -106,10 +106,14 @@ public class ParserTest
             root3=
             {
               b=2
-              x=
-                y=1
-                y='a'
-                }
+              x= // {{y=1 z=2}, {y='a' z=3}}
+                + y=1
+                  z=2
+                + y='a'
+                  z=3
+
+                //c
+                  }
             """);
         g = (Group)e;
         g.ElementList.Count.Is(3);
@@ -153,10 +157,30 @@ public class ParserTest
         a = (Assignment)g.ElementList[2]; // root3
         ((Value_Identifier)a.LeftElement!).Utf16.Is("root3");
         g2 = (Group)a.RightElement!;
-        g2.ElementList.Count.Is(1);
+        g2.ElementList.Count.Is(2);
         a = (Assignment)g2.ElementList[0];
         ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
         ((Value_Long)a.RightElement!).ValueLong.Is(2);
+        a = (Assignment)g2.ElementList[1];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("x");
+        g2 = (Group)a.RightElement!;
+        g2.ElementList.Count.Is(2);
+        g = (Group)g2.ElementList[0];
+        g.ElementList.Count.Is(2);
+        a = (Assignment)g.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("y");
+        ((Value_Long)a.RightElement!).ValueLong.Is(1);
+        a = (Assignment)g.ElementList[1];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("z");
+        ((Value_Long)a.RightElement!).ValueLong.Is(2);
+        g = (Group)g2.ElementList[1];
+        g.ElementList.Count.Is(2);
+        a = (Assignment)g.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("y");
+        ((Value_String)a.RightElement!).Utf16.Is("a");
+        a = (Assignment)g.ElementList[1];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("z");
+        ((Value_Long)a.RightElement!).ValueLong.Is(3);
     }
 
     [Fact]

@@ -49,6 +49,17 @@ internal struct TinyhandGroupStack
         }
     }
 
+    public void AddIndent()
+    {
+        if (this.bracketStore != 0)
+        {
+            throw new InvalidOperationException("The bracket store is not empty.");
+        }
+
+        this.IncrementDepth(false);
+        this.bracketStore = 1;
+    }
+
     public void AddOpenBracket()
     {
         if (this.bracketStore != 0)
