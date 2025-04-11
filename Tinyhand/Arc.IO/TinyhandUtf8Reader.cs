@@ -295,7 +295,10 @@ public ref struct TinyhandUtf8Reader
         {
             if (this.groupStack.TrySetIndent(this.bytePositionInLine - 1) is { } ex)
             {
-                this.ThrowException(ex);
+                if (this.Current != TinyhandConstants.CloseBrace)
+                {
+                    this.ThrowException(ex);
+                }
             }
 
             this.bytePositionInLine |= LineFeedFlag; // Set line feed flag.

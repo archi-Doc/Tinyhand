@@ -30,7 +30,7 @@ public class ParserTest
             root2=
               {
                 a=1
-            }
+              }
             """);
     }
 
