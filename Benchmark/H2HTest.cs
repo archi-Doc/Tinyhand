@@ -197,7 +197,7 @@ public class H2HBenchmark
         return Tinyhand.TinyhandSerializer.DeserializeObject<ObjectH2H>(this.data); // Deserialize
     }
 
-    /*[Benchmark]
+    [Benchmark]
     public byte[] SerializeMessagePackString()
     {
         return MessagePack.MessagePackSerializer.Serialize(this.h2h2);
@@ -243,7 +243,7 @@ public class H2HBenchmark
     public ObjectH2H2? DeserializeJsonUtf8()
     {
         return JsonSerializer.Deserialize<ObjectH2H2>(this.json);
-    }*/
+    }
 }
 
 [Config(typeof(BenchmarkConfig))]
