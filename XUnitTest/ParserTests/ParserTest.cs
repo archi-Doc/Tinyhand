@@ -18,27 +18,13 @@ public class ParserTest
         Group g, g2;
         Assignment a;
         Value_Identifier i;
-
-        e = TinyhandParser.Parse("""
-            root = 
-              a={1,2 ,b="c",}
-              a={
-                12,d
-                'z'#Comment
-                  b=1.23 // Comment
-                  c=abc}
-            root2=
-              {
-                a=1
-              }
-            """);
     }
 
     [Fact]
     public void Test1()
     {
         Element e;
-        Group g, g2;
+        Group g, g2, r;
         Assignment a;
         Value_Identifier i;
 
@@ -104,6 +90,73 @@ public class ParserTest
         a = (Assignment)g2.ElementList[0];
         ((Value_Identifier)a.LeftElement!).Utf16.Is("c");
         ((Value_String)a.RightElement!).Utf16.Is("z");
+
+        e = TinyhandParser.Parse("""
+            root = 
+              a={1,2 ,b="c",}
+              a={
+                12,d
+                'z'#Comment
+                  b=1.23 // Comment
+                  c=abc}
+            root2=
+              {
+                a=1
+              }
+            root3=
+            {
+              b=2
+              x=
+                y=1
+                y='a'
+                }
+            """);
+        g = (Group)e;
+        g.ElementList.Count.Is(3);
+        a = (Assignment)g.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("root");
+        r = (Group)a.RightElement!;
+        r.ElementList.Count.Is(2);
+        a = (Assignment)r.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
+        g2 = (Group)a.RightElement!; // {1,2 ,b="c",}
+        g2.ElementList.Count.Is(3);
+        ((Value_Long)g2.ElementList[0]).ValueLong.Is(1);
+        ((Value_Long)g2.ElementList[1]).ValueLong.Is(2);
+        a = (Assignment)g2.ElementList[2];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
+        ((Value_String)a.RightElement!).Utf16.Is("c");
+        a = (Assignment)r.ElementList[1];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
+        g2 = (Group)a.RightElement!; // { 12, d, 'z', {b = 1.23, c = abc}}
+        g2.ElementList.Count.Is(4);
+        ((Value_Long)g2.ElementList[0]).ValueLong.Is(12);
+        ((Value_Identifier)g2.ElementList[1]).Utf16.Is("d");
+        ((Value_String)g2.ElementList[2]).Utf16.Is("z");
+        g2 = (Group)g2.ElementList[3];
+        g2.ElementList.Count.Is(2);
+        a = (Assignment)g2.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
+        ((Value_Double)a.RightElement!).ValueDouble.Is(1.23);
+        a = (Assignment)g2.ElementList[1];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("c");
+        ((Value_Identifier)a.RightElement!).Utf16.Is("abc");
+        a = (Assignment)g.ElementList[1]; // root2
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("root2");
+        g2 = (Group)a.RightElement!;
+        g2.ElementList.Count.Is(1);
+        g2 = (Group)g2.ElementList[0]!;
+        g2.ElementList.Count.Is(1);
+        a = (Assignment)g2.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
+        ((Value_Long)a.RightElement!).ValueLong.Is(1);
+        a = (Assignment)g.ElementList[2]; // root3
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("root3");
+        g2 = (Group)a.RightElement!;
+        g2.ElementList.Count.Is(1);
+        a = (Assignment)g2.ElementList[0];
+        ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
+        ((Value_Long)a.RightElement!).ValueLong.Is(2);
     }
 
     [Fact]
