@@ -499,6 +499,9 @@ public partial class MyClass
     public int MyProperty3 { get; set; }
 }
 
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial record MyClass2 (int X, int Y, string Z);
+
 [TinyhandObject]
 public partial class Empty1
 {

@@ -10,6 +10,8 @@ namespace Tinyhand.Tests;
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class TextSerializeClass1
 {
+    public MyClass2[] MyClass2Array { get; set; } = [];
+
     [Key("2int-string")]
     public Dictionary<int, string> DictionaryIntString { get; set; } = default!;
 
@@ -82,6 +84,9 @@ public class TextSerializeTest
         var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
         c1.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
         c1.IDictionaryStringDouble = new Dictionary<string, double>(new KeyValuePair<string, double>[] { new KeyValuePair<string, double>("test", 33d) });
+        var mc = new MyClass2(1, 2, "A");
+        var mc2 = new MyClass2(10, 20, "AA");
+        c1.MyClass2Array = [mc, mc2,];
 
         st = TinyhandSerializer.SerializeToString(c1);
         var c2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);

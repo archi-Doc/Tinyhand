@@ -1,8 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System.Diagnostics;
 using Arc.Visceral;
-using Microsoft.CodeAnalysis;
 using Tinyhand.Generator;
 
 namespace TinyhandGenerator.Internal;
@@ -43,7 +41,7 @@ internal ref struct ValueAssignment
             }
 
             this.temporaryValue = this.ssb.ScopeFullObject("vd");
-            this.ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
+            this.ssb.AppendLine(withNullable.FullNameWithNullable + " vd;"); // vd = default!
         }
     }
 

@@ -160,11 +160,12 @@ public static class TinyhandTreeConverter
                     if (!omitTopLevelBracket)
                     {
                         writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                        indents++;
                     }
 
                     for (int i = 0; i < length; i++)
                     {
-                        FromReaderToUtf8(ref reader, ref writer, options, false);
+                        FromReaderToUtf8(ref reader, ref writer, options, false, indents);
                         if (i != (length - 1))
                         {
                             writer.WriteUInt16(0x2C20); // ", "
@@ -174,6 +175,7 @@ public static class TinyhandTreeConverter
                     if (!omitTopLevelBracket)
                     {
                         writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                        indents--;
                     }
                 }
 
