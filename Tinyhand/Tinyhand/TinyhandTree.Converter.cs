@@ -19,24 +19,26 @@ namespace Tinyhand;
 
 public ref struct TinyhandGroupWriter
 {
-    private readonly TinyhandRawWriter writer;
-    private readonly bool enableIndent;
-    // private readonly TinyhandComposeOption composeOption;
+    public readonly TinyhandComposeOption ComposeOption;
+
     private int indents;
     private int firstSerial;
     private int secondSerial;
 
-    public TinyhandGroupWriter(TinyhandRawWriter writer, bool enableIndent)
+    public bool EnableIndent => this.ComposeOption == TinyhandComposeOption.Standard || this.ComposeOption == TinyhandComposeOption.UseContextualInformation;
+
+    public int Indents => this.indents;
+
+    public TinyhandGroupWriter(TinyhandComposeOption composeOption)
     {
-        this.writer = writer;
-        this.enableIndent = enableIndent;
+        this.ComposeOption = composeOption;
     }
 
-    public void ProcessStartGroup()
+    public void ProcessStartGroup(ref TinyhandRawWriter writer)
     {
-        if (!this.enableIndent)
+        if (!this.EnableIndent)
         {
-            this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
+            writer.WriteUInt8(TinyhandConstants.OpenBrace);
             return;
         }
 
@@ -53,21 +55,21 @@ ProcessPartialLoop:
         {// this.firstSerial > 0
             if (this.secondSerial == 0)
             {
-                this.secondSerial++;
+                this.firstSerial++;
             }
             else
             {// this.secondSerial < 0
-                this.ProcessPartial();
+                this.ProcessPartial(ref writer);
                 goto ProcessPartialLoop;
             }
         }
     }
 
-    public void ProcessEndGroup()
+    public void ProcessEndGroup(ref TinyhandRawWriter writer)
     {
-        if (!this.enableIndent)
+        if (!this.EnableIndent)
         {
-            this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+            writer.WriteUInt8(TinyhandConstants.CloseBrace);
             return;
         }
 
@@ -80,11 +82,11 @@ ProcessPartialLoop:
         {// this.secondSerial >= 0
             if (this.secondSerial == 0)
             {
-                this.secondSerial++;
+                this.firstSerial--;
             }
             else
             {// this.secondSerial > 0
-                this.ProcessPartial();
+                this.ProcessPartial(ref writer);
                 goto ProcessPartialLoop;
             }
         }
@@ -94,7 +96,7 @@ ProcessPartialLoop:
         }
     }
 
-    public void Flush()
+    public void Flush(ref TinyhandRawWriter writer)
     {
         if (this.firstSerial == 0)
         {// 0 serial
@@ -103,8 +105,8 @@ ProcessPartialLoop:
         else if (this.secondSerial == 0)
         {// 1 serial
             this.indents += this.firstSerial;
-            this.writer.WriteLF();
-            this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+            writer.WriteLF();
+            writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
             this.firstSerial = 0;
             return;
         }
@@ -113,25 +115,25 @@ ProcessPartialLoop:
             if (this.firstSerial >= -this.secondSerial)
             {// 3, -2: {{{}}
                 this.indents += this.firstSerial + this.secondSerial;
-                this.writer.WriteLF();
-                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                writer.WriteLF();
+                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
                 for (var i = 0; i < -this.secondSerial; i++)
                 {
-                    this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
                 }
             }
             else
             {// 2, -3: {{}}}
                 for (var i = 0; i < this.firstSerial; i++)
                 {
-                    this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
                 }
 
                 this.indents += this.firstSerial + this.secondSerial;
-                this.writer.WriteLF();
-                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                writer.WriteLF();
+                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
             }
         }
         else
@@ -139,23 +141,23 @@ ProcessPartialLoop:
             if (-this.firstSerial >= this.secondSerial)
             {// -3, 2: }}}{{
                 this.indents += this.firstSerial;
-                this.writer.WriteLF();
-                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                writer.WriteLF();
+                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
                 for (var i = 0; i < -this.secondSerial; i++)
                 {
-                    this.writer.WriteUInt8((byte)'+');
-                    this.writer.WriteUInt8(TinyhandConstants.Space);
+                    writer.WriteUInt8((byte)'+');
+                    writer.WriteUInt8(TinyhandConstants.Space);
                 }
             }
             else
             {// -2, 3: }}{{{
                 this.indents += this.firstSerial;
-                this.writer.WriteLF();
-                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                writer.WriteLF();
+                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
                 for (var i = 0; i < -this.secondSerial; i++)
                 {
-                    this.writer.WriteUInt8((byte)'+');
-                    this.writer.WriteUInt8(TinyhandConstants.Space);
+                    writer.WriteUInt8((byte)'+');
+                    writer.WriteUInt8(TinyhandConstants.Space);
                 }
             }
         }
@@ -164,19 +166,19 @@ ProcessPartialLoop:
         this.secondSerial = 0;
     }
 
-    private void ProcessPartial()
+    private void ProcessPartial(ref TinyhandRawWriter writer)
     {
         if (this.firstSerial > 0)
         {// 2serials: 1st '{' 2nd '}'
             if (this.firstSerial >= -this.secondSerial)
             {// 3, -2: {{{}}
                 this.indents += this.firstSerial + this.secondSerial;
-                this.writer.WriteLF();
-                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                writer.WriteLF();
+                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
                 for (var i = 0; i < -this.secondSerial; i++)
                 {
-                    this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
                 }
 
                 this.firstSerial = 0;
@@ -186,8 +188,8 @@ ProcessPartialLoop:
             {// 2, -3: {{}}}
                 for (var i = 0; i < this.firstSerial; i++)
                 {
-                    this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
                 }
 
                 this.firstSerial = 0;
@@ -199,12 +201,12 @@ ProcessPartialLoop:
             if (-this.firstSerial >= this.secondSerial)
             {// -3, 2: }}}{{
                 this.indents += this.firstSerial;
-                this.writer.WriteLF();
-                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                writer.WriteLF();
+                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
                 for (var i = 0; i < -this.secondSerial; i++)
                 {
-                    this.writer.WriteUInt8((byte)'+');
-                    this.writer.WriteUInt8(TinyhandConstants.Space);
+                    writer.WriteUInt8((byte)'+');
+                    writer.WriteUInt8(TinyhandConstants.Space);
                 }
 
                 this.firstSerial = 0;
@@ -213,12 +215,12 @@ ProcessPartialLoop:
             else
             {// -2, 3: }}{{{
                 this.indents += this.firstSerial;
-                this.writer.WriteLF();
-                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                writer.WriteLF();
+                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
                 for (var i = 0; i < -this.secondSerial; i++)
                 {
-                    this.writer.WriteUInt8((byte)'+');
-                    this.writer.WriteUInt8(TinyhandConstants.Space);
+                    writer.WriteUInt8((byte)'+');
+                    writer.WriteUInt8(TinyhandConstants.Space);
                 }
 
                 this.firstSerial = 0;
@@ -261,19 +263,22 @@ public static class TinyhandTreeConverter
         var byteSequence = new ByteSequence();
         try
         {
+            var groupWriter = new TinyhandGroupWriter(options.Compose);
             if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
             {
                 var r = reader.Clone(byteSequence.ToReadOnlySpan());
                 while (!r.End)
                 {
-                    FromReaderToUtf8(ref r, ref writer, options, omitTopLevelBracket); // r.ConvertToUtf8(ref writer);
+                    FromReaderToUtf8(ref r, ref writer, ref groupWriter, omitTopLevelBracket); // r.ConvertToUtf8(ref writer);
+                    groupWriter.Flush(ref writer);
                 }
             }
             else
             {
                 while (!reader.End)
                 {
-                    FromReaderToUtf8(ref reader, ref writer, options, omitTopLevelBracket); // reader.ConvertToUtf8(ref writer);
+                    FromReaderToUtf8(ref reader, ref writer, ref groupWriter, omitTopLevelBracket); // reader.ConvertToUtf8(ref writer);
+                    groupWriter.Flush(ref writer);
                 }
             }
         }
@@ -288,16 +293,16 @@ public static class TinyhandTreeConverter
     /// </summary>
     /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
-    /// <param name="options">The options.</param>
+    /// <param name="groupWriter">TinyhandGroupWriter.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
-    /// <param name="indents">The number of indents.</param>
     /// <param name="convertToIdentifier">Convert a string to an identifier if possible.</param>
-    public static void FromReaderToUtf8(scoped ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, bool omitTopLevelBracket = false, int indents = 0, bool convertToIdentifier = false)
+    public static void FromReaderToUtf8(scoped ref TinyhandReader reader, ref TinyhandRawWriter writer, scoped ref TinyhandGroupWriter groupWriter, bool omitTopLevelBracket = false, bool convertToIdentifier = false)
     {
         var type = reader.NextMessagePackType;
         switch (type)
         {
             case MessagePackType.Integer:
+                groupWriter.Flush(ref writer);
                 if (MessagePackCode.IsSignedInteger(reader.NextCode))
                 {
                     writer.WriteStringInt64(reader.ReadInt64());
@@ -310,6 +315,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.Boolean:
+                groupWriter.Flush(ref writer);
                 if (reader.ReadBoolean())
                 {
                     writer.WriteSpan(TinyhandConstants.TrueSpan);
@@ -322,6 +328,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.Float:
+                groupWriter.Flush(ref writer);
                 if (reader.NextCode == MessagePackCode.Float32)
                 {
                     writer.WriteStringSingle(reader.ReadSingle());
@@ -334,6 +341,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.String:
+                groupWriter.Flush(ref writer);
                 var span = reader.ReadStringSpan();
                 var utf8 = span.ToArray();
 
@@ -351,6 +359,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.Binary:
+                groupWriter.Flush(ref writer);
                 writer.WriteUInt8((byte)'b');
                 writer.WriteUInt8(TinyhandConstants.Quote);
                 // writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
@@ -364,14 +373,13 @@ public static class TinyhandTreeConverter
                     int length = reader.ReadArrayHeader();
                     if (!omitTopLevelBracket)
                     {
-                        writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                        indents++;
+                        groupWriter.ProcessStartGroup(ref writer);
                     }
 
                     for (int i = 0; i < length; i++)
                     {
-                        FromReaderToUtf8(ref reader, ref writer, options, false, indents);
-                        if (i != (length - 1))
+                        FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false);
+                        if (!groupWriter.EnableIndent && i != (length - 1))
                         {
                             writer.WriteUInt16(0x2C20); // ", "
                         }
@@ -379,8 +387,7 @@ public static class TinyhandTreeConverter
 
                     if (!omitTopLevelBracket)
                     {
-                        writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                        indents--;
+                        groupWriter.ProcessEndGroup(ref writer);
                     }
                 }
 
@@ -392,55 +399,48 @@ public static class TinyhandTreeConverter
 
                     if (!omitTopLevelBracket)
                     {
-                        // {
-                        writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                        indents++;
-
-                        // Next line + indent
-                        writer.WriteLF();
-                        writer.WriteSpan(GetIndentSpan(indents));
+                        groupWriter.ProcessStartGroup(ref writer);
                     }
 
                     for (int i = 0; i < length; i++)
                     {
-                        FromReaderToUtf8(ref reader, ref writer, options, false, indents, options.Compose != TinyhandComposeOption.Simple);
-                        writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                        FromReaderToUtf8(ref reader, ref writer, options, false, indents);
+                        FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false, groupWriter.ComposeOption != TinyhandComposeOption.Simple);
+
+                        /*if (groupWriter.ComposeOption != TinyhandComposeOption.Simple)
+                        {
+                            writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+                        }
+                        else*/
+                        {
+                            writer.WriteUInt8(TinyhandConstants.EqualsSign);
+                        }
+
+                        FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false);
 
                         if (i != (length - 1))
                         {
-                            if (options.Compose == TinyhandComposeOption.Simple)
+                            if (groupWriter.ComposeOption == TinyhandComposeOption.Simple)
                             {
                                 writer.WriteUInt16(0x2C20); // ", "
                             }
                             else
                             {// Next line + indent
                                 writer.WriteLF();
-                                writer.WriteSpan(GetIndentSpan(indents));
+                                writer.WriteSpan(GetIndentSpan(groupWriter.Indents));
                             }
                         }
                     }
 
                     if (!omitTopLevelBracket)
                     {
-                        indents--;
-                    }
-
-                    if (options.Compose != TinyhandComposeOption.Simple)
-                    {// Next line + indent
-                        writer.WriteLF();
-                        writer.WriteSpan(GetIndentSpan(indents));
-                    }
-
-                    if (!omitTopLevelBracket)
-                    {// }
-                        writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                        groupWriter.ProcessEndGroup(ref writer);
                     }
                 }
 
                 return;
 
             case MessagePackType.Extension:
+                groupWriter.Flush(ref writer);
                 var extHeader = reader.ReadExtensionFormatHeader();
                 string st;
                 if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
@@ -472,6 +472,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.Nil:
+                groupWriter.Flush(ref writer);
                 reader.Skip();
                 writer.WriteSpan(TinyhandConstants.NullSpan);
                 return;
