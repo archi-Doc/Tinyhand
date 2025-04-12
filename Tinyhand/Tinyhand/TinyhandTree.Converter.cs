@@ -20,19 +20,26 @@ namespace Tinyhand;
 public ref struct TinyhandGroupWriter
 {
     private readonly TinyhandRawWriter writer;
-    private readonly TinyhandComposeOption composeOption;
+    private readonly bool enableIndent;
+    // private readonly TinyhandComposeOption composeOption;
     private int indents;
     private int firstSerial;
     private int secondSerial;
 
-    public TinyhandGroupWriter(TinyhandRawWriter writer, TinyhandComposeOption composeOption)
+    public TinyhandGroupWriter(TinyhandRawWriter writer, bool enableIndent)
     {
         this.writer = writer;
-        this.composeOption = composeOption;
+        this.enableIndent = enableIndent;
     }
 
     public void ProcessStartGroup()
     {
+        if (!this.enableIndent)
+        {
+            this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
+            return;
+        }
+
 ProcessPartialLoop:
         if (this.firstSerial == 0)
         {// this.secondSerial == 0
@@ -58,6 +65,12 @@ ProcessPartialLoop:
 
     public void ProcessEndGroup()
     {
+        if (!this.enableIndent)
+        {
+            this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+            return;
+        }
+
 ProcessPartialLoop:
         if (this.firstSerial == 0)
         {// this.secondSerial == 0
@@ -93,14 +106,125 @@ ProcessPartialLoop:
             this.writer.WriteLF();
             this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
             this.firstSerial = 0;
+            return;
+        }
+        else if (this.firstSerial > 0)
+        {// 2serials: 1st '{' 2nd '}'
+            if (this.firstSerial >= -this.secondSerial)
+            {// 3, -2: {{{}}
+                this.indents += this.firstSerial + this.secondSerial;
+                this.writer.WriteLF();
+                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                for (var i = 0; i < -this.secondSerial; i++)
+                {
+                    this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                }
+            }
+            else
+            {// 2, -3: {{}}}
+                for (var i = 0; i < this.firstSerial; i++)
+                {
+                    this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                }
+
+                this.indents += this.firstSerial + this.secondSerial;
+                this.writer.WriteLF();
+                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+            }
         }
         else
-        {// 2serials
+        {// 2serials: 1st '}' 2nd '{'
+            if (-this.firstSerial >= this.secondSerial)
+            {// -3, 2: }}}{{
+                this.indents += this.firstSerial;
+                this.writer.WriteLF();
+                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                for (var i = 0; i < -this.secondSerial; i++)
+                {
+                    this.writer.WriteUInt8((byte)'+');
+                    this.writer.WriteUInt8(TinyhandConstants.Space);
+                }
+            }
+            else
+            {// -2, 3: }}{{{
+                this.indents += this.firstSerial;
+                this.writer.WriteLF();
+                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                for (var i = 0; i < -this.secondSerial; i++)
+                {
+                    this.writer.WriteUInt8((byte)'+');
+                    this.writer.WriteUInt8(TinyhandConstants.Space);
+                }
+            }
         }
+
+        this.firstSerial = 0;
+        this.secondSerial = 0;
     }
 
     private void ProcessPartial()
     {
+        if (this.firstSerial > 0)
+        {// 2serials: 1st '{' 2nd '}'
+            if (this.firstSerial >= -this.secondSerial)
+            {// 3, -2: {{{}}
+                this.indents += this.firstSerial + this.secondSerial;
+                this.writer.WriteLF();
+                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                for (var i = 0; i < -this.secondSerial; i++)
+                {
+                    this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                }
+
+                this.firstSerial = 0;
+                this.secondSerial = 0;
+            }
+            else
+            {// 2, -3: {{}}}
+                for (var i = 0; i < this.firstSerial; i++)
+                {
+                    this.writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                    this.writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                }
+
+                this.firstSerial = 0;
+                this.secondSerial += this.firstSerial;
+            }
+        }
+        else
+        {// 2serials: 1st '}' 2nd '{'
+            if (-this.firstSerial >= this.secondSerial)
+            {// -3, 2: }}}{{
+                this.indents += this.firstSerial;
+                this.writer.WriteLF();
+                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                for (var i = 0; i < -this.secondSerial; i++)
+                {
+                    this.writer.WriteUInt8((byte)'+');
+                    this.writer.WriteUInt8(TinyhandConstants.Space);
+                }
+
+                this.firstSerial = 0;
+                this.secondSerial = 0;
+            }
+            else
+            {// -2, 3: }}{{{
+                this.indents += this.firstSerial;
+                this.writer.WriteLF();
+                this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                for (var i = 0; i < -this.secondSerial; i++)
+                {
+                    this.writer.WriteUInt8((byte)'+');
+                    this.writer.WriteUInt8(TinyhandConstants.Space);
+                }
+
+                this.firstSerial = 0;
+                this.secondSerial += this.firstSerial;
+            }
+        }
     }
 }
 
