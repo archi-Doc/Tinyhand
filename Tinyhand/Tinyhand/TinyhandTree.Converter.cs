@@ -17,6 +17,93 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
+public ref struct TinyhandGroupWriter
+{
+    private readonly TinyhandRawWriter writer;
+    private readonly TinyhandComposeOption composeOption;
+    private int indents;
+    private int firstSerial;
+    private int secondSerial;
+
+    public TinyhandGroupWriter(TinyhandRawWriter writer, TinyhandComposeOption composeOption)
+    {
+        this.writer = writer;
+        this.composeOption = composeOption;
+    }
+
+    public void ProcessStartGroup()
+    {
+ProcessPartialLoop:
+        if (this.firstSerial == 0)
+        {// this.secondSerial == 0
+            this.firstSerial++;
+        }
+        else if (this.firstSerial < 0)
+        {// this.secondSerial >= 0
+            this.secondSerial++;
+        }
+        else
+        {// this.firstSerial > 0
+            if (this.secondSerial == 0)
+            {
+                this.secondSerial++;
+            }
+            else
+            {// this.secondSerial < 0
+                this.ProcessPartial();
+                goto ProcessPartialLoop;
+            }
+        }
+    }
+
+    public void ProcessEndGroup()
+    {
+ProcessPartialLoop:
+        if (this.firstSerial == 0)
+        {// this.secondSerial == 0
+            this.firstSerial--;
+        }
+        else if (this.firstSerial < 0)
+        {// this.secondSerial >= 0
+            if (this.secondSerial == 0)
+            {
+                this.secondSerial++;
+            }
+            else
+            {// this.secondSerial > 0
+                this.ProcessPartial();
+                goto ProcessPartialLoop;
+            }
+        }
+        else
+        {// this.firstSerial > 0
+            this.secondSerial--;
+        }
+    }
+
+    public void Flush()
+    {
+        if (this.firstSerial == 0)
+        {// 0 serial
+            return;
+        }
+        else if (this.secondSerial == 0)
+        {// 1 serial
+            this.indents += this.firstSerial;
+            this.writer.WriteLF();
+            this.writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+            this.firstSerial = 0;
+        }
+        else
+        {// 2serials
+        }
+    }
+
+    private void ProcessPartial()
+    {
+    }
+}
+
 public static class TinyhandTreeConverter
 {
     private const int InitialBufferSize = 32 * 1024;
@@ -898,7 +985,7 @@ public static class TinyhandTreeConverter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static ReadOnlySpan<byte> GetIndentSpan(int indents)
+    internal static ReadOnlySpan<byte> GetIndentSpan(int indents)
     {
         if (indents > MaxIndentBuffer)
         {
