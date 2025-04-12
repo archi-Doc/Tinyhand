@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -10,6 +11,13 @@ namespace Tinyhand;
 internal struct TinyhandGroupStack
 {// Bracket stack 48bits, Bracket store (sbyte 8bits), Depth (byte 8bits)
     public const int MaxDepth = 48;
+
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowIndentationDepthException()
+    {
+        throw new InvalidOperationException("The maximum indentation depth has been reached.");
+    }
 
     [FieldOffset(0)]
     private byte depth;
@@ -181,7 +189,7 @@ internal struct TinyhandGroupStack
     {
         if (this.depth >= MaxDepth)
         {
-            throw new InvalidOperationException("The maximum depth of the group stack has been reached.");
+            ThrowIndentationDepthException();
         }
 
         if (bracket)

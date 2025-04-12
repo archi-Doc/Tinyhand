@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Arc.IO;
 using Tinyhand.IO;
@@ -19,7 +20,7 @@ namespace Tinyhand;
 public static class TinyhandTreeConverter
 {
     private const int InitialBufferSize = 32 * 1024;
-    private const int MaxIndentBuffer = 16;
+    private const int MaxIndentBuffer = TinyhandGroupStack.MaxDepth;
 
     /// <summary>
     /// A thread-local, recyclable array that may be used for short bursts of code.
@@ -27,18 +28,11 @@ public static class TinyhandTreeConverter
     [ThreadStatic]
     private static byte[]? initialBuffer;
 
-    private static byte[][] indentBuffer;
+    private static byte[] indentSpaces;
 
     static TinyhandTreeConverter()
     {
-        indentBuffer = new byte[MaxIndentBuffer][];
-        indentBuffer[0] = Array.Empty<byte>();
-        var spaces = Enumerable.Repeat<byte>(TinyhandConstants.Space, 2);
-
-        for (var i = 1; i < MaxIndentBuffer; i++)
-        {
-            indentBuffer[i] = indentBuffer[i - 1].Concat(spaces).ToArray();
-        }
+        indentSpaces = Enumerable.Repeat<byte>(TinyhandConstants.Space, MaxIndentBuffer * 2).ToArray();
     }
 
     /// <summary>
@@ -193,7 +187,7 @@ public static class TinyhandTreeConverter
 
                         // Next line + indent
                         writer.WriteLF();
-                        writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                        writer.WriteSpan(GetIndentSpan(indents));
                     }
 
                     for (int i = 0; i < length; i++)
@@ -211,7 +205,7 @@ public static class TinyhandTreeConverter
                             else
                             {// Next line + indent
                                 writer.WriteLF();
-                                writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                                writer.WriteSpan(GetIndentSpan(indents));
                             }
                         }
                     }
@@ -224,12 +218,11 @@ public static class TinyhandTreeConverter
                     if (options.Compose != TinyhandComposeOption.Simple)
                     {// Next line + indent
                         writer.WriteLF();
-                        writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                        writer.WriteSpan(GetIndentSpan(indents));
                     }
 
                     if (!omitTopLevelBracket)
-                    {
-                        // }
+                    {// }
                         writer.WriteUInt8(TinyhandConstants.CloseBrace);
                     }
                 }
@@ -902,5 +895,16 @@ public static class TinyhandTreeConverter
             default:
                 throw new TinyhandException($"code is invalid. code: {reader.NextCode} format: {MessagePackCode.ToFormatName(reader.NextCode)}");
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ReadOnlySpan<byte> GetIndentSpan(int indents)
+    {
+        if (indents > MaxIndentBuffer)
+        {
+            TinyhandGroupStack.ThrowIndentationDepthException();
+        }
+
+        return indentSpaces.AsSpan(0, indents * 2);
     }
 }
