@@ -17,219 +17,6 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
-public ref struct TinyhandGroupWriter
-{
-    public readonly TinyhandComposeOption ComposeOption;
-
-    private int indents;
-    private int firstSerial;
-    private int secondSerial;
-
-    public bool EnableIndent => this.ComposeOption == TinyhandComposeOption.Standard || this.ComposeOption == TinyhandComposeOption.UseContextualInformation;
-
-    public int Indents => this.indents;
-
-    public TinyhandGroupWriter(TinyhandComposeOption composeOption)
-    {
-        this.ComposeOption = composeOption;
-    }
-
-    public void ProcessStartGroup(ref TinyhandRawWriter writer)
-    {
-        if (!this.EnableIndent)
-        {
-            writer.WriteUInt8(TinyhandConstants.OpenBrace);
-            return;
-        }
-
-ProcessPartialLoop:
-        if (this.firstSerial == 0)
-        {// this.secondSerial == 0
-            this.firstSerial++;
-        }
-        else if (this.firstSerial < 0)
-        {// this.secondSerial >= 0
-            this.secondSerial++;
-        }
-        else
-        {// this.firstSerial > 0
-            if (this.secondSerial == 0)
-            {
-                this.firstSerial++;
-            }
-            else
-            {// this.secondSerial < 0
-                this.ProcessPartial(ref writer);
-                goto ProcessPartialLoop;
-            }
-        }
-    }
-
-    public void ProcessEndGroup(ref TinyhandRawWriter writer)
-    {
-        if (!this.EnableIndent)
-        {
-            writer.WriteUInt8(TinyhandConstants.CloseBrace);
-            return;
-        }
-
-ProcessPartialLoop:
-        if (this.firstSerial == 0)
-        {// this.secondSerial == 0
-            this.firstSerial--;
-        }
-        else if (this.firstSerial < 0)
-        {// this.secondSerial >= 0
-            if (this.secondSerial == 0)
-            {
-                this.firstSerial--;
-            }
-            else
-            {// this.secondSerial > 0
-                this.ProcessPartial(ref writer);
-                goto ProcessPartialLoop;
-            }
-        }
-        else
-        {// this.firstSerial > 0
-            this.secondSerial--;
-        }
-    }
-
-    public void Flush(ref TinyhandRawWriter writer)
-    {
-        if (this.firstSerial == 0)
-        {// 0 serial
-            return;
-        }
-        else if (this.secondSerial == 0)
-        {// 1 serial
-            this.indents += this.firstSerial;
-            writer.WriteLF();
-            writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-            this.firstSerial = 0;
-            return;
-        }
-        else if (this.firstSerial > 0)
-        {// 2serials: 1st '{' 2nd '}'
-            if (this.firstSerial >= -this.secondSerial)
-            {// 3, -2: {{{}}
-                this.indents += this.firstSerial + this.secondSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                }
-            }
-            else
-            {// 2, -3: {{}}}
-                for (var i = 0; i < this.firstSerial; i++)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                }
-
-                this.indents += this.firstSerial + this.secondSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-            }
-        }
-        else
-        {// 2serials: 1st '}' 2nd '{'
-            if (-this.firstSerial >= this.secondSerial)
-            {// -3, 2: }}}{{
-                this.indents += this.firstSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
-                {
-                    writer.WriteUInt8((byte)'+');
-                    writer.WriteUInt8(TinyhandConstants.Space);
-                }
-            }
-            else
-            {// -2, 3: }}{{{
-                this.indents += this.firstSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
-                {
-                    writer.WriteUInt8((byte)'+');
-                    writer.WriteUInt8(TinyhandConstants.Space);
-                }
-            }
-        }
-
-        this.firstSerial = 0;
-        this.secondSerial = 0;
-    }
-
-    private void ProcessPartial(ref TinyhandRawWriter writer)
-    {
-        if (this.firstSerial > 0)
-        {// 2serials: 1st '{' 2nd '}'
-            if (this.firstSerial >= -this.secondSerial)
-            {// 3, -2: {{{}}
-                this.indents += this.firstSerial + this.secondSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                }
-
-                this.firstSerial = 0;
-                this.secondSerial = 0;
-            }
-            else
-            {// 2, -3: {{}}}
-                for (var i = 0; i < this.firstSerial; i++)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                }
-
-                this.firstSerial = 0;
-                this.secondSerial += this.firstSerial;
-            }
-        }
-        else
-        {// 2serials: 1st '}' 2nd '{'
-            if (-this.firstSerial >= this.secondSerial)
-            {// -3, 2: }}}{{
-                this.indents += this.firstSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
-                {
-                    writer.WriteUInt8((byte)'+');
-                    writer.WriteUInt8(TinyhandConstants.Space);
-                }
-
-                this.firstSerial = 0;
-                this.secondSerial = 0;
-            }
-            else
-            {// -2, 3: }}{{{
-                this.indents += this.firstSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
-                {
-                    writer.WriteUInt8((byte)'+');
-                    writer.WriteUInt8(TinyhandConstants.Space);
-                }
-
-                this.firstSerial = 0;
-                this.secondSerial += this.firstSerial;
-            }
-        }
-    }
-}
-
 public static class TinyhandTreeConverter
 {
     private const int InitialBufferSize = 32 * 1024;
@@ -379,9 +166,16 @@ public static class TinyhandTreeConverter
                     for (int i = 0; i < length; i++)
                     {
                         FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false);
-                        if (!groupWriter.EnableIndent && i != (length - 1))
+                        if (i != (length - 1))
                         {
-                            writer.WriteUInt16(0x2C20); // ", "
+                            if (!groupWriter.EnableIndent)
+                            {
+                                writer.WriteUInt16(0x2C20); // ", "
+                            }
+                            else
+                            {
+                                groupWriter.AddLF();
+                            }
                         }
                     }
 
@@ -425,8 +219,9 @@ public static class TinyhandTreeConverter
                             }
                             else
                             {// Next line + indent
-                                writer.WriteLF();
-                                writer.WriteSpan(GetIndentSpan(groupWriter.Indents));
+                                groupWriter.AddLF();
+                                // writer.WriteLF();
+                                // writer.WriteSpan(GetIndentSpan(groupWriter.Indents));
                             }
                         }
                     }

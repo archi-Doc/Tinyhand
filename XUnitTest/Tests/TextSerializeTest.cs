@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using Xunit;
 
 namespace Tinyhand.Tests;
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-public partial class TextSerializeClass1
+public partial record TextSerializeClass1
 {
     public MyClass2[] MyClass2Array { get; set; } = [];
 
@@ -41,8 +42,6 @@ public partial class TextSerializeClass1
     public double Double { get; set; }
 
     public DateTime Date { get; set; } = DateTime.UtcNow;
-
-    public MyClass MyClass { get; set; } = default!;
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -84,17 +83,18 @@ public class TextSerializeTest
         var c1 = TinyhandSerializer.Reconstruct<TextSerializeClass1>();
         c1.DictionaryIntString = new(new KeyValuePair<int, string>[] { new KeyValuePair<int, string>(33, "rr") });
         c1.IDictionaryStringDouble = new Dictionary<string, double>(new KeyValuePair<string, double>[] { new KeyValuePair<string, double>("test", 33d) });
-        var mc = new MyClass2(1, 2, "A");
-        var mc2 = new MyClass2(10, 20, "AA");
+        var mc = new MyClass2(1, 2, ["A"]);
+        var mc2 = new MyClass2(10, 20, ["AA"]);
         c1.MyClass2Array = [mc, mc2,];
 
+        st = TinyhandSerializer.SerializeToString(c1, simple);
         st = TinyhandSerializer.SerializeToString(c1);
         var c2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
-        c1.IsStructuralEqual(c2);
+        TinyhandSerializer.Serialize(c1).SequenceEqual(TinyhandSerializer.Serialize(c2)).IsTrue();
 
         st = TinyhandSerializer.SerializeToString(c1, simple);
         c2 = TinyhandSerializer.DeserializeFromString<TextSerializeClass1>(st);
-        c1.IsStructuralEqual(c2);
+        TinyhandSerializer.Serialize(c1).SequenceEqual(TinyhandSerializer.Serialize(c2)).IsTrue();
     }
 
     [Fact]

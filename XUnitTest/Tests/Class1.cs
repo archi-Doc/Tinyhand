@@ -500,7 +500,7 @@ public partial class MyClass
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
-public partial record MyClass2(int X, int Y, string Z);
+public partial record MyClass2(int X, int Y, string[] Z);
 
 [TinyhandObject]
 public partial class Empty1

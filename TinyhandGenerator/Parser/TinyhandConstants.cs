@@ -37,6 +37,7 @@ internal static class TinyhandConstants
     public const byte IdentifierPrefix = (byte)'@';
     public const byte ModifierPrefix = (byte)'&';
     public const byte DoubleSuffix = (byte)'d';
+    public const ushort StartGroup = 0x2B20; // '+ '
 
     public static ReadOnlySpan<byte> Utf8Bom => new byte[] { 0xEF, 0xBB, 0xBF };
     public static ReadOnlySpan<byte> AssignmentSpan => new byte[] { Space, EqualsSign, Space };

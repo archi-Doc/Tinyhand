@@ -93,8 +93,8 @@ public class StringConvertibleTest
         tc3.Class2 = tc2!;
         st = TinyhandSerializer.SerializeToString(tc3);
         var list = st.Replace("\r\n", "\n").Split(['\n', '\r',]);
-        list[0].Is("Class1 = \"@AQIDBAUGBwgJCgsMDQ4PEA\"");
-        list[1].Is("Class2 = \"@AQIDBAUGBwgJCgsMDQ4PEA\"");
+        list[0].Is("Class1=\"@AQIDBAUGBwgJCgsMDQ4PEA\"");
+        list[1].Is("Class2=\"@AQIDBAUGBwgJCgsMDQ4PEA\"");
 
         var tc4 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass2>(st);
         tc4.Class1.Byte16.SequenceEqual(tc3.Class1.Byte16).IsTrue();
