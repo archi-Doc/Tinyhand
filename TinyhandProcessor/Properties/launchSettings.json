@@ -2,7 +2,7 @@
   "profiles": {
     "TinyhandProcessor": {
       "commandName": "Project",
-      "commandLineArgs": "\"process text to tinyhand.tinyhand\""
+      "commandLineArgs": "../../../Example/language.tinyhand"
     }
   }
 }

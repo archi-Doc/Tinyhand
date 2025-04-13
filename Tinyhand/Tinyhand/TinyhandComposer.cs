@@ -260,7 +260,9 @@ public static class TinyhandComposer
                 this.Compose(ref writer, element.LeftElement);
             }
 
-            writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+            // writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+            writer.WriteUInt8(TinyhandConstants.EqualsSign);
+
             // this.requireDelimiter = true;
             this.ComposeContextualInformation(ref writer, element.contextualChain);
 

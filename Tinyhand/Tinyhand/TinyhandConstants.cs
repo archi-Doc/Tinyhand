@@ -45,7 +45,7 @@ public static class TinyhandConstants
     public static ReadOnlySpan<byte> TrueSpan => "true"u8; // new byte[] { (byte)'t', (byte)'r', (byte)'u', (byte)'e' };
     public static ReadOnlySpan<byte> FalseSpan => "false"u8; // new byte[] { (byte)'f', (byte)'a', (byte)'l', (byte)'s', (byte)'e' };
     public static ReadOnlySpan<byte> NullSpan => "null"u8; // new byte[] { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
-    public static ReadOnlySpan<byte> IndentSpan => new byte[] { Space, Space, Space, Space, };
+    public static ReadOnlySpan<byte> IndentSpan => new byte[] { Space, Space, };
     public static ReadOnlySpan<byte> TripleQuotesSpan => new byte[] { Quote, Quote, Quote, };
     public static ReadOnlySpan<byte> ColonSpan => new byte[] { Colon, };
 
