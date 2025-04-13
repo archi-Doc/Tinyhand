@@ -1,6 +1,7 @@
 // identifier = "string" /* null: Use the default value. */
 
 Dialog = // Dialog messages
+  Ok="OK"
   ConfirmExit = "Are you sure you want to exit?"
 
   Button = # Button texts
@@ -9,8 +10,9 @@ Dialog = // Dialog messages
     Test = 
       A = "Test A" // AA
       B = "Test B"#BB
+    Z="zzz"
 
-Success =
-  + // Success messages
+Success = // Pre
+  + // Post
 
 Error={} // Error messages
