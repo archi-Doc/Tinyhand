@@ -9,6 +9,46 @@ using Xunit;
 
 namespace XUnitTest.ParserTests;
 
+[TinyhandObject]
+public partial class ParserTestClass
+{
+    [TinyhandObject]
+    public partial class NestedClass1
+    {
+        [TinyhandObject]
+        public partial class NestedClass2
+        {
+            [TinyhandObject]
+            public partial class NestedClass3
+            {
+                [KeyAsName]
+                public int[] IntArray { get; set; } = [];
+
+                [KeyAsName]
+                public string[] StringArray { get; set; } = [];
+            }
+
+            [Key(0)]
+            public NestedClass3 Class3 { get; set; } = new();
+
+            [Key(1)]
+            public int[] Array { get; set; } = [];
+        }
+
+        [Key(0)]
+        public NestedClass2[] Class2 { get; set; } = [new(), new(),];
+    }
+
+    [Key(0)]
+    public string? Name { get; set; } = default;
+
+    [Key(1)]
+    public NestedClass1 Class1 { get; set; } = new();
+
+    [Key(2)]
+    public int Id { get; set; }
+}
+
 public class ParserTest
 {
     [Fact]
@@ -18,6 +58,13 @@ public class ParserTest
         Group g, g2;
         Assignment a;
         Value_Identifier i;
+
+        var array = new ParserTestClass[2];
+        array[0] = new();
+        array[1] = new();
+
+        var st = TinyhandSerializer.SerializeToString(array, TinyhandSerializerOptions.Standard with { Compose = TinyhandComposeOption.Simple });
+        st = TinyhandSerializer.SerializeToString(array);
     }
 
     [Fact]
