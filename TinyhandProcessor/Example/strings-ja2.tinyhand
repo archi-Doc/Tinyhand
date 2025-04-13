@@ -1,0 +1,16 @@
+// identifier = "string" /* null: Use the default value. */
+
+Dialog= // Dialog messages
+{  ConfirmExit="Are you sure you want to exit?"
+
+  Button= # Button texts
+{    One="1"
+    2="Two" /* Three */
+    Test=
+{      A="Test A" // AA
+      B="Test B" #BB
+
+    }  }}Success=
+{ // Success messages
+
+}Error={} // Error messages
