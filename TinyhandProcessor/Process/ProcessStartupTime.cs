@@ -52,8 +52,8 @@ public class TinyhandProcessCore_StartupTime : IProcessCore
 
         if (element is Value_String valueString)
         {
-            var path = this.Environment.CombinePath(PathType.SourceFolder, valueString.ValueStringUtf16);
-            var logpath = valueString.ValueStringUtf16;
+            var path = this.Environment.CombinePath(PathType.SourceFolder, valueString.Utf16);
+            var logpath = valueString.Utf16;
             if (!File.Exists(path))
             {
                 this.Environment.Log.Error(element, $"\"{path}\" does not exists.");

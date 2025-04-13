@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Arc.IO;
 using Tinyhand.IO;
@@ -19,7 +20,7 @@ namespace Tinyhand;
 public static class TinyhandTreeConverter
 {
     private const int InitialBufferSize = 32 * 1024;
-    private const int MaxIndentBuffer = 16;
+    private const int MaxIndentBuffer = TinyhandGroupStack.MaxDepth;
 
     /// <summary>
     /// A thread-local, recyclable array that may be used for short bursts of code.
@@ -27,18 +28,11 @@ public static class TinyhandTreeConverter
     [ThreadStatic]
     private static byte[]? initialBuffer;
 
-    private static byte[][] indentBuffer;
+    private static byte[] indentSpaces;
 
     static TinyhandTreeConverter()
     {
-        indentBuffer = new byte[MaxIndentBuffer][];
-        indentBuffer[0] = Array.Empty<byte>();
-        var spaces = Enumerable.Repeat<byte>(TinyhandConstants.Space, 2);
-
-        for (var i = 1; i < MaxIndentBuffer; i++)
-        {
-            indentBuffer[i] = indentBuffer[i - 1].Concat(spaces).ToArray();
-        }
+        indentSpaces = Enumerable.Repeat<byte>(TinyhandConstants.Space, MaxIndentBuffer * 2).ToArray();
     }
 
     /// <summary>
@@ -56,19 +50,22 @@ public static class TinyhandTreeConverter
         var byteSequence = new ByteSequence();
         try
         {
+            var groupWriter = new TinyhandGroupWriter(options.Compose);
             if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
             {
                 var r = reader.Clone(byteSequence.ToReadOnlySpan());
                 while (!r.End)
                 {
-                    FromReaderToUtf8(ref r, ref writer, options, omitTopLevelBracket); // r.ConvertToUtf8(ref writer);
+                    FromReaderToUtf8(ref r, ref writer, ref groupWriter, omitTopLevelBracket); // r.ConvertToUtf8(ref writer);
+                    groupWriter.Flush(ref writer);
                 }
             }
             else
             {
                 while (!reader.End)
                 {
-                    FromReaderToUtf8(ref reader, ref writer, options, omitTopLevelBracket); // reader.ConvertToUtf8(ref writer);
+                    FromReaderToUtf8(ref reader, ref writer, ref groupWriter, omitTopLevelBracket); // reader.ConvertToUtf8(ref writer);
+                    groupWriter.Flush(ref writer);
                 }
             }
         }
@@ -83,16 +80,16 @@ public static class TinyhandTreeConverter
     /// </summary>
     /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
-    /// <param name="options">The options.</param>
+    /// <param name="groupWriter">TinyhandGroupWriter.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
-    /// <param name="indents">The number of indents.</param>
     /// <param name="convertToIdentifier">Convert a string to an identifier if possible.</param>
-    public static void FromReaderToUtf8(scoped ref TinyhandReader reader, ref TinyhandRawWriter writer, TinyhandSerializerOptions options, bool omitTopLevelBracket = false, int indents = 0, bool convertToIdentifier = false)
+    public static void FromReaderToUtf8(scoped ref TinyhandReader reader, ref TinyhandRawWriter writer, scoped ref TinyhandGroupWriter groupWriter, bool omitTopLevelBracket = false, bool convertToIdentifier = false)
     {
         var type = reader.NextMessagePackType;
         switch (type)
         {
             case MessagePackType.Integer:
+                groupWriter.Flush(ref writer);
                 if (MessagePackCode.IsSignedInteger(reader.NextCode))
                 {
                     writer.WriteStringInt64(reader.ReadInt64());
@@ -105,6 +102,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.Boolean:
+                groupWriter.Flush(ref writer);
                 if (reader.ReadBoolean())
                 {
                     writer.WriteSpan(TinyhandConstants.TrueSpan);
@@ -117,6 +115,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.Float:
+                groupWriter.Flush(ref writer);
                 if (reader.NextCode == MessagePackCode.Float32)
                 {
                     writer.WriteStringSingle(reader.ReadSingle());
@@ -129,6 +128,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.String:
+                groupWriter.Flush(ref writer);
                 var span = reader.ReadStringSpan();
                 var utf8 = span.ToArray();
 
@@ -146,6 +146,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.Binary:
+                groupWriter.Flush(ref writer);
                 writer.WriteUInt8((byte)'b');
                 writer.WriteUInt8(TinyhandConstants.Quote);
                 // writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
@@ -159,21 +160,28 @@ public static class TinyhandTreeConverter
                     int length = reader.ReadArrayHeader();
                     if (!omitTopLevelBracket)
                     {
-                        writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                        groupWriter.ProcessStartGroup(ref writer);
                     }
 
                     for (int i = 0; i < length; i++)
                     {
-                        FromReaderToUtf8(ref reader, ref writer, options, false);
+                        FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false);
                         if (i != (length - 1))
                         {
-                            writer.WriteUInt16(0x2C20); // ", "
+                            if (!groupWriter.EnableIndent)
+                            {
+                                writer.WriteUInt16(0x2C20); // ", "
+                            }
+                            else
+                            {
+                                groupWriter.AddLF();
+                            }
                         }
                     }
 
                     if (!omitTopLevelBracket)
                     {
-                        writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                        groupWriter.ProcessEndGroup(ref writer);
                     }
                 }
 
@@ -185,56 +193,49 @@ public static class TinyhandTreeConverter
 
                     if (!omitTopLevelBracket)
                     {
-                        // {
-                        writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                        indents++;
-
-                        // Next line + indent
-                        writer.WriteCRLF();
-                        writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                        groupWriter.ProcessStartGroup(ref writer);
                     }
 
                     for (int i = 0; i < length; i++)
                     {
-                        FromReaderToUtf8(ref reader, ref writer, options, false, indents, options.Compose != TinyhandComposeOption.Simple);
-                        writer.WriteSpan(TinyhandConstants.AssignmentSpan);
-                        FromReaderToUtf8(ref reader, ref writer, options, false, indents);
+                        FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false, groupWriter.ComposeOption != TinyhandComposeOption.Simple);
+
+                        /*if (groupWriter.ComposeOption != TinyhandComposeOption.Simple)
+                        {
+                            writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+                        }
+                        else*/
+                        {
+                            writer.WriteUInt8(TinyhandConstants.EqualsSign);
+                        }
+
+                        FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false);
 
                         if (i != (length - 1))
                         {
-                            if (options.Compose == TinyhandComposeOption.Simple)
+                            if (groupWriter.ComposeOption == TinyhandComposeOption.Simple)
                             {
                                 writer.WriteUInt16(0x2C20); // ", "
                             }
                             else
                             {// Next line + indent
-                                writer.WriteCRLF();
-                                writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
+                                groupWriter.AddLF();
+                                // writer.WriteLF();
+                                // writer.WriteSpan(GetIndentSpan(groupWriter.Indents));
                             }
                         }
                     }
 
                     if (!omitTopLevelBracket)
                     {
-                        indents--;
-                    }
-
-                    if (options.Compose != TinyhandComposeOption.Simple)
-                    {// Next line + indent
-                        writer.WriteCRLF();
-                        writer.WriteSpan(indentBuffer[indents < MaxIndentBuffer ? indents : (MaxIndentBuffer - 1)]);
-                    }
-
-                    if (!omitTopLevelBracket)
-                    {
-                        // }
-                        writer.WriteUInt8(TinyhandConstants.CloseBrace);
+                        groupWriter.ProcessEndGroup(ref writer);
                     }
                 }
 
                 return;
 
             case MessagePackType.Extension:
+                groupWriter.Flush(ref writer);
                 var extHeader = reader.ReadExtensionFormatHeader();
                 string st;
                 if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
@@ -266,6 +267,7 @@ public static class TinyhandTreeConverter
                 return;
 
             case MessagePackType.Nil:
+                groupWriter.Flush(ref writer);
                 reader.Skip();
                 writer.WriteSpan(TinyhandConstants.NullSpan);
                 return;
@@ -641,15 +643,15 @@ public static class TinyhandTreeConverter
                     break;
 
                 case ValueElementType.Value_String:
-                    writer.WriteString(((Value_String)v).ValueStringUtf8);
+                    writer.WriteString(((Value_String)v).Utf8);
                     break;
 
                 case ValueElementType.Identifier:
-                    writer.WriteString(((Value_Identifier)v).IdentifierUtf8);
+                    writer.WriteString(((Value_Identifier)v).Utf8);
                     break;
 
                 case ValueElementType.SpecialIdentifier:
-                    var utf8 = ((Value_Identifier)v).IdentifierUtf8;
+                    var utf8 = ((Value_Identifier)v).Utf8;
                     writer.WriteStringHeader(utf8.Length + 1);
                     writer.WriteRawUInt8(TinyhandConstants.IdentifierPrefix);
                     writer.WriteSpan(utf8);
@@ -900,5 +902,16 @@ public static class TinyhandTreeConverter
             default:
                 throw new TinyhandException($"code is invalid. code: {reader.NextCode} format: {MessagePackCode.ToFormatName(reader.NextCode)}");
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static ReadOnlySpan<byte> GetIndentSpan(int indents)
+    {
+        if (indents > MaxIndentBuffer)
+        {
+            TinyhandGroupStack.ThrowIndentationDepthException();
+        }
+
+        return indentSpaces.AsSpan(0, indents * 2);
     }
 }

@@ -58,7 +58,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
 
     private bool ProcessReference(Value_String valueString)
     {
-        var referencePath = Path.Combine(this.Environment.GetPath(PathType.SourceFolder), valueString.ValueStringUtf16);
+        var referencePath = Path.Combine(this.Environment.GetPath(PathType.SourceFolder), valueString.Utf16);
         if (!File.Exists(referencePath))
         {
             this.Environment.Log.Fatal(valueString, $"Reference file ({referencePath}) does not exist.");
@@ -86,8 +86,8 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         }
 
         // Load the target file.
-        var targetPath = Path.Combine(this.Environment.GetPath(PathType.SourceFolder), targetElement.ValueStringUtf16);
-        var destinationPath = Path.Combine(this.Environment.GetPath(PathType.DestinationFolder), targetElement.ValueStringUtf16);
+        var targetPath = Path.Combine(this.Environment.GetPath(PathType.SourceFolder), targetElement.Utf16);
+        var destinationPath = Path.Combine(this.Environment.GetPath(PathType.DestinationFolder), targetElement.Utf16);
         Group targetGroup;
         if (!File.Exists(targetPath))
         {
@@ -147,7 +147,7 @@ AddToTable:
                 {// Value
                     if (value is Value_String valueString)
                     { // String
-                        table.TryAdd(groupIdentifier.Concat(identifier).ToArray(), valueString.ValueStringUtf8);
+                        table.TryAdd(groupIdentifier.Concat(identifier).ToArray(), valueString.Utf8);
                     }
                     else if (value is Value_Null)
                     {
@@ -184,7 +184,7 @@ AddToTable:
                         }
                         else
                         { // "string"
-                            valueString.ValueStringUtf8 = targetUtf8;
+                            valueString.Utf8 = targetUtf8;
                         }
                     }
                     else

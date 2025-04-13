@@ -140,7 +140,7 @@ public ref struct ByteWriter
         this.writer.Advance(8);
     }
 
-    public void WriteCRLF() => this.WriteUInt16(0x0D0A);
+    public void WriteLF() => this.WriteUInt8(0x0A);
 
     public bool WriteStringInt64(long value)
     {

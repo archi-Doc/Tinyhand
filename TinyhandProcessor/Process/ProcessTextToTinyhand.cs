@@ -42,7 +42,7 @@ public class TinyhandProcessCore_TextToTinyhand : IProcessCore
     {
         if (element.TryGetRight_Value_String("format", out var valueFile))
         {
-            this.format = valueFile.ValueStringUtf16 switch
+            this.format = valueFile.Utf16 switch
             {
                 "binary" => Format.Binary,
                 "utf8" => Format.Utf8,
@@ -51,7 +51,7 @@ public class TinyhandProcessCore_TextToTinyhand : IProcessCore
         }
         else if (element is Value_String valueString)
         {
-            var path = this.Environment.CombinePath(PathType.SourceFolder, valueString.ValueStringUtf16);
+            var path = this.Environment.CombinePath(PathType.SourceFolder, valueString.Utf16);
             if (!File.Exists(path))
             {
                 this.Environment.Log.Error(element, $"\"{path}\" does not exists.");

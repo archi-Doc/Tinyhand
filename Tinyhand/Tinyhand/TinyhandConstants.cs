@@ -21,8 +21,10 @@ public static class TinyhandConstants
     public const byte Separator = (byte)',';
     public const byte Separator2 = (byte)';';
     public const byte Quote = (byte)'"';
+    public const byte Quote2 = (byte)'\'';
     public const byte BackSlash = (byte)'\\';
     public const byte Slash = (byte)'/';
+    public const byte Sharp = (byte)'#';
     public const byte BackSpace = (byte)'\b';
     public const byte FormFeed = (byte)'\f';
     public const byte Asterisk = (byte)'*';
@@ -36,13 +38,14 @@ public static class TinyhandConstants
     public const byte IdentifierPrefix = (byte)'@';
     public const byte ModifierPrefix = (byte)'&';
     public const byte DoubleSuffix = (byte)'d';
+    public const ushort StartGroup = 0x2B20; // '+ '
 
     public static ReadOnlySpan<byte> Utf8Bom => new byte[] { 0xEF, 0xBB, 0xBF };
     public static ReadOnlySpan<byte> AssignmentSpan => new byte[] { Space, EqualsSign, Space };
     public static ReadOnlySpan<byte> TrueSpan => "true"u8; // new byte[] { (byte)'t', (byte)'r', (byte)'u', (byte)'e' };
     public static ReadOnlySpan<byte> FalseSpan => "false"u8; // new byte[] { (byte)'f', (byte)'a', (byte)'l', (byte)'s', (byte)'e' };
     public static ReadOnlySpan<byte> NullSpan => "null"u8; // new byte[] { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
-    public static ReadOnlySpan<byte> IndentSpan => new byte[] { Space, Space, Space, Space, };
+    public static ReadOnlySpan<byte> IndentSpan => new byte[] { Space, Space, };
     public static ReadOnlySpan<byte> TripleQuotesSpan => new byte[] { Quote, Quote, Quote, };
     public static ReadOnlySpan<byte> ColonSpan => new byte[] { Colon, };
 
@@ -109,10 +112,12 @@ public static class TinyhandConstants
         FirstByteTable[TinyhandConstants.RightParenthesis] = 3;
         FirstByteTable[TinyhandConstants.Separator] = 3;
         FirstByteTable[TinyhandConstants.Separator2] = 3;
-        FirstByteTable[TinyhandConstants.OpenBracket] = 3;
-        FirstByteTable[TinyhandConstants.CloseBracket] = 3;
+        // FirstByteTable[TinyhandConstants.OpenBracket] = 3;
+        // FirstByteTable[TinyhandConstants.CloseBracket] = 3;
         FirstByteTable[TinyhandConstants.OpenBrace] = 3;
         FirstByteTable[TinyhandConstants.CloseBrace] = 3;
         FirstByteTable[TinyhandConstants.EqualsSign] = 3;
+        FirstByteTable[TinyhandConstants.Slash] = 3;
+        FirstByteTable[TinyhandConstants.Sharp] = 3;
     }
 }

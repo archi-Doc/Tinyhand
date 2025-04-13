@@ -1,11 +1,4 @@
-NameD = "d"
-GroupA = {
-  NameY = "Y"
-}
-
-GroupB = {
-  Test = "test"
-}
+// identifier = "string" /* null: Use the default value. */
 
 Dialog= // Dialog messages
   Ok="OK"

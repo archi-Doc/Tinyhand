@@ -77,6 +77,7 @@ public static class TinyhandComposer
 
         private int indent;
         private bool firstElement;
+        private bool requireIndentation;
         // private bool requireDelimiter;
 
         public ComposerCore(TinyhandComposeOption option)
@@ -96,6 +97,7 @@ public static class TinyhandComposer
             switch (element.Type)
             {
                 case ElementType.Value:
+                    this.ComposeIndent(ref writer);
                     this.ComposeValue(ref writer, (Value)element);
                     break;
 
@@ -116,7 +118,7 @@ public static class TinyhandComposer
                 case ElementType.LineFeed:
                     if (this.useContextualInformation)
                     {
-                        writer.WriteCRLF();
+                        writer.WriteLF();
                         // this.requireDelimiter = false;
                     }
                     break;
@@ -165,20 +167,29 @@ public static class TinyhandComposer
 
             if (!this.useContextualInformation)
             {
-                writer.WriteCRLF();
+                writer.WriteLF();
             }
 
+            this.requireIndentation = true;
             this.indent += indent;
-            for (var n = 0; n < this.indent; n++)
+        }
+
+        private void ComposeIndent(ref TinyhandRawWriter writer)
+        {
+            if (this.requireIndentation)
             {
-                writer.WriteSpan(TinyhandConstants.IndentSpan);
+                this.requireIndentation = false;
+                for (var i = 0; i < this.indent; i++)
+                {
+                    writer.WriteSpan(TinyhandConstants.IndentSpan);
+                }
             }
         }
 
         private void ComposeModifier(ref TinyhandRawWriter writer, Modifier element)
         {
             writer.WriteUInt8(TinyhandConstants.ModifierPrefix);
-            writer.WriteSpan(element.ModifierUtf8);
+            writer.WriteSpan(element.Utf8);
         }
 
         private void ComposeValue(ref TinyhandRawWriter writer, Value element)
@@ -192,7 +203,7 @@ public static class TinyhandComposer
                     {
                         writer.WriteUInt8(TinyhandConstants.IdentifierPrefix);
                     }
-                    writer.WriteSpan(i.IdentifierUtf8);
+                    writer.WriteSpan(i.Utf8);
                     break;
 
                 case ValueElementType.Value_Binary:
@@ -208,13 +219,13 @@ public static class TinyhandComposer
                     if (!s.IsTripleQuoted || s.HasTripleQuote())
                     { // Escape.
                         writer.WriteUInt8(TinyhandConstants.Quote);
-                        writer.WriteEscapedUtf8(s.ValueStringUtf8);
+                        writer.WriteEscapedUtf8(s.Utf8);
                         writer.WriteUInt8(TinyhandConstants.Quote);
                     }
                     else
                     { // """string"""
                         writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
-                        writer.WriteSpan(s.ValueStringUtf8);
+                        writer.WriteSpan(s.Utf8);
                         writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
                     }
                     break;
@@ -260,7 +271,9 @@ public static class TinyhandComposer
                 this.Compose(ref writer, element.LeftElement);
             }
 
-            writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+            // writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+            writer.WriteUInt8(TinyhandConstants.EqualsSign);
+
             // this.requireDelimiter = true;
             this.ComposeContextualInformation(ref writer, element.contextualChain);
 
@@ -272,6 +285,60 @@ public static class TinyhandComposer
         }
 
         private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
+        {
+            var newLine = true;
+            if (element.Parent == null ||
+                this.option == TinyhandComposeOption.Simple)
+            {
+                newLine = false;
+            }
+
+            if (element.ElementList.Count == 0)
+            {
+                this.ComposeIndent(ref writer);
+                writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                writer.WriteUInt8(TinyhandConstants.CloseBrace);
+            }
+
+            this.ComposeContextualInformation(ref writer, element.forwardContextual?.contextualChain);
+
+            if (newLine)
+            {
+                this.NewLine(ref writer, 1);
+            }
+
+            var hasAssignment = false;
+            if (element.ElementList.Count > 0 && element.ElementList[0] is Assignment)
+            {
+                hasAssignment = true;
+            }
+
+            for (var i = 0; i < element.ElementList.Count; i++)
+            {
+                this.Compose(ref writer, element.ElementList[i]);
+                if (i == element.ElementList.Count - 1)
+                {
+                    // writer.WriteLF();
+                    break;
+                }
+
+                if (!hasAssignment || this.option == TinyhandComposeOption.Simple)
+                {
+                    writer.WriteUInt16(0x2C20); // ", "
+                }
+                else
+                {
+                    this.NewLine(ref writer);
+                }
+            }
+
+            if (newLine)
+            {
+                this.NewLine(ref writer, -1);
+            }
+        }
+
+        /*private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
         {
             var addBrace = true;
             if (element.Parent == null &&
@@ -333,11 +400,6 @@ public static class TinyhandComposer
 
                 writer.WriteUInt8(TinyhandConstants.CloseBrace);
             }
-
-            /* if (!element.IsAssigned())
-            {
-                writer.WriteUInt16(0x2C20); // ", "
-            }*/
-        }
+        }*/
     }
 }
