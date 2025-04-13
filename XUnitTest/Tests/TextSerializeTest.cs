@@ -152,6 +152,7 @@ public class TextSerializeTest
         c2.String = "Test2";
 
         var array = new TextSerializeClass2[] { c1, c2, };
+        // st = TinyhandSerializer.SerializeToString(array, TinyhandSerializerOptions.Standard with { Compose = TinyhandComposeOption.Simple, });
         st = TinyhandSerializer.SerializeToString(array);
 
         TinyhandSerializer.SerializeToString(42).Is("42");

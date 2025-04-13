@@ -5,6 +5,7 @@ using System.Linq;
 using Arc.Collections;
 using Tinyhand;
 using Xunit;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Tinyhand.Tests;
 
@@ -184,7 +185,9 @@ public class ArcCollectionsTest
             tc.List4.Add(x.Key, x.Value);
         }
 
-        var st = TinyhandSerializer.SerializeToString(tc);
+        string st;
+        // st = TinyhandSerializer.SerializeToString(tc, TinyhandSerializerOptions.Standard with { Compose = TinyhandComposeOption.Simple, });
+        st = TinyhandSerializer.SerializeToString(tc);
         TinyhandSerializer.DeserializeFromString<ArcCollectionsTestClass>(st)!.IsStructuralEqual(tc);
 
         var tc2 = TinyhandSerializer.Clone(tc);

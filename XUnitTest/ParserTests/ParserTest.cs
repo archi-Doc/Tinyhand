@@ -60,16 +60,19 @@ public class ParserTest
         e = TinyhandParser.Parse("""
             a= // Comment
               b= 12
+              + 
             """);
         g = (Group)e;
         g.ElementList.Count.Is(1);
         a = (Assignment)g.ElementList[0];
         ((Value_Identifier)a.LeftElement!).Utf16.Is("a");
         g2 = (Group)a.RightElement!;
-        g2.ElementList.Count.Is(1);
+        g2.ElementList.Count.Is(2);
         a = (Assignment)g2.ElementList[0];
         ((Value_Identifier)a.LeftElement!).Utf16.Is("b");
         ((Value_Long)a.RightElement!).ValueLong.Is(12);
+        g2 = (Group)g2.ElementList[1];
+        g2.ElementList.Count.Is(0);
 
         e = TinyhandParser.Parse("""
             a= {// Comment

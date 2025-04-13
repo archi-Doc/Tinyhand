@@ -16,7 +16,7 @@ public ref struct TinyhandGroupWriter
     private int indents;
     private int firstSerial;
     private int secondSerial;
-    private int Lf;
+    private int lfCount;
 
     public bool EnableIndent => this.ComposeOption == TinyhandComposeOption.Standard || this.ComposeOption == TinyhandComposeOption.UseContextualInformation;
 
@@ -29,7 +29,7 @@ public ref struct TinyhandGroupWriter
 
     public void AddLF()
     {
-        this.Lf++;
+        this.lfCount++;
     }
 
     public void ProcessStartGroup(ref TinyhandRawWriter writer)
@@ -96,11 +96,11 @@ ProcessPartialLoop:
 
     public void Flush(ref TinyhandRawWriter writer)
     {
-        if (this.Lf > 0)
+        if (this.lfCount > 0)
         {
             writer.WriteLF();
             writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-            this.Lf = 0;
+            this.lfCount = 0;
         }
 
         if (this.firstSerial == 0)
@@ -208,8 +208,8 @@ ProcessPartialLoop:
                     writer.WriteUInt8(TinyhandConstants.CloseBrace);
                 }
 
-                this.firstSerial = 0;
-                this.secondSerial += this.firstSerial;
+                this.firstSerial += this.secondSerial;
+                this.secondSerial = 0;
             }
         }
         else
@@ -219,12 +219,13 @@ ProcessPartialLoop:
                 this.indents += this.firstSerial;
                 writer.WriteLF();
                 writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
+                for (var i = 0; i < this.secondSerial; i++)
                 {
                     writer.WriteUInt8((byte)'+');
                     writer.WriteUInt8(TinyhandConstants.Space);
                 }
 
+                this.indents += this.secondSerial;
                 this.firstSerial = 0;
                 this.secondSerial = 0;
             }
@@ -233,14 +234,15 @@ ProcessPartialLoop:
                 this.indents += this.firstSerial;
                 writer.WriteLF();
                 writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
+                for (var i = 0; i < this.secondSerial; i++)
                 {
                     writer.WriteUInt8((byte)'+');
                     writer.WriteUInt8(TinyhandConstants.Space);
                 }
 
-                this.firstSerial = 0;
-                this.secondSerial += this.firstSerial;
+                this.indents += this.secondSerial;
+                this.firstSerial += this.secondSerial;
+                this.secondSerial = 0;
             }
         }
     }
