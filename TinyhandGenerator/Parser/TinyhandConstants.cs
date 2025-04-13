@@ -21,6 +21,7 @@ internal static class TinyhandConstants
     public const byte Separator = (byte)',';
     public const byte Separator2 = (byte)';';
     public const byte Quote = (byte)'"';
+    public const byte Quote2 = (byte)'\'';
     public const byte BackSlash = (byte)'\\';
     public const byte Slash = (byte)'/';
     public const byte Sharp = (byte)'#';
