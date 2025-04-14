@@ -142,7 +142,7 @@ ProcessPartialLoop:
                     writer.WriteUInt8(TinyhandConstants.CloseBrace);
                 }
 
-                // this.AddLF();
+                this.AddLF();
             }
             else
             {// 2, -3: {{}}}
@@ -187,6 +187,13 @@ ProcessPartialLoop:
 
         this.firstSerial = 0;
         this.secondSerial = 0;
+
+        if (this.lfCount > 0)
+        {
+            writer.WriteLF();
+            writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+            this.lfCount = 0;
+        }
     }
 
     private void ProcessPartial(ref TinyhandRawWriter writer)

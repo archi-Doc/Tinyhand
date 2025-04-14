@@ -174,7 +174,8 @@ public static class TinyhandTreeConverter
                             }
                             else
                             {
-                                groupWriter.AddLF();
+                                writer.WriteUInt16(0x2C20); // ", "
+                                // groupWriter.AddLF();
                             }
                         }
                     }
