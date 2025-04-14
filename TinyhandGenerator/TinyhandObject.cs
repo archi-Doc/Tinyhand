@@ -2694,7 +2694,7 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
-    {//
+    {
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.AddPropertyTarget))
         {
             if (x.TypeObjectWithNullable is not { } withNullable)
@@ -2702,7 +2702,7 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
-            if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.GetterOnly)
+            if (x.KeyAttribute?.PropertyAccessibility == PropertyAccessibility.GetterOnly)
             {// getter-only
                 ssb.AppendLine($"public {withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty} => {x.SimpleNameOrField};");
                 continue;
@@ -2718,7 +2718,7 @@ ModuleInitializerClass_Added:
                 accessibility = (Accessibility.Public, Accessibility.Public);
                 partialProperty = string.Empty;
 
-                if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
+                if (x.KeyAttribute?.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
                 {
                     if (this.IsSealed)
                     {

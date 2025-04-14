@@ -1988,10 +1988,10 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
 
                         if (ps.SetMethod is IMethodSymbol m2)
                         {
-                            if (m2.DeclaredAccessibility != Accessibility.Public)
+                            /*if (m2.DeclaredAccessibility != Accessibility.Public)
                             {
                                 this.isPublic = false;
-                            }
+                            }*/
                         }
                         else
                         {

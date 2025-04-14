@@ -3,7 +3,6 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection.Emit;
 using Tinyhand;
 using Xunit;
 
@@ -53,6 +52,9 @@ public partial class DefaultTestClass
 
     [DefaultValue("test")]
     public string String { get; set; } = default!;
+
+    [DefaultValue("test2")]
+    public partial string String2 { get; private set; } = default!;
 
     [DefaultValue(DefaultTestEnum.B)]
     public DefaultTestEnum Enum;
@@ -144,6 +146,7 @@ public partial struct DefaultTestStructDouble : ITinyhandDefault<double>
         this.Double = defaultValue;
     }
 
+    [Key(1)]
     public double Double { get; private set; }
 
     [Key(0)]
@@ -172,6 +175,7 @@ public partial class DefaultValueTest
         Assert.Equal<decimal>(2134.44m, t2.Decimal);
         Assert.Equal<char>('c', t2.Char);
         Assert.Equal("test", t2.String);
+        Assert.Equal("test2", t2.String2);
         Assert.Equal<DefaultTestEnum>(DefaultTestEnum.B, t2.Enum);
         Assert.Equal("Test", t2.NameClass.Name);
 

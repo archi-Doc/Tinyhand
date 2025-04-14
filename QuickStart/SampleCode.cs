@@ -17,13 +17,12 @@ public partial class InternalTestClass
     [Key(1)]
     internal int InternalInt = 2;
 
-    public int PropertyInt { get; private set; } = 3;
+    public int PropertyInt { get; } = 3;
 
     public void Clear()
     {
         this.PrivateInt = 0;
         this.InternalInt = 0;
-        this.PropertyInt = 0;
     }
 
 }
@@ -34,7 +33,7 @@ public partial class DefaultBehaviourClass
     [Key(0)]
     public int X; // Key required
 
-    public int Y { get; private set; } // Not required since it's private setter.
+    public int Y { get; } // Not required since it's getter-only.
 
     [Key(1)]
     private int Z; // By adding the Key attribute, You can add a private member to the serialization target.

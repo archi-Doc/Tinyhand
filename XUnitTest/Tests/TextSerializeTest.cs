@@ -81,14 +81,13 @@ public partial class TextSerializeClass4
         [TinyhandObject]
         public partial class NestedClass2
         {
-            [TinyhandObject]
+            [TinyhandObject(ImplicitKeyAsName = true)]
             public partial class NestedClass3
             {
                 [KeyAsName]
                 public int[] IntArray { get; set; } = [1, 2, 3,];
 
-                [KeyAsName]
-                public string[] StringArray { get; set; } = [];
+                public partial string[] StringArray { get; set; } = [];
 
                 [KeyAsName]
                 public Dictionary<int, int> IntMap { get; set; } = [];
