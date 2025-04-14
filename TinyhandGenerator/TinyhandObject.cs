@@ -1582,11 +1582,17 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute, this.Location);
             }
 
-            if (string.IsNullOrEmpty(this.KeyAttribute?.AddProperty) &&
+            if (!this.IsPartialProperty &&
+                string.IsNullOrEmpty(this.KeyAttribute?.AddProperty) &&
                 !parent.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
             {// No add property and not repeatable read.
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute2, this.Location);
             }
+        }
+
+        if (this.IsPartialProperty)
+        {
+            this.ObjectFlag |= TinyhandObjectFlag.AddPropertyTarget;
         }
     }
 
@@ -2688,7 +2694,7 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
+    {//
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.AddPropertyTarget))
         {
             if (x.TypeObjectWithNullable is not { } withNullable)
@@ -2698,7 +2704,7 @@ ModuleInitializerClass_Added:
 
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.GetterOnly)
             {// getter-only
-                ssb.AppendLine($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.AddProperty} => this.{x.SimpleName};");
+                ssb.AppendLine($"public {withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty} => this.{x.SimpleNameOrField};");
                 continue;
             }
 
@@ -4216,4 +4222,13 @@ ModuleInitializerClass_Added:
 
         return true;
     }
+
+    private bool IsPartialProperty
+        => this.symbol is IPropertySymbol ps && ps.IsPartialDefinition;
+
+    private string SimpleNameOrField
+        => this.IsPartialProperty ? "field" : this.SimpleName;
+
+    private string AddedPropertyOrPartialProperty
+        => this.IsPartialProperty ? this.SimpleName : this.KeyAttribute?.AddProperty ?? string.Empty;
 }
