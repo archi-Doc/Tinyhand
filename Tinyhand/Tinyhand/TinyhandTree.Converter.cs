@@ -42,6 +42,7 @@ public static class TinyhandTreeConverter
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
+    /// <returns>Returns nothing as this method performs the conversion in-place using the provided writer.</returns>
     public static void FromBinaryToUtf8(ReadOnlySpan<byte> span, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options, bool omitTopLevelBracket = false)
     {
         options ??= TinyhandSerializer.DefaultOptions;
@@ -83,7 +84,8 @@ public static class TinyhandTreeConverter
     /// <param name="groupWriter">TinyhandGroupWriter.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
     /// <param name="convertToIdentifier">Convert a string to an identifier if possible.</param>
-    public static void FromReaderToUtf8(scoped ref TinyhandReader reader, ref TinyhandRawWriter writer, scoped ref TinyhandGroupWriter groupWriter, bool omitTopLevelBracket = false, bool convertToIdentifier = false)
+    /// <returns>Returns <see langword="true"/> if the content is primitive type; otherwise, <see langword="false"/>.</returns>
+    public static bool FromReaderToUtf8(scoped ref TinyhandReader reader, ref TinyhandRawWriter writer, scoped ref TinyhandGroupWriter groupWriter, bool omitTopLevelBracket = false, bool convertToIdentifier = false)
     {
         var type = reader.NextMessagePackType;
         switch (type)
@@ -99,7 +101,7 @@ public static class TinyhandTreeConverter
                     writer.WriteStringUInt64(reader.ReadUInt64());
                 }
 
-                return;
+                return true;
 
             case MessagePackType.Boolean:
                 groupWriter.Flush(ref writer);
@@ -112,7 +114,7 @@ public static class TinyhandTreeConverter
                     writer.WriteSpan(TinyhandConstants.FalseSpan);
                 }
 
-                return;
+                return true;
 
             case MessagePackType.Float:
                 groupWriter.Flush(ref writer);
@@ -125,7 +127,7 @@ public static class TinyhandTreeConverter
                     writer.WriteStringDouble(reader.ReadDouble());
                 }
 
-                return;
+                return true;
 
             case MessagePackType.String:
                 groupWriter.Flush(ref writer);
@@ -143,7 +145,7 @@ public static class TinyhandTreeConverter
                     writer.WriteUInt8(TinyhandConstants.Quote);
                 }
 
-                return;
+                return true;
 
             case MessagePackType.Binary:
                 groupWriter.Flush(ref writer);
@@ -153,7 +155,7 @@ public static class TinyhandTreeConverter
                 writer.WriteSpan(Arc.Crypto.Base64.Url.FromByteArrayToUtf8(reader.ReadBytesToArray()));
                 writer.WriteUInt8(TinyhandConstants.Quote);
 
-                return;
+                return true;
 
             case MessagePackType.Array:
                 {
@@ -165,7 +167,7 @@ public static class TinyhandTreeConverter
                             groupWriter.Flush(ref writer);
                             writer.WriteUInt16(TinyhandConstants.OpenCloseBrace);
                             // groupWriter.AddLF();
-                            return;
+                            return false;
                         }
 
                         groupWriter.ProcessStartGroup(ref writer);
@@ -173,10 +175,10 @@ public static class TinyhandTreeConverter
 
                     for (int i = 0; i < length; i++)
                     {
-                        FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false);
+                        var isPrimitive = FromReaderToUtf8(ref reader, ref writer, ref groupWriter, false);
                         if (i != (length - 1))
                         {
-                            if (!groupWriter.EnableIndent)
+                            if (!groupWriter.EnableIndent || isPrimitive)
                             {
                                 writer.WriteUInt16(0x2C20); // ", "
                             }
@@ -194,7 +196,7 @@ public static class TinyhandTreeConverter
                     }
                 }
 
-                return;
+                return false;
 
             case MessagePackType.Map:
                 {
@@ -207,7 +209,7 @@ public static class TinyhandTreeConverter
                             groupWriter.Flush(ref writer);
                             writer.WriteUInt16(TinyhandConstants.OpenCloseBrace);
                             // groupWriter.AddLF();
-                            return;
+                            return false;
                         }
 
                         groupWriter.ProcessStartGroup(ref writer);
@@ -249,7 +251,7 @@ public static class TinyhandTreeConverter
                     }
                 }
 
-                return;
+                return false;
 
             case MessagePackType.Extension:
                 groupWriter.Flush(ref writer);
@@ -269,7 +271,7 @@ public static class TinyhandTreeConverter
                 {// Identifier
                     var identifier = reader.ReadRaw((int)extHeader.Length);
                     writer.WriteSpan(identifier);
-                    return;
+                    return true;
                 }
                 else
                 {
@@ -281,13 +283,13 @@ public static class TinyhandTreeConverter
                 writer.WriteEscapedUtf8(Encoding.UTF8.GetBytes(st));
                 writer.WriteUInt8(TinyhandConstants.Quote);
 
-                return;
+                return true;
 
             case MessagePackType.Nil:
                 groupWriter.Flush(ref writer);
                 reader.Skip();
                 writer.WriteSpan(TinyhandConstants.NullSpan);
-                return;
+                return true;
 
             default:
                 throw new TinyhandException($"code is invalid. code: {reader.NextCode} format: {MessagePackCode.ToFormatName(reader.NextCode)}");
@@ -313,7 +315,7 @@ public static class TinyhandTreeConverter
     /// </summary>
     /// <param name="utf8">UTF-8 text.</param>
     /// <param name="position">The byte position.</param>
-    /// <returns>Line/BytePosition found at position in byte array.</returns>
+    /// <returns>Returns a <see cref="TinyhandUtf8LinePosition"/> representing the line and byte position in the UTF-8 text.</returns>
     public static TinyhandUtf8LinePosition GetTextPositionFromBinaryPosition(ReadOnlySpan<byte> utf8, long position)
     {
         var reader = new TinyhandUtf8Reader(utf8, true);
@@ -329,6 +331,7 @@ public static class TinyhandTreeConverter
     /// <param name="utf8">UTF-8 text.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
+    /// <returns>Returns nothing as this method performs the conversion in-place using the provided writer.</returns>
     public static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, ref TinyhandWriter writer, bool omitTopLevelBracket = false)
     {
         var reader = new TinyhandUtf8Reader(utf8, true);
@@ -370,7 +373,7 @@ public static class TinyhandTreeConverter
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="assignedFlag">Assignment element processed.</param>
     /// <param name="state">State.</param>
-    /// <returns>The number of the processed items.</returns>
+    /// <returns>Returns the number of the processed items.</returns>
     internal static uint FromReaderToBinary(ref TinyhandUtf8Reader reader, ref TinyhandWriter writer, out bool assignedFlag, FromReaderToBinary_State state)
     {
         uint assignedCount = 0;
@@ -767,6 +770,7 @@ public static class TinyhandTreeConverter
     /// <param name="byteArray">A byte array to convert.</param>
     /// <param name="element">Element converted from a byte array.</param>
     /// <param name="options">The serialization options.</param>
+    /// <returns>Returns nothing as the result is provided via the <paramref name="element"/> parameter.</returns>
     public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
     {
         var reader = new TinyhandReader(byteArray);
@@ -795,6 +799,7 @@ public static class TinyhandTreeConverter
     /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
     /// <param name="element">Output element.</param>
     /// <param name="options">The serialization options.</param>
+    /// <returns>Returns nothing as the result is provided via the <paramref name="element"/> parameter.</returns>
     public static void FromReaderToElement(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
     {
         element = FromReaderToElement_Core(ref reader, options);
