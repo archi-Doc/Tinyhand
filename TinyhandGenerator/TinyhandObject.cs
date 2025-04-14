@@ -2694,7 +2694,7 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
+    {//
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.AddPropertyTarget))
         {
             if (x.TypeObjectWithNullable is not { } withNullable)

@@ -33,10 +33,10 @@ public partial class DefaultTestClass
     public uint UInt { get; set; }
 
     [DefaultValue(77)]
-    public long Long { get; set; }
+    public long Long { get; init; }
 
     [DefaultValue(88)]
-    public ulong ULong { get; set; }
+    public partial ulong ULong { get; init; }
 
     [DefaultValue(1.23d)]
     public float Float { get; set; }
