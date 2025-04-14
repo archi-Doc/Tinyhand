@@ -42,7 +42,6 @@ public static class TinyhandTreeConverter
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
-    /// <returns>Returns nothing as this method performs the conversion in-place using the provided writer.</returns>
     public static void FromBinaryToUtf8(ReadOnlySpan<byte> span, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options, bool omitTopLevelBracket = false)
     {
         options ??= TinyhandSerializer.DefaultOptions;
@@ -331,7 +330,6 @@ public static class TinyhandTreeConverter
     /// <param name="utf8">UTF-8 text.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
-    /// <returns>Returns nothing as this method performs the conversion in-place using the provided writer.</returns>
     public static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, ref TinyhandWriter writer, bool omitTopLevelBracket = false)
     {
         var reader = new TinyhandUtf8Reader(utf8, true);
@@ -770,7 +768,6 @@ public static class TinyhandTreeConverter
     /// <param name="byteArray">A byte array to convert.</param>
     /// <param name="element">Element converted from a byte array.</param>
     /// <param name="options">The serialization options.</param>
-    /// <returns>Returns nothing as the result is provided via the <paramref name="element"/> parameter.</returns>
     public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
     {
         var reader = new TinyhandReader(byteArray);
@@ -799,7 +796,6 @@ public static class TinyhandTreeConverter
     /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
     /// <param name="element">Output element.</param>
     /// <param name="options">The serialization options.</param>
-    /// <returns>Returns nothing as the result is provided via the <paramref name="element"/> parameter.</returns>
     public static void FromReaderToElement(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
     {
         element = FromReaderToElement_Core(ref reader, options);
