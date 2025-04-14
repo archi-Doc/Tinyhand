@@ -2724,9 +2724,10 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            ssb.AppendLine("[IgnoreMember]");
-            using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.AddProperty}"))
-            using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
+            var declaredAccessibility = ((IPropertySymbol)x).DeclaredAccessibility.ToString();
+            ssb.AppendLine("[IgnoreMember]");//
+            using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty}"))
+            using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleNameOrField}"))
             {
                 ssb.AppendLine($"get => {ssb.FullObject};");
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))

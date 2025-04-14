@@ -14,11 +14,11 @@ public partial class TestClass
     [MaxLength(12)]
     public partial string X1 { get; private set; } = string.Empty;
 
-    public partial string X1
+    /*public partial string X1
     {
         get => field;
         private set => field = value;
-    }
+    }*/
 }
 
 internal class Program
