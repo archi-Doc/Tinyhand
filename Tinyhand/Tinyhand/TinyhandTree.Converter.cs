@@ -160,6 +160,14 @@ public static class TinyhandTreeConverter
                     int length = reader.ReadArrayHeader();
                     if (!omitTopLevelBracket)
                     {
+                        if (length == 0)
+                        { // {}
+                            groupWriter.Flush(ref writer);
+                            writer.WriteUInt16(TinyhandConstants.OpenCloseBrace);
+                            // groupWriter.AddLF();
+                            return;
+                        }
+
                         groupWriter.ProcessStartGroup(ref writer);
                     }
 
@@ -174,8 +182,8 @@ public static class TinyhandTreeConverter
                             }
                             else
                             {
-                                writer.WriteUInt16(0x2C20); // ", "
-                                // groupWriter.AddLF();
+                                // writer.WriteUInt16(0x2C20); // ", "
+                                groupWriter.AddLF();
                             }
                         }
                     }
@@ -194,6 +202,14 @@ public static class TinyhandTreeConverter
 
                     if (!omitTopLevelBracket)
                     {
+                        if (length == 0)
+                        { // {}
+                            groupWriter.Flush(ref writer);
+                            writer.WriteUInt16(TinyhandConstants.OpenCloseBrace);
+                            // groupWriter.AddLF();
+                            return;
+                        }
+
                         groupWriter.ProcessStartGroup(ref writer);
                     }
 
