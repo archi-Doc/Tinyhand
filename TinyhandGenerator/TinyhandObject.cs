@@ -1582,11 +1582,17 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute, this.Location);
             }
 
-            if (string.IsNullOrEmpty(this.KeyAttribute?.AddProperty) &&
+            if (!this.IsPartialProperty &&
+                string.IsNullOrEmpty(this.KeyAttribute?.AddProperty) &&
                 !parent.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
             {// No add property and not repeatable read.
                 this.Body.ReportDiagnostic(TinyhandBody.Warning_MaxLengthAttribute2, this.Location);
             }
+        }
+
+        if (this.IsPartialProperty)
+        {
+            this.ObjectFlag |= TinyhandObjectFlag.AddPropertyTarget;
         }
     }
 
@@ -2688,7 +2694,7 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
+    {//
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.AddPropertyTarget))
         {
             if (x.TypeObjectWithNullable is not { } withNullable)
@@ -2698,31 +2704,38 @@ ModuleInitializerClass_Added:
 
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.GetterOnly)
             {// getter-only
-                ssb.AppendLine($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.AddProperty} => this.{x.SimpleName};");
+                ssb.AppendLine($"public {withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty} => {x.SimpleNameOrField};");
                 continue;
             }
 
             var structualEnabled = this.ObjectAttribute?.Structual == true ||
             this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject);
 
-            string setterAccessibility = string.Empty;
+            var accessibility = x.Property_Accessibility;
+            var partialProperty = "partial ";
+            if (!x.IsPartialProperty)
+            {
+                accessibility = (Accessibility.Public, Accessibility.Public);
+                partialProperty = string.Empty;
+            }
+
             if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
             {
                 if (this.IsSealed)
                 {
-                    setterAccessibility = "private ";
+                    accessibility.Setter = Accessibility.Private;
                 }
                 else
                 {
-                    setterAccessibility = "protected ";
+                    accessibility.Setter = Accessibility.Protected;
                 }
             }
 
-            ssb.AppendLine("[IgnoreMember]");
-            using (var m = ssb.ScopeBrace($"public {withNullable.FullNameWithNullable} {x.KeyAttribute!.AddProperty}"))
-            using (var scopeObject = ssb.ScopeFullObject($"this.{x.SimpleName}"))
+            // ssb.AppendLine("[IgnoreMember]");
+            using (var m = ssb.ScopeBrace($"{accessibility.GetPropertyDeclarationAccessibility().AccessibilityToStringPlusSpace()}{partialProperty}{withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty}"))
+            using (var scopeObject = ssb.ScopeFullObject($"{x.SimpleNameOrField}"))
             {
-                ssb.AppendLine($"get => {ssb.FullObject};");
+                ssb.AppendLine($"{accessibility.GetPropertyGetterAccessibility().AccessibilityToStringPlusSpace()}get => {ssb.FullObject};");
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
                 {// Repeatable read
                     using (var m2 = ssb.ScopeBrace($"protected set"))
@@ -2738,7 +2751,7 @@ ModuleInitializerClass_Added:
                 }
                 else
                 {// Other
-                    using (var m2 = ssb.ScopeBrace($"{setterAccessibility}set"))
+                    using (var m2 = ssb.ScopeBrace($"{accessibility.GetPropertySetterAccessibility().AccessibilityToStringPlusSpace()}set"))
                     {
                         // Compare values
                         if (withNullable.Object.IsPrimitive)
@@ -4216,4 +4229,13 @@ ModuleInitializerClass_Added:
 
         return true;
     }
+
+    private bool IsPartialProperty
+        => this.symbol is IPropertySymbol ps && ps.IsPartialDefinition;
+
+    private string SimpleNameOrField
+        => this.IsPartialProperty ? "field" : $"this.{this.SimpleName}";
+
+    private string AddedPropertyOrPartialProperty
+        => this.IsPartialProperty ? this.SimpleName : this.KeyAttribute?.AddProperty ?? string.Empty;
 }
