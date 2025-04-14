@@ -128,14 +128,21 @@ ProcessPartialLoop:
         {// 2serials: 1st '{' 2nd '}'
             if (this.firstSerial >= -this.secondSerial)
             {// 3, -2: {{{}}
-                this.indents += this.firstSerial + this.secondSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                var dif = this.firstSerial + this.secondSerial;
+                if (dif != 0)
+                {
+                    this.indents += dif;
+                    writer.WriteLF();
+                    writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+                }
+
                 for (var i = 0; i < -this.secondSerial; i++)
                 {
                     writer.WriteUInt8(TinyhandConstants.OpenBrace);
                     writer.WriteUInt8(TinyhandConstants.CloseBrace);
                 }
+
+                // this.AddLF();
             }
             else
             {// 2, -3: {{}}}
