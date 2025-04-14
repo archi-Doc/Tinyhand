@@ -2717,17 +2717,17 @@ ModuleInitializerClass_Added:
             {
                 accessibility = (Accessibility.Public, Accessibility.Public);
                 partialProperty = string.Empty;
-            }
 
-            if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
-            {
-                if (this.IsSealed)
+                if (x.KeyAttribute!.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
                 {
-                    accessibility.Setter = Accessibility.Private;
-                }
-                else
-                {
-                    accessibility.Setter = Accessibility.Protected;
+                    if (this.IsSealed)
+                    {
+                        accessibility.Setter = Accessibility.Private;
+                    }
+                    else
+                    {
+                        accessibility.Setter = Accessibility.Protected;
+                    }
                 }
             }
 
@@ -2738,7 +2738,7 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"{accessibility.GetPropertyGetterAccessibility().AccessibilityToStringPlusSpace()}get => {ssb.FullObject};");
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
                 {// Repeatable read
-                    using (var m2 = ssb.ScopeBrace($"protected set"))
+                    using (var m2 = ssb.ScopeBrace($"{accessibility.GetPropertySetterAccessibility().AccessibilityToStringPlusSpace()}set"))
                     {// Main
                         // MaxLength
                         if (x.MaxLengthAttribute is not null)
