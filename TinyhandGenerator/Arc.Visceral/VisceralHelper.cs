@@ -172,6 +172,31 @@ internal static class VisceralHelper
         _ => null,
     };
 
+    public static Accessibility GetPropertyDeclarationAccessibility(this (Accessibility Getter, Accessibility Setter) accessibility)
+    {
+        return accessibility.Getter > accessibility.Setter ? accessibility.Getter : accessibility.Setter;
+    }
+
+    public static Accessibility GetPropertyGetterAccessibility(this (Accessibility Getter, Accessibility Setter) accessibility)
+    {
+        if (accessibility.Setter == Accessibility.NotApplicable)
+        {
+            return Accessibility.NotApplicable;
+        }
+
+        return accessibility.Getter >= accessibility.Setter ? Accessibility.NotApplicable : accessibility.Getter;
+    }
+
+    public static Accessibility GetPropertySetterAccessibility(this (Accessibility Getter, Accessibility Setter) accessibility)
+    {
+        if (accessibility.Getter == Accessibility.NotApplicable)
+        {
+            return Accessibility.NotApplicable;
+        }
+
+        return accessibility.Setter >= accessibility.Getter ? Accessibility.NotApplicable : accessibility.Setter;
+    }
+
     public static string AccessibilityToString(this Accessibility accessibility) => accessibility switch
     {
         Accessibility.Private => "private",

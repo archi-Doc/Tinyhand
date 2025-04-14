@@ -14,11 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Generated\*" />
+    <PackageReference Include="ValueLink" Version="0.76.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ValueLink" Version="0.76.0" />
+    <Compile Remove="Generated\*" />
   </ItemGroup>
 
 </Project>

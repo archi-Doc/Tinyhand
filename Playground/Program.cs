@@ -7,14 +7,14 @@ namespace Playground;
 public partial class TestClass
 {
     [Key(0)]
-    [MaxLength(12)]
+    // [MaxLength(12)]
     public string X0 { get; set; } = string.Empty;
 
     [Key(1)]
     [MaxLength(12)]
-    public partial string X1 { get; private set; } = string.Empty;
+    internal partial string X1 { get; private set; } = string.Empty;
 
-    /*public partial string X1
+    /*internal partial string X1
     {
         get => field;
         private set => field = value;
