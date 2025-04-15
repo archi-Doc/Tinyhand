@@ -14,6 +14,7 @@ public partial class TestClass
     [MaxLength(12)]
     internal partial string X1 { get; private set; } = string.Empty;
 
+    [IgnoreMember]
     internal partial string X2 { get; init; } = string.Empty;
 
     internal partial string X2
