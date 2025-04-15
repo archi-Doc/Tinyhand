@@ -39,7 +39,7 @@ public struct VisceralProperty
         => $"{this.GetterAccessibility.AccessibilityToStringPlusSpace()}get";
 
     public string SetterName
-        => this.InitOnly ? "init" : $"{this.SetterAccessibility.AccessibilityToStringPlusSpace()}set";
+        => this.InitOnly ? $"{this.SetterAccessibility.AccessibilityToStringPlusSpace()}init" : $"{this.SetterAccessibility.AccessibilityToStringPlusSpace()}set";
 
     public Accessibility DeclarationAccessibility
         => this.Getter > this.Setter ? this.Getter : this.Setter;
