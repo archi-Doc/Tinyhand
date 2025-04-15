@@ -1590,7 +1590,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             }
         }
 
-        if (this.IsPartialProperty)
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget) &&
+            this.IsPartialProperty)
         {
             this.ObjectFlag |= TinyhandObjectFlag.AddPropertyTarget;
         }
@@ -2694,7 +2695,7 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateAddProperty(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
+    {// SetMethod IsInitOnly
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.AddPropertyTarget))
         {
             if (x.TypeObjectWithNullable is not { } withNullable)
@@ -2711,34 +2712,34 @@ ModuleInitializerClass_Added:
             var structualEnabled = this.ObjectAttribute?.Structual == true ||
             this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject);
 
-            var accessibility = x.Property_Accessibility;
+            var property = x.Property_Accessibility;
             var partialProperty = "partial ";
             if (!x.IsPartialProperty)
             {
-                accessibility = (Accessibility.Public, Accessibility.Public);
+                property = new(Accessibility.Public, Accessibility.Public, false);
                 partialProperty = string.Empty;
 
                 if (x.KeyAttribute?.PropertyAccessibility == PropertyAccessibility.ProtectedSetter)
                 {
                     if (this.IsSealed)
                     {
-                        accessibility.Setter = Accessibility.Private;
+                        property.Setter = Accessibility.Private;
                     }
                     else
                     {
-                        accessibility.Setter = Accessibility.Protected;
+                        property.Setter = Accessibility.Protected;
                     }
                 }
             }
 
             // ssb.AppendLine("[IgnoreMember]");
-            using (var m = ssb.ScopeBrace($"{accessibility.GetPropertyDeclarationAccessibility().AccessibilityToStringPlusSpace()}{partialProperty}{withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty}"))
+            using (var m = ssb.ScopeBrace($"{property.DeclarationAccessibility.AccessibilityToStringPlusSpace()}{partialProperty}{withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty}"))
             using (var scopeObject = ssb.ScopeFullObject($"{x.SimpleNameOrField}"))
             {
-                ssb.AppendLine($"{accessibility.GetPropertyGetterAccessibility().AccessibilityToStringPlusSpace()}get => {ssb.FullObject};");
+                ssb.AppendLine($"{property.GetterName} => {ssb.FullObject};");
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.IsRepeatableRead))
                 {// Repeatable read
-                    using (var m2 = ssb.ScopeBrace($"{accessibility.GetPropertySetterAccessibility().AccessibilityToStringPlusSpace()}set"))
+                    using (var m2 = ssb.ScopeBrace($"{property.SetterName}"))
                     {// Main
                         // MaxLength
                         if (x.MaxLengthAttribute is not null)
@@ -2751,7 +2752,7 @@ ModuleInitializerClass_Added:
                 }
                 else
                 {// Other
-                    using (var m2 = ssb.ScopeBrace($"{accessibility.GetPropertySetterAccessibility().AccessibilityToStringPlusSpace()}set"))
+                    using (var m2 = ssb.ScopeBrace($"{property.SetterName}"))
                     {
                         // Compare values
                         if (withNullable.Object.IsPrimitive)

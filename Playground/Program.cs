@@ -14,11 +14,14 @@ public partial class TestClass
     [MaxLength(12)]
     internal partial string X1 { get; private set; } = string.Empty;
 
-    /*internal partial string X1
+    [IgnoreMember]
+    internal partial string X2 { get; init; } = string.Empty;
+
+    internal partial string X2
     {
         get => field;
-        private set => field = value;
-    }*/
+        init => field = value;
+    }
 }
 
 internal class Program
