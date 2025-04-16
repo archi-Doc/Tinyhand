@@ -1381,8 +1381,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         // ReconstructTarget
         if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
         {// ITinyhandSerializable is implemented.
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Target) && this.TypeObject.Kind.IsReferenceType())
-            { // Target && Reference type
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget) && this.TypeObject.Kind.IsReferenceType())
+            { // SerializeTarget && Reference type
                 this.ObjectFlag |= TinyhandObjectFlag.ReconstructTarget;
             }
         }
@@ -3695,7 +3695,7 @@ ModuleInitializerClass_Added:
             else
             {// Default constructor
                 assignment.Start(true);
-                ssb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()};");
+                ssb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()}!;");
                 assignment.End();
             }
 
