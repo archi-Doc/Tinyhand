@@ -1225,6 +1225,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             return;
         }
 
+        if (this.IsRequired)
+        {
+            parent.ObjectFlag |= TinyhandObjectFlag.UnsafeConstructor;
+        }
+
         if (!this.IsSerializable || this.IsReadOnly)
         {// Not serializable (before)
             if (this.KeyAttribute != null || this.ReconstructAttribute != null)

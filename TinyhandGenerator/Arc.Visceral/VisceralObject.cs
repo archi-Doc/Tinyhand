@@ -2337,6 +2337,25 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
+    public bool IsRequired
+    {
+        get
+        {
+            if (this.symbol is IPropertySymbol ps)
+            {
+                return ps.IsRequired;
+            }
+            else if (this.symbol is IFieldSymbol fs)
+            {
+                return fs.IsRequired;
+            }
+            else
+            {
+                return false;
+            }
+        }
+    }
+
     public string KindName
     {
         get
