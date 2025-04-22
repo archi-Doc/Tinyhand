@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
 using Arc.Visceral;
@@ -2761,9 +2762,11 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
+            var requiredString = x.IsRequired ? "required " : string.Empty;
+
             if (x.KeyAttribute?.PropertyAccessibility == PropertyAccessibility.GetterOnly)
             {// getter-only
-                ssb.AppendLine($"public {withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty} => {x.SimpleNameOrField};");
+                ssb.AppendLine($"public {withNullable.FullNameWithNullable} {requiredString}{x.AddedPropertyOrPartialProperty} => {x.SimpleNameOrField};");
                 continue;
             }
 
@@ -2791,7 +2794,7 @@ ModuleInitializerClass_Added:
             }
 
             // ssb.AppendLine("[IgnoreMember]");
-            using (var m = ssb.ScopeBrace($"{property.DeclarationAccessibility.AccessibilityToStringPlusSpace()}{partialProperty}{withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty}"))
+            using (var m = ssb.ScopeBrace($"{property.DeclarationAccessibility.AccessibilityToStringPlusSpace()}{requiredString}{partialProperty}{withNullable.FullNameWithNullable} {x.AddedPropertyOrPartialProperty}"))
             using (var scopeObject = ssb.ScopeFullObject($"{x.SimpleNameOrField}"))
             {
                 ssb.AppendLine($"{property.GetterName} => {ssb.FullObject};");
@@ -3060,8 +3063,21 @@ ModuleInitializerClass_Added:
             st = sb.ToString();
         }
 
+        StringBuilder? sb2 = default;
+        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
+        {
+            if (x.IsPartialProperty && x.IsRequired && x.TypeObject?.Kind.IsReferenceType() == true && x.ContainingObject == this)
+            {
+                sb2 ??= new();
+                // sb2.Append($"[MemberNotNull(nameof({x.SimpleName}))] ");
+                sb2.Append($"this.{x.SimpleName} = default!; ");
+            }
+        }
+
+        var memberNotNull = sb2?.ToString() ?? string.Empty;
+
         ssb.AppendLine();
-        ssb.AppendLine($"[SetsRequiredMembers] private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {st}{{ }}");
+        ssb.AppendLine($"[SetsRequiredMembers] private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {st}{{ {memberNotNull}}}");
         ssb.AppendLine($" public static {this.SimpleName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
     }
 
