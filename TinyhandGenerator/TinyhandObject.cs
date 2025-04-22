@@ -894,7 +894,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             {
                 if (this.IsRecord)
                 {
-                    this.MinimumConstructor = this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
+                    this.PrepareMinimumConstructor();
                 }
 
                 if (this.MinimumConstructor == null &&
@@ -1041,6 +1041,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 x.CheckMember(this);
             }
         }
+    }
+
+    private void PrepareMinimumConstructor()
+    {
+        this.MinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
     }
 
     private void CheckObject_Key()
@@ -2981,9 +2986,31 @@ ModuleInitializerClass_Added:
 
     internal void GenerateUnsafeConstructor(ScopingStringBuilder ssb, GeneratorInformation info)
     {
+        var baseConstructor = string.Empty;
+        if (this.BaseObject is not null)
+        {
+            this.BaseObject.PrepareMinimumConstructor();
+            if (this.BaseObject.MinimumConstructor is not null)
+            {
+                var sb = new StringBuilder();
+                sb.Append(": base(");
+                for (var i = 0; i < this.BaseObject.MinimumConstructor.Method_Parameters.Length; i++)
+                {
+                    sb.Append($"({this.BaseObject.MinimumConstructor.Method_Parameters[i]})default!");
+                    if (i != (this.BaseObject.MinimumConstructor.Method_Parameters.Length - 1))
+                    {
+                        sb.Append($", ");
+                    }
+                }
+
+                sb.Append(") ");
+                baseConstructor = sb.ToString();
+            }
+        }
+
         ssb.AppendLine();
         ssb.AppendLine("[SetsRequiredMembers]");
-        ssb.AppendLine($"private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {{ }}");
+        ssb.AppendLine($"private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {baseConstructor}{{ }}");
         ssb.AppendLine($" public static {this.SimpleName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
     }
 

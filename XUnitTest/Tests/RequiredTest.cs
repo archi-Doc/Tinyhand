@@ -9,22 +9,24 @@ namespace XUnitTest.Tests;
 [TinyhandObject]
 public partial class RequiredBaseClass
 {
-    public RequiredBaseClass(/*int x*/)
+    public RequiredBaseClass(int x)
     {
     }
 }
 
 [TinyhandObject]
-public partial class RequiredTestClass // : BaseClass
+public partial class RequiredTestClass : RequiredBaseClass
 {
     [SetsRequiredMembers]
     public RequiredTestClass(int x, string text)
+        : base(2)
     {
         this.X = x;
         this.Text = text;
     }
 
     public RequiredTestClass()
+        : base(2)
     {
     }
 
