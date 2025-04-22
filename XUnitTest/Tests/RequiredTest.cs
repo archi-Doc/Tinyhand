@@ -19,11 +19,17 @@ public partial class RequiredBaseClass
 [TinyhandObject]
 public partial class RequiredtestClass // : BaseClass
 {
+    public RequiredtestClass(int x, string text)
+    {
+        this.X = x;
+        this.Text = text;
+    }
+
     [Key(0)]
-    public int X { get; set; } = 49;
+    public required int X { get; set; } = 49;
 
     [Key(1)]
-    public string Text { get; set; } = "Test";
+    public required string Text { get; set; } = "Test";
 }
 
 public class RequiredTest
