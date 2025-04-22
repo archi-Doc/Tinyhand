@@ -1070,13 +1070,13 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 }
             }
 
-            if (ctor.IsImplicitlyDeclared &&
-                ctor.Parameters.Length > 0 &&
-                ctor.DeclaringSyntaxReferences.Length == 0)
-            {
-                constructor = ctor;
-                goto Exit;
-            }
+            // if (ctor.IsImplicitlyDeclared &&
+            //    ctor.Parameters.Length > 0 &&
+            //    ctor.DeclaringSyntaxReferences.Length == 0)
+            // {
+            //    constructor = ctor;
+            //    goto Exit;
+            // }
         }
 
 Exit:
@@ -2303,6 +2303,10 @@ ModuleInitializerClass_Added:
         {// Service Provider
             return $"({this.FullName})TinyhandSerializer.GetService(typeof({this.FullName}))";
         }
+        else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
+        {
+            return $"{this.SimpleName}.{TinyhandBody.UnsafeConstructorName}()";
+        }
         else if (this.PrimaryConstructor is not null)
         {// new(default!, ..., default!)
             var sb = new StringBuilder();
@@ -2320,10 +2324,6 @@ ModuleInitializerClass_Added:
 
             sb.Append(")");
             return sb.ToString();
-        }
-        else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
-        {
-            return $"{this.SimpleName}.{TinyhandBody.UnsafeConstructorName}()";
         }
         else
         {// Default constructor. new()
@@ -3023,30 +3023,45 @@ ModuleInitializerClass_Added:
 
     internal void GenerateUnsafeConstructor(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        var baseConstructor = string.Empty;
+        var st = string.Empty;
+        TinyhandObject? constructor = default;
         if (this.BaseObject is not null)
         {
             this.BaseObject.PrepareMinimumConstructor();
-            if (this.BaseObject.MinimumConstructor is not null)
-            {
-                var sb = new StringBuilder();
-                sb.Append(": base(");
-                for (var i = 0; i < this.BaseObject.MinimumConstructor.Method_Parameters.Length; i++)
-                {
-                    sb.Append($"({this.BaseObject.MinimumConstructor.Method_Parameters[i]})default!");
-                    if (i != (this.BaseObject.MinimumConstructor.Method_Parameters.Length - 1))
-                    {
-                        sb.Append($", ");
-                    }
-                }
+            constructor = this.BaseObject.MinimumConstructor;
+        }
+        else if (this.PrimaryConstructor is not null)
+        {
+            constructor = this.PrimaryConstructor;
+        }
 
-                sb.Append(") ");
-                baseConstructor = sb.ToString();
+        if (constructor is not null)
+        {
+            var sb = new StringBuilder();
+            if (this.PrimaryConstructor is null)
+            {
+                sb.Append(": base(");
             }
+            else
+            {
+                sb.Append(": this(");
+            }
+
+            for (var i = 0; i < constructor.Method_Parameters.Length; i++)
+            {
+                sb.Append($"({constructor.Method_Parameters[i]})default!");
+                if (i != (constructor.Method_Parameters.Length - 1))
+                {
+                    sb.Append($", ");
+                }
+            }
+
+            sb.Append(") ");
+            st = sb.ToString();
         }
 
         ssb.AppendLine();
-        ssb.AppendLine($"[SetsRequiredMembers] private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {baseConstructor}{{ }}");
+        ssb.AppendLine($"[SetsRequiredMembers] private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {st}{{ }}");
         ssb.AppendLine($" public static {this.SimpleName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
     }
 
