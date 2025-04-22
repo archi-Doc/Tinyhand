@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Tinyhand.Coders;
 using TinyhandGenerator;
 using TinyhandGenerator.Internal;
@@ -92,6 +93,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public MaxLengthAttributeMock? MaxLengthAttribute { get; private set; }
 
     public TinyhandObject? MinimumConstructor { get; private set; }
+
+    public TinyhandObject? PrimaryConstructor { get; private set; }
 
     public TinyhandObject[] Members { get; private set; } = Array.Empty<TinyhandObject>(); // Members is not static && property or field
 
@@ -892,14 +895,16 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             // default constructor required.
             if (this.Kind.IsReferenceType())
             {
-                if (this.IsRecord)
-                {
-                    this.PrepareMinimumConstructor();
+                this.PreparePrimaryConstructor();
+                this.PrepareMinimumConstructor();
+                if (this.ObjectAttribute?.UseServiceProvider == true)
+                {// Use ServiceProvider
                 }
-
-                if (this.MinimumConstructor == null &&
-                    this.ObjectAttribute?.UseServiceProvider == false &&
-                    !this.HasDefaultConstructor())
+                else if (this.PrimaryConstructor is not null)
+                {// PrimaryConstructor
+                }
+                else if (this.MinimumConstructor is null ||
+                    this.MinimumConstructor.Method_Parameters.Length > 0)
                 {
                     this.ObjectFlag |= TinyhandObjectFlag.UnsafeConstructor;
                     // this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
@@ -1046,6 +1051,41 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     private void PrepareMinimumConstructor()
     {
         this.MinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
+    }
+
+    private void PreparePrimaryConstructor()
+    {
+        IMethodSymbol? constructor = default;
+        var type = (INamedTypeSymbol)this.symbol!;
+
+        foreach (var ctor in type.InstanceConstructors)
+        {
+            foreach (var syntaxRef in ctor.DeclaringSyntaxReferences)
+            {
+                if (syntaxRef.GetSyntax() is TypeDeclarationSyntax tds
+                    && tds.ParameterList is not null)
+                {
+                    constructor = ctor;
+                    goto Exit;
+                }
+            }
+
+            if (ctor.IsImplicitlyDeclared &&
+                ctor.Parameters.Length > 0 &&
+                ctor.DeclaringSyntaxReferences.Length == 0)
+            {
+                constructor = ctor;
+                goto Exit;
+            }
+        }
+
+Exit:
+        if (constructor == null)
+        {
+            return;
+        }
+
+        this.PrimaryConstructor = this.Body.Add(constructor);
     }
 
     private void CheckObject_Key()
@@ -2259,31 +2299,20 @@ ModuleInitializerClass_Added:
         {
             return $"default({this.FullName})";
         }
-        else if (this.MinimumConstructor == null)
-        {
-            if (this.ObjectAttribute?.UseServiceProvider == true)
-            {// Service Provider
-                return $"({this.FullName})TinyhandSerializer.GetService(typeof({this.FullName}))";
-            }
-            else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
-            {
-                return $"{this.SimpleName}.{TinyhandBody.UnsafeConstructorName}()";
-            }
-            else
-            {// Default constructor. new()
-                return "new " + this.FullName + "()";
-            }
+        else if (this.ObjectAttribute?.UseServiceProvider == true)
+        {// Service Provider
+            return $"({this.FullName})TinyhandSerializer.GetService(typeof({this.FullName}))";
         }
-        else
+        else if (this.PrimaryConstructor is not null)
         {// new(default!, ..., default!)
             var sb = new StringBuilder();
             sb.Append("new ");
             sb.Append(this.FullName);
             sb.Append("(");
-            for (var i = 0; i < this.MinimumConstructor.Method_Parameters.Length; i++)
+            for (var i = 0; i < this.PrimaryConstructor.Method_Parameters.Length; i++)
             {
-                sb.Append($"({this.MinimumConstructor.Method_Parameters[i]})default!");
-                if (i != (this.MinimumConstructor.Method_Parameters.Length - 1))
+                sb.Append($"({this.PrimaryConstructor.Method_Parameters[i]})default!");
+                if (i != (this.PrimaryConstructor.Method_Parameters.Length - 1))
                 {
                     sb.Append($", ");
                 }
@@ -2291,6 +2320,14 @@ ModuleInitializerClass_Added:
 
             sb.Append(")");
             return sb.ToString();
+        }
+        else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
+        {
+            return $"{this.SimpleName}.{TinyhandBody.UnsafeConstructorName}()";
+        }
+        else
+        {// Default constructor. new()
+            return "new " + this.FullName + "()";
         }
     }
 
@@ -3009,8 +3046,7 @@ ModuleInitializerClass_Added:
         }
 
         ssb.AppendLine();
-        ssb.AppendLine("[SetsRequiredMembers]");
-        ssb.AppendLine($"private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {baseConstructor}{{ }}");
+        ssb.AppendLine($"[SetsRequiredMembers] private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {baseConstructor}{{ }}");
         ssb.AppendLine($" public static {this.SimpleName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
     }
 
