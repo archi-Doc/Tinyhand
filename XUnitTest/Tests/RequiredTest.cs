@@ -44,7 +44,7 @@ public partial record class RequiredTestClass2([property: Key(2)] int Y)
     public required int X { get; set; } = 49;
 
     [Key(1)]
-    public required string Text { get; set; } = "Test";
+    public required partial string Text2 { get; set; } = "Test";
 }
 
 public class RequiredTest
