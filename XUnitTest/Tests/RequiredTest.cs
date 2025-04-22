@@ -37,6 +37,16 @@ public partial class RequiredTestClass : RequiredBaseClass
     public required string Text { get; set; } = "Test";
 }
 
+[TinyhandObject]
+public partial record class RequiredTestClass2([property: Key(2)] int Y)
+{// Primary ctor (int), required true
+    [Key(0)]
+    public required int X { get; set; } = 49;
+
+    [Key(1)]
+    public required string Text { get; set; } = "Test";
+}
+
 public class RequiredTest
 {
     [Fact]
