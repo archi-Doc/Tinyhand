@@ -51,6 +51,7 @@ public enum TinyhandObjectFlag
     CloneTarget = 1 << 9,
     HiddenMember = 1 << 10,
     AddPropertyTarget = 1 << 11,
+    UnsafeConstructor = 1 << 12,
 
     HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
@@ -900,7 +901,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.ObjectAttribute?.UseServiceProvider == false &&
                     !this.HasDefaultConstructor())
                 {
-                    this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
+                    this.ObjectFlag |= TinyhandObjectFlag.UnsafeConstructor;
+                    // this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
                 }
             }
 
@@ -1914,6 +1916,11 @@ ModuleInitializerClass_Added:
                 }
             }
 
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
+            {
+                this.GenerateUnsafeConstructor(ssb, info);
+            }
+
             /*if (this.ObjectAttribute != null && info.UseMemberNotNull)
             {// MemberNotNull
                 if (this.MethodCondition_Reconstruct == MethodCondition.MemberMethod)
@@ -2247,6 +2254,10 @@ ModuleInitializerClass_Added:
             if (this.ObjectAttribute?.UseServiceProvider == true)
             {// Service Provider
                 return $"({this.FullName})TinyhandSerializer.GetService(typeof({this.FullName}))";
+            }
+            else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
+            {
+                return $"{this.SimpleName}.{TinyhandBody.UnsafeConstructorName}()";
             }
             else
             {// Default constructor. new()
@@ -2961,6 +2972,14 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace($"public static void MemberNotNull()"))
         {
         }
+    }
+
+    internal void GenerateUnsafeConstructor(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine();
+        ssb.AppendLine("[SetsRequiredMembers]");
+        ssb.AppendLine($"private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {{ }}");
+        ssb.AppendLine($" public static {this.SimpleName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
     }
 
     internal void GenerateIStructualObject(ScopingStringBuilder ssb, GeneratorInformation info)

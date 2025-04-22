@@ -17,12 +17,17 @@ public partial class RequiredBaseClass
 }
 
 [TinyhandObject]
-public partial class RequiredtestClass // : BaseClass
+public partial class RequiredTestClass // : BaseClass
 {
-    public RequiredtestClass(int x, string text)
+    [SetsRequiredMembers]
+    public RequiredTestClass(int x, string text)
     {
         this.X = x;
         this.Text = text;
+    }
+
+    public RequiredTestClass()
+    {
     }
 
     [Key(0)]
@@ -37,5 +42,25 @@ public class RequiredTest
     [Fact]
     public void Test1()
     {
+        var a = new RequiredTestClass(1, "a");
+        a.X.Is(1);
+        a.Text.Is("a");
+
+        a = TinyhandSerializer.Deserialize<RequiredTestClass>(TinyhandSerializer.Serialize(a));
+        a.X.Is(1);
+        a.Text.Is("a");
+
+        var b = RequiredTestClass.UnsafeConstructor();
+        b.X.Is(49);
+        b.Text.Is("Test");
+
+        b = new()
+        {
+            X = 2,
+            Text = "b",
+        };
+
+        b.X.Is(2);
+        b.Text.Is("b");
     }
 }
