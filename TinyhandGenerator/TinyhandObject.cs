@@ -1644,7 +1644,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         }
 
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget) &&
-            this.IsPartialProperty)
+            this.IsPartialProperty &&
+            this.ContainingObject == parent)
         {
             this.ObjectFlag |= TinyhandObjectFlag.AddPropertyTarget;
         }
