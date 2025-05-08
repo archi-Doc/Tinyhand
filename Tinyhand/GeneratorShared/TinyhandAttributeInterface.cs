@@ -145,6 +145,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public bool Structual { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to register as a serializable TinyhandObject, but the actual code is to be generated externally (e.g., by a source generator).
+    /// </summary>
+    public bool External { get; set; } = false;
+
     public TinyhandObjectAttribute()
     {
     }

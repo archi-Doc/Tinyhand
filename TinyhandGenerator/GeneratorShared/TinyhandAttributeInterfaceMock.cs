@@ -96,6 +96,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool Structual { get; set; } = false;
 
+    public bool External { get; set; } = false;
+
     public TinyhandObjectAttributeMock()
     {
     }
@@ -181,6 +183,12 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.Structual = (bool)val;
+        }
+
+        val = VisceralHelper.GetValue(-1, nameof(External), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.External = (bool)val;
         }
 
         return attribute;
