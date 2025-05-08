@@ -63,6 +63,7 @@ public enum TinyhandObjectFlag
     HasValueLinkObject = 1 << 27, // Has ValueLinkgObject attribute
     IsRepeatableRead = 1 << 28, // IsolationLevel.RepeatableRead
     HasIIntegralityObject = 1 << 29, // Has IIntegralityObject interface
+    ExternalObject = 1 << 30, // Has external attribute
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -603,6 +604,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void ConfigureObject()
     {
+        if (this.ObjectAttribute?.External == true)
+        {
+            this.ObjectFlag |= TinyhandObjectFlag.ExternalObject;
+            return;
+        }
+
         // Method condition (Serialize/Deserialize)
         this.MethodCondition_Serialize = MethodCondition.StaticMethod;
         this.MethodCondition_Deserialize = MethodCondition.StaticMethod;
@@ -1883,6 +1890,11 @@ ModuleInitializerClass_Added:
                 }
             }
 
+            return;
+        }
+
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.ExternalObject))
+        {
             return;
         }
 
