@@ -67,10 +67,10 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
 [TinyhandObject]
 public partial class StringConvertibleTestClass2
 {
-    [Key("Class1", ConvertToString = true)]
+    [Key("Class1")]
     public StringConvertibleTestClass Class1 { get; set; } = new();
 
-    [KeyAsName(ConvertToString = true)]
+    [KeyAsName]
     public StringConvertibleTestClass? Class2 { get; set; } = new();
 
     // [KeyAsName(ConvertToString = true)]

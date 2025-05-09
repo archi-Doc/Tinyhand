@@ -470,7 +470,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 {// KeyAsNameAttribute to KeyAttribute.
                     this.KeyVisceralAttribute = x;
                     this.KeyAttribute = new KeyAttributeMock(this.SimpleName);
-                    try
+                    /*try
                     {
                         var v = VisceralHelper.GetValue(-1, nameof(KeyAttributeMock.ConvertToString), x.ConstructorArguments, x.NamedArguments);
                         if (v != null)
@@ -480,7 +480,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     }
                     catch
                     {
-                    }
+                    }*/
                 }
             }
             else if (x.FullName == IgnoreMemberAttributeMock.FullName)
@@ -1323,7 +1323,7 @@ Exit:
                 }
             }
 
-            if (this.KeyAttribute.ConvertToString)
+            /*if (this.KeyAttribute.ConvertToString)
             {
                 if (this.TypeObject is { } typeObject)
                 {
@@ -1334,7 +1334,7 @@ Exit:
                         this.KeyAttribute.ConvertToString = false;
                     }
                 }
-            }
+            }*/
         }
         else
         {// No KeyAttribute
@@ -2345,7 +2345,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, object? defaultValue, bool convertToString)
+    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, object? defaultValue)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
         if (defaultValue != null)
         {
@@ -2359,12 +2359,12 @@ ModuleInitializerClass_Added:
             }
         }
 
-        if (convertToString)
+        /*if (convertToString)
         {
             ssb.AppendLine($"reader.TryReadStringConvertible<{this.FullName}>(ref vd!);");
         }
-        else
-        {
+        else*/
+        {//
             ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref vd!, options);");
         }
     }
@@ -3614,7 +3614,7 @@ ModuleInitializerClass_Added:
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue, x.KeyAttribute?.ConvertToString == true);
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue);
                 }
                 else if (coder != null)
                 {
@@ -3705,7 +3705,7 @@ ModuleInitializerClass_Added:
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue, x.KeyAttribute?.ConvertToString == true);
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue);
                 }
                 else if (coder != null)
                 {
@@ -4103,12 +4103,12 @@ ModuleInitializerClass_Added:
             }
         }
 
-        if (x.KeyAttribute?.ConvertToString == true)
+        /*if (x.KeyAttribute?.ConvertToString == true)
         {
             ssb.AppendLine($"writer.WriteStringConvertible({ssb.FullObject});");
         }
-        else
-        {
+        else*/
+        {//
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
             if (coder != null)
             {// Coder
