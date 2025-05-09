@@ -282,6 +282,22 @@ public static partial class TinyhandSerializer
         }
     }
 
+    public static bool TryDeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerializable<T>
+    {
+        options = options ?? DefaultOptions;
+        try
+        {
+            T.Deserialize(ref reader, ref value, DefaultOptions);
+            return value is not null;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
+    }
+
     /* /// <summary>
     /// Gets the type identifier (FarmHash.Hash64(Type.FullName)).
     /// </summary>
