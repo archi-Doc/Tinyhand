@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Arc;
 using Arc.Collections;
 using Arc.IO;
 using MessagePack.LZ4;
@@ -190,6 +191,20 @@ public static partial class TinyhandSerializer
         }
     }
 
+    public static void ReadStringConvertibleOrDeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerializable<T>, IStringConvertible<T>
+    {
+        var st = reader.TryReadString();
+        if (st is not null)
+        {
+            T.TryParse(st, out value, out _);
+        }
+        else
+        {
+            DeserializeObject(ref reader, ref value, options);
+        }
+    }
+
     public static T? DeserializeObject<T>(ReadOnlySpan<byte> data)
         where T : ITinyhandSerializable<T>
     {
@@ -272,6 +287,22 @@ public static partial class TinyhandSerializer
         try
         {
             value = default;
+            T.Deserialize(ref reader, ref value, DefaultOptions);
+            return value is not null;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static bool TryDeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerializable<T>
+    {
+        options = options ?? DefaultOptions;
+        try
+        {
             T.Deserialize(ref reader, ref value, DefaultOptions);
             return value is not null;
         }

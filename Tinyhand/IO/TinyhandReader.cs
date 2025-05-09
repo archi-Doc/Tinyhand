@@ -3,13 +3,11 @@
 using System;
 using System.Buffers.Binary;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using Arc;
 using Arc.Collections;
 
@@ -939,6 +937,22 @@ public ref partial struct TinyhandReader
         return value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe string? TryReadString()
+    {
+        var code = this.NextCode;
+        if (code == MessagePackCode.Ext32 ||
+            (code >= MessagePackCode.MinFixStr && code <= MessagePackCode.MaxFixStr) ||
+            code == MessagePackCode.Str8 ||
+            code == MessagePackCode.Str16 ||
+            code == MessagePackCode.Str32)
+        {
+            return this.ReadString();
+        }
+
+        return default;
+    }
+
     /// <summary>
     /// Reads an extension format header, based on one of these codes:
     /// <see cref="MessagePackCode.FixExt1"/>,
@@ -1108,7 +1122,7 @@ public ref partial struct TinyhandReader
         }
     }
 
-    public T? TryReadStringConvertible<T>()
+    /*public T? TryReadStringConvertible<T>()
         where T : IStringConvertible<T>
     {
         var st = this.ReadString();
@@ -1119,7 +1133,7 @@ public ref partial struct TinyhandReader
 
         T.TryParse(st, out var instance, out _);
         return instance;
-    }
+    }*/
 
     /// <summary>
     /// Throws an exception indicating that there aren't enough bytes remaining in the buffer to store

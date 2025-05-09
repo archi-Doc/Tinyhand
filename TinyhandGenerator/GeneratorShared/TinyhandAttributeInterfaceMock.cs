@@ -218,7 +218,7 @@ public class KeyAttributeMock
 
     public bool IgnoreKeyReservation { get; set; } = false;
 
-    public bool ConvertToString { get; set; } = false;
+    // public bool ConvertToString { get; set; } = false;
 
     // public bool Utf8String { get; set; } = false;
 
@@ -284,11 +284,11 @@ public class KeyAttributeMock
             attribute.IgnoreKeyReservation = (bool)v;
         }
 
-        v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);
+        /*v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);
         if (v != null)
         {
             attribute.ConvertToString = (bool)v;
-        }
+        }*/
 
         /*v = VisceralHelper.GetValue(-1, nameof(Utf8String), constructorArguments, namedArguments);
         if (v != null)
@@ -312,17 +312,17 @@ public class KeyAsNameAttributeMock
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
-    public bool ConvertToString { get; set; } = false;
+    // public bool ConvertToString { get; set; } = false;
 
     public static KeyAsNameAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
         var attribute = new KeyAsNameAttributeMock();
 
-        var v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);
+        /*var v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);
         if (v != null)
         {
             attribute.ConvertToString = (bool)v;
-        }
+        }*/
 
         return attribute;
     }

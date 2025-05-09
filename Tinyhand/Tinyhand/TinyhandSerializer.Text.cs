@@ -24,7 +24,7 @@ public static partial class TinyhandSerializer
     public static byte[] SerializeObjectToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>
     {
-        options = options ?? DefaultOptions;
+        options = options ?? TinyhandSerializerOptions.ConvertToString;
         var binary = SerializeObject(value, options);
         bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
         if (options.Compose == TinyhandComposeOption.Strict)
@@ -58,7 +58,7 @@ public static partial class TinyhandSerializer
     public static BytePool.RentMemory SerializeObjectToUtf8RentMemory<T>(T value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>
     {
-        options = options ?? DefaultOptions;
+        options = options ?? TinyhandSerializerOptions.ConvertToString;
         var rentMemory = SerializeObjectToRentMemory(value, options);
         bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
         if (options.Compose == TinyhandComposeOption.Strict)
@@ -94,7 +94,7 @@ public static partial class TinyhandSerializer
     public static void DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, scoped ref T? value, TinyhandSerializerOptions? options = null)
     where T : ITinyhandSerializable<T>
     {
-        options = options ?? DefaultOptions;
+        options = options ?? TinyhandSerializerOptions.ConvertToString;
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
         try
         {
@@ -155,7 +155,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static void SerializeToUtf8<T>(IBufferWriter<byte> bufferWriter, T value, TinyhandSerializerOptions? options = null)
     {
-        options = options ?? DefaultOptions;
+        options = options ?? TinyhandSerializerOptions.ConvertToString;
         var binary = Serialize<T>(value, options);
 
         // Slow
@@ -183,7 +183,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
     {
-        options = options ?? DefaultOptions;
+        options = options ?? TinyhandSerializerOptions.ConvertToString;
         var binary = Serialize<T>(value, options);
         bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
         if (options.Compose == TinyhandComposeOption.Strict)
@@ -233,7 +233,7 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null)
     {
-        options = options ?? DefaultOptions;
+        options = options ?? TinyhandSerializerOptions.ConvertToString;
 
         // Slow
         // var element = TinyhandParser.Parse(utf8, TinyhandParserOptions.TextSerialization);

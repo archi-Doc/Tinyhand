@@ -55,6 +55,7 @@ public enum TinyhandObjectFlag
     AddPropertyTarget = 1 << 11,
     UnsafeConstructor = 1 << 12,
 
+    HasIStringConvertible = 1 << 21, // Has IStringConvertible interface
     HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
     InterfaceImplemented = 1 << 24, // ITinyhandSerializable, ITinyhandReconstructable, ITinyhandCloneable
@@ -470,7 +471,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 {// KeyAsNameAttribute to KeyAttribute.
                     this.KeyVisceralAttribute = x;
                     this.KeyAttribute = new KeyAttributeMock(this.SimpleName);
-                    try
+                    /*try
                     {
                         var v = VisceralHelper.GetValue(-1, nameof(KeyAttributeMock.ConvertToString), x.ConstructorArguments, x.NamedArguments);
                         if (v != null)
@@ -480,7 +481,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     }
                     catch
                     {
-                    }
+                    }*/
                 }
             }
             else if (x.FullName == IgnoreMemberAttributeMock.FullName)
@@ -742,6 +743,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             {
                 this.MethodCondition_ReadCustomRecord = MethodCondition.Declared;
             }
+        }
+
+        if (this.Interfaces.Any(x => x.FullName.StartsWith(TinyhandBody.IStringConvertible)))
+        {// IStringConvertible implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasIStringConvertible;
         }
 
         // Members: Property
@@ -1323,7 +1329,7 @@ Exit:
                 }
             }
 
-            if (this.KeyAttribute.ConvertToString)
+            /*if (this.KeyAttribute.ConvertToString)
             {
                 if (this.TypeObject is { } typeObject)
                 {
@@ -1334,7 +1340,7 @@ Exit:
                         this.KeyAttribute.ConvertToString = false;
                     }
                 }
-            }
+            }*/
         }
         else
         {// No KeyAttribute
@@ -2345,7 +2351,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, object? defaultValue, bool convertToString)
+    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, object? defaultValue)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
         if (defaultValue != null)
         {
@@ -2359,9 +2365,9 @@ ModuleInitializerClass_Added:
             }
         }
 
-        if (convertToString)
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
-            ssb.AppendLine($"reader.TryReadStringConvertible<{this.FullName}>(ref vd!);");
+            ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject(ref reader, ref vd!, options);");
         }
         else
         {
@@ -3614,7 +3620,7 @@ ModuleInitializerClass_Added:
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue, x.KeyAttribute?.ConvertToString == true);
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue);
                 }
                 else if (coder != null)
                 {
@@ -3705,7 +3711,7 @@ ModuleInitializerClass_Added:
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue, x.KeyAttribute?.ConvertToString == true);
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue);
                 }
                 else if (coder != null)
                 {
@@ -4103,9 +4109,10 @@ ModuleInitializerClass_Added:
             }
         }
 
-        if (x.KeyAttribute?.ConvertToString == true)
+        if (withNullable.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
-            ssb.AppendLine($"writer.WriteStringConvertible({ssb.FullObject});");
+            ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
+            ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
         }
         else
         {

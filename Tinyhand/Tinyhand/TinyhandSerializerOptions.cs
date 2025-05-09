@@ -65,25 +65,30 @@ public record TinyhandSerializerOptions
     }
 
     [Flags]
-    public enum Flags
+    public enum SerializationFlag
     {
         /// <summary>
         /// Compress the data using the Lz4 algorithm.
         /// </summary>
         Lz4Compress = 1 << 0,
+
+        /// <summary>
+        /// Converts the object to a string when <see cref="Arc.IStringConvertible{T}"/> is implemented.
+        /// </summary>
+        ConvertToString = 1 << 1,
     }
 
     public static TinyhandSerializerOptions Standard { get; } = new TinyhandSerializerOptions(StandardResolver.Instance);
 
     public static TinyhandSerializerOptions Compatible { get; } = new TinyhandSerializerOptions(CompatibleResolver.Instance);
 
-    public static TinyhandSerializerOptions Lz4 { get; } = Standard with { SerializationFlags = Flags.Lz4Compress, };
-
-    // public static TinyhandSerializerOptions Unload { get; } = Standard with { SerializationFlags = Flags.Unload, };
+    public static TinyhandSerializerOptions Lz4 { get; } = Standard with { Flags = SerializationFlag.Lz4Compress, };
 
     public static TinyhandSerializerOptions Exclude { get; } = Standard with { SerializationMode = Mode.Exclude, };
 
     public static TinyhandSerializerOptions Signature { get; } = Standard with { SerializationMode = Mode.Signature, };
+
+    public static TinyhandSerializerOptions ConvertToString { get; } = Standard with { Flags = SerializationFlag.ConvertToString, };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandSerializerOptions"/> class.
@@ -104,7 +109,7 @@ public record TinyhandSerializerOptions
     /// <summary>
     /// Gets the serialization flags.
     /// </summary>
-    public Flags SerializationFlags { get; init; }
+    public SerializationFlag Flags { get; init; }
 
     /// <summary>
     /// Gets the security-related options for deserializing messagepack sequences.
@@ -140,7 +145,7 @@ public record TinyhandSerializerOptions
     /// </summary>
     public bool IsStandardResolver => this.Resolver == StandardResolver.Instance;
 
-    public bool HasLz4CompressFlag => this.SerializationFlags.HasFlag(Flags.Lz4Compress);
+    public bool HasLz4CompressFlag => this.Flags.HasFlag(SerializationFlag.Lz4Compress);
 
-    // public bool HasUnloadFlag => this.SerializationFlags.HasFlag(Flags.Unload);
+    public bool HasConvertToStringFlag => this.Flags.HasFlag(SerializationFlag.ConvertToString);
 }

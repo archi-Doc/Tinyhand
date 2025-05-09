@@ -44,7 +44,7 @@ public static class TinyhandTreeConverter
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
     public static void FromBinaryToUtf8(ReadOnlySpan<byte> span, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options, bool omitTopLevelBracket = false)
     {
-        options ??= TinyhandSerializer.DefaultOptions;
+        options ??= TinyhandSerializerOptions.ConvertToString;
 
         var reader = new TinyhandReader(span);
         var byteSequence = new ByteSequence();
