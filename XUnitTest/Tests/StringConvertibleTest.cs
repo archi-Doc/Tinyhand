@@ -17,7 +17,7 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
     [Key(0)]
     public byte[] Byte16 { get; set; } = [];
 
-    public static bool TryParse(ReadOnlySpan<char> source, out StringConvertibleTestClass? instance, out int read)
+    public static bool TryParse(ReadOnlySpan<char> source, out StringConvertibleTestClass? instance, out int read, IConversionOptions? conversionOptions = default)
     {
         instance = null;
         read = 0;
@@ -43,7 +43,7 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
     int IStringConvertible<StringConvertibleTestClass>.GetStringLength()
         => MaxStringLength;
 
-    bool IStringConvertible<StringConvertibleTestClass>.TryFormat(Span<char> destination, out int written)
+    bool IStringConvertible<StringConvertibleTestClass>.TryFormat(Span<char> destination, out int written, IConversionOptions? conversionOptions)
     {
         if (destination.Length < MaxStringLength)
         {
