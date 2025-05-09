@@ -55,6 +55,7 @@ public enum TinyhandObjectFlag
     AddPropertyTarget = 1 << 11,
     UnsafeConstructor = 1 << 12,
 
+    HasIStringConvertible = 1 << 21, // Has IStringConvertible interface
     HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
     InterfaceImplemented = 1 << 24, // ITinyhandSerializable, ITinyhandReconstructable, ITinyhandCloneable
@@ -742,6 +743,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             {
                 this.MethodCondition_ReadCustomRecord = MethodCondition.Declared;
             }
+        }
+
+        if (this.Interfaces.Any(x => x.FullName.StartsWith(TinyhandBody.IStringConvertible)))
+        {// IStringConvertible implemented
+            this.ObjectFlag |= TinyhandObjectFlag.HasIStringConvertible;
         }
 
         // Members: Property
@@ -2359,12 +2365,12 @@ ModuleInitializerClass_Added:
             }
         }
 
-        /*if (convertToString)
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
-            ssb.AppendLine($"reader.TryReadStringConvertible<{this.FullName}>(ref vd!);");
+            ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject(ref reader, ref vd!, options);");
         }
-        else*/
-        {//
+        else
+        {
             ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref vd!, options);");
         }
     }
@@ -4103,12 +4109,13 @@ ModuleInitializerClass_Added:
             }
         }
 
-        /*if (x.KeyAttribute?.ConvertToString == true)
+        if (withNullable.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
-            ssb.AppendLine($"writer.WriteStringConvertible({ssb.FullObject});");
+            ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
+            ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
         }
-        else*/
-        {//
+        else
+        {
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
             if (coder != null)
             {// Coder
