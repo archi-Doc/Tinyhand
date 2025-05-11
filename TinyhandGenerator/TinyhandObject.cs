@@ -1064,7 +1064,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void PrepareMinimumConstructor()
     {
-        this.MinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
+        // this.MinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
+        this.MinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
     }
 
     private void PreparePrimaryConstructor()
@@ -2325,7 +2326,7 @@ ModuleInitializerClass_Added:
         }
         else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
         {
-            return $"{this.SimpleName}.{TinyhandBody.UnsafeConstructorName}()";
+            return $"{this.LocalName}.{TinyhandBody.UnsafeConstructorName}()";
         }
         else if (this.PrimaryConstructor is not null)
         {// new(default!, ..., default!)
@@ -3097,7 +3098,7 @@ ModuleInitializerClass_Added:
 
         ssb.AppendLine();
         ssb.AppendLine($"[SetsRequiredMembers] private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {st}{{ {memberNotNull}}}");
-        ssb.AppendLine($" public static {this.SimpleName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
+        ssb.AppendLine($" public static {this.LocalName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
     }
 
     internal void GenerateIStructualObject(ScopingStringBuilder ssb, GeneratorInformation info)
