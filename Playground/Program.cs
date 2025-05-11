@@ -5,6 +5,26 @@ using Tinyhand.IO;
 
 namespace Playground;
 
+[TinyhandObject]
+public partial class UnsafeConstructorTestClass2<T>
+{
+    internal UnsafeConstructorTestClass2(int x)
+    {
+    }
+
+    [Key(0)]
+    private T Value { get; set; } = default!;
+}
+
+[TinyhandObject]
+public partial class UnsafeConstructorTestClass3 : UnsafeConstructorTestClass2<int>
+{
+    private UnsafeConstructorTestClass3()
+        : base(1)
+    {
+    }
+}
+
 public abstract class BaseClass
 {
 }
