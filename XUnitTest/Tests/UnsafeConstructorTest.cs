@@ -14,13 +14,25 @@ public partial class UnsafeConstructorTestClass
     }
 }
 
-/*[TinyhandObject]
+[TinyhandObject]
 public partial class UnsafeConstructorTestClass2<T>
 {
-    private UnsafeConstructorTestClass2()
+    internal UnsafeConstructorTestClass2(int x)
     {
     }
-}*/
+
+    [Key(0)]
+    private T Value { get; set; } = default!;
+}
+
+[TinyhandObject]
+public partial class UnsafeConstructorTestClass3 : UnsafeConstructorTestClass2<int>
+{
+    private UnsafeConstructorTestClass3()
+        : base(1)
+    {
+    }
+}
 
 public class UnsafeConstructorTest
 {
