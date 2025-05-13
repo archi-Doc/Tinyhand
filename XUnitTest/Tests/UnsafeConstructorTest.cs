@@ -1,10 +1,19 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System.Text;
 using Tinyhand;
+using ValueLink;
 using Xunit;
 
 namespace XUnitTest.Tests;
+
+[ValueLinkObject]
+[TinyhandObject]
+public partial class ValueLinkClass
+{
+    [Key(0)]
+    [Link(Primary = true, Type = ChainType.Ordered)]
+    public int X { get; set; } = 1;
+}
 
 [TinyhandObject]
 public partial class UnsafeConstructorTestClass
@@ -12,6 +21,12 @@ public partial class UnsafeConstructorTestClass
     private UnsafeConstructorTestClass()
     {
     }
+
+    [Key(0)]
+    private readonly ValueLinkClass.GoshujinClass c1 = new();
+
+    [Key(1)]
+    private readonly UnsafeConstructorTestClass2<int> class2 = new(1);
 }
 
 [TinyhandObject]

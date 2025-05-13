@@ -1315,10 +1315,16 @@ Exit:
         {// Has KeyAttribute
             this.Body.DebugAssert(this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget), $"{this.FullName}: KeyAttribute and SerializeTarget are inconsistent.");
 
+            if (this.TypeObject.Kind == VisceralObjectKind.Error)
+            {// Error object is treated as an external object that implements ITinyhandSerialize outside the control of the generator.
+                this.TypeObject.ObjectAttribute ??= TinyhandObjectAttributeMock.ExternalObject;
+            }
+
             if (// parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&
                 this.TypeObjectWithNullable != null &&
                 !this.TypeObject.ContainsTypeParameter &&
                 this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
+                this.TypeObject.Kind != VisceralObjectKind.Error &&
                 CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
             {// No Coder or Formatter
                 /*var obj = this.TypeObjectWithNullable.Object;
@@ -2324,7 +2330,7 @@ ModuleInitializerClass_Added:
         {// Service Provider
             return $"({this.FullName})TinyhandSerializer.GetService(typeof({this.FullName}))";
         }
-        else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
+        else if (this.OriginalDefinition?.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor) == true)
         {
             return $"{this.LocalName}.{TinyhandBody.UnsafeConstructorName}()";
         }
@@ -3832,8 +3838,8 @@ ModuleInitializerClass_Added:
             }
             else
             {// Default constructor
-                assignment.Start(true);
-                ssb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()}!;");
+                assignment.RefValue(true, true);
+                // sb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()}!;");
                 assignment.End();
             }
 

@@ -45,7 +45,7 @@ internal ref struct ValueAssignment
         }
     }
 
-    public void RefValue(bool reuse)
+    public void RefValue(bool reuse, bool brace = false)
     {
         var withNullable = this.@object?.TypeObjectWithNullable;
         if (this.ssb is null || this.info is null || this.parent is null || this.@object is null || withNullable is null)
@@ -56,6 +56,11 @@ internal ref struct ValueAssignment
         var prefix = string.Empty;
         if (this.temporaryValue is null)
         {
+            if (brace)
+            {
+                this.braceScope = this.ssb.ScopeBrace(string.Empty);
+            }
+
             this.temporaryValue = this.ssb.ScopeFullObject("vd");
             prefix = $"{withNullable.FullNameWithNullable} ";
         }

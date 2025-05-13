@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Tinyhand;
 using Tinyhand.IO;
+using ValueLink;
 
 namespace Playground;
 
@@ -51,31 +52,26 @@ public partial class DerivedClass : BaseClass2
 {
 }
 
+[ValueLinkObject]
+[TinyhandObject]
+public partial class TestClass1
+{
+    [Key(0)]
+    [Link(Primary = true, Type = ChainType.Ordered)]
+    public int X { get; set; } = 1;
+}
+
 [TinyhandObject]
 public partial class TestClass
 {
-    [Key(0)]
-    // [MaxLength(12)]
-    public string X0 { get; set; } = string.Empty;
-
-    [Key(1)]
-    [MaxLength(12)]
-    internal partial string X1 { get; private init; } = string.Empty;
-
-    [IgnoreMember]
-    internal partial string X2 { get; private init; } = string.Empty;
-
-    [Key(3)]
-    internal partial string X3 { get; init; } = string.Empty;
-
     [Key(4)]
     public ExternalClass ExternalClass { get; set; } = new();
 
-    internal partial string X2
-    {
-        get => field;
-        private init => field = value;
-    }
+    [Key(5)]
+    private readonly TestClass1.GoshujinClass c1 = new();
+
+    [Key(6)]
+    private readonly UnsafeConstructorTestClass2<int> class2 = new(1);
 }
 
 [TinyhandObject(External = true)]
