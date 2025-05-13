@@ -69,7 +69,9 @@ public partial class TestClass
 
     [Key(5)]
     private readonly TestClass1.GoshujinClass c1 = new();
-    // private readonly UnsafeConstructorTestClass2<int> class2 = new(1);
+
+    [Key(6)]
+    private readonly UnsafeConstructorTestClass2<int> class2 = new(1);
 }
 
 [TinyhandObject(External = true)]

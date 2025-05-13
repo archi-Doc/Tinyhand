@@ -24,6 +24,9 @@ public partial class UnsafeConstructorTestClass
 
     [Key(0)]
     private readonly ValueLinkClass.GoshujinClass c1 = new();
+
+    [Key(1)]
+    private readonly UnsafeConstructorTestClass2<int> class2 = new(1);
 }
 
 [TinyhandObject]

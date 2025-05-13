@@ -2330,7 +2330,7 @@ ModuleInitializerClass_Added:
         {// Service Provider
             return $"({this.FullName})TinyhandSerializer.GetService(typeof({this.FullName}))";
         }
-        else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
+        else if (this.OriginalDefinition?.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor) == true)
         {
             return $"{this.LocalName}.{TinyhandBody.UnsafeConstructorName}()";
         }
@@ -2564,7 +2564,7 @@ ModuleInitializerClass_Added:
     internal void GenerateReconstructRemaining(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do && x.KeyAttribute == null))
-        {//
+        {
             this.GenerateReconstructCore(ssb, info, x);
         }
     }
@@ -3838,7 +3838,7 @@ ModuleInitializerClass_Added:
             }
             else
             {// Default constructor
-                assignment.RefValue(true, true);//
+                assignment.RefValue(true, true);
                 // sb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()}!;");
                 assignment.End();
             }
