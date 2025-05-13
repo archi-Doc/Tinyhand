@@ -120,10 +120,10 @@ public sealed class FormatterResolver : ICoderResolver
 
     public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
     {
-        if (withNullable.Object.Kind == VisceralObjectKind.Error)
-        {// Error type is tentatively treated as serializable.
+        /*if (withNullable.Object.Kind == VisceralObjectKind.Error)
+        {// Error type is tentatively treated as serializable -> External
             return true;
-        }
+        }*/
 
         if (this.stringToCoder.ContainsKey(withNullable.FullNameWithNullable))
         {// Found

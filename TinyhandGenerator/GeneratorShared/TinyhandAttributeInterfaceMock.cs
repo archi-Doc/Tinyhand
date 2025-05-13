@@ -72,6 +72,14 @@ public sealed class TinyhandObjectAttributeMock
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
+    public static TinyhandObjectAttributeMock ExternalObject { get; }
+
+    static TinyhandObjectAttributeMock()
+    {
+        ExternalObject = new();
+        ExternalObject.External = true;
+    }
+
     public bool IncludePrivateMembers { get; set; } = false;
 
     public bool ImplicitKeyAsName { get; set; } = false;
