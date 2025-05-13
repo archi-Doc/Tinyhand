@@ -3832,8 +3832,8 @@ ModuleInitializerClass_Added:
             }
             else
             {// Default constructor
-                assignment.Start(true);
-                ssb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()}!;");
+                assignment.RefValue(true);//
+                // sb.AppendLine($"{ssb.FullObject} ??= {withNullable.Object.NewInstanceCode()}!;");
                 assignment.End();
             }
 
