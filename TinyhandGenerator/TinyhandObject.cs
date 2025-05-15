@@ -2360,23 +2360,30 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, object? defaultValue)
+    internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, TinyhandObject x)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
-        if (defaultValue != null)
+        if (x.DefaultValue != null)
         {
             if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
             {
-                ssb.AppendLine($"vd.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+                ssb.AppendLine($"vd.{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(x.DefaultValue)});");
             }
             else if (this.MethodCondition_SetDefaultValue == MethodCondition.ExplicitlyDeclared)
             {
-                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})vd).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
+                ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})vd).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(x.DefaultValue)});");
             }
         }
 
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
-            ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject(ref reader, ref vd!, options);");
+            if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReconstructTarget))
+            {
+                ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject2(ref reader, ref vd!, options);");
+            }
+            else
+            {
+                ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject(ref reader, ref vd!, options);");
+            }
         }
         else
         {
@@ -3629,7 +3636,7 @@ ModuleInitializerClass_Added:
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue);
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x);
                 }
                 else if (coder != null)
                 {
@@ -3720,7 +3727,7 @@ ModuleInitializerClass_Added:
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
                 {// TinyhandObject. For the purpose of default value and instance reuse.
                     assignment.RefValue(x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
-                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x.DefaultValue);
+                    withNullable.Object.GenerateFormatter_Deserialize2(ssb, x);
                 }
                 else if (coder != null)
                 {
