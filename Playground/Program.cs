@@ -6,6 +6,29 @@ using ValueLink;
 
 namespace Playground;
 
+[ValueLinkObject]
+[TinyhandObject]
+public partial class ValueLinkClass
+{
+    [Key(0)]
+    [Link(Primary = true, Type = ChainType.Ordered)]
+    public int X { get; set; } = 1;
+}
+
+[TinyhandObject]
+public partial class UnsafeConstructorTestClass
+{
+    private UnsafeConstructorTestClass()
+    {
+    }
+
+    [Key(0)]
+    private readonly ValueLinkClass.GoshujinClass c1 = new();
+
+    [Key(1)]
+    private readonly UnsafeConstructorTestClass2<int> class2 = new(1);
+}
+
 [TinyhandObject]
 public partial class UnsafeConstructorTestClass2<T>
 {
@@ -25,6 +48,7 @@ public partial class UnsafeConstructorTestClass3 : UnsafeConstructorTestClass2<i
     {
     }
 }
+
 
 public abstract class BaseClass
 {
@@ -72,6 +96,9 @@ public partial class TestClass
 
     [Key(6)]
     private readonly UnsafeConstructorTestClass2<int> class2 = new(1);
+
+    [Key(7)]
+    private readonly UnsafeConstructorTestClass3 class3 = default!;
 }
 
 [TinyhandObject(External = true)]

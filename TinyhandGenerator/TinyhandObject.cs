@@ -95,6 +95,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public MaxLengthAttributeMock? MaxLengthAttribute { get; private set; }
 
+    public TinyhandObject? PublicMinimumConstructor { get; private set; }
+
     public TinyhandObject? MinimumConstructor { get; private set; }
 
     public TinyhandObject? PrimaryConstructor { get; private set; }
@@ -917,8 +919,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 else if (this.PrimaryConstructor is not null)
                 {// PrimaryConstructor
                 }
-                else if (this.MinimumConstructor is null ||
-                    this.MinimumConstructor.Method_Parameters.Length > 0)
+                else if (this.PublicMinimumConstructor is null ||
+                    this.PublicMinimumConstructor.Method_Parameters.Length > 0)
                 {
                     this.ObjectFlag |= TinyhandObjectFlag.UnsafeConstructor;
                     // this.Body.ReportDiagnostic(TinyhandBody.Error_NoDefaultConstructor, this.Location, this.FullName);
@@ -1064,7 +1066,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void PrepareMinimumConstructor()
     {
-        // this.MinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
+        this.PublicMinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
         this.MinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
     }
 
@@ -3057,7 +3059,7 @@ ModuleInitializerClass_Added:
         if (this.BaseObject is not null)
         {
             this.BaseObject.PrepareMinimumConstructor();
-            constructor = this.BaseObject.MinimumConstructor;
+            constructor = this.BaseObject.PublicMinimumConstructor ?? this.BaseObject.MinimumConstructor;
         }
         else if (this.PrimaryConstructor is not null)
         {
