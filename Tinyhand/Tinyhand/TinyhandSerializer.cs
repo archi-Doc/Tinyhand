@@ -204,6 +204,25 @@ public static partial class TinyhandSerializer
         }
     }
 
+    public static void ReadStringConvertibleOrDeserializeObject2<T>(ref TinyhandReader reader, scoped ref T value, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerializable<T>, ITinyhandReconstructable<T>, IStringConvertible<T>
+    {
+        var st = reader.TryReadString();
+        if (st is not null)
+        {
+            T.TryParse(st, out value!, out _);
+        }
+        else
+        {
+            DeserializeObject(ref reader, ref value!, options);
+        }
+
+        if (value is null)
+        {
+            ReconstructObject<T>(ref value, options);
+        }
+    }
+
     public static T? DeserializeObject<T>(ReadOnlySpan<byte> data)
         where T : ITinyhandSerializable<T>
     {
