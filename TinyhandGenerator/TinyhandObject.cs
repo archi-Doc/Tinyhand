@@ -2334,7 +2334,7 @@ ModuleInitializerClass_Added:
         }
         else if (this.OriginalDefinition?.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor) == true)
         {
-            return $"{this.LocalName}.{TinyhandBody.UnsafeConstructorName}()";
+            return $"{this.FullName}.{TinyhandBody.UnsafeConstructorName}()";
         }
         else if (this.PrimaryConstructor is not null)
         {// new(default!, ..., default!)
