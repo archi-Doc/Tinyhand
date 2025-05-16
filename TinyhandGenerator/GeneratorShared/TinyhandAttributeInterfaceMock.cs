@@ -492,7 +492,7 @@ public class TinyhandUnionAttributeMock
 
     public string? StringKey { get; private set; }
 
-    public bool HasStringKey => this.StringKey != null;
+    public bool HasStringKey => this.StringKey is not null;
 
     /// <summary>
     /// Gets the derived or implementing type.
