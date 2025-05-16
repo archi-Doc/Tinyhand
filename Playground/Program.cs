@@ -123,6 +123,30 @@ public partial class ExternalClass : ITinyhandSerializable<ExternalClass>, ITiny
     }
 }
 
+// [TinyhandUnion(0, typeof(AbstractClassB))]
+[TinyhandObject]
+public abstract partial class AbstractClass2
+{
+}
+
+[TinyhandUnion(0, typeof(AbstractClassA))]
+[TinyhandObject]
+public abstract partial class AbstractClass
+{
+}
+
+[TinyhandObject]
+public partial class AbstractClassA : AbstractClass
+{
+    [Key(0)]
+    public AbstractClass2 AbstractClass2 { get; set; } = default!;
+}
+
+[TinyhandObject]
+public partial class AbstractClassB : AbstractClass2
+{
+}
+
 internal class Program
 {
     static void Main(string[] args)

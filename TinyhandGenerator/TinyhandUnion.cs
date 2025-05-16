@@ -52,6 +52,12 @@ public class TinyhandUnion
             return null;
         }
 
+        if (obj.IsAbstractOrInterface &&
+            obj.ObjectAttribute is not null)
+        {// If an abstract class is annotated with the TinyhandObject attribute, an empty union is generated.
+            unionList ??= new();
+        }
+
         if (unionList == null)
         {// No union attribute.
             return null;
@@ -131,6 +137,7 @@ public class TinyhandUnion
     public void CheckAndPrepare()
     {
         // Create SortedDictionary
+        this.StringDictionary ??= new();
         var errorFlag = false;
         foreach (var x in this.UnionList)
         {
@@ -149,12 +156,10 @@ public class TinyhandUnion
                     if (x.HasStringKey)
                     {
                         this.HasStringKey = true;
-                        this.StringDictionary ??= new();
                         this.StringDictionary.Add($"\"{x.StringKey!}\"", obj);
                     }
                     else
                     {
-                        this.StringDictionary ??= new();
                         this.StringDictionary.Add(x.IntKey.ToString(), obj);
                     }
                 }
