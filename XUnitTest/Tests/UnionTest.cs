@@ -6,6 +6,7 @@ namespace Tinyhand.Tests;
 
 [TinyhandUnion(0, typeof(UnionTestClassA))]
 [TinyhandUnion(1, typeof(UnionTestClassB))]
+[TinyhandUnion(2, typeof(UnionTestClassC<>))]
 public partial interface IUnionTestInterface
 {
     public int Id { get; set; }
@@ -53,7 +54,7 @@ public partial class UnionTestClassC<T> : IUnionTestInterface
     public int Id { get; set; }
 }
 
-    [TinyhandUnion(0, typeof(UnionTestSubA))]
+[TinyhandUnion(0, typeof(UnionTestSubA))]
 [TinyhandUnion(1, typeof(UnionTestSubB))]
 public abstract partial class UnionTestBase
 {
