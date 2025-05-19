@@ -37,7 +37,23 @@ public partial class UnionTestClassB : IUnionTestInterface
     public int Id { get; set; }
 }
 
-[TinyhandUnion(0, typeof(UnionTestSubA))]
+[TinyhandObject]
+public partial class UnionTestClassC<T> : IUnionTestInterface
+{
+    public UnionTestClassC(T data, int id)
+    {
+        Data = data;
+        Id = id;
+    }
+
+    [Key(0)]
+    public T Data { get; set; }
+
+    [Key(1)]
+    public int Id { get; set; }
+}
+
+    [TinyhandUnion(0, typeof(UnionTestSubA))]
 [TinyhandUnion(1, typeof(UnionTestSubB))]
 public abstract partial class UnionTestBase
 {
@@ -83,12 +99,15 @@ public class UnionTest
     {
         var classA = new UnionTestClassA() { X = 10, };
         var classB = new UnionTestClassB() { Name = "test", };
+        var classC = new UnionTestClassC<string>("test", 2);
 
         TestHelper.TestWithoutMessagePack(classA); // Not compatible with MessagePack
         TestHelper.TestWithoutMessagePack(classB);
+        TestHelper.TestWithoutMessagePack(classC);
 
         TestHelper.TestWithoutMessagePack((IUnionTestInterface)classA, false);
         TestHelper.TestWithoutMessagePack((IUnionTestInterface)classB, false);
+        TestHelper.TestWithoutMessagePack((IUnionTestInterface)classC, false);
     }
 
     [Fact]
