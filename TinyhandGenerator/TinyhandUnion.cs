@@ -146,7 +146,6 @@ public class TinyhandUnion
                 this.Object.Body.TryGet(nts.ConstructedFrom, out var obj2) &&
                 obj2.ObjectAttribute != null)
             {
-
                 if (obj == this.Object)
                 {
                     this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionSelf, x.Location, obj.FullName);
@@ -177,7 +176,16 @@ public class TinyhandUnion
             }
             else
             {
-                this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionTargetError, x.Location);
+                if (x.SubType is INamedTypeSymbol nts2 &&
+                    nts2.IsUnboundGenericType)
+                {
+                    this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionUnboundType, x.Location);
+                }
+                else
+                {
+                    this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionTargetError, x.Location);
+                }
+
                 errorFlag = true;
             }
         }
