@@ -146,6 +146,7 @@ public class TinyhandUnion
                 this.Object.Body.TryGet(nts.ConstructedFrom, out var obj2) &&
                 obj2.ObjectAttribute != null)
             {
+
                 if (obj == this.Object)
                 {
                     this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionSelf, x.Location, obj.FullName);
