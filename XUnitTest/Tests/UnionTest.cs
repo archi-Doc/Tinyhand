@@ -6,6 +6,7 @@ namespace Tinyhand.Tests;
 
 [TinyhandUnion(0, typeof(UnionTestClassA))]
 [TinyhandUnion(1, typeof(UnionTestClassB))]
+[TinyhandUnion(2, typeof(UnionTestClassC<string>))]
 public partial interface IUnionTestInterface
 {
     public int Id { get; set; }
@@ -32,6 +33,22 @@ public partial class UnionTestClassB : IUnionTestInterface
 
     [IgnoreMember]
     public int Token;
+
+    [Key(1)]
+    public int Id { get; set; }
+}
+
+[TinyhandObject]
+public partial class UnionTestClassC<T> : IUnionTestInterface
+{
+    public UnionTestClassC(T data, int id)
+    {
+        Data = data;
+        Id = id;
+    }
+
+    [Key(0)]
+    public T Data { get; set; }
 
     [Key(1)]
     public int Id { get; set; }
@@ -83,12 +100,15 @@ public class UnionTest
     {
         var classA = new UnionTestClassA() { X = 10, };
         var classB = new UnionTestClassB() { Name = "test", };
+        var classC = new UnionTestClassC<string>("test", 2);
 
         TestHelper.TestWithoutMessagePack(classA); // Not compatible with MessagePack
         TestHelper.TestWithoutMessagePack(classB);
+        TestHelper.TestWithoutMessagePack(classC);
 
         TestHelper.TestWithoutMessagePack((IUnionTestInterface)classA, false);
         TestHelper.TestWithoutMessagePack((IUnionTestInterface)classB, false);
+        TestHelper.TestWithoutMessagePack((IUnionTestInterface)classC, false);
     }
 
     [Fact]

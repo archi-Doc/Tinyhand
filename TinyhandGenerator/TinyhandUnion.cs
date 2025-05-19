@@ -176,7 +176,16 @@ public class TinyhandUnion
             }
             else
             {
-                this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionTargetError, x.Location);
+                if (x.SubType is INamedTypeSymbol nts2 &&
+                    nts2.IsUnboundGenericType)
+                {
+                    this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionUnboundType, x.Location);
+                }
+                else
+                {
+                    this.Object.Body.ReportDiagnostic(TinyhandBody.Error_UnionTargetError, x.Location);
+                }
+
                 errorFlag = true;
             }
         }

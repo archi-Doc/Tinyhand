@@ -260,6 +260,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG054", title: "CallbackMetohd", messageFormat: "Callback attributes are exclusive",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Error_UnionUnboundType = new DiagnosticDescriptor(
+        id: "TG055", title: "Union target error", messageFormat: "Types must be closed-constructed generic types, because serialization requires fixed type information",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
