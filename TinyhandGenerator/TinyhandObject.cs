@@ -2087,7 +2087,7 @@ ModuleInitializerClass_Added:
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RefFieldDelegate is not null))
         {
             ssb.AppendLine($"[UnsafeAccessor(UnsafeAccessorKind.Field, Name = \"{x.SimpleName}\")]");
-            ssb.AppendLine($"private static extern ref {x.TypeObject!.FullName} {x.RefFieldDelegate}({x.InIfStruct}{x.ContainingObject!.FullName} obj);");
+            ssb.AppendLine($"private static extern ref {x.TypeObjectWithNullable?.FullNameWithNullable} {x.RefFieldDelegate}({x.InIfStruct}{x.ContainingObject!.FullName} obj);"); // x.TypeObject!.FullName
         }
 
         // Getter/Setter delegate
