@@ -54,6 +54,7 @@ public enum TinyhandObjectFlag
     HiddenMember = 1 << 10,
     AddPropertyTarget = 1 << 11,
     UnsafeConstructor = 1 << 12,
+    MinimumConstructorPrepared = 1 << 13,
 
     HasIStringConvertible = 1 << 21, // Has IStringConvertible interface
     HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
@@ -1066,8 +1067,41 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     private void PrepareMinimumConstructor()
     {
-        this.PublicMinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.IsPublic).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
-        this.MinimumConstructor ??= this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor).MinBy(a => a.Method_Parameters.Length).FirstOrDefault();
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.MinimumConstructorPrepared))
+        {
+            return;
+        }
+        else
+        {
+            this.ObjectFlag |= TinyhandObjectFlag.MinimumConstructorPrepared;
+        }
+
+        TinyhandObject? publicConstructor = default;
+        TinyhandObject? constructor = default;
+
+        foreach (var x in this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.ContainingObject == this))
+        {
+            if (x.IsPublic)
+            {
+                if (publicConstructor is null ||
+                    publicConstructor.Method_Parameters.Length > x.Method_Parameters.Length)
+                {
+                    publicConstructor = x;
+                }
+            }
+            else if (x.symbol is { } symbol &&
+                symbol.DeclaredAccessibility != Accessibility.Private)
+            {
+                if (constructor is null ||
+                    constructor.Method_Parameters.Length > x.Method_Parameters.Length)
+                {
+                    constructor = x;
+                }
+            }
+        }
+
+        this.PublicMinimumConstructor = publicConstructor;
+        this.MinimumConstructor = constructor;
     }
 
     private void PreparePrimaryConstructor()
