@@ -43,8 +43,17 @@ public partial class UnsafeConstructorTestClass2<T>
 [TinyhandObject]
 public partial class UnsafeConstructorTestClass3 : UnsafeConstructorTestClass2<int>
 {
-    private UnsafeConstructorTestClass3()
-        : base(1)
+    protected UnsafeConstructorTestClass3(int x, string y)
+        : base(x)
+    {
+    }
+}
+
+[TinyhandObject]
+public partial class UnsafeConstructorTestClass4 : UnsafeConstructorTestClass3
+{
+    private UnsafeConstructorTestClass4(int x, string y)
+        : base(x, y)
     {
     }
 }
