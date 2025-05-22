@@ -106,6 +106,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool External { get; set; } = false;
 
+    public bool AddSignatureId { get; set; } = true;
+
     public TinyhandObjectAttributeMock()
     {
     }
@@ -197,6 +199,12 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.External = (bool)val;
+        }
+
+        val = VisceralHelper.GetValue(-1, nameof(AddSignatureId), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.AddSignatureId = (bool)val;
         }
 
         return attribute;

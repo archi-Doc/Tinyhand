@@ -150,6 +150,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public bool External { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to include the SignatureId during serialization in signature mode [default is <see langword="true"/>].
+    /// </summary>
+    public bool AddSignatureId { get; set; } = true;
+
     public TinyhandObjectAttribute()
     {
     }

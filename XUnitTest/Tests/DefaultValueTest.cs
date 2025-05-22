@@ -210,9 +210,9 @@ public partial class DefaultValueTest
         t3.IsStructuralEqual(t2);
     }
 
-    [TinyhandObject]
+    [TinyhandObject(AddSignatureId = false)]
     public partial class TokenClassV1
-    {
+    {// Set to false because adding the SignatureId would result in different signatures between TokenClassV1 and TokenClassV2.
         [Key(0)]
         public int Id { get; set; }
 
@@ -223,7 +223,7 @@ public partial class DefaultValueTest
         public byte[] Signature = Array.Empty<byte>();
     }
 
-    [TinyhandObject]
+    [TinyhandObject(AddSignatureId = false)]
     public partial class TokenClassV2
     {
         [Key(0)]

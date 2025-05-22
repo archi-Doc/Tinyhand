@@ -4270,6 +4270,10 @@ ModuleInitializerClass_Added:
         if (this.IntKey_Array.Length == this.InclusiveCount)
         {
             ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
+            if (this.ObjectAttribute?.AddSignatureId == true)
+            {
+                ssb.AppendLine($"else writer.Write(0x{((uint)FarmHash.Hash64(this.FullName)).ToString("x")}u);");
+            }
         }
         else
         {
