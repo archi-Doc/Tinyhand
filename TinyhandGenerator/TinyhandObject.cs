@@ -1141,7 +1141,9 @@ Exit:
 
     private void CheckObject_Key()
     {
-        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
+        if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable) &&
+            (this.MethodCondition_Serialize == MethodCondition.Declared || this.MethodCondition_Serialize == MethodCondition.ExplicitlyDeclared) &&
+            (this.MethodCondition_Deserialize == MethodCondition.Declared || this.MethodCondition_Deserialize == MethodCondition.ExplicitlyDeclared))
         {// ITinyhandSerializable is implemented. KeyAttribute is ignored.
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.Target))
             {
