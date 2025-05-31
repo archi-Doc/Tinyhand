@@ -18,7 +18,7 @@ public readonly partial struct PartialImplementationStruct
     public readonly int Total;
 
     [Key(3)]
-    public readonly string Name;
+    public readonly object Name;
 
     public PartialImplementationStruct(int partial, int total, string name)
     {
@@ -44,7 +44,7 @@ public readonly partial struct PartialImplementationStruct
             writer.WriteNil();
             writer.Write(v.Partial);
             writer.Write(v.Total);
-            writer.Write(v.Name);
+            writer.Write((string)v.Name);
         }
     }
 
