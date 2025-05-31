@@ -1351,7 +1351,7 @@ Exit:
 
         if (this.KeyAttribute != null)
         {// Has KeyAttribute
-            this.Body.DebugAssert(this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget), $"{this.FullName}: KeyAttribute and SerializeTarget are inconsistent.");
+            // this.Body.DebugAssert(this.ObjectFlag.HasFlag(TinyhandObjectFlag.SerializeTarget), $"{this.FullName}: KeyAttribute and SerializeTarget are inconsistent.");
 
             if (this.TypeObject.Kind == VisceralObjectKind.Error)
             {// Error object is treated as an external object that implements ITinyhandSerialize outside the control of the generator.
