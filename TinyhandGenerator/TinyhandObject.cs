@@ -2091,7 +2091,9 @@ ModuleInitializerClass_Added:
             }
             else
             {// Property
-                if (x.RequiresGetAccessor)
+                x.RefFieldDelegate = this.Identifier.GetIdentifier();
+
+                /*if (x.RequiresGetAccessor)
                 {
                     x.GetterDelegate = this.Identifier.GetIdentifier();
                 }
@@ -2099,7 +2101,7 @@ ModuleInitializerClass_Added:
                 if (x.RequiresSetAccessor)
                 {
                     x.SetterDelegate = this.Identifier.GetIdentifier();
-                }
+                }*/
             }
         }
     }
@@ -2129,8 +2131,16 @@ ModuleInitializerClass_Added:
         // Ref field delegate
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RefFieldDelegate is not null))
         {
-            ssb.AppendLine($"[UnsafeAccessor(UnsafeAccessorKind.Field, Name = \"{x.SimpleName}\")]");
-            ssb.AppendLine($"private static extern ref {x.TypeObjectWithNullable?.FullNameWithNullable} {x.RefFieldDelegate}({x.InIfStruct}{x.ContainingObject!.FullName} obj);"); // x.TypeObject!.FullName
+            if (x.Kind == VisceralObjectKind.Field)
+            {
+                ssb.AppendLine($"[UnsafeAccessor(UnsafeAccessorKind.Field, Name = \"{x.SimpleName}\")]");
+            }
+            else if (x.Kind == VisceralObjectKind.Property)
+            {
+                ssb.AppendLine($"[UnsafeAccessor(UnsafeAccessorKind.Field, Name = \"{string.Format(TinyhandBody.BackingField, x.SimpleName)}\")]");
+            }
+
+            ssb.AppendLine($"private static extern ref {x.TypeObjectWithNullable?.FullNameWithNullable} {x.RefFieldDelegate}({this.InIfStruct}{x.ContainingObject!.FullName} obj);"); // x.TypeObject!.FullName
         }
 
         // Getter/Setter delegate

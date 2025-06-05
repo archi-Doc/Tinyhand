@@ -165,6 +165,9 @@ public partial class InitIntClass
     public InitIntClass()
     {
     }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "<X>k__BackingField")]
+    public static extern ref int UnsafeX(InitIntClass obj);
 }
 
 [TinyhandObject]
@@ -293,7 +296,7 @@ public class InitOnlyBenchmark
     private readonly TestStructRefField<DesignStruct, int> structRefField;
     private readonly TestClassRefField<DesignBaseClass, int> classRefField;
 
-    public InitOnlyBenchmark()
+    unsafe public InitOnlyBenchmark()
     {
         var designStruct = new DesignStruct();
         this.designStruct = designStruct;
@@ -357,6 +360,8 @@ public class InitOnlyBenchmark
         var d = this.CreateDelegate2();
         var c = new InitIntClass(1, 2, "a", "b");
         d(c, 33);
+
+        InitIntClass.UnsafeX(c) = 99;
 
         this.setDelegate = this.CreateDelegate();
         // this.setDelegateFast = this.CreateDelegateFast();

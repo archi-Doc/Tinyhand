@@ -39,6 +39,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string IIntegralityObject = "ValueLink.Integrality.IIntegralityObject";
     public static readonly string UnsafeConstructorName = "UnsafeConstructor";
     public static readonly string UnsafeEnumName = "__UnsafeEnum__";
+    public static readonly string BackingField = "<{0}>k__BackingField";
 
     public static readonly DiagnosticDescriptor Warning_Information = new DiagnosticDescriptor(
         id: "TGxxx", title: "Information", messageFormat: "Diagnostic information {0}",
