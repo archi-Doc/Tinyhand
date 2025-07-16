@@ -2040,7 +2040,7 @@ ModuleInitializerClass_Added:
 
             if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.UnsafeConstructor))
             {
-                this.GenerateUnsafeConstructor(ssb, info);
+                this.GenerateUnsafeConstructor(ssb);
             }
 
             /*if (this.ObjectAttribute != null && info.UseMemberNotNull)
@@ -3112,7 +3112,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateUnsafeConstructor(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateUnsafeConstructor(ScopingStringBuilder ssb)
     {
         var st = string.Empty;
         TinyhandObject? constructor = default;
