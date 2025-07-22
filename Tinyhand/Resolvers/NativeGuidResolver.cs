@@ -21,6 +21,9 @@ public sealed class NativeGuidResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
+    public Type[] GetInstantiableTypes()
+        => [typeof(Guid), typeof(Guid?)];
+
     private static object? GetFormatterHelper(Type t)
     {
         if (t == typeof(Guid))

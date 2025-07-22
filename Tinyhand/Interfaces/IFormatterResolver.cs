@@ -20,6 +20,14 @@ public interface IFormatterResolver
     /// <typeparam name="T">The type of value to be serialized or deserialized.</typeparam>
     /// <returns>A formatter, if this resolver supplies one for type <typeparamref name="T"/>; otherwise <c>null</c>.</returns>
     ITinyhandFormatter<T>? TryGetFormatter<T>();
+
+    /// <summary>
+    /// Gets an array of types that can be instantiated.
+    /// </summary>
+    /// <returns>
+    /// An array of <see cref="Type"/> objects that are instantiable.
+    /// </returns>
+    Type[] GetInstantiableTypes();
 }
 
 public static class ResolverExtensions

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using Tinyhand.Formatters;
 
 namespace Tinyhand.Resolvers;
@@ -30,6 +31,9 @@ public sealed class CompatibleResolver : IFormatterResolver
     {
         return FormatterCache<T>.Formatter;
     }
+
+    public Type[] GetInstantiableTypes()
+        => [];
 
     private static class FormatterCache<T>
     {

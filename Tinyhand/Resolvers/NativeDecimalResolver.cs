@@ -21,6 +21,9 @@ public sealed class NativeDecimalResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
+    public Type[] GetInstantiableTypes()
+        => [typeof(decimal), typeof(decimal?)];
+
     private static object? GetFormatterHelper(Type t)
     {
         if (t == typeof(decimal))

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using Arc.Collections.HotMethod;
 using Tinyhand;
 using Tinyhand.IO;
 using ValueLink;
@@ -38,5 +39,7 @@ internal class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
+
+        var types = Tinyhand.Resolvers.StandardResolver.Instance.GetInstantiableTypes();
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using Arc;
@@ -141,6 +142,9 @@ public sealed class BuiltinResolver : IFormatterResolver
     {
         return FormatterCache<T>.Formatter;
     }
+
+    public Type[] GetInstantiableTypes()
+        => TypeToFormatter.Keys.ToArray();
 
     private static class FormatterCache<T>
     {

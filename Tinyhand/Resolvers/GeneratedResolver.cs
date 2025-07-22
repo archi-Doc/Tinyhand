@@ -1,7 +1,9 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 #pragma warning disable SA1401 // Fields should be private
 
@@ -18,6 +20,8 @@ public sealed class GeneratedResolver : IFormatterResolver
     public static readonly GeneratedResolver Instance = new();
 
     private ThreadsafeTypeKeyHashtable<FormatterGeneratorInfo> formatterGenerator = new();
+
+    private HashSet<Type> generatedTypes = new();
 
     internal class FormatterGeneratorInfo
     {
@@ -84,6 +88,9 @@ public sealed class GeneratedResolver : IFormatterResolver
         return null;
     }
 
+    public Type[] GetInstantiableTypes()
+        => this.generatedTypes.ToArray();
+
     public void SetFormatterGenerator(Type genericType, Func<Type, Type[], ITinyhandFormatter> generator)
     {
         var info = new FormatterGeneratorInfo(genericType, generator);
@@ -92,6 +99,8 @@ public sealed class GeneratedResolver : IFormatterResolver
 
     public void SetFormatter<T>(ITinyhandFormatter<T> formatter)
     {
+        this.generatedTypes.Add(typeof(T));
+        this.generatedTypes.Add(typeof(T?));
         FormatterCache<T>.Formatter = formatter;
     }
 

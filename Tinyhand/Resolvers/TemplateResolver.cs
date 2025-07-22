@@ -2,6 +2,8 @@
 
 #pragma warning disable CS0649
 
+using System;
+
 namespace Tinyhand.Resolvers;
 
 /// <summary>
@@ -22,6 +24,9 @@ public sealed class TemplateResolver : IFormatterResolver
     {
         return FormatterCache<T>.Formatter;
     }
+
+    public Type[] GetInstantiableTypes()
+        => [];
 
     private static class FormatterCache<T>
     {
