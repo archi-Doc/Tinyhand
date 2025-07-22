@@ -2,11 +2,9 @@
 
 using System;
 using System.Buffers;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using Tinyhand.IO;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
@@ -44,7 +42,7 @@ public partial class TinyhandSerializer
 
     public static byte[] Serialize(uint typeId, object obj, TinyhandSerializerOptions? options = null)
     {
-        return GetOrAdd(type).Serialize_T_Options.Invoke(obj, options);
+        return GetOrAdd(typeId).Serialize_T_Options.Invoke(obj, options);
     }
 
     public static object? Deserialize(Type type, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)

@@ -358,6 +358,7 @@ public interface ITinyhandSerializable
     /// <param name="options">The deserialization options to use.</param>
     void Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options);
 
+    //
     /*/// <summary>
     /// Gets the type identifier (FarmHash.Hash64(Type.FullName)) for the object.
     /// </summary>
