@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Tinyhand.Formatters;
 
 #pragma warning disable SA1401 // Fields should be private
 
@@ -20,8 +21,6 @@ public sealed class GeneratedResolver : IFormatterResolver
     public static readonly GeneratedResolver Instance = new();
 
     private ThreadsafeTypeKeyHashtable<FormatterGeneratorInfo> formatterGenerator = new();
-
-    private HashSet<Type> generatedTypes = new();
 
     internal class FormatterGeneratorInfo
     {
@@ -88,8 +87,9 @@ public sealed class GeneratedResolver : IFormatterResolver
         return null;
     }
 
-    public Type[] GetInstantiableTypes()
-        => this.generatedTypes.ToArray();
+    public void RegisterInstantiableTypes()
+    {
+    }
 
     public void SetFormatterGenerator(Type genericType, Func<Type, Type[], ITinyhandFormatter> generator)
     {
@@ -99,8 +99,8 @@ public sealed class GeneratedResolver : IFormatterResolver
 
     public void SetFormatter<T>(ITinyhandFormatter<T> formatter)
     {
-        this.generatedTypes.Add(typeof(T));
-        this.generatedTypes.Add(typeof(T?));
+        TinyhandTypeId.Register(typeof(T));
+        TinyhandTypeId.Register(typeof(T?));
         FormatterCache<T>.Formatter = formatter;
     }
 

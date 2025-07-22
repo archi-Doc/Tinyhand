@@ -32,8 +32,9 @@ public sealed class CompatibleResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
-    public Type[] GetInstantiableTypes()
-        => [];
+    public void RegisterInstantiableTypes()
+    {
+    }
 
     private static class FormatterCache<T>
     {

@@ -2,10 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Tinyhand;
 
@@ -21,5 +17,13 @@ public static class TinyhandTypeId
     public static void Register(Type type)
     {
         TypeIdToType.TryAdd((uint)FarmHash.Hash64(type.FullName ?? string.Empty), type);
+    }
+
+    public static void Register(ReadOnlySpan<Type> types)
+    {
+        foreach (var type in types)
+        {
+            TypeIdToType.TryAdd((uint)FarmHash.Hash64(type.FullName ?? string.Empty), type);
+        }
     }
 }

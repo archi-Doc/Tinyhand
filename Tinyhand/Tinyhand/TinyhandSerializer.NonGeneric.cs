@@ -26,6 +26,7 @@ public partial class TinyhandSerializer
     static TinyhandSerializer()
     {
         CreateCompiledMethods = t => new CompiledMethods(t);
+        Tinyhand.Resolvers.StandardResolver.Instance.RegisterInstantiableTypes();
     }
 
     /// <seealso cref="Reconstruct{T}(TinyhandSerializerOptions?)"/>

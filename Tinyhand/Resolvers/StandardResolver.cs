@@ -35,8 +35,13 @@ public sealed class StandardResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
-    public Type[] GetInstantiableTypes()
-        => Resolvers.SelectMany(x => x.GetInstantiableTypes()).ToArray();
+    public void RegisterInstantiableTypes()
+    {
+        foreach (var resolver in Resolvers)
+        {
+            resolver.RegisterInstantiableTypes();
+        }
+    }
 
     private static class FormatterCache<T>
     {

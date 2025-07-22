@@ -101,7 +101,8 @@ CACHE:
             return (ITinyhandFormatter<T>?)formatter;
         }
 
-        public Type[] GetInstantiableTypes()
-            => [];
+        public void RegisterInstantiableTypes()
+        {
+        }
     }
 }

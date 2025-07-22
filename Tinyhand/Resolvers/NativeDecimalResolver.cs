@@ -21,8 +21,8 @@ public sealed class NativeDecimalResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
-    public Type[] GetInstantiableTypes()
-        => [typeof(decimal), typeof(decimal?)];
+    public void RegisterInstantiableTypes()
+        => TinyhandTypeId.Register([typeof(decimal), typeof(decimal?)]);
 
     private static object? GetFormatterHelper(Type t)
     {

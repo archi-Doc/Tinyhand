@@ -21,8 +21,8 @@ public sealed class NativeGuidResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
-    public Type[] GetInstantiableTypes()
-        => [typeof(Guid), typeof(Guid?)];
+    public void RegisterInstantiableTypes()
+        => TinyhandTypeId.Register([typeof(Guid), typeof(Guid?)]);
 
     private static object? GetFormatterHelper(Type t)
     {

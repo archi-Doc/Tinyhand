@@ -14,7 +14,7 @@ public sealed class TemplateResolver : IFormatterResolver
     /// <summary>
     /// The singleton instance that can be used.
     /// </summary>
-    public static readonly TemplateResolver Instance = new ();
+    public static readonly TemplateResolver Instance = new();
 
     private TemplateResolver()
     {
@@ -25,8 +25,9 @@ public sealed class TemplateResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
-    public Type[] GetInstantiableTypes()
-        => [];
+    public void RegisterInstantiableTypes()
+    {
+    }
 
     private static class FormatterCache<T>
     {

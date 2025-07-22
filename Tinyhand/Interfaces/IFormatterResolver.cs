@@ -22,12 +22,9 @@ public interface IFormatterResolver
     ITinyhandFormatter<T>? TryGetFormatter<T>();
 
     /// <summary>
-    /// Gets an array of types that can be instantiated.
+    /// Registers instantiable types.
     /// </summary>
-    /// <returns>
-    /// An array of <see cref="Type"/> objects that are instantiable.
-    /// </returns>
-    Type[] GetInstantiableTypes();
+    void RegisterInstantiableTypes();
 }
 
 public static class ResolverExtensions

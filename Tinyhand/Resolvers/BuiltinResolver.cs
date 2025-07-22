@@ -143,8 +143,8 @@ public sealed class BuiltinResolver : IFormatterResolver
         return FormatterCache<T>.Formatter;
     }
 
-    public Type[] GetInstantiableTypes()
-        => TypeToFormatter.Keys.ToArray();
+    public void RegisterInstantiableTypes()
+        => TinyhandTypeId.Register(TypeToFormatter.Keys.ToArray());
 
     private static class FormatterCache<T>
     {
