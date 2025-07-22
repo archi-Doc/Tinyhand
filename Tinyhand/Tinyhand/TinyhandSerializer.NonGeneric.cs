@@ -42,6 +42,11 @@ public partial class TinyhandSerializer
         return GetOrAdd(type).Serialize_T_Options.Invoke(obj, options);
     }
 
+    public static byte[] Serialize(uint typeId, object obj, TinyhandSerializerOptions? options = null)
+    {
+        return GetOrAdd(type).Serialize_T_Options.Invoke(obj, options);
+    }
+
     public static object? Deserialize(Type type, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
     {
         return GetOrAdd(type).Deserialize_TinyhandReader_Options.Invoke(ref reader, options);
@@ -63,12 +68,7 @@ public partial class TinyhandSerializer
 
         internal delegate object? TinyhandReaderDeserialize(ref TinyhandReader reader, TinyhandSerializerOptions? options);
 
-        private const bool PreferInterpretation =
-#if ENABLE_IL2CPP
-            true;
-#else
-            false;
-#endif
+        private const bool PreferInterpretation = false;
 
 #pragma warning disable SA1310 // Field names should not contain underscore
 #pragma warning disable SA1401 // Fields should be private
