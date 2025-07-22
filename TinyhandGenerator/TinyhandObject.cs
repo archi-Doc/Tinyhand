@@ -4296,7 +4296,7 @@ ModuleInitializerClass_Added:
         }
         else
         {
-            ssb.AppendLine($"if (options.IsAllMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
+            ssb.AppendLine($"if (options.IsDefaultMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
             ssb.AppendLine($"else if (options.IsExcludeMode) writer.WriteArrayHeader({this.InclusiveCount});");
         }
 
@@ -4332,7 +4332,7 @@ ModuleInitializerClass_Added:
             decrease = x?.TypeObject?.IsPrimitive == false && level != 0;
             if (exclude)
             {// Exclude == true
-                scopeIf = ssb.ScopeBrace($"if (options.IsAllMode || (options.IsSignatureMode && writer.Level >= {level}))");
+                scopeIf = ssb.ScopeBrace($"if (options.IsDefaultMode || (options.IsSignatureMode && writer.Level >= {level}))");
             }
             else
             {// Exclude == false

@@ -49,9 +49,9 @@ public record TinyhandSerializerOptions
     public enum Mode
     {
         /// <summary>
-        /// Serialize all members.
+        /// This is the default setting: members with the Key attribute are included in serialization.
         /// </summary>
-        All,
+        Default,
 
         /// <summary>
         /// Members with the exclude property set to <see langword="true"/> will be excluded from serialization.
@@ -62,6 +62,11 @@ public record TinyhandSerializerOptions
         /// Serialize an object for signature generation. Level is enabled and WriteArrayHeader() is skipped.
         /// </summary>
         Signature,
+
+        /// <summary>
+        /// Custom mode for user-defined serialization.
+        /// </summary>
+        Custom,
     }
 
     [Flags]
@@ -132,13 +137,15 @@ public record TinyhandSerializerOptions
     /// <summary>
     /// Gets the serialization mode.
     /// </summary>
-    public Mode SerializationMode { get; init; } = Mode.All;
+    public Mode SerializationMode { get; init; } = Mode.Default;
 
-    public bool IsAllMode => this.SerializationMode == Mode.All;
+    public bool IsDefaultMode => this.SerializationMode == Mode.Default;
 
     public bool IsExcludeMode => this.SerializationMode == Mode.Exclude;
 
     public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
+
+    public bool IsCustomMode => this.SerializationMode == Mode.Custom;
 
     /// <summary>
     /// Gets a value indicating whether the option uses Standard resolver or not.
