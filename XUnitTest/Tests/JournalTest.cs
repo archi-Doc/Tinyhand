@@ -16,25 +16,12 @@ public readonly partial struct JournalIdentifier
     public readonly int Id1;
 }
 
-/*[TinyhandObject(Structual = false)] // causes a warning if Structual = false
+[TinyhandObject(Structual = false)] // causes a warning if Structual = false
 public partial class JournalRoot
 {
     [Key(0)]
     // public JournalClass Class1 { get; set; } = new();
     public StoragePoint<int> Class1 { get; set; } = new();
-}*/
-
-[TinyhandObject]
-public partial class StoragePoint<T> : IStructualObject
-{
-    [Key(0)]
-    public T X { get; set; }
-
-    IStructualRoot? IStructualObject.StructualRoot { get; set; }
-
-    IStructualObject? IStructualObject.StructualParent { get; set; }
-
-    int IStructualObject.StructualKey { get; set; }
 }
 
 [TinyhandObject(Structual = true)]
