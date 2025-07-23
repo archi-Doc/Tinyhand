@@ -32,6 +32,10 @@ public static class TinyhandTypeIdentifier
 
         public Func<object, TinyhandSerializerOptions?, byte[]>? Serialize => this.serialize ??= this.CreateSerialize();
 
+        private Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? deserialize;
+
+        public Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? Deserialize => this.deserialize ??= this.CreateDeserialize();
+
         public MethodClass(Type type)
         {
             this.TypeIdentifier = GetTypeIdentifier(type);
@@ -69,13 +73,13 @@ public static class TinyhandTypeIdentifier
             }
 
             var typeInfo = this.type.GetTypeInfo();
-            var serialize = TinyhandHelper.GetSerializerMethod("Serialize", this.type, [null, typeof(TinyhandSerializerOptions)]);
+            var method = TinyhandHelper.GetSerializerMethod("Serialize", this.type, [null, typeof(TinyhandSerializerOptions)]);
             var param1 = Expression.Parameter(typeof(object), "value");
             var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
 
             var body = Expression.Call(
                 null,
-                serialize,
+                method,
                 typeInfo.IsValueType ? Expression.Unbox(param1, this.type) : Expression.Convert(param1, this.type),
                 param2);
             return Expression.Lambda<Func<object, TinyhandSerializerOptions?, byte[]>>(body, param1, param2).CompileFast();
@@ -89,16 +93,31 @@ public static class TinyhandTypeIdentifier
             }
 
             var typeInfo = this.type.GetTypeInfo();
-            var serialize = TinyhandHelper.GetSerializerMethod("SerializeToRentMemory", this.type, [null, typeof(TinyhandSerializerOptions)]);
+            var method = TinyhandHelper.GetSerializerMethod("SerializeToRentMemory", this.type, [null, typeof(TinyhandSerializerOptions)]);
             var param1 = Expression.Parameter(typeof(object), "value");
             var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
 
             var body = Expression.Call(
                 null,
-                serialize,
+                method,
                 typeInfo.IsValueType ? Expression.Unbox(param1, this.type) : Expression.Convert(param1, this.type),
                 param2);
             return Expression.Lambda<Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>>(body, param1, param2).CompileFast();
+        }
+
+        private Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? CreateDeserialize()
+        {
+            if (!this.EnsureType())
+            {
+                return default;
+            }
+
+            var typeInfo = this.type.GetTypeInfo();
+            var method = TinyhandHelper.GetSerializerMethod("Deserialize", this.type, [typeof(ReadOnlySpan<byte>), typeof(TinyhandSerializerOptions)]);
+            var param1 = Expression.Parameter(typeof(ReadOnlySpan<byte>), "buffer");
+            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
+            var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
+            return Expression.Lambda<Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>>(body, param1, param2).CompileFast();
         }
     }
 
@@ -133,6 +152,24 @@ public static class TinyhandTypeIdentifier
         {
             var byteArray = methodClass.Serialize(value!, options);
             return (methodClass.TypeIdentifier, byteArray);
+        }
+        catch
+        {
+            return default;
+        }
+    }
+
+    public static object? TryDeserialize(uint typeIdentifier, ReadOnlySpan<byte> source, TinyhandSerializerOptions? options = null)
+    {
+        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
+        if (methodClass.Deserialize is null)
+        {
+            return default;
+        }
+
+        try
+        {
+            return methodClass.Deserialize(source, options);
         }
         catch
         {

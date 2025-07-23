@@ -47,7 +47,7 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<InitOnly.InitOnlyBenchmark>();
+        DebugRun<H2HTest.H2HBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
