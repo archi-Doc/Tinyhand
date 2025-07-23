@@ -977,10 +977,13 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            if (x.TypeObject?.OriginalDefinition is { } typeObject &&
-                typeObject.SupportStructualObject)
+            if (x.TypeObject?.OriginalDefinition is { } typeObject)
             {
-                structualRequired = true;
+                typeObject.TryConfigure();
+                if (typeObject.SupportStructualObject)
+                {
+                    structualRequired = true;
+                }
             }
 
             x.ObjectFlag |= TinyhandObjectFlag.Target | TinyhandObjectFlag.CloneTarget;

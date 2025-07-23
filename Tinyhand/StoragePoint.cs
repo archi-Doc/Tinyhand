@@ -4,14 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 using Arc.Threading;
 using Tinyhand;
 using Tinyhand.IO;
-using ValueLink;
 
 namespace Tinyhand.Tests;
 
 [TinyhandObject]
-[ValueLinkObject(Isolation = IsolationLevel.Serializable)]
 public sealed partial class StoragePoint<TData> : SemaphoreLock, IStructualObject, ITinyhandSerializable<StoragePoint<TData>>, ITinyhandReconstructable<StoragePoint<TData>>, ITinyhandCloneable<StoragePoint<TData>>
-{
+{//Configuration of external types...
     public const int MaxHistories = 3; // 4
 
     private const uint InvalidBit = 1u << 31;
@@ -24,7 +22,6 @@ public sealed partial class StoragePoint<TData> : SemaphoreLock, IStructualObjec
 
     #region FieldAndProperty
 
-    [Link(Primary = true, Unique = true, Type = ChainType.Unordered, AddValue = false)]
     public ulong PointId { get; private set; } // Key:0
 
     IStructualRoot? IStructualObject.StructualRoot { get; set; }
@@ -93,7 +90,6 @@ public sealed partial class StoragePoint<TData> : SemaphoreLock, IStructualObjec
 
     #endregion
 
-    [Link(Type = ChainType.LinkedList, Name = "LastAccessed")]
     public StoragePoint()
     {
     }
