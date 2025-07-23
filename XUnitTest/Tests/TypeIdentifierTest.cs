@@ -10,7 +10,6 @@ namespace XUnitTest.Tests;
 
 public class TypeIdentifierTest
 {// GetTypeIdentifierCode
-
     [Fact]
     public void Test()
     {

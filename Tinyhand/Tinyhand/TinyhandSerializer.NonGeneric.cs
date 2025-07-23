@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using FastExpressionCompiler;
 using Tinyhand.IO;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
@@ -61,8 +62,6 @@ public partial class TinyhandSerializer
 
         internal delegate object? TinyhandReaderDeserialize(ref TinyhandReader reader, TinyhandSerializerOptions? options);
 
-        private const bool PreferInterpretation = false;
-
 #pragma warning disable SA1310 // Field names should not contain underscore
 #pragma warning disable SA1401 // Fields should be private
         internal readonly Func<TinyhandSerializerOptions?, object> Reconstruct_T_Options;
@@ -85,7 +84,7 @@ public partial class TinyhandSerializer
                     null,
                     reconstruct,
                     param1);
-                var lambda = Expression.Lambda<Func<TinyhandSerializerOptions?, object>>(body, param1).Compile(PreferInterpretation);
+                var lambda = Expression.Lambda<Func<TinyhandSerializerOptions?, object>>(body, param1).CompileFast();
 
                 this.Reconstruct_T_Options = lambda;
             }
@@ -101,7 +100,7 @@ public partial class TinyhandSerializer
                     serialize,
                     ti.IsValueType ? Expression.Unbox(param1, type) : Expression.Convert(param1, type),
                     param2);
-                var lambda = Expression.Lambda<Func<object, TinyhandSerializerOptions?, byte[]>>(body, param1, param2).Compile(PreferInterpretation);
+                var lambda = Expression.Lambda<Func<object, TinyhandSerializerOptions?, byte[]>>(body, param1, param2).CompileFast();
 
                 this.Serialize_T_Options = lambda;
             }
@@ -120,7 +119,7 @@ public partial class TinyhandSerializer
                     param1,
                     ti.IsValueType ? Expression.Unbox(param2, type) : Expression.Convert(param2, type),
                     param3);
-                var lambda = Expression.Lambda<Action<IBufferWriter<byte>, object, TinyhandSerializerOptions?>>(body, param1, param2, param3).Compile(PreferInterpretation);
+                var lambda = Expression.Lambda<Action<IBufferWriter<byte>, object, TinyhandSerializerOptions?>>(body, param1, param2, param3).CompileFast();
             }
 
             {
@@ -137,7 +136,7 @@ public partial class TinyhandSerializer
                     param1,
                     ti.IsValueType ? Expression.Unbox(param2, type) : Expression.Convert(param2, type),
                     param3);
-                var lambda = Expression.Lambda<TinyhandWriterSerialize>(body, param1, param2, param3).Compile(PreferInterpretation);
+                var lambda = Expression.Lambda<TinyhandWriterSerialize>(body, param1, param2, param3).CompileFast();
 
                 this.Serialize_TinyhandWriter_T_Options = lambda;
             }
@@ -149,7 +148,7 @@ public partial class TinyhandSerializer
                 var param1 = Expression.Parameter(typeof(TinyhandReader).MakeByRefType(), "reader");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
                 var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2), typeof(object));
-                var lambda = Expression.Lambda<TinyhandReaderDeserialize>(body, param1, param2).Compile();
+                var lambda = Expression.Lambda<TinyhandReaderDeserialize>(body, param1, param2).CompileFast();
 
                 this.Deserialize_TinyhandReader_Options = lambda;
             }
@@ -161,7 +160,7 @@ public partial class TinyhandSerializer
                 var param1 = Expression.Parameter(typeof(ReadOnlySpan<byte>), "bytes");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
                 var body = Expression.Convert(Expression.Call(null, deserialize, param1, param2), typeof(object));
-                var lambda = Expression.Lambda<Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object>>(body, param1, param2).Compile(PreferInterpretation);
+                var lambda = Expression.Lambda<Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object>>(body, param1, param2).CompileFast();
 
                 this.Deserialize_ReadOnlyMemory_Options = lambda;
             }

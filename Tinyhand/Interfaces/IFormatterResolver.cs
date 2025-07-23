@@ -4,6 +4,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using FastExpressionCompiler;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 
@@ -70,7 +71,7 @@ public static class ResolverExtensions
             var genericMethod = GetFormatterRuntimeMethod.MakeGenericMethod(type);
             var inputResolver = Expression.Parameter(typeof(IFormatterResolver), "inputResolver");
             formatterGetter = Expression.Lambda<Func<IFormatterResolver, ITinyhandFormatter>>(
-                Expression.Call(inputResolver, genericMethod), inputResolver).Compile();
+                Expression.Call(inputResolver, genericMethod), inputResolver).CompileFast();
             FormatterGetters.TryAdd(type, formatterGetter);
         }
 
