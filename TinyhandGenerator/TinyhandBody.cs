@@ -266,7 +266,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_StructualRequired = new DiagnosticDescriptor(
-        id: "TG056", title: "Structual required", messageFormat: "'{0}' contains members that implement IStructualObject, so Structual must be enabled for it to function correctly",
+        id: "TG056", title: "Structual required", messageFormat: "'{0}' contains members that implement IStructualObject, and Structual must be enabled for it to function correctly",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
