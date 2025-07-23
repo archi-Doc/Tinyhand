@@ -265,6 +265,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG055", title: "Union target error", messageFormat: "Types must be closed-constructed generic types, because serialization requires fixed type information",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Warning_StructualRequired = new DiagnosticDescriptor(
+        id: "TG056", title: "Structual required", messageFormat: "'{0}' contains members that implement IStructualObject, so Structual must be enabled for it to function correctly",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
