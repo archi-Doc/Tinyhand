@@ -92,6 +92,7 @@ public class H2HBenchmark
     byte[] data3 = default!;
     byte[] data4 = default!;
     byte[] utf8 = default!;
+    uint typeIdentifier;
 
     ObjectH2H2 h2h2 = default!;
     byte[] data2 = default!;
@@ -129,7 +130,9 @@ public class H2HBenchmark
         TinyhandSerializer.ReconstructObject(ref test);
         var test2 = test;
 
-        var d = TinyhandSerializer.SerializeObject(this.h2h); ;
+        var d = TinyhandSerializer.SerializeObject(this.h2h);
+
+        this.typeIdentifier = TinyhandTypeIdentifier.GetTypeIdentifier<ObjectH2H>();
     }
 
     [GlobalCleanup]
@@ -174,6 +177,13 @@ public class H2HBenchmark
     }
 
     [Benchmark]
+    public byte[]? SerializeTinyhandTypeIdentifier()
+    {
+        var r = TinyhandTypeIdentifier.TrySerialize(this.h2h);
+        return r.ByteArray;
+    }
+
+    [Benchmark]
     public ObjectH2H DeserializeProtoBuf()
     {
         return ProtoBuf.Serializer.Deserialize<ObjectH2H>(this.data3.AsSpan());
@@ -195,6 +205,12 @@ public class H2HBenchmark
     public ObjectH2H? DeserializeTinyhand()
     {
         return Tinyhand.TinyhandSerializer.DeserializeObject<ObjectH2H>(this.data); // Deserialize
+    }
+
+    [Benchmark]
+    public object? DeserializeTinyhandTypeIdentifier()
+    {
+        return TinyhandTypeIdentifier.TryDeserialize(this.typeIdentifier, this.data); // Deserialize
     }
 
     [Benchmark]

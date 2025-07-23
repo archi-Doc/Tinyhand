@@ -36,6 +36,10 @@ namespace Tinyhand.Resolvers
             return FormatterCache<T>.Formatter;
         }
 
+        public void RegisterInstantiableTypes()
+        {
+        }
+
         private static class FormatterCache<T>
         {
             public static ITinyhandFormatter<T>? Formatter;

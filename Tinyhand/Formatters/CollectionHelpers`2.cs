@@ -2,6 +2,7 @@
 
 using System;
 using System.Linq.Expressions;
+using FastExpressionCompiler;
 
 namespace Tinyhand.Formatters;
 
@@ -32,7 +33,7 @@ internal static class CollectionHelpers<TCollection, TEqualityComparer>
             ParameterExpression param1 = Expression.Parameter(typeof(int), "count");
             ParameterExpression param2 = Expression.Parameter(typeof(TEqualityComparer), "equalityComparer");
             NewExpression body = Expression.New(ctor, param1, param2);
-            collectionCreator = Expression.Lambda<Func<int, TEqualityComparer, TCollection>>(body, param1, param2).Compile();
+            collectionCreator = Expression.Lambda<Func<int, TEqualityComparer, TCollection>>(body, param1, param2).CompileFast();
         }
     }
 

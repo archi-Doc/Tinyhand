@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using Arc.Collections.HotMethod;
 using Tinyhand;
 using Tinyhand.IO;
 using ValueLink;

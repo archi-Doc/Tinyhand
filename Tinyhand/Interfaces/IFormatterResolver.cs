@@ -4,6 +4,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using FastExpressionCompiler;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 
@@ -20,6 +21,11 @@ public interface IFormatterResolver
     /// <typeparam name="T">The type of value to be serialized or deserialized.</typeparam>
     /// <returns>A formatter, if this resolver supplies one for type <typeparamref name="T"/>; otherwise <c>null</c>.</returns>
     ITinyhandFormatter<T>? TryGetFormatter<T>();
+
+    /// <summary>
+    /// Registers instantiable types.
+    /// </summary>
+    void RegisterInstantiableTypes();
 }
 
 public static class ResolverExtensions
@@ -65,7 +71,7 @@ public static class ResolverExtensions
             var genericMethod = GetFormatterRuntimeMethod.MakeGenericMethod(type);
             var inputResolver = Expression.Parameter(typeof(IFormatterResolver), "inputResolver");
             formatterGetter = Expression.Lambda<Func<IFormatterResolver, ITinyhandFormatter>>(
-                Expression.Call(inputResolver, genericMethod), inputResolver).Compile();
+                Expression.Call(inputResolver, genericMethod), inputResolver).CompileFast();
             FormatterGetters.TryAdd(type, formatterGetter);
         }
 

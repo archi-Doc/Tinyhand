@@ -6,6 +6,7 @@ using System.Buffers.Text;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Arc.Crypto;
@@ -400,5 +401,38 @@ public static class TinyhandHelper
         {
             Id = (uint)Arc.Crypto.FarmHash.Hash64(typeof(T).FullName ?? string.Empty);
         }
+    }
+
+    internal static MethodInfo GetSerializerMethod(string methodName, Type type, Type?[] parameters)
+    {
+        return typeof(TinyhandSerializer).GetRuntimeMethods().Single(x =>
+        {
+            if (methodName != x.Name)
+            {
+                return false;
+            }
+
+            var ps = x.GetParameters();
+            if (ps.Length != parameters.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < ps.Length; i++)
+            {
+                if (parameters[i] == null && ps[i].ParameterType.IsGenericParameter)
+                {
+                    continue;
+                }
+
+                if (ps[i].ParameterType != parameters[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        })
+        .MakeGenericMethod(type);
     }
 }

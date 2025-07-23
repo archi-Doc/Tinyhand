@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using Tinyhand.Formatters;
 
 namespace Tinyhand.Resolvers;
@@ -32,6 +33,10 @@ public sealed class PrimitiveObjectResolver : IFormatterResolver
     public ITinyhandFormatter<T>? TryGetFormatter<T>()
     {
         return FormatterCache<T>.Formatter;
+    }
+
+    public void RegisterInstantiableTypes()
+    {
     }
 
     private static class FormatterCache<T>

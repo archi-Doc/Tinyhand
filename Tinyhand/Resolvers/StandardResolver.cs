@@ -1,5 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
+using System.Linq;
 using Tinyhand.Formatters;
 
 namespace Tinyhand.Resolvers;
@@ -31,6 +33,14 @@ public sealed class StandardResolver : IFormatterResolver
     public ITinyhandFormatter<T>? TryGetFormatter<T>()
     {
         return FormatterCache<T>.Formatter;
+    }
+
+    public void RegisterInstantiableTypes()
+    {
+        foreach (var resolver in Resolvers)
+        {
+            resolver.RegisterInstantiableTypes();
+        }
     }
 
     private static class FormatterCache<T>

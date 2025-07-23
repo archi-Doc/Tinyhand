@@ -10,6 +10,34 @@ namespace XUnitTest.Tests;
 
 public class TypeIdentifierTest
 {// GetTypeIdentifierCode
+    [Fact]
+    public void Test()
+    {
+        var typeIdentifier = TinyhandTypeIdentifier.GetTypeIdentifier<TestRecord>();
+        typeIdentifier.IsNot(0u);
+
+        var tc = new TestRecord(1, 2, "a", "x");
+        var r = TinyhandTypeIdentifier.TrySerializeRentMemory(tc);
+        r.RentMemory.IsEmpty.IsFalse();
+        TinyhandSerializer.Deserialize<TestRecord>(r.RentMemory.Span).Equals(tc).IsTrue();
+        TinyhandTypeIdentifier.TryDeserialize(typeIdentifier, r.RentMemory.Span).Equals(tc).IsTrue();
+
+        r = TinyhandTypeIdentifier.TrySerializeRentMemory(new TypeIdentifierTest());
+        r.RentMemory.IsEmpty.IsTrue();
+        r = TinyhandTypeIdentifier.TrySerializeRentMemory(typeIdentifier, (object)tc);
+        r.RentMemory.IsEmpty.IsFalse();
+
+        var r2 = TinyhandTypeIdentifier.TrySerialize(tc);
+        r2.ByteArray!.Length.IsNot(0);
+        TinyhandSerializer.Deserialize<TestRecord>(r2.ByteArray).Equals(tc).IsTrue();
+        TinyhandTypeIdentifier.TryDeserialize(typeIdentifier, r2.ByteArray).Equals(tc).IsTrue();
+        r2 = TinyhandTypeIdentifier.TrySerialize(new TypeIdentifierTest());
+        r2.ByteArray.IsNull();
+
+        r2 = TinyhandTypeIdentifier.TrySerialize(typeIdentifier, (object)tc);
+        r2.ByteArray.Length.IsNot(0);
+    }
+
     /*[Fact]
     public void Test1()
     {

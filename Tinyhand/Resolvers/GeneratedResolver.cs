@@ -1,7 +1,10 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Tinyhand.Formatters;
 
 #pragma warning disable SA1401 // Fields should be private
 
@@ -84,6 +87,10 @@ public sealed class GeneratedResolver : IFormatterResolver
         return null;
     }
 
+    public void RegisterInstantiableTypes()
+    {
+    }
+
     public void SetFormatterGenerator(Type genericType, Func<Type, Type[], ITinyhandFormatter> generator)
     {
         var info = new FormatterGeneratorInfo(genericType, generator);
@@ -92,6 +99,8 @@ public sealed class GeneratedResolver : IFormatterResolver
 
     public void SetFormatter<T>(ITinyhandFormatter<T> formatter)
     {
+        TinyhandTypeIdentifier.Register(typeof(T));
+        TinyhandTypeIdentifier.Register(typeof(T?));
         FormatterCache<T>.Formatter = formatter;
     }
 

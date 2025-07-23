@@ -3,6 +3,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using FastExpressionCompiler;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
@@ -75,7 +76,7 @@ public sealed class DynamicObjectTypeFallbackFormatter : ITinyhandFormatter<obje
                         ti.IsValueType ? Expression.Unbox(param2, type) : Expression.Convert(param2, type),
                         param3);
 
-                    serializerDelegate = Expression.Lambda<SerializeMethod>(body, param0, param1, param2, param3).Compile();
+                    serializerDelegate = Expression.Lambda<SerializeMethod>(body, param0, param1, param2, param3).CompileFast();
 
                     SerializerDelegates.TryAdd(type, serializerDelegate);
                 }
