@@ -977,7 +977,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            if (x.TypeObject is { } typeObject &&
+            if (x.TypeObject?.OriginalDefinition is { } typeObject &&
                 typeObject.SupportStructualObject)
             {
                 structualRequired = true;
