@@ -16,6 +16,13 @@ public readonly partial struct JournalIdentifier
     public readonly int Id1;
 }
 
+/*[TinyhandObject(Structual = false)] // causes a warning if Structual = false
+public partial class JournalRoot
+{
+    [Key(0)]
+    public JournalClass Class1 { get; set; } = new();
+}*/
+
 [TinyhandObject(Structual = true)]
 public partial class JournalClass
 {

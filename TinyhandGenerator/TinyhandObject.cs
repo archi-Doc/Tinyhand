@@ -118,6 +118,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public bool IsDefaultable { get; private set; }
 
+    public bool SupportStructualObject => this.ObjectAttribute?.Structual == true || this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject);
+
     public bool IsAbstractOrInterface => this.Kind == VisceralObjectKind.Interface || (this.symbol is INamedTypeSymbol nts && nts.IsAbstract);
 
     public List<TinyhandObject>? Children { get; private set; } // The opposite of ContainingObject
@@ -950,6 +952,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         this.Union?.CheckAndPrepare();
 
         // Target
+        var structualRequired = false;
         foreach (var x in this.Members)
         {
             if (!x.IsSerializable || x.IsReadOnly)
@@ -974,7 +977,18 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
+            if (x.TypeObject is { } typeObject &&
+                typeObject.SupportStructualObject)
+            {
+                structualRequired = true;
+            }
+
             x.ObjectFlag |= TinyhandObjectFlag.Target | TinyhandObjectFlag.CloneTarget;
+        }
+
+        if (structualRequired && !this.SupportStructualObject)
+        {
+            this.Body.ReportDiagnostic(TinyhandBody.Warning_StructualRequired, this.Location, this.FullName);
         }
 
         // Key, SerializeTarget
@@ -2633,7 +2647,9 @@ ModuleInitializerClass_Added:
 
     internal void GenerateJournal_SetParent(ScopingStringBuilder ssb, TinyhandObject? child, string parent, ref int count)
     {
-        if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
+        if (!this.SupportStructualObject ||
+            child?.TypeObject is not { } typeObject ||
+            child.KeyAttribute?.IntKey is not int key)
         {
             return;
         }
