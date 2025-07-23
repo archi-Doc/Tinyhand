@@ -20,12 +20,17 @@ public static class TinyhandTypeIdentifier
 
     private class MethodClass
     {
-        private Type? type;
-        private Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>? serializeRentMemory;
-
         public uint TypeIdentifier { get; }
 
+        private Type? type;
+
+        private Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>? serializeRentMemory;
+
         public Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>? SerializeRentMemory => this.serializeRentMemory ??= this.CreateSerializeRentMemory();
+
+        private Func<object, TinyhandSerializerOptions?, byte[]>? serialize;
+
+        public Func<object, TinyhandSerializerOptions?, byte[]>? Serialize => this.serialize ??= this.CreateSerialize();
 
         public MethodClass(Type type)
         {
@@ -56,6 +61,26 @@ public static class TinyhandTypeIdentifier
             }
         }
 
+        private Func<object, TinyhandSerializerOptions?, byte[]>? CreateSerialize()
+        {
+            if (!this.EnsureType())
+            {
+                return default;
+            }
+
+            var typeInfo = this.type.GetTypeInfo();
+            var serialize = TinyhandHelper.GetSerializerMethod("Serialize", this.type, [null, typeof(TinyhandSerializerOptions)]);
+            var param1 = Expression.Parameter(typeof(object), "value");
+            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
+
+            var body = Expression.Call(
+                null,
+                serialize,
+                typeInfo.IsValueType ? Expression.Unbox(param1, this.type) : Expression.Convert(param1, this.type),
+                param2);
+            return Expression.Lambda<Func<object, TinyhandSerializerOptions?, byte[]>>(body, param1, param2).CompileFast();
+        }
+
         private Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>? CreateSerializeRentMemory()
         {
             if (!this.EnsureType())
@@ -73,9 +98,45 @@ public static class TinyhandTypeIdentifier
                 serialize,
                 typeInfo.IsValueType ? Expression.Unbox(param1, this.type) : Expression.Convert(param1, this.type),
                 param2);
-            var lambda = Expression.Lambda<Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>>(body, param1, param2).CompileFast();
+            return Expression.Lambda<Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>>(body, param1, param2).CompileFast();
+        }
+    }
 
-            return lambda;
+    public static (uint TypeIdentifier, byte[]? ByteArray) TrySerialize<T>(T value, TinyhandSerializerOptions? options = null)
+    {
+        var methodClass = TypeToMethodClass.GetOrAdd(typeof(T), type => new(type));
+        if (methodClass.Serialize is null)
+        {
+            return default;
+        }
+
+        try
+        {
+            var byteArray = methodClass.Serialize(value!, options);
+            return (methodClass.TypeIdentifier, byteArray);
+        }
+        catch
+        {
+            return default;
+        }
+    }
+
+    public static (uint TypeIdentifier, byte[] ByteArray) TrySerialize(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
+    {
+        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
+        if (methodClass.Serialize is null)
+        {
+            return default;
+        }
+
+        try
+        {
+            var byteArray = methodClass.Serialize(value!, options);
+            return (methodClass.TypeIdentifier, byteArray);
+        }
+        catch
+        {
+            return default;
         }
     }
 
