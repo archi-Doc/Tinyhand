@@ -121,6 +121,15 @@ public static class TinyhandTypeIdentifier
         }
     }
 
+    /// <summary>
+    /// Tries to serialize the specified value of type <typeparamref name="T"/> using the registered type identifier.
+    /// </summary>
+    /// <typeparam name="T">The type of the value to serialize.</typeparam>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>
+    /// A tuple containing the type identifier and the serialized byte array, or the default tuple if serialization fails.
+    /// </returns>
     public static (uint TypeIdentifier, byte[]? ByteArray) TrySerialize<T>(T value, TinyhandSerializerOptions? options = null)
     {
         var methodClass = TypeToMethodClass.GetOrAdd(typeof(T), type => new(type));
@@ -140,7 +149,16 @@ public static class TinyhandTypeIdentifier
         }
     }
 
-    public static (uint TypeIdentifier, byte[] ByteArray) TrySerialize(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
+    /// <summary>
+    /// Tries to serialize the specified value using the given type identifier and the registered type identifier..
+    /// </summary>
+    /// <param name="typeIdentifier">The type identifier associated with the value's type.</param>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>
+    /// A tuple containing the type identifier and the serialized byte array, or the default tuple if serialization fails.
+    /// </returns>
+    public static (uint TypeIdentifier, byte[]? ByteArray) TrySerialize(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
     {
         var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
         if (methodClass.Serialize is null)
@@ -159,24 +177,15 @@ public static class TinyhandTypeIdentifier
         }
     }
 
-    public static object? TryDeserialize(uint typeIdentifier, ReadOnlySpan<byte> source, TinyhandSerializerOptions? options = null)
-    {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.Deserialize is null)
-        {
-            return default;
-        }
-
-        try
-        {
-            return methodClass.Deserialize(source, options);
-        }
-        catch
-        {
-            return default;
-        }
-    }
-
+    /// <summary>
+    /// Tries to serialize the specified value of type <typeparamref name="T"/> using the registered type identifier.
+    /// </summary>
+    /// <typeparam name="T">The type of the value to serialize.</typeparam>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>
+    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentMemory" />, or the default tuple if serialization fails.
+    /// </returns>
     public static (uint TypeIdentifier, BytePool.RentMemory RentMemory) TrySerializeRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
     {
         var methodClass = TypeToMethodClass.GetOrAdd(typeof(T), type => new(type));
@@ -196,6 +205,15 @@ public static class TinyhandTypeIdentifier
         }
     }
 
+    /// <summary>
+    /// Tries to serialize the specified value using the given type identifier and the registered type identifier..
+    /// </summary>
+    /// <param name="typeIdentifier">The type identifier associated with the value's type.</param>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>
+    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentMemory" />, or the default tuple if serialization fails.
+    /// </returns>
     public static (uint TypeIdentifier, BytePool.RentMemory RentMemory) TrySerializeRentMemory(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
     {
         var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
@@ -215,16 +233,62 @@ public static class TinyhandTypeIdentifier
         }
     }
 
+    /// <summary>
+    /// Tries to deserialize the specified byte source into an object using the given type identifier.
+    /// </summary>
+    /// <param name="typeIdentifier">The type identifier associated with the target type.</param>
+    /// <param name="source">The byte source to deserialize.</param>
+    /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>
+    /// The deserialized object, or <c>null</c> if deserialization fails.
+    /// </returns>
+    public static object? TryDeserialize(uint typeIdentifier, ReadOnlySpan<byte> source, TinyhandSerializerOptions? options = null)
+    {
+        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
+        if (methodClass.Deserialize is null)
+        {
+            return default;
+        }
+
+        try
+        {
+            return methodClass.Deserialize(source, options);
+        }
+        catch
+        {
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Registers the specified type <typeparamref name="T"/> for type identifier mapping.
+    /// </summary>
+    /// <typeparam name="T">The type to register for type identifier mapping.</typeparam>
     public static void Register<T>()
         => Register(typeof(T));
 
+    /// <summary>
+    /// Gets the type identifier of the specified type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The type for which to get the identifier.</typeparam>
+    /// <returns>The type identifier as a <see cref="uint"/>.</returns>
     public static uint GetTypeIdentifier<T>()
         => GetTypeIdentifier(typeof(T));
 
+    /// <summary>
+    /// Gets the type identifier for the specified <see cref="Type"/>.
+    /// </summary>
+    /// <param name="type">The type for which to get the identifier.</param>
+    /// <returns>The type identifier as a <see cref="uint"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint GetTypeIdentifier(Type type)
         => (uint)FarmHash.Hash64(type.FullName ?? string.Empty);
 
+    /// <summary>
+    /// Registers the specified <see cref="Type"/> for type identifier mapping.
+    /// </summary>
+    /// <param name="type">The type to register.</param>
+    /// <returns><c>true</c> if the type was successfully registered; otherwise, <c>false</c>.</returns>
     public static bool Register(Type type)
     {
         if (type.IsAbstract || type.IsInterface || type.IsGenericTypeDefinition || type.IsArray || type.IsPointer || type == typeof(void))
@@ -234,7 +298,6 @@ public static class TinyhandTypeIdentifier
 
         if (TypeIdentifierToType.TryAdd(GetTypeIdentifier(type), type))
         {
-            // Clear();
             return true;
         }
         else
@@ -243,6 +306,10 @@ public static class TinyhandTypeIdentifier
         }
     }
 
+    /// <summary>
+    /// Registers a collection of types for type identifier mapping.
+    /// </summary>
+    /// <param name="types">A span of types to register.</param>
     public static void Register(ReadOnlySpan<Type> types)
     {
         foreach (var type in types)
@@ -250,9 +317,4 @@ public static class TinyhandTypeIdentifier
             Register(type);
         }
     }
-
-    /*private static void Clear()
-    {
-        typeToTypeIdentifier = default;
-    }*/
 }
