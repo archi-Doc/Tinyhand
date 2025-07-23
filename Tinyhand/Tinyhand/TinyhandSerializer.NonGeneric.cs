@@ -40,11 +40,6 @@ public partial class TinyhandSerializer
         return GetOrAdd(type).Serialize_T_Options.Invoke(obj, options);
     }
 
-    public static byte[] Serialize(uint typeId, object obj, TinyhandSerializerOptions? options = null)
-    {
-        return GetOrAdd(typeId).Serialize_T_Options.Invoke(obj, options);
-    }
-
     public static object? Deserialize(Type type, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
     {
         return GetOrAdd(type).Deserialize_TinyhandReader_Options.Invoke(ref reader, options);
@@ -83,7 +78,7 @@ public partial class TinyhandSerializer
             TypeInfo ti = type.GetTypeInfo();
             {
                 // public static T Reconstruct<T>(TinyhandSerializerOptions? options)
-                var reconstruct = GetMethod(nameof(Reconstruct), type, new Type?[] { typeof(TinyhandSerializerOptions) });
+                var reconstruct = TinyhandHelper.GetSerializerMethod(nameof(Reconstruct), type, new Type?[] { typeof(TinyhandSerializerOptions) });
                 var param1 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
 
                 var body = Expression.Call(
@@ -97,7 +92,7 @@ public partial class TinyhandSerializer
 
             {
                 // public static byte[] Serialize<T>(T obj, TinyhandSerializerOptions? options)
-                var serialize = GetMethod(nameof(Serialize), type, new Type?[] { null, typeof(TinyhandSerializerOptions), });
+                var serialize = TinyhandHelper.GetSerializerMethod(nameof(Serialize), type, new Type?[] { null, typeof(TinyhandSerializerOptions), });
                 var param1 = Expression.Parameter(typeof(object), "obj");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
 
@@ -113,7 +108,7 @@ public partial class TinyhandSerializer
 
             {
                 // public static Task Serialize<T>(IBufferWriter<byte> writer, T obj, TinyhandSerializerOptions? options)
-                var serialize = GetMethod(nameof(Serialize), type, new Type?[] { typeof(IBufferWriter<byte>), null, typeof(TinyhandSerializerOptions), });
+                var serialize = TinyhandHelper.GetSerializerMethod(nameof(Serialize), type, new Type?[] { typeof(IBufferWriter<byte>), null, typeof(TinyhandSerializerOptions), });
 
                 var param1 = Expression.Parameter(typeof(IBufferWriter<byte>), "writer");
                 var param2 = Expression.Parameter(typeof(object), "obj");
@@ -130,7 +125,7 @@ public partial class TinyhandSerializer
 
             {
                 // public static void Serialize<T>(ref TinyhandWriter writer, T obj, TinyhandSerializerOptions? options)
-                var serialize = GetMethod(nameof(Serialize), type, new Type?[] { typeof(TinyhandWriter).MakeByRefType(), null, typeof(TinyhandSerializerOptions) });
+                var serialize = TinyhandHelper.GetSerializerMethod(nameof(Serialize), type, new Type?[] { typeof(TinyhandWriter).MakeByRefType(), null, typeof(TinyhandSerializerOptions) });
 
                 var param1 = Expression.Parameter(typeof(TinyhandWriter).MakeByRefType(), "writer");
                 var param2 = Expression.Parameter(typeof(object), "obj");
@@ -149,7 +144,7 @@ public partial class TinyhandSerializer
 
             {
                 // public static T Deserialize<T>(ref TinyhandReader reader, TinyhandSerializerOptions? options)
-                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(TinyhandReader).MakeByRefType(), typeof(TinyhandSerializerOptions) });
+                var deserialize = TinyhandHelper.GetSerializerMethod(nameof(Deserialize), type, new Type[] { typeof(TinyhandReader).MakeByRefType(), typeof(TinyhandSerializerOptions) });
 
                 var param1 = Expression.Parameter(typeof(TinyhandReader).MakeByRefType(), "reader");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
@@ -161,7 +156,7 @@ public partial class TinyhandSerializer
 
             {
                 // public static T Deserialize<T>(ReadOnlySpan<byte> bytes, TinyhandSerializerOptions? options)
-                var deserialize = GetMethod(nameof(Deserialize), type, new Type[] { typeof(ReadOnlySpan<byte>), typeof(TinyhandSerializerOptions), });
+                var deserialize = TinyhandHelper.GetSerializerMethod(nameof(Deserialize), type, new Type[] { typeof(ReadOnlySpan<byte>), typeof(TinyhandSerializerOptions), });
 
                 var param1 = Expression.Parameter(typeof(ReadOnlySpan<byte>), "bytes");
                 var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
@@ -170,40 +165,6 @@ public partial class TinyhandSerializer
 
                 this.Deserialize_ReadOnlyMemory_Options = lambda;
             }
-        }
-
-        // null is generic type marker.
-        private static MethodInfo GetMethod(string methodName, Type type, Type?[] parameters)
-        {
-            return typeof(TinyhandSerializer).GetRuntimeMethods().Single(x =>
-            {
-                if (methodName != x.Name)
-                {
-                    return false;
-                }
-
-                ParameterInfo[] ps = x.GetParameters();
-                if (ps.Length != parameters.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < ps.Length; i++)
-                {
-                    if (parameters[i] == null && ps[i].ParameterType.IsGenericParameter)
-                    {
-                        continue;
-                    }
-
-                    if (ps[i].ParameterType != parameters[i])
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            })
-            .MakeGenericMethod(type);
         }
     }
 }

@@ -99,8 +99,8 @@ public sealed class GeneratedResolver : IFormatterResolver
 
     public void SetFormatter<T>(ITinyhandFormatter<T> formatter)
     {
-        TinyhandTypeId.Register(typeof(T));
-        TinyhandTypeId.Register(typeof(T?));
+        TinyhandTypeIdentifier.Register(typeof(T));
+        TinyhandTypeIdentifier.Register(typeof(T?));
         FormatterCache<T>.Formatter = formatter;
     }
 

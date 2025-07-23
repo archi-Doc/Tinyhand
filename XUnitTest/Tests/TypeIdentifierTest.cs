@@ -10,6 +10,23 @@ namespace XUnitTest.Tests;
 
 public class TypeIdentifierTest
 {// GetTypeIdentifierCode
+
+    [Fact]
+    public void Test()
+    {
+        var typeIdentifier = TinyhandTypeIdentifier.GetTypeIdentifier<TestRecord>();
+        typeIdentifier.IsNot(0u);
+
+        var tc = new TestRecord(1, 2, "a", "x");
+        var r = TinyhandTypeIdentifier.TrySerializeRentMemory(tc);
+        r.RentMemory.IsEmpty.IsFalse();
+        r = TinyhandTypeIdentifier.TrySerializeRentMemory(new TypeIdentifierTest());
+        r.RentMemory.IsEmpty.IsTrue();
+
+        r = TinyhandTypeIdentifier.TrySerializeRentMemory(typeIdentifier, (object)tc);
+        r.RentMemory.IsEmpty.IsFalse();
+    }
+
     /*[Fact]
     public void Test1()
     {

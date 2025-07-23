@@ -22,7 +22,7 @@ public sealed class NativeGuidResolver : IFormatterResolver
     }
 
     public void RegisterInstantiableTypes()
-        => TinyhandTypeId.Register([typeof(Guid), typeof(Guid?)]);
+        => TinyhandTypeIdentifier.Register([typeof(Guid), typeof(Guid?)]);
 
     private static object? GetFormatterHelper(Type t)
     {

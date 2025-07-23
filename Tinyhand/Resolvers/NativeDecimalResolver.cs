@@ -22,7 +22,7 @@ public sealed class NativeDecimalResolver : IFormatterResolver
     }
 
     public void RegisterInstantiableTypes()
-        => TinyhandTypeId.Register([typeof(decimal), typeof(decimal?)]);
+        => TinyhandTypeIdentifier.Register([typeof(decimal), typeof(decimal?)]);
 
     private static object? GetFormatterHelper(Type t)
     {
