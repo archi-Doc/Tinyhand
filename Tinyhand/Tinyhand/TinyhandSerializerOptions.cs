@@ -64,9 +64,9 @@ public record TinyhandSerializerOptions
         Signature,
 
         /// <summary>
-        /// Custom mode for user-defined serialization.
+        /// Special serialization defined by the user.
         /// </summary>
-        Custom,
+        Special,
     }
 
     [Flags]
@@ -145,7 +145,7 @@ public record TinyhandSerializerOptions
 
     public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
 
-    public bool IsCustomMode => this.SerializationMode == Mode.Custom;
+    public bool IsCustomMode => this.SerializationMode == Mode.Special;
 
     /// <summary>
     /// Gets a value indicating whether the option uses Standard resolver or not.
