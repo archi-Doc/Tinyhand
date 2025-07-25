@@ -344,7 +344,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     }
 
     public void TryConfigure()
-    {
+    {// Configure the type (assuming an external assembly).
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Configured))
         {
             return;
@@ -977,10 +977,13 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 continue;
             }
 
-            if (x.TypeObject?.OriginalDefinition is { } typeObject &&
-                typeObject.SupportStructualObject)
+            if (x.TypeObject?.OriginalDefinition is { } typeObject)
             {
-                structualRequired = true;
+                typeObject.TryConfigure();
+                if (typeObject.SupportStructualObject)
+                {
+                    structualRequired = true;
+                }
             }
 
             x.ObjectFlag |= TinyhandObjectFlag.Target | TinyhandObjectFlag.CloneTarget;
