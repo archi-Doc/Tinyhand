@@ -93,6 +93,8 @@ public record TinyhandSerializerOptions
 
     public static TinyhandSerializerOptions Signature { get; } = Standard with { SerializationMode = Mode.Signature, };
 
+    public static TinyhandSerializerOptions Special { get; } = Standard with { SerializationMode = Mode.Special, };
+
     public static TinyhandSerializerOptions ConvertToString { get; } = Standard with { Flags = SerializationFlag.ConvertToString, };
 
     /// <summary>
@@ -145,7 +147,7 @@ public record TinyhandSerializerOptions
 
     public bool IsSignatureMode => this.SerializationMode == Mode.Signature;
 
-    public bool IsCustomMode => this.SerializationMode == Mode.Special;
+    public bool IsSpecialMode => this.SerializationMode == Mode.Special;
 
     /// <summary>
     /// Gets a value indicating whether the option uses Standard resolver or not.

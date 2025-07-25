@@ -40,7 +40,7 @@ public sealed partial class StoragePoint<TData> : SemaphoreLock, IStructualObjec
         }
 
         v ??= new StoragePoint<TData>();
-        if (!options.IsCustomMode)
+        if (!options.IsSpecialMode)
         {
             v.PointId = reader.ReadUInt64();
             return;
