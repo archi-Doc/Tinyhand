@@ -344,7 +344,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     }
 
     public void TryConfigure()
-    {
+    {// Configure the type (assuming an external assembly).
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.Configured))
         {
             return;
