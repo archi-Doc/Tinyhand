@@ -383,6 +383,131 @@ public ref partial struct TinyhandReader
     }
 
     /// <summary>
+    /// Attempts to read an <see cref="ulong"/> value from the underlying buffer.
+    /// Supports all MessagePack integer types, including fixints, signed and unsigned values.
+    /// </summary>
+    /// <param name="value">
+    /// When this method returns, contains the <see cref="ulong"/> value read from the buffer,
+    /// or <c>default</c> if the read was unsuccessful.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if a value was successfully read; otherwise, <c>false</c>.
+    /// </returns>
+    public bool TryReadUInt64(out ulong value)
+    {
+        value = default;
+        if (!this.TryRead(out byte code))
+        {
+            return false;
+        }
+
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                if (!this.TryRead(out byte byteResult))
+                {
+                    return false;
+                }
+                else
+                {
+                    value = (ulong)byteResult;
+                    return true;
+                }
+
+            case MessagePackCode.Int8:
+                if (!this.TryRead(out sbyte sbyteResult))
+                {
+                    return false;
+                }
+                else
+                {
+                    value = (ulong)sbyteResult;
+                    return true;
+                }
+
+            case MessagePackCode.UInt16:
+                if (!this.TryReadBigEndian(out ushort ushortResult))
+                {
+                    return false;
+                }
+                else
+                {
+                    value = (ulong)ushortResult;
+                    return true;
+                }
+
+            case MessagePackCode.Int16:
+                if (!this.TryReadBigEndian(out short shortResult))
+                {
+                    return false;
+                }
+                else
+                {
+                    value = (ulong)shortResult;
+                    return true;
+                }
+
+            case MessagePackCode.UInt32:
+                if (!this.TryReadBigEndian(out uint uintResult))
+                {
+                    return false;
+                }
+                else
+                {
+                    value = (ulong)uintResult;
+                    return true;
+                }
+
+            case MessagePackCode.Int32:
+                if (!this.TryReadBigEndian(out int intResult))
+                {
+                    return false;
+                }
+                else
+                {
+                    value = (ulong)intResult;
+                    return true;
+                }
+
+            case MessagePackCode.UInt64:
+                if (!this.TryReadBigEndian(out ulong ulongResult))
+                {
+                    return false;
+                }
+                else
+                {
+                    value = (ulong)ulongResult;
+                    return true;
+                }
+
+            case MessagePackCode.Int64:
+                if (!this.TryReadBigEndian(out long longResult))
+                {
+                    return false;
+                }
+                else
+                {
+                    value = (ulong)longResult;
+                    return true;
+                }
+
+            default:
+                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
+                {
+                    value = (ulong)unchecked((sbyte)code);
+                    return true;
+                }
+                else if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
+                {
+                    value = (ulong)code;
+                    return true;
+                }
+
+                return false;
+        }
+    }
+
+    /// <summary>
     /// Reads an <see cref="long"/> value from:
     /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
     /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
