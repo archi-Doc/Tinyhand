@@ -16,6 +16,7 @@ public static class TinyhandTypeIdentifier
 {
     private static readonly ConcurrentDictionary<uint, Type> TypeIdentifierToType = new();
     private static readonly UInt32Hashtable<MethodClass> TypeIdentifierToMethodClass = new();
+    private static readonly ThreadsafeTypeKeyHashtable<uint> TypeToTypeIdentifier = new();
     private static readonly ThreadsafeTypeKeyHashtable<MethodClass> TypeToMethodClass = new();
 
     private class MethodClass
@@ -35,6 +36,10 @@ public static class TinyhandTypeIdentifier
         private Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? deserialize;
 
         public Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? Deserialize => this.deserialize ??= this.CreateDeserialize();
+
+        private Func<TinyhandSerializerOptions?, object?>? reconstruct;
+
+        public Func<TinyhandSerializerOptions?, object?>? Reconstruct => this.reconstruct ??= this.CreateReconstruct();
 
         public MethodClass(Type type)
         {
@@ -118,6 +123,20 @@ public static class TinyhandTypeIdentifier
             var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
             var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
             return Expression.Lambda<Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>>(body, param1, param2).CompileFast();
+        }
+
+        private Func<TinyhandSerializerOptions?, object?>? CreateReconstruct()
+        {
+            if (!this.EnsureType())
+            {
+                return default;
+            }
+
+            var typeInfo = this.type.GetTypeInfo();
+            var method = TinyhandHelper.GetSerializerMethod("Reconstruct", this.type, [typeof(TinyhandSerializerOptions)]);
+            var param1 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
+            var body = Expression.Convert(Expression.Call(null, method, param1), typeof(object));
+            return Expression.Lambda<Func<TinyhandSerializerOptions?, object?>>(body, param1).CompileFast();
         }
     }
 
@@ -261,6 +280,30 @@ public static class TinyhandTypeIdentifier
     }
 
     /// <summary>
+    /// Create a new instance of the given type.
+    /// </summary>
+    /// <param name="typeIdentifier">The type identifier associated with the target type.</param>
+    /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>The created instance.</returns>
+    public static object? TryReconstruct(uint typeIdentifier, TinyhandSerializerOptions? options = null)
+    {
+        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
+        if (methodClass.Reconstruct is null)
+        {
+            return default;
+        }
+
+        try
+        {
+            return methodClass.Reconstruct(options);
+        }
+        catch
+        {
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Registers the specified type <typeparamref name="T"/> for type identifier mapping.
     /// </summary>
     /// <typeparam name="T">The type to register for type identifier mapping.</typeparam>
@@ -282,7 +325,7 @@ public static class TinyhandTypeIdentifier
     /// <returns>The type identifier as a <see cref="uint"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint GetTypeIdentifier(Type type)
-        => (uint)FarmHash.Hash64(type.FullName ?? string.Empty);
+        => TypeToTypeIdentifier.GetOrAdd(type, x => (uint)FarmHash.Hash64(x.FullName ?? string.Empty));
 
     /// <summary>
     /// Registers the specified <see cref="Type"/> for type identifier mapping.
