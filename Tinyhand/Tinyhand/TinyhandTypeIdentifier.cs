@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using Arc.Collections;
 using Arc.Crypto;
 using FastExpressionCompiler;
+using Tinyhand.IO;
 
 namespace Tinyhand;
 
@@ -21,6 +22,8 @@ public static class TinyhandTypeIdentifier
 
     private class MethodClass
     {
+        internal delegate void SerializeWriterDelegate(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options);
+
         public uint TypeIdentifier { get; }
 
         private Type? type;
@@ -32,6 +35,10 @@ public static class TinyhandTypeIdentifier
         private Func<object, TinyhandSerializerOptions?, byte[]>? serialize;
 
         public Func<object, TinyhandSerializerOptions?, byte[]>? Serialize => this.serialize ??= this.CreateSerialize();
+
+        private SerializeWriterDelegate? serializeWriter;
+
+        public SerializeWriterDelegate? SerializeWriter => this.serializeWriter ??= this.CreateSerializeWriter();
 
         private Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? deserialize;
 
@@ -88,6 +95,28 @@ public static class TinyhandTypeIdentifier
                 typeInfo.IsValueType ? Expression.Unbox(param1, this.type) : Expression.Convert(param1, this.type),
                 param2);
             return Expression.Lambda<Func<object, TinyhandSerializerOptions?, byte[]>>(body, param1, param2).CompileFast();
+        }
+
+        private SerializeWriterDelegate? CreateSerializeWriter()
+        {
+            if (!this.EnsureType())
+            {
+                return default;
+            }
+
+            var typeInfo = this.type.GetTypeInfo();
+            var method = TinyhandHelper.GetSerializerMethod("Serialize", this.type, [typeof(TinyhandWriter).MakeByRefType(), null, typeof(TinyhandSerializerOptions)]);
+            var param1 = Expression.Parameter(typeof(TinyhandWriter).MakeByRefType(), "writer");
+            var param2 = Expression.Parameter(typeof(object), "value");
+            var param3 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
+
+            var body = Expression.Call(
+                null,
+                method,
+                param1,
+                typeInfo.IsValueType ? Expression.Unbox(param2, this.type) : Expression.Convert(param2, this.type),
+                param3);
+            return Expression.Lambda<SerializeWriterDelegate>(body, param1, param2, param3).CompileFast();
         }
 
         private Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>? CreateSerializeRentMemory()
@@ -169,7 +198,7 @@ public static class TinyhandTypeIdentifier
     }
 
     /// <summary>
-    /// Tries to serialize the specified value using the given type identifier and the registered type identifier..
+    /// Tries to serialize the specified value using the given type identifier.
     /// </summary>
     /// <param name="typeIdentifier">The type identifier associated with the value's type.</param>
     /// <param name="value">The value to serialize.</param>
@@ -225,7 +254,7 @@ public static class TinyhandTypeIdentifier
     }
 
     /// <summary>
-    /// Tries to serialize the specified value using the given type identifier and the registered type identifier..
+    /// Tries to serialize the specified value using the given type identifier.
     /// </summary>
     /// <param name="typeIdentifier">The type identifier associated with the value's type.</param>
     /// <param name="value">The value to serialize.</param>
@@ -249,6 +278,35 @@ public static class TinyhandTypeIdentifier
         catch
         {
             return default;
+        }
+    }
+
+    /// <summary>
+    /// Tries to serialize the specified value using the given type identifier.
+    /// </summary>
+    /// <param name="writer">The buffer writer to serialize with.</param>
+    /// <param name="typeIdentifier">The type identifier associated with the value's type.</param>
+    /// <param name="value">The value to serialize.</param>
+    /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>
+    /// <c>true</c> if the value was successfully serialized; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool TrySerializeWriter(ref TinyhandWriter writer, uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
+    {
+        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
+        if (methodClass.SerializeWriter is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            methodClass.SerializeWriter(ref writer, value!, options);
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 

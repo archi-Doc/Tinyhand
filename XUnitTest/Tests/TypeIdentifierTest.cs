@@ -1,8 +1,11 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
+using System.Linq;
 using System.Text;
 using Arc.Crypto;
 using Tinyhand;
+using Tinyhand.IO;
 using Tinyhand.Tests;
 using Xunit;
 
@@ -21,6 +24,11 @@ public class TypeIdentifierTest
         r.RentMemory.IsEmpty.IsFalse();
         TinyhandSerializer.Deserialize<TestRecord>(r.RentMemory.Span).Equals(tc).IsTrue();
         TinyhandTypeIdentifier.TryDeserialize(typeIdentifier, r.RentMemory.Span).Equals(tc).IsTrue();
+
+        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
+        TinyhandTypeIdentifier.TrySerializeWriter(ref writer, typeIdentifier, tc).IsTrue();
+        var bin = writer.FlushAndGetArray();
+        bin.AsSpan().SequenceEqual(r.RentMemory.Span).IsTrue();
 
         r = TinyhandTypeIdentifier.TrySerializeRentMemory(new TypeIdentifierTest());
         r.RentMemory.IsEmpty.IsTrue();
