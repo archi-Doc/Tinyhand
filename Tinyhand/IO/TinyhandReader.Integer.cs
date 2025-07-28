@@ -406,6 +406,7 @@ public ref partial struct TinyhandReader
             case MessagePackCode.UInt8:
                 if (!this.TryRead(out byte byteResult))
                 {
+                    this.Reverse(1);
                     return false;
                 }
                 else
@@ -417,6 +418,7 @@ public ref partial struct TinyhandReader
             case MessagePackCode.Int8:
                 if (!this.TryRead(out sbyte sbyteResult))
                 {
+                    this.Reverse(1);
                     return false;
                 }
                 else
@@ -428,6 +430,7 @@ public ref partial struct TinyhandReader
             case MessagePackCode.UInt16:
                 if (!this.TryReadBigEndian(out ushort ushortResult))
                 {
+                    this.Reverse(1);
                     return false;
                 }
                 else
@@ -439,6 +442,7 @@ public ref partial struct TinyhandReader
             case MessagePackCode.Int16:
                 if (!this.TryReadBigEndian(out short shortResult))
                 {
+                    this.Reverse(1);
                     return false;
                 }
                 else
@@ -450,6 +454,7 @@ public ref partial struct TinyhandReader
             case MessagePackCode.UInt32:
                 if (!this.TryReadBigEndian(out uint uintResult))
                 {
+                    this.Reverse(1);
                     return false;
                 }
                 else
@@ -461,6 +466,7 @@ public ref partial struct TinyhandReader
             case MessagePackCode.Int32:
                 if (!this.TryReadBigEndian(out int intResult))
                 {
+                    this.Reverse(1);
                     return false;
                 }
                 else
@@ -472,6 +478,7 @@ public ref partial struct TinyhandReader
             case MessagePackCode.UInt64:
                 if (!this.TryReadBigEndian(out ulong ulongResult))
                 {
+                    this.Reverse(1);
                     return false;
                 }
                 else
@@ -483,6 +490,7 @@ public ref partial struct TinyhandReader
             case MessagePackCode.Int64:
                 if (!this.TryReadBigEndian(out long longResult))
                 {
+                    this.Reverse(1);
                     return false;
                 }
                 else
@@ -502,8 +510,11 @@ public ref partial struct TinyhandReader
                     value = (ulong)code;
                     return true;
                 }
-
-                return false;
+                else
+                {
+                    this.Reverse(1);
+                    return false;
+                }
         }
     }
 

@@ -125,6 +125,14 @@ public ref partial struct TinyhandReader
         this.b = ref Unsafe.Add(ref this.b, count);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Reverse(int count)
+    {
+        ThrowInsufficientBufferUnless(this.Consumed >= count);
+        this.remaining += count;
+        this.b = ref Unsafe.Subtract(ref this.b, count);
+    }
+
     /// <summary>
     /// Advances the reader to the next MessagePack primitive to be read.
     /// </summary>
