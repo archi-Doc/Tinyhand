@@ -2659,14 +2659,14 @@ ModuleInitializerClass_Added:
 
         if (typeObject.ObjectAttribute?.Structual == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject))
         {
-            ssb.AppendLine($"(({TinyhandBody.IStructualObject}){ssb.FullObject})?.SetParent({parent}, {key.ToString()});");
+            ssb.AppendLine($"(({TinyhandBody.IStructualObject}){ssb.FullObject})?.{TinyhandBody.SetupStructure}({parent}, {key.ToString()});");
             count++;
         }
         else if (this.ObjectAttribute?.Structual == true && typeObject.Kind == VisceralObjectKind.Error)
         {// Maybe generated class
             var keyString = key.ToString();
             var objName = "obj" + keyString;
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) {objName}.SetParent({parent}, {keyString});");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) {objName}.{TinyhandBody.SetupStructure}({parent}, {keyString});");
             count++;
         }
     }
@@ -3259,11 +3259,16 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateSetParent(ScopingStringBuilder ssb, GeneratorInformation info, out int count)
-    {// public void SetParent(IStructualObject? parent, int key = -1)
+    {// public void SetupStructure(IStructualObject? parent, int key = -1)
         count = 0;
-        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.SetParent({TinyhandBody.IStructualObject}? parent, int key)"))
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.{TinyhandBody.SetupStructure}({TinyhandBody.IStructualObject}? parent, int key)"))
         {
-            ssb.AppendLine($"(({TinyhandBody.IStructualObject})this).SetParentActual(parent, key);");
+            ssb.AppendLine($"(({TinyhandBody.IStructualObject})this).SetParentAndKey(parent, key);");
+
+            // ssb.AppendLine($"var structualObject = ({TinyhandBody.IStructualObject})this;");
+            // ssb.AppendLine($"structualObject.StructualRoot = parent?.StructualRoot;");
+            // ssb.AppendLine($"structualObject.StructualParent = parent;");
+            // ssb.AppendLine($"structualObject.StructualKey = key;");
 
             if (this.IntKey_Array is not null)
             {

@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ValueLink" Version="0.81.2" />
+    <PackageReference Include="ValueLink" Version="0.81.3" />
   </ItemGroup>
 
 </Project>

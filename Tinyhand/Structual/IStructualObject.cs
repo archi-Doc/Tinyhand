@@ -9,42 +9,87 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
-public interface IStructualObject
-{// TinyhandGenerator, ValueLinkGenerator
+/// <summary>
+/// Represents a structural object that can participate in a hierarchical structure,
+/// support journaling, and provide serialization/deserialization capabilities.
+/// </summary>
+public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
+{
+    /// <summary>
+    /// Gets or sets the root of the structure to which this object belongs.
+    /// </summary>
     IStructualRoot? StructualRoot { get; set; }
 
-    IStructualObject? StructualParent { get; protected set; }
+    /// <summary>
+    /// Gets or sets the parent structural object.
+    /// </summary>
+    IStructualObject? StructualParent { get; set; }
 
-    int StructualKey { get; protected set; } // Plane or IntKey
+    /// <summary>
+    /// Gets or sets the key that identifies this object within its parent.
+    /// </summary>
+    int StructualKey { get; set; }
 
-    public void SetParent(IStructualObject? parent, int key = -1)
+    /// <summary>
+    /// Sets up the structure by assigning the parent and key, and propagating the root.
+    /// </summary>
+    /// <param name="parent">The parent structural object.</param>
+    /// <param name="key">The key for this object within its parent. Default is -1.</param>
+    public void SetupStructure(IStructualObject? parent, int key = -1)
     {
         this.StructualRoot = parent?.StructualRoot;
         this.StructualParent = parent;
         this.StructualKey = key;
     }
 
-    public void SetParentActual(IStructualObject? parent, int key = -1)
+    /// <summary>
+    /// Sets the parent and key for this object, and updates the root reference.
+    /// </summary>
+    /// <param name="parent">The parent structural object.</param>
+    /// <param name="key">The key for this object within its parent. Default is -1.</param>
+    public sealed void SetParentAndKey(IStructualObject? parent, int key = -1)
     {
         this.StructualRoot = parent?.StructualRoot;
         this.StructualParent = parent;
         this.StructualKey = key;
     }
 
+    /// <summary>
+    /// Saves the current object, optionally unloading it based on the specified mode.
+    /// </summary>
+    /// <param name="unloadMode">The unload mode to use.</param>
+    /// <returns>A task that returns true if the save operation was successful.</returns>
     Task<bool> Save(UnloadMode unloadMode)
         => Task.FromResult(true);
 
+    /// <summary>
+    /// Erases the current object. Default implementation does nothing.
+    /// </summary>
     void Erase()
     {
     }
 
+    /// <summary>
+    /// Reads a record from the specified <see cref="TinyhandReader"/>.
+    /// </summary>
+    /// <param name="reader">The reader to read from.</param>
+    /// <returns>True if a record was read successfully; otherwise, false.</returns>
     bool ReadRecord(ref TinyhandReader reader)
         => false;
 
+    /// <summary>
+    /// Writes a locator for this object to the specified <see cref="TinyhandWriter"/>.
+    /// </summary>
+    /// <param name="writer">The writer to write to.</param>
     public void WriteLocator(ref TinyhandWriter writer)
     {
     }
 
+    /// <summary>
+    /// Adds a journal record for this object, optionally including the current object in the locator path.
+    /// </summary>
+    /// <param name="record">The journal record to add.</param>
+    /// <param name="includeCurrent">Whether to include the current object in the locator path.</param>
     public void AddJournalRecord(JournalRecord record, bool includeCurrent = true)
     {
         if (this.TryGetJournalWriter(out var root, out var writer, includeCurrent))
@@ -59,6 +104,10 @@ public interface IStructualObject
         }
     }
 
+    /// <summary>
+    /// Writes the key or locator for this object to the specified <see cref="TinyhandWriter"/>.
+    /// </summary>
+    /// <param name="writer">The writer to write to.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteKeyOrLocator(ref TinyhandWriter writer)
     {
@@ -73,6 +122,13 @@ public interface IStructualObject
         }
     }
 
+    /// <summary>
+    /// Attempts to get a journal writer for this object, constructing the locator path as needed.
+    /// </summary>
+    /// <param name="root">When this method returns, contains the root object if successful; otherwise, null.</param>
+    /// <param name="writer">When this method returns, contains the journal writer if successful; otherwise, the default value.</param>
+    /// <param name="includeCurrent">Whether to include the current object in the locator path.</param>
+    /// <returns>True if a journal writer was successfully obtained; otherwise, false.</returns>
     public bool TryGetJournalWriter([NotNullWhen(true)] out IStructualRoot? root, out TinyhandWriter writer, bool includeCurrent = true)
     {
         var p = this.StructualParent;
