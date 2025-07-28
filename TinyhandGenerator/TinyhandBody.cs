@@ -33,6 +33,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string LockStruct = "Arc.Threading.LockStruct";
     public static readonly string IStructualRoot = "IStructualRoot";
     public static readonly string IStructualObject = "IStructualObject";
+    public static readonly string SetupStructure = "SetupStructure";
     public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
     public static readonly string ValueLinkUpdate = "__gen_cl_update_";
     public static readonly string IStringConvertible = "Arc.IStringConvertible<";
