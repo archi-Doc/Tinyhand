@@ -36,6 +36,8 @@ public class TypeIdentifierTest
 
         r2 = TinyhandTypeIdentifier.TrySerialize(typeIdentifier, (object)tc);
         r2.ByteArray.Length.IsNot(0);
+
+        var obj = TinyhandTypeIdentifier.TryReconstruct(typeIdentifier);
     }
 
     /*[Fact]
