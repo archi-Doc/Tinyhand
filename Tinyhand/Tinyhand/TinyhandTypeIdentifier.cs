@@ -24,6 +24,8 @@ public static class TinyhandTypeIdentifier
     {
         internal delegate void SerializeWriterDelegate(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options);
 
+        internal delegate object? DeserializeReaderDelegate(ref TinyhandReader reader, TinyhandSerializerOptions? options);
+
         public uint TypeIdentifier { get; }
 
         private Type? type;
@@ -43,6 +45,10 @@ public static class TinyhandTypeIdentifier
         private Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? deserialize;
 
         public Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? Deserialize => this.deserialize ??= this.CreateDeserialize();
+
+        private DeserializeReaderDelegate? deserializeReader;
+
+        public DeserializeReaderDelegate? DeserializeReader => this.deserializeReader ??= this.CreateDeserializeReader();
 
         private Func<TinyhandSerializerOptions?, object?>? reconstruct;
 
@@ -152,6 +158,21 @@ public static class TinyhandTypeIdentifier
             var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
             var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
             return Expression.Lambda<Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>>(body, param1, param2).CompileFast();
+        }
+
+        private DeserializeReaderDelegate? CreateDeserializeReader()
+        {
+            if (!this.EnsureType())
+            {
+                return default;
+            }
+
+            var typeInfo = this.type.GetTypeInfo();
+            var method = TinyhandHelper.GetSerializerMethod("Deserialize", this.type, [typeof(TinyhandReader).MakeByRefType(), typeof(TinyhandSerializerOptions)]);
+            var param1 = Expression.Parameter(typeof(TinyhandReader).MakeByRefType(), "reader");
+            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
+            var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
+            return Expression.Lambda<DeserializeReaderDelegate>(body, param1, param2).CompileFast();
         }
 
         private Func<TinyhandSerializerOptions?, object?>? CreateReconstruct()
@@ -330,6 +351,33 @@ public static class TinyhandTypeIdentifier
         try
         {
             return methodClass.Deserialize(source, options);
+        }
+        catch
+        {
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Tries to deserialize the specified byte source into an object using the given type identifier.
+    /// </summary>
+    /// <param name="typeIdentifier">The type identifier associated with the target type.</param>
+    /// <param name="reader">The reader to deserialize from.</param>
+    /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
+    /// <returns>
+    /// The deserialized object, or <c>null</c> if deserialization fails.
+    /// </returns>
+    public static object? TryDeserializeReader(uint typeIdentifier, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+    {
+        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
+        if (methodClass.DeserializeReader is null)
+        {
+            return default;
+        }
+
+        try
+        {
+            return methodClass.DeserializeReader(ref reader, options);
         }
         catch
         {
