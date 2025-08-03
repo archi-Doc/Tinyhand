@@ -2686,6 +2686,21 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal void GenerateJournal_StoreData(ScopingStringBuilder ssb, TinyhandObject? child)
+    {
+        if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
+        {
+            return;
+        }
+
+        if ((typeObject.ObjectAttribute?.Structual == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject)) ||
+            (this.ObjectAttribute?.Structual == true && typeObject.Kind == VisceralObjectKind.Error))
+        {// IStructualObject or unknown generated class
+            var objName = $"obj{key.ToString()}";
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName} && await {objName}.StoreData(storeMode).ConfigureAwait(false) == false) return false;");
+        }
+    }
+
     internal void GenerateJournal_Save(ScopingStringBuilder ssb, TinyhandObject? child)
     {
         if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
@@ -3202,7 +3217,35 @@ ModuleInitializerClass_Added:
         if (count > 0)
         {
             this.GenerateIStructualObject_Save(ssb, info);
-            this.GenerateIStructualObject_Delete(ssb, info);
+            this.GenerateIStructualObject_Erase(ssb, info);
+            this.GenerateIStructualObject_StoreData(ssb, info);
+        }
+    }
+
+    internal void GenerateIStructualObject_StoreData(ScopingStringBuilder ssb, GeneratorInformation info)
+    {// Task<bool> StoreData(StoreMode storeMode)
+        using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.IStructualObject}.StoreData(StoreMode storeMode)"))
+        {
+            if (this.IntKey_Array is not null)
+            {
+                using (var t = ssb.ScopeObject("this"))
+                {
+                    foreach (var x in this.IntKey_Array)
+                    {
+                        if (x is null)
+                        {
+                            continue;
+                        }
+
+                        using (var m = this.ScopeMember(ssb, x))
+                        {
+                            this.GenerateJournal_StoreData(ssb, x);
+                        }
+                    }
+                }
+            }
+
+            ssb.AppendLine("return true;");
         }
     }
 
@@ -3233,7 +3276,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateIStructualObject_Delete(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateIStructualObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.Erase()"))
         {

@@ -63,6 +63,14 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
         => Task.FromResult(true);
 
     /// <summary>
+    /// Stores the data of the current object according to the specified <see cref="StoreMode"/>.
+    /// </summary>
+    /// <param name="storeMode">The mode that determines how the data should be stored.</param>
+    /// <returns>A <see cref="Task{Boolean}"/> representing the asynchronous save operation. Returns <c>true</c> if the save was successful; otherwise, <c>false</c>.</returns>
+    Task<bool> StoreData(StoreMode storeMode)
+        => Task.FromResult(true);
+
+    /// <summary>
     /// Erases the current object. Default implementation does nothing.
     /// </summary>
     void Erase()
