@@ -3228,6 +3228,10 @@ ModuleInitializerClass_Added:
         {
             if (this.IntKey_Array is not null)
             {
+                // Lock
+                var lockExpression = this.GetLockExpression("this");
+                var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+
                 using (var t = ssb.ScopeObject("this"))
                 {
                     foreach (var x in this.IntKey_Array)
@@ -3243,6 +3247,8 @@ ModuleInitializerClass_Added:
                         }
                     }
                 }
+
+                lockScope?.Dispose();
             }
 
             ssb.AppendLine("return true;");
@@ -3282,6 +3288,10 @@ ModuleInitializerClass_Added:
         {
             if (this.IntKey_Array is not null)
             {
+                // Lock
+                var lockExpression = this.GetLockExpression("this");
+                var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+
                 using (var t = ssb.ScopeObject("this"))
                 {
                     foreach (var x in this.IntKey_Array)
@@ -3297,6 +3307,8 @@ ModuleInitializerClass_Added:
                         }
                     }
                 }
+
+                lockScope?.Dispose();
             }
         }
     }
