@@ -62,13 +62,16 @@ public partial struct LockObjectStruct
     private object syncObject = new();
 }
 
-[TinyhandObject(LockObject = "semaphore")]
+[TinyhandObject(Structual = true, LockObject = "semaphore")]
 public partial class LockObjectClass3
-{
+{//
     [Key(0)]
     public int X { get; set; }
 
-    protected SemaphoreLock semaphore = new();
+    [Key(1)]
+    public Tinyhand.Tests.JournalClass JournalClass { get; set; } = new();
+
+    protected Lock semaphore = new();
 }
 
 [TinyhandObject(LockObject = "semaphore")]

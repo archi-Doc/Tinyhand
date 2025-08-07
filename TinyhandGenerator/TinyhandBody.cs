@@ -40,6 +40,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string UnsafeConstructorName = "UnsafeConstructor";
     public static readonly string UnsafeEnumName = "__UnsafeEnum__";
     public static readonly string BackingField = "<{0}>k__BackingField";
+    public static readonly string StoragePointName = "CrystalData.StoragePoint<TData>";
 
     public static readonly DiagnosticDescriptor Warning_Information = new DiagnosticDescriptor(
         id: "TGxxx", title: "Information", messageFormat: "Diagnostic information {0}",

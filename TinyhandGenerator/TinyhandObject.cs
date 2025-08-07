@@ -56,6 +56,7 @@ public enum TinyhandObjectFlag
     UnsafeConstructor = 1 << 12,
     MinimumConstructorPrepared = 1 << 13,
 
+    IsThreadSafe = 1 << 20, // Is thread-safe type
     HasIStringConvertible = 1 << 21, // Has IStringConvertible interface
     HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
@@ -216,6 +217,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             this.reconstructCondition = value;
         }
     }
+
+    public bool IsStoragePoint => this.FullName == TinyhandBody.StoragePointName;
 
     public bool IsOptimizedType => this.FullName switch
     {
@@ -3002,6 +3005,44 @@ ModuleInitializerClass_Added:
         }
     }
 
+    internal string? GetAsyncLockExpression(string objectName)
+    {
+        if (string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {
+            return null;
+        }
+
+        if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock)
+        {
+            return $"{objectName}.{this.ObjectAttribute!.LockObject}!.EnterAsync().ConfigureAwait(false) ; try {{";
+        }
+
+        /*else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+        {
+            return $"{objectName}.{this.ObjectAttribute!.LockObject}!.Enter(); try {{";
+        }*/
+
+        return null;
+    }
+
+    internal void EndAsyncLockExpression(ScopingStringBuilder ssb, string objectName)
+    {
+        if (string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
+        {
+            return;
+        }
+
+        if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock)
+        {
+            ssb.AppendLine($"}} finally {{ {objectName}.{this.ObjectAttribute!.LockObject}!.Exit(); }}");
+        }
+
+        /*else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+        {
+            ssb.AppendLine($"}} finally {{ {objectName}.{this.ObjectAttribute!.LockObject}!.Exit(); }}");
+        }*/
+    }
+
     internal void GenerateAddProperty_MaxLength(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, MaxLengthAttributeMock attribute)
     {
         ssb.AppendLine($"{ssb.FullObject} = value;");
@@ -3214,39 +3255,6 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateIStructualObject_StoreData(ScopingStringBuilder ssb, GeneratorInformation info)
-    {// Task<bool> StoreData(StoreMode storeMode)
-        using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.IStructualObject}.StoreData(StoreMode storeMode)"))
-        {
-            if (this.IntKey_Array is not null)
-            {
-                // Lock
-                var lockExpression = this.GetLockExpression("this");
-                var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
-
-                using (var t = ssb.ScopeObject("this"))
-                {
-                    foreach (var x in this.IntKey_Array)
-                    {
-                        if (x is null)
-                        {
-                            continue;
-                        }
-
-                        using (var m = this.ScopeMember(ssb, x))
-                        {
-                            this.GenerateJournal_StoreData(ssb, x);
-                        }
-                    }
-                }
-
-                lockScope?.Dispose();
-            }
-
-            ssb.AppendLine("return true;");
-        }
-    }
-
     internal void GenerateIStructualObject_Save(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.IStructualObject}.Save(UnloadMode unloadMode)"))
@@ -3274,14 +3282,14 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateIStructualObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.Erase()"))
+    internal void GenerateIStructualObject_StoreData(ScopingStringBuilder ssb, GeneratorInformation info)
+    {// Task<bool> StoreData(StoreMode storeMode)
+        using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.IStructualObject}.StoreData(StoreMode storeMode)"))
         {
             if (this.IntKey_Array is not null)
             {
                 // Lock
-                var lockExpression = this.GetLockExpression("this");
+                var lockExpression = this.GetAsyncLockExpression("this");
                 var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
 
                 using (var t = ssb.ScopeObject("this"))
@@ -3295,12 +3303,54 @@ ModuleInitializerClass_Added:
 
                         using (var m = this.ScopeMember(ssb, x))
                         {
-                            this.GenerateJournal_Erase(ssb, x);
+                            this.GenerateJournal_StoreData(ssb, x);
                         }
                     }
                 }
 
-                lockScope?.Dispose();
+                if (lockScope is not null)
+                {
+                    lockScope.Dispose();
+                    this.EndAsyncLockExpression(ssb, "this");
+                    lockScope = default;
+                }
+            }
+
+            ssb.AppendLine("return true;");
+        }
+    }
+
+    internal void GenerateIStructualObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.Erase()"))
+        {
+            if (this.IntKey_Array is not null)
+            {
+                using (var t = ssb.ScopeObject("this"))
+                {
+                    // Lock
+                    var lockExpression = this.GetLockExpression("this");
+                    ScopingStringBuilder.IScope? lockScope = default;
+
+                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == false))
+                    {// Other
+                        lockScope ??= lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+                        using (var m = this.ScopeMember(ssb, x))
+                        {
+                            this.GenerateJournal_Erase(ssb, x);
+                        }
+                    }
+
+                    lockScope?.Dispose();
+
+                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == true))
+                    {// StoragePoint
+                        using (var m = this.ScopeMember(ssb, x))
+                        {
+                            this.GenerateJournal_Erase(ssb, x);
+                        }
+                    }
+                }
             }
         }
     }
