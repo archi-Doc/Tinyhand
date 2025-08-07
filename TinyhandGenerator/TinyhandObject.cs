@@ -1056,13 +1056,17 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.ReportDiagnostic(TinyhandBody.Error_LockObject2, this.Location);
                 }
 
-                if (typeObject.FullName == TinyhandBody.ILockable ||
+                /*if (typeObject.FullName == TinyhandBody.ILockable ||
                     typeObject.AllInterfaces.Any(x => x == TinyhandBody.ILockable))
                 {// ILockable
                     this.ObjectAttribute!.LockObjectType = LockObjectType.Lockable;
+                }*/
+                if (typeObject.FullName == TinyhandBody.SemaphoreLockName)
+                {// Arc.Threading.SemaphoreLock
+                    this.ObjectAttribute!.LockObjectType = LockObjectType.SemaphoreLock;
                 }
                 else if (typeObject.FullName == TinyhandBody.LockName)
-                {
+                {// System.Threading.Lock
                     this.ObjectAttribute!.LockObjectType = LockObjectType.Lock;
                 }
                 else
@@ -2304,11 +2308,8 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"var {TinyhandBody.LockTaken} = false;");
                 lockScope = ssb.ScopeBrace("try");
 
-                if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
-                {
-                    ssb.AppendLine($"{TinyhandBody.LockTaken} = {ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Enter();");
-                }
-                else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+                if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock ||
+                    this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
                 {
                     ssb.AppendLine($"{ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Enter();");
                     ssb.AppendLine($"{TinyhandBody.LockTaken} = true;");
@@ -2337,11 +2338,8 @@ ModuleInitializerClass_Added:
                 lockScope.Dispose();
                 using (var finallyScope = ssb.ScopeBrace("finally"))
                 {
-                    if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
-                    {
-                        ssb.AppendLine($"if ({TinyhandBody.LockTaken}) {ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Exit();");
-                    }
-                    else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+                    if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock ||
+                        this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
                     {
                         ssb.AppendLine($"{ssb.FullObject}.{this.ObjectAttribute!.LockObject}!.Exit();");
                     }
@@ -2609,11 +2607,8 @@ ModuleInitializerClass_Added:
     {
         if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
         {
-            if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
-            {
-                ssb.AppendLine($"if ({TinyhandBody.LockObject} != null) {TinyhandBody.LockTaken} = {TinyhandBody.LockObject}.Enter();");
-            }
-            else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+            if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock ||
+                this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
             {
                 ssb.AppendLine($"if ({TinyhandBody.LockObject} != null) {{ {TinyhandBody.LockObject}.Enter(); {TinyhandBody.LockTaken} = true; }}");
             }
@@ -2628,7 +2623,7 @@ ModuleInitializerClass_Added:
     {
         if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockObject))
         {
-            if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable ||
+            if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock ||
                 this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
             {
                 ssb.AppendLine($"if ({TinyhandBody.LockTaken}) {TinyhandBody.LockObject}!.Exit();");
@@ -2996,11 +2991,8 @@ ModuleInitializerClass_Added:
             return null;
         }
 
-        if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
-        {
-            return $"using ({objectName}.{this.ObjectAttribute!.LockObject}!.EnterScope())";
-        }
-        else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+        if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock ||
+            this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
         {
             return $"using ({objectName}.{this.ObjectAttribute!.LockObject}!.EnterScope())";
         }
