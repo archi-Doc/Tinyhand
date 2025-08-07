@@ -2998,7 +2998,7 @@ ModuleInitializerClass_Added:
 
         if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lockable)
         {
-            return $"using ({objectName}.{this.ObjectAttribute!.LockObject}!.Lock())";
+            return $"using ({objectName}.{this.ObjectAttribute!.LockObject}!.EnterScope())";
         }
         else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
         {
