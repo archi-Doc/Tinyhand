@@ -3019,7 +3019,7 @@ ModuleInitializerClass_Added:
 
         if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock)
         {
-            return $"await {objectName}.{this.ObjectAttribute!.LockObject}!.EnterAsync().ConfigureAwait(false); try {{";
+            return $"await {objectName}.{this.ObjectAttribute!.LockObject}!.EnterAsync().ConfigureAwait(false); try";
         }
         else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Object ||
             this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
@@ -3040,7 +3040,7 @@ ModuleInitializerClass_Added:
 
         if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock)
         {
-            ssb.AppendLine($"}} finally {{ {objectName}.{this.ObjectAttribute!.LockObject}!.Exit(); }}");
+            ssb.AppendLine($"finally {{ {objectName}.{this.ObjectAttribute!.LockObject}!.Exit(); }}");
         }
 
         /*else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
