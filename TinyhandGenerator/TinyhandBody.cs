@@ -28,9 +28,8 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string CanSkipSerializationMethod = "CanSkipSerialization";
     public static readonly string LockObject = "__lockObject__";
     public static readonly string LockTaken = "__lockTaken__";
-    public static readonly string ILockable = "Arc.Threading.ILockable";
+    public static readonly string SemaphoreLockName = "Arc.Threading.SemaphoreLock";
     public static readonly string LockName = "System.Threading.Lock";
-    public static readonly string LockStruct = "Arc.Threading.LockStruct";
     public static readonly string IStructualRoot = "IStructualRoot";
     public static readonly string IStructualObject = "IStructualObject";
     public static readonly string SetupStructure = "SetupStructure";
@@ -41,6 +40,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string UnsafeConstructorName = "UnsafeConstructor";
     public static readonly string UnsafeEnumName = "__UnsafeEnum__";
     public static readonly string BackingField = "<{0}>k__BackingField";
+    public static readonly string StoragePointName = "CrystalData.StoragePoint<TData>";
 
     public static readonly DiagnosticDescriptor Warning_Information = new DiagnosticDescriptor(
         id: "TGxxx", title: "Information", messageFormat: "Diagnostic information {0}",
@@ -268,6 +268,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
 
     public static readonly DiagnosticDescriptor Warning_StructualRequired = new DiagnosticDescriptor(
         id: "TG056", title: "Structual required", messageFormat: "'{0}' contains members that implement IStructualObject, and Structual must be enabled for it to function correctly",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor Warning_LockObject4 = new DiagnosticDescriptor(
+        id: "TG057", title: "LockObject4", messageFormat: "Since the implementation of IStructualObject functions requires mutual exclusion in code that contains await, consider using SemaphoreLock",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)

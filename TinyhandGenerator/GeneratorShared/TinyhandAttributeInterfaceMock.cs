@@ -18,10 +18,23 @@ public enum PropertyAccessibility
 
 public enum LockObjectType
 {
+    // No lock object.
     NoLock,
+
+    /// <summary>
+    /// Object.
+    /// </summary>
     Object,
+
+    /// <summary>
+    /// System.Threading.Lock.
+    /// </summary>
     Lock,
-    Lockable,
+
+    /// <summary>
+    /// Arc.Threading.SemaphoreLock.
+    /// </summary>
+    SemaphoreLock,
 }
 
 public sealed class TinyhandOnSerializingAttributeMock

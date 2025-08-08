@@ -71,7 +71,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
         => Task.FromResult(true);
 
     /// <summary>
-    /// Erases the current object. Default implementation does nothing.
+    /// Erase the storage and data of the current object.
     /// </summary>
     void Erase()
     {
