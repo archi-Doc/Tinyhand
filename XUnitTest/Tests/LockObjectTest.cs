@@ -64,14 +64,14 @@ public partial struct LockObjectStruct
 
 [TinyhandObject(Structual = true, LockObject = "semaphore")]
 public partial class LockObjectClass3
-{//
+{// Erase()
     [Key(0)]
     public int X { get; set; }
 
     [Key(1)]
     public Tinyhand.Tests.JournalClass JournalClass { get; set; } = new();
 
-    protected Lock semaphore = new();
+    protected SemaphoreLock semaphore = new();
 }
 
 [TinyhandObject(LockObject = "semaphore")]

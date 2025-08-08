@@ -1352,6 +1352,11 @@ Exit:
             parent.ObjectFlag |= TinyhandObjectFlag.UnsafeConstructor;
         }
 
+        if (this.TypeObject.OriginalDefinition?.FullName == TinyhandBody.StoragePointName)
+        {
+            this.ObjectFlag |= TinyhandObjectFlag.IsThreadSafe;
+        }
+
         if (!this.IsSerializable || this.IsReadOnly)
         {// Not serializable (before)
             if (this.KeyAttribute != null || this.ReconstructAttribute != null)
@@ -3014,13 +3019,14 @@ ModuleInitializerClass_Added:
 
         if (this.ObjectAttribute!.LockObjectType == LockObjectType.SemaphoreLock)
         {
-            return $"{objectName}.{this.ObjectAttribute!.LockObject}!.EnterAsync().ConfigureAwait(false) ; try {{";
+            return $"await {objectName}.{this.ObjectAttribute!.LockObject}!.EnterAsync().ConfigureAwait(false); try {{";
         }
-
-        /*else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
+        else if (this.ObjectAttribute!.LockObjectType == LockObjectType.Object ||
+            this.ObjectAttribute!.LockObjectType == LockObjectType.Lock)
         {
-            return $"{objectName}.{this.ObjectAttribute!.LockObject}!.Enter(); try {{";
-        }*/
+            this.Body.ReportDiagnostic(TinyhandBody.Warning_LockObject4, this.Location);
+            // return $"{objectName}.{this.ObjectAttribute!.LockObject}!.Enter(); try {{";
+        }
 
         return null;
     }
@@ -3290,29 +3296,33 @@ ModuleInitializerClass_Added:
             {
                 // Lock
                 var lockExpression = this.GetAsyncLockExpression("this");
-                var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
+                ScopingStringBuilder.IScope? lockScope = default;
 
                 using (var t = ssb.ScopeObject("this"))
                 {
-                    foreach (var x in this.IntKey_Array)
-                    {
-                        if (x is null)
-                        {
-                            continue;
-                        }
-
+                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == false))
+                    {// Other
+                        lockScope ??= lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
                         using (var m = this.ScopeMember(ssb, x))
                         {
                             this.GenerateJournal_StoreData(ssb, x);
                         }
                     }
-                }
 
-                if (lockScope is not null)
-                {
-                    lockScope.Dispose();
-                    this.EndAsyncLockExpression(ssb, "this");
-                    lockScope = default;
+                    if (lockScope is not null)
+                    {
+                        lockScope.Dispose();
+                        this.EndAsyncLockExpression(ssb, "this");
+                        lockScope = default;
+                    }
+
+                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == true))
+                    {// Thread-safe
+                        using (var m = this.ScopeMember(ssb, x))
+                        {
+                            this.GenerateJournal_StoreData(ssb, x);
+                        }
+                    }
                 }
             }
 
@@ -3344,7 +3354,7 @@ ModuleInitializerClass_Added:
                     lockScope?.Dispose();
 
                     foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == true))
-                    {// StoragePoint
+                    {// Thread-safe
                         using (var m = this.ScopeMember(ssb, x))
                         {
                             this.GenerateJournal_Erase(ssb, x);

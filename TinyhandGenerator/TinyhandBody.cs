@@ -270,6 +270,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG056", title: "Structual required", messageFormat: "'{0}' contains members that implement IStructualObject, and Structual must be enabled for it to function correctly",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Warning_LockObject4 = new DiagnosticDescriptor(
+        id: "TG057", title: "LockObject4", messageFormat: "Since the implementation of IStructualObject functions requires mutual exclusion in code that contains await, consider using SemaphoreLock",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {

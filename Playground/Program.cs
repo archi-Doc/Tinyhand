@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Arc.Collections.HotMethod;
+using CrystalData;
 using Tinyhand;
 using Tinyhand.IO;
 using ValueLink;
@@ -19,6 +20,9 @@ public partial class PartialImplementationClass
 
     [Key(1)]
     public int Id { get; set; }
+
+    [Key(2)]
+    public StoragePoint<int> IntStorage { get; set; } = new();
 
     static void ITinyhandSerializable<PartialImplementationClass>.Serialize(ref TinyhandWriter writer, scoped ref PartialImplementationClass? v, TinyhandSerializerOptions options)
     {
