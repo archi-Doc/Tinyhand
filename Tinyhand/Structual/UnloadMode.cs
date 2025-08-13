@@ -2,7 +2,7 @@
 
 namespace Tinyhand;
 
-public enum UnloadMode
+/*public enum UnloadMode
 {
     /// <summary>
     /// The data is persisted. The data in memory remains unchanged.
@@ -24,4 +24,4 @@ public static class UnloadModeExtension
 {
     public static bool IsUnload(this UnloadMode unloadMode)
         => unloadMode != UnloadMode.NoUnload;
-}
+}*/
