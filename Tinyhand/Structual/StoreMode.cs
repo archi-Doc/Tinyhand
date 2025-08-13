@@ -11,20 +11,13 @@ public enum StoreMode
 
     /// <summary>
     /// Attempts to persist the data and release resources.<br/>
-    /// If the data is locked, it will be persisted and released once the lock is released.
+    /// If the data is locked, the method exits without performing any action.
     /// </summary>
-    Release,
-
-    /*
-    /// <summary>
-    /// The data is persisted, and the process waits until unloading is complete.
-    /// </summary>
-    AlwaysUnload,
+    TryRelease,
 
     /// <summary>
-    /// Similar to <see cref="AlwaysUnload" />, this waits until the unload process is complete.<br/>
-    /// Additionally, it sets the target StoragePoint to the unloaded state.<br/>
-    /// This is intended for use during service or application shutdown.
+    /// Persist the data and release resources.
+    /// If the data is locked, wait until the lock is released.
     /// </summary>
-    UnloadAll,*/
+    ForceRelease,
 }
