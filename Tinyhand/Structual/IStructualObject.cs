@@ -54,13 +54,13 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
         this.StructualKey = key;
     }
 
-    /// <summary>
+    /*/// <summary>
     /// Saves the current object, optionally unloading it based on the specified mode.
     /// </summary>
     /// <param name="unloadMode">The unload mode to use.</param>
     /// <returns>A task that returns true if the save operation was successful.</returns>
     Task<bool> Save(UnloadMode unloadMode)
-        => Task.FromResult(true);
+        => Task.FromResult(true);*/
 
     /// <summary>
     /// Stores the data of the current object according to the specified <see cref="StoreMode"/>.

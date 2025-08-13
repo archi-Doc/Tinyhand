@@ -3255,7 +3255,7 @@ ModuleInitializerClass_Added:
 
         if (count > 0)
         {
-            this.GenerateIStructualObject_Save(ssb, info);
+            // this.GenerateIStructualObject_Save(ssb, info);
             this.GenerateIStructualObject_Erase(ssb, info);
             this.GenerateIStructualObject_StoreData(ssb, info);
         }
