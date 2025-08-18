@@ -2685,7 +2685,7 @@ ModuleInitializerClass_Added:
             (this.ObjectAttribute?.Structual == true && typeObject.Kind == VisceralObjectKind.Error))
         {// IStructualObject or unknown generated class
             var objName = $"obj{key.ToString()}";
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) {objName}.Erase();");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) {objName}.Delete();");
         }
     }
 
@@ -3332,7 +3332,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateIStructualObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.Erase()"))
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.Delete()"))
         {
             if (this.IntKey_Array is not null)
             {
@@ -3447,7 +3447,7 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine("KeyLoop:", false);
             }
 
-            ssb.AppendLine("if (!reader.TryRead(out JournalRecord record)) return false;");
+            ssb.AppendLine("if (!reader.TryReadJournalRecord(out JournalRecord record)) return false;");
             using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
             {
                 ssb.AppendLine("var options = TinyhandSerializerOptions.Standard;");
