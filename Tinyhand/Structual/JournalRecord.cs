@@ -51,14 +51,14 @@ public enum JournalRecord : byte
     Add,
 
     /// <summary>
-    /// Represents a remove operation.
+    /// Represents a delete operation.
     /// </summary>
-    Remove,
+    Delete,
 
     /// <summary>
-    /// Represents a remove and erase operation.
+    /// Represents a delete and erase operation.
     /// </summary>
-    RemoveAndErase,
+    DeleteAndErase,
 
     /// <summary>
     /// Represents an add storage operation.
@@ -66,7 +66,7 @@ public enum JournalRecord : byte
     AddStorage,
 
     /// <summary>
-    /// Represents an erase storage operation.
+    /// Represents an delete storage operation.
     /// </summary>
-    EraseStorage,
+    DeleteStorage,
 }

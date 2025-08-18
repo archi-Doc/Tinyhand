@@ -34,6 +34,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string IStructualObject = "IStructualObject";
     public static readonly string SetupStructure = "SetupStructure";
     public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
+    public static readonly string ITinyhandCustomJournalFull = "Tinyhand.ITinyhandCustomJournal";
     public static readonly string ValueLinkUpdate = "__gen_cl_update_";
     public static readonly string IStringConvertible = "Arc.IStringConvertible<";
     public static readonly string IIntegralityObject = "ValueLink.Integrality.IIntegralityObject";
