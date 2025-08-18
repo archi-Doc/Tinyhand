@@ -50,7 +50,7 @@ public partial class JournalClass
 }
 
 [TinyhandObject(Structual = true, LockObject = "semaphore")]
-public partial class JournalClass2
+public sealed partial class JournalClass2
 {
     public JournalClass2()
     {
@@ -77,7 +77,7 @@ public partial class JournalClass2
     [Key("X7", AddProperty = "X7")]
     private int x7;
 
-    protected SemaphoreLock semaphore = new();
+    private SemaphoreLock semaphore = new();
 }
 
 [TinyhandObject(Structual = true)]

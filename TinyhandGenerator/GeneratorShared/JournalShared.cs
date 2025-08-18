@@ -144,10 +144,15 @@ internal static class JournalShared
     {
         using (var journalScope = ssb.ScopeBrace($"if ((({TinyhandBody.IStructualObject})this).TryGetJournalWriter(out var root, out var writer, true))"))
         {
-            // Custom locator
-            using (var customScope = ssb.ScopeBrace($"if (this is Tinyhand.ITinyhandCustomJournal custom)"))
+            if (obj.ContainingObject is { } containingObject)
             {
-                ssb.AppendLine("custom.WriteCustomLocator(ref writer);");
+                if (!containingObject.IsSealed || containingObject.AllInterfaces.Any(x => x == TinyhandBody.ITinyhandCustomJournalFull))
+                {// Custom locator
+                    using (var customScope = ssb.ScopeBrace($"if (this is {TinyhandBody.ITinyhandCustomJournalFull} custom)"))
+                    {
+                        ssb.AppendLine("custom.WriteCustomLocator(ref writer);");
+                    }
+                }
             }
 
             // Locator
