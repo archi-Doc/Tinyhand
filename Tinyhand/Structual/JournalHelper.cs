@@ -95,7 +95,7 @@ public static class JournalHelper
         => writer.Write((byte)JournalRecord.Add);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryRead(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    public static bool TryReadJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
     {
         var result = reader.TryRead(out byte b);
         journalRecord = (JournalRecord)b;
@@ -103,7 +103,7 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryPeek(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    public static bool TryPeekJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
     {
         if (reader.Remaining > 0)
         {
@@ -120,7 +120,7 @@ public static class JournalHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Read_Locator(ref this TinyhandReader reader)
     {
-        if (!reader.TryRead(out JournalRecord record) || record != JournalRecord.Locator)
+        if (!reader.TryReadJournalRecord(out JournalRecord record) || record != JournalRecord.Locator)
         {
             throw new InvalidDataException();
         }
@@ -129,7 +129,7 @@ public static class JournalHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Read_Key(ref this TinyhandReader reader)
     {
-        if (!reader.TryRead(out JournalRecord record) || record != JournalRecord.Key)
+        if (!reader.TryReadJournalRecord(out JournalRecord record) || record != JournalRecord.Key)
         {
             throw new InvalidDataException();
         }
@@ -138,7 +138,7 @@ public static class JournalHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Read_Value(ref this TinyhandReader reader)
     {
-        if (!reader.TryRead(out JournalRecord record) || record != JournalRecord.Value)
+        if (!reader.TryReadJournalRecord(out JournalRecord record) || record != JournalRecord.Value)
         {
             throw new InvalidDataException();
         }

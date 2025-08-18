@@ -155,6 +155,11 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public bool AddSignatureId { get; set; } = true;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to add a Writer interface to enhance the safety of data operations [default is <see langword="false"/>].
+    /// </summary>
+    public bool AddWriter { get; set; } = false;
+
     public TinyhandObjectAttribute()
     {
     }

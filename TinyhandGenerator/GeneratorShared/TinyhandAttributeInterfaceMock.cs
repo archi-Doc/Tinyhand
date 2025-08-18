@@ -121,6 +121,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool AddSignatureId { get; set; } = true;
 
+    public bool AddWriter { get; set; } = false;
+
     public TinyhandObjectAttributeMock()
     {
     }
