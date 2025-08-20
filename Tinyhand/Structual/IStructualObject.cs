@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -63,11 +64,13 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
         => Task.FromResult(true);
 
     /// <summary>
-    /// Delete the storage and data of the current object.
+    /// Delete the storage and data of the current object.<br/>
+    /// This is an asynchronous function; if the elapsed time exceeds the specified timeout, the object is forcibly deleted.<br/>
     /// </summary>
-    void Delete()
-    {
-    }
+    /// <param name="timeout">Timeout until forced deletion.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous delete operation.</returns>
+    Task Delete()
+        => Task.CompletedTask;
 
     /// <summary>
     /// Reads a record from the specified <see cref="TinyhandReader"/>.
