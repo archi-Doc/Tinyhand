@@ -67,9 +67,9 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
     /// Delete the storage and data of the current object.<br/>
     /// This is an asynchronous function; if the elapsed time exceeds the specified timeout, the object is forcibly deleted.<br/>
     /// </summary>
-    /// <param name="timeout">Timeout until forced deletion.</param>
+    /// <param name="forceDeleteAfter">The <see cref="DateTime"/> after which the object will be forcibly deleted if not already deleted.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous delete operation.</returns>
-    Task Delete()
+    Task Delete(DateTime forceDeleteAfter)
         => Task.CompletedTask;
 
     /// <summary>
