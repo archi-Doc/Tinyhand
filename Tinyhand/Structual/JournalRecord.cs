@@ -56,7 +56,7 @@ public enum JournalRecord : byte
     Delete,
 
     /// <summary>
-    /// Represents a delete and erase operation.
+    /// Represents a delete and erase operation
     /// </summary>
     DeleteAndErase,
 

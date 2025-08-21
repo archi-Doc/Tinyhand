@@ -2674,7 +2674,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateJournal_Erase(ScopingStringBuilder ssb, TinyhandObject? child)
+    internal void GenerateJournal_Delete(ScopingStringBuilder ssb, TinyhandObject? child)
     {
         if (child?.TypeObject is not { } typeObject || child.KeyAttribute?.IntKey is not int key)
         {
@@ -2685,7 +2685,7 @@ ModuleInitializerClass_Added:
             (this.ObjectAttribute?.Structual == true && typeObject.Kind == VisceralObjectKind.Error))
         {// IStructualObject or unknown generated class
             var objName = $"obj{key.ToString()}";
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) {objName}.Delete();");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) await {objName}.Delete(forceDeleteAfter).ConfigureAwait(false);");
         }
     }
 
@@ -3332,7 +3332,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateIStructualObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.Delete()"))
+        using (var scopeMethod = ssb.ScopeBrace($"async Task {TinyhandBody.IStructualObject}.Delete(DateTime forceDeleteAfter)"))
         {
             if (this.IntKey_Array is not null)
             {
@@ -3347,7 +3347,7 @@ ModuleInitializerClass_Added:
                         lockScope ??= lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
                         using (var m = this.ScopeMember(ssb, x))
                         {
-                            this.GenerateJournal_Erase(ssb, x);
+                            this.GenerateJournal_Delete(ssb, x);
                         }
                     }
 
@@ -3357,7 +3357,7 @@ ModuleInitializerClass_Added:
                     {// Thread-safe
                         using (var m = this.ScopeMember(ssb, x))
                         {
-                            this.GenerateJournal_Erase(ssb, x);
+                            this.GenerateJournal_Delete(ssb, x);
                         }
                     }
                 }
