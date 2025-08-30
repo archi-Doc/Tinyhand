@@ -31,34 +31,34 @@ public enum JournalType : byte
 public enum JournalRecord : byte
 {
     /// <summary>
-    /// Identifies a locator entry.
+    /// Represents a locator for descendant objects.<br/>
+    /// Subsequent processing is delegated to the descendant objects.
     /// </summary>
     Locator,
 
     /// <summary>
-    /// Identifies a key entry.
+    /// Represents a key for descendant objects.<br/>
+    /// Subsequent processing is delegated to the descendant objects.
     /// </summary>
     Key,
 
     /// <summary>
-    /// Identifies a value entry.
+    /// Represents the value.<br/>
+    /// This entry is intended to be processed by this object.
     /// </summary>
     Value,
 
     /// <summary>
-    /// Represents an add operation.
+    /// Represents an adding operation.<br/>
+    /// This entry is intended to be processed by this object.
     /// </summary>
     Add,
 
     /// <summary>
-    /// Represents a delete operation.
+    /// Represents a delete operation.<br/>
+    /// This entry is intended to be processed by this object.
     /// </summary>
     Delete,
-
-    /// <summary>
-    /// Represents a delete and erase operation
-    /// </summary>
-    DeleteAndErase,
 
     /// <summary>
     /// Represents an add storage operation.
@@ -69,4 +69,9 @@ public enum JournalRecord : byte
     /// Represents an delete storage operation.
     /// </summary>
     DeleteStorage,
+
+    /// <summary>
+    /// Represents an invalid journal record type.
+    /// </summary>
+    Invalid = 255,
 }
