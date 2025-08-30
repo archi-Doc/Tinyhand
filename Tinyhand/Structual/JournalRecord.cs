@@ -49,26 +49,22 @@ public enum JournalRecord : byte
     Value,
 
     /// <summary>
-    /// Represents an adding operation.<br/>
-    /// This entry is intended to be processed by this object.
-    /// </summary>
-    Add,
-
-    /// <summary>
-    /// Represents a delete operation.<br/>
+    /// Represents the operation of deleting this object.<br/>
     /// This entry is intended to be processed by this object.
     /// </summary>
     Delete,
 
     /// <summary>
-    /// Represents an add storage operation.
+    /// Represents the operation of adding an item to a collection.<br/>
+    /// This entry is intended to be processed by this object.
     /// </summary>
-    AddStorage,
+    AddItem,
 
     /// <summary>
-    /// Represents an delete storage operation.
+    /// Represents the operation of deleting an item from a collection.<br/>
+    /// This entry is intended to be processed by this object.
     /// </summary>
-    DeleteStorage,
+    DeleteItem,
 
     /// <summary>
     /// Represents an invalid journal record type.

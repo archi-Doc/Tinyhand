@@ -91,10 +91,6 @@ public static class JournalHelper
         => writer.Write((byte)JournalRecord.Value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Add(ref this TinyhandWriter writer)
-        => writer.Write((byte)JournalRecord.Add);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryReadJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
     {
         var result = reader.TryRead(out byte b);
