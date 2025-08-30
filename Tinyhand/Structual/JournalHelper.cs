@@ -103,6 +103,28 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryReadJournalRecord_PeekIfKeyOrLocator(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    {//
+        if (reader.Remaining > 0)
+        {
+            journalRecord = (JournalRecord)reader.NextCode;
+            if (journalRecord == JournalRecord.Key ||
+                journalRecord == JournalRecord.Locator)
+            {
+                return true;
+            }
+            else
+            {
+                reader.Advance(1);
+                return true;
+            }
+        }
+
+        journalRecord = default;
+        return false;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryPeekJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
     {
         if (reader.Remaining > 0)
