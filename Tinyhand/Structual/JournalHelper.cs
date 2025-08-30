@@ -91,15 +91,44 @@ public static class JournalHelper
         => writer.Write((byte)JournalRecord.Value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Add(ref this TinyhandWriter writer)
-        => writer.Write((byte)JournalRecord.Add);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryReadJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
     {
         var result = reader.TryRead(out byte b);
         journalRecord = (JournalRecord)b;
         return result;
+    }
+
+    /// <summary>
+    /// Attempts to peek at the next journal record in the reader and checks if it is either a <see cref="JournalRecord.Key"/> or <see cref="JournalRecord.Locator"/>.<br/>
+    /// If the next record is <see cref="JournalRecord.Key"/> or <see cref="JournalRecord.Locator"/>, sets <paramref name="journalRecord"/> and returns <c>true</c>.<br/>
+    /// Otherwise, advances the reader by one byte, sets <paramref name="journalRecord"/>, and returns <c>false</c>.<br/>
+    /// If there are no remaining bytes, sets <paramref name="journalRecord"/> to <see cref="JournalRecord.Invalid"/> and returns <c>false</c>.
+    /// </summary>
+    /// <param name="reader">The <see cref="TinyhandReader"/> to read from.</param>
+    /// <param name="journalRecord">When this method returns, contains the journal record that was peeked or <see cref="JournalRecord.Invalid"/> if none was found.</param>
+    /// <returns>
+    /// <c>true</c> if the next journal record is <see cref="JournalRecord.Key"/> or <see cref="JournalRecord.Locator"/>; otherwise, <c>false</c>.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryReadJournalRecord_PeekIfKeyOrLocator(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    {
+        if (reader.Remaining > 0)
+        {
+            journalRecord = (JournalRecord)reader.NextCode;
+            if (journalRecord == JournalRecord.Key ||
+                journalRecord == JournalRecord.Locator)
+            {
+                return true;
+            }
+            else
+            {
+                reader.Advance(1);
+                return false;
+            }
+        }
+
+        journalRecord = JournalRecord.Invalid;
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
