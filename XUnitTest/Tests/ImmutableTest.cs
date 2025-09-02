@@ -20,11 +20,23 @@ public partial class ImmutableTestClass
     {
     }
 
+    /// <summary>
+    /// Gets or sets A.
+    /// </summary>
     public string A { get; set; } = "Test";
 
+    /// <summary>
+    /// Gets B.<br/>
+    /// 2nd line.
+    /// </summary>
     public int B { get; private set; } = 123;
 
+#pragma warning disable CS1570 // XML comment has badly formed XML
+    /// <summary>
+    /// Gets or sets C.<see>
+    /// </summary>
     protected string C { get; set; } = "Protected";
+#pragma warning restore CS1570 // XML comment has badly formed XML
 
     private string D { get; set; } = "Private";
 
@@ -42,6 +54,8 @@ public class ImmutableTest
     {
         var tc = new ImmutableTestClass();
         var im = tc.ToImmutable();
+        var x = im.A;
+        var y = im.B;
 
         var bin = TinyhandSerializer.Serialize(tc);
         var bin2 = TinyhandSerializer.Serialize(im);

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2224,6 +2225,22 @@ ModuleInitializerClass_Added:
             {
                 if (x.TypeObjectWithNullable is { } memberType)
                 {
+                    if (x.symbol?.GetDocumentationCommentXml() is { } xml)
+                    {// Quotes the documentation comment if available.
+                        try
+                        {
+                            var doc = XDocument.Parse(xml);
+                            if (doc.Root?.Element("summary") is { } summary)
+                            {
+                                var text = summary.Value.Trim().Replace("\r", string.Empty).Replace("\n", string.Empty);
+                                ssb.AppendLine($"/// <summary>{text}</summary>");
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+
                     ssb.AppendLine($"public {memberType.FullNameWithNullable} {x.SimpleName} => this.{TinyhandBody.UnderlyingObjectName}.{x.SimpleName};");
                 }
             }
