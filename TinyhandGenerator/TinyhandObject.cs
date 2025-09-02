@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlTypes;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Tinyhand.Coders;
 using TinyhandGenerator;
 using TinyhandGenerator.Internal;
+using static System.Net.Mime.MediaTypeNames;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1204 // Static elements should appear before instance elements
@@ -2227,7 +2230,7 @@ ModuleInitializerClass_Added:
                 {
                     if (x.symbol?.GetDocumentationCommentXml() is { } xml)
                     {// Quotes the documentation comment if available.
-                        try
+                        /*try
                         {
                             var doc = XDocument.Parse(xml);
                             if (doc.Root?.Element("summary") is { } summary)
@@ -2238,7 +2241,29 @@ ModuleInitializerClass_Added:
                         }
                         catch
                         {
+                        }*/
+
+                        var matchSummary = Regex.Match(xml, @"<summary>(.*?)</summary>", RegexOptions.Singleline);
+                        if (matchSummary.Success)
+                        {
+                            var content = matchSummary.Groups[1].Value;
+                            var lines = content.Split(['\r', '\n',], StringSplitOptions.RemoveEmptyEntries);
+                            for (var i = 0; i < lines.Length; i++)
+                            {
+                                lines[i] = lines[i].Trim();
+                            }
+
+                            ssb.AppendLine($"/// <summary>{string.Join(string.Empty, lines)}</summary>");
                         }
+
+                        /*var matchSummary = Regex.Match(xml, @"<summary>(.*?)</summary>", RegexOptions.Singleline);
+                        if (matchSummary.Success)
+                        {
+                            var content = matchSummary.Groups[1].Value;
+                            var result = Regex.Replace(content, @"(?m)^\s+|\s+$", string.Empty);
+                            result = Regex.Replace(result, @"\r?\n", string.Empty);
+                            ssb.AppendLine($"/// <summary>{result}</summary>");
+                        }*/
                     }
 
                     ssb.AppendLine($"public {memberType.FullNameWithNullable} {x.SimpleName} => this.{TinyhandBody.UnderlyingObjectName}.{x.SimpleName};");
