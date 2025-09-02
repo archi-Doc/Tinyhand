@@ -121,7 +121,7 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool AddSignatureId { get; set; } = true;
 
-    public bool AddWriter { get; set; } = false;
+    public bool AddImmutable { get; set; } = false;
 
     public TinyhandObjectAttributeMock()
     {
@@ -220,6 +220,12 @@ public sealed class TinyhandObjectAttributeMock
         if (val != null)
         {
             attribute.AddSignatureId = (bool)val;
+        }
+
+        val = VisceralHelper.GetValue(-1, nameof(AddImmutable), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.AddImmutable = (bool)val;
         }
 
         return attribute;
