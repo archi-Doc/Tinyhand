@@ -4,14 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlTypes;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Tinyhand.Coders;
 using TinyhandGenerator;
 using TinyhandGenerator.Internal;
+using static System.Net.Mime.MediaTypeNames;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1204 // Static elements should appear before instance elements
@@ -951,6 +955,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             this.Body.ReportDiagnostic(TinyhandBody.Error_ImplicitExplicitKey, this.Location, this.FullName);
         }
 
+        if (this.ObjectAttribute?.AddImmutable == true &&
+            this.Kind != VisceralObjectKind.Class)
+        {
+            this.Body.ReportDiagnostic(TinyhandBody.Error_AddImmutable, this.Location);
+        }
+
         // Union
         this.Union?.CheckAndPrepare();
 
@@ -1882,19 +1892,20 @@ ModuleInitializerClass_Added:
             if (isAccessible)
             {
                 ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{this.FullName}>());");
+                if (this.ObjectAttribute?.AddImmutable == true)
+                {
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{this.FullName}.{TinyhandBody.ImmutableClassName}>());");
+                }
             }
             else
             {
                 var fullName = this.GetGenericsName();
-                ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(Type.GetType(\"{fullName}\")!, static (x, y) =>");
-                ssb.AppendLine("{");
-                ssb.IncrementIndent();
+                Add_SetFormatterGenerator(ssb, fullName);
 
-                ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(x));");
-                ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
-
-                ssb.DecrementIndent();
-                ssb.AppendLine("});");
+                if (this.ObjectAttribute?.AddImmutable == true)
+                {
+                    Add_SetFormatterGenerator(ssb, $"{fullName}.{TinyhandBody.ImmutableClassName}");
+                }
             }
         }
         else
@@ -1917,6 +1928,19 @@ ModuleInitializerClass_Added:
 
             ssb.AppendLine($"var ft = x.MakeGenericType(y);");
             ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(ft));");
+            ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
+
+            ssb.DecrementIndent();
+            ssb.AppendLine("});");
+        }
+
+        static void Add_SetFormatterGenerator(ScopingStringBuilder ssb, string name)
+        {
+            ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(Type.GetType(\"{name}\")!, static (x, y) =>");
+            ssb.AppendLine("{");
+            ssb.IncrementIndent();
+
+            ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(x));");
             ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
 
             ssb.DecrementIndent();
@@ -2090,6 +2114,11 @@ ModuleInitializerClass_Added:
             // Generate accessor delegates (getter, setter, ref field)
             this.GenerateAccessorDelegate(ssb, info);
 
+            if (this.ObjectAttribute?.AddImmutable == true)
+            { // Generate immutable class
+                this.GenerateImmutable(ssb, info);
+            }
+
             if (this.Children?.Count > 0)
             {// Generate children and loader.
                 ssb.AppendLine();
@@ -2153,6 +2182,103 @@ ModuleInitializerClass_Added:
             this.Members[n].SetterDelegate = od.Members[n].SetterDelegate;
             this.Members[n].RefFieldDelegate = od.Members[n].RefFieldDelegate;
         }
+    }
+
+    internal void GenerateImmutable(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        this.GenerateImmutableClass(ssb, info);
+        this.GenerateImmutableMethod(ssb, info);
+    }
+
+    internal void GenerateImmutableClass(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        var underlyingClassName = this.SimpleName;
+
+        using (var classScope = ssb.ScopeBrace($"public sealed class {TinyhandBody.ImmutableClassName} : ITinyhandSerializable<{TinyhandBody.ImmutableClassName}>, ITinyhandReconstructable<{TinyhandBody.ImmutableClassName}>, ITinyhandCloneable<{TinyhandBody.ImmutableClassName}>"))
+        {
+            ssb.AppendLine($"private readonly {underlyingClassName} {TinyhandBody.UnderlyingObjectName};");
+            ssb.AppendLine($"public {TinyhandBody.ImmutableClassName}({underlyingClassName} obj) {{ this.{TinyhandBody.UnderlyingObjectName} = obj; }}");
+            ssb.AppendLine($"public {underlyingClassName} GetUnderlyingObject() => this.{TinyhandBody.UnderlyingObjectName};");
+
+            using (var serializeScope = ssb.ScopeBrace($"static void ITinyhandSerializable<{TinyhandBody.ImmutableClassName}>.Serialize(ref TinyhandWriter writer, scoped ref {TinyhandBody.ImmutableClassName}? value, TinyhandSerializerOptions options)"))
+            {// Serialize
+                ssb.AppendLine("if (value is null) writer.WriteNil();");
+                ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, in value.{TinyhandBody.UnderlyingObjectName}, options);");
+            }
+
+            using (var deserializeScope = ssb.ScopeBrace($"static void ITinyhandSerializable<{TinyhandBody.ImmutableClassName}>.Deserialize(ref TinyhandReader reader, scoped ref {TinyhandBody.ImmutableClassName}? value, TinyhandSerializerOptions options)"))
+            {// Deserialize
+                ssb.AppendLine($"if (TinyhandSerializer.DeserializeObject<{underlyingClassName}>(ref reader, options) is {{ }} obj) value = new(obj);");
+            }
+
+            using (var reconstructScope = ssb.ScopeBrace($"static void ITinyhandReconstructable<{TinyhandBody.ImmutableClassName}>.Reconstruct([NotNull] scoped ref {TinyhandBody.ImmutableClassName}? value, TinyhandSerializerOptions options)"))
+            {// Reconstruct
+                ssb.AppendLine($"value ??= new(TinyhandSerializer.ReconstructObject<{underlyingClassName}>(options));");
+            }
+
+            using (var cloneScope = ssb.ScopeBrace($"static {TinyhandBody.ImmutableClassName}? ITinyhandCloneable<{TinyhandBody.ImmutableClassName}>.Clone(scoped ref {TinyhandBody.ImmutableClassName}? value, TinyhandSerializerOptions options)"))
+            {// Clone
+                ssb.AppendLine($"if (TinyhandSerializer.CloneObject(value?.{TinyhandBody.UnderlyingObjectName}, options) is {{ }} obj) return new(obj);");
+                ssb.AppendLine("else return default;");
+            }
+
+            ssb.AppendLine();
+
+            foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
+            {
+                if (x.TypeObjectWithNullable is { } memberType)
+                {
+                    if (x.symbol?.GetDocumentationCommentXml() is { } xml)
+                    {// Quotes the documentation comment if available.
+                        /*try
+                        {
+                            var doc = XDocument.Parse(xml);
+                            if (doc.Root?.Element("summary") is { } summary)
+                            {
+                                var text = summary.Value.Trim().Replace("\r", string.Empty).Replace("\n", string.Empty);
+                                ssb.AppendLine($"/// <summary>{text}</summary>");
+                            }
+                        }
+                        catch
+                        {
+                        }*/
+
+                        var matchSummary = Regex.Match(xml, @"<summary>(.*?)</summary>", RegexOptions.Singleline);
+                        if (matchSummary.Success)
+                        {
+                            var content = matchSummary.Groups[1].Value;
+                            var lines = content.Split(['\r', '\n',], StringSplitOptions.RemoveEmptyEntries);
+                            for (var i = 0; i < lines.Length; i++)
+                            {
+                                lines[i] = lines[i].Trim();
+                            }
+
+                            ssb.AppendLine($"/// <summary>{string.Join(string.Empty, lines)}</summary>");
+                        }
+
+                        /*var matchSummary = Regex.Match(xml, @"<summary>(.*?)</summary>", RegexOptions.Singleline);
+                        if (matchSummary.Success)
+                        {
+                            var content = matchSummary.Groups[1].Value;
+                            var result = Regex.Replace(content, @"(?m)^\s+|\s+$", string.Empty);
+                            result = Regex.Replace(result, @"\r?\n", string.Empty);
+                            ssb.AppendLine($"/// <summary>{result}</summary>");
+                        }*/
+                    }
+
+                    ssb.AppendLine($"public {memberType.FullNameWithNullable} {x.SimpleName} => this.{TinyhandBody.UnderlyingObjectName}.{x.SimpleName};");
+                }
+            }
+
+            ssb.AppendLine();
+        }
+    }
+
+    internal void GenerateImmutableMethod(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+        ssb.AppendLine($"public {TinyhandBody.ImmutableClassName} ToImmutable() => new(this);");
+        ssb.AppendLine($"public {TinyhandBody.ImmutableClassName} CloneAndToImmutable() => new(TinyhandSerializer.CloneObject(this));");
+        ssb.AppendLine();
     }
 
     internal void GenerateAccessorDelegate(ScopingStringBuilder ssb, GeneratorInformation info)
