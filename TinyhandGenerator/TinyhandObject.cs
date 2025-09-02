@@ -2090,6 +2090,11 @@ ModuleInitializerClass_Added:
             // Generate accessor delegates (getter, setter, ref field)
             this.GenerateAccessorDelegate(ssb, info);
 
+            if (this.ObjectAttribute?.AddImmutable == true)
+            { // Generate immutable class
+                this.GenerateImmutable(ssb, info);
+            }
+
             if (this.Children?.Count > 0)
             {// Generate children and loader.
                 ssb.AppendLine();
@@ -2153,6 +2158,18 @@ ModuleInitializerClass_Added:
             this.Members[n].SetterDelegate = od.Members[n].SetterDelegate;
             this.Members[n].RefFieldDelegate = od.Members[n].RefFieldDelegate;
         }
+    }
+
+    internal void GenerateImmutable(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+    }
+
+    internal void GenerateImmutableClass(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
+    }
+
+    internal void GenerateImmutableMethod(ScopingStringBuilder ssb, GeneratorInformation info)
+    {
     }
 
     internal void GenerateAccessorDelegate(ScopingStringBuilder ssb, GeneratorInformation info)

@@ -6,22 +6,9 @@ using Tinyhand.IO;
 
 namespace Playground;
 
-[TinyhandObject]
+[TinyhandObject(AddImmutable = true)]
 public partial class PartialImplementationClass
 {
-    /*public sealed class ReadOnly : PartialImplementationClass
-    {
-        public void Test()
-        {
-            var a = new ReadOnly();
-            a.SerializeToRentMemory();
-            TinyhandSerializer.TryDeserializeObject<PartialImplementationClass>([], out var c!);
-            a = (ReadOnly)c;
-        }
-
-        public new string Name => base.Name;
-    }*/
-
     public sealed class Immutable : ITinyhandSerializable<Immutable>, ITinyhandReconstructable<Immutable>, ITinyhandCloneable<Immutable>
     {
         private readonly PartialImplementationClass underlyingObject;
@@ -32,11 +19,6 @@ public partial class PartialImplementationClass
         }
 
         public PartialImplementationClass GetUnderlyingObject() => this.underlyingObject;
-
-        /*static void ITinyhandSerializable<ReadOnly2>.Serialize(ref TinyhandWriter writer, scoped ref ReadOnly2? value, TinyhandSerializerOptions options)
-        {
-            TinyhandSerializer.SerializeObject(ref writer, in value.underlyingObject, options);
-        }*/
 
         static void ITinyhandSerializable<Immutable>.Serialize(ref TinyhandWriter writer, scoped ref Immutable? value, TinyhandSerializerOptions options)
         {
