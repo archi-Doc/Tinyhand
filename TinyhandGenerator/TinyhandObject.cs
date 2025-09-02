@@ -1888,19 +1888,20 @@ ModuleInitializerClass_Added:
             if (isAccessible)
             {
                 ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{this.FullName}>());");
+                if (this.ObjectAttribute?.AddImmutable == true)
+                {
+                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{this.FullName}.{TinyhandBody.ImmutableClassName}>());");
+                }
             }
             else
             {
                 var fullName = this.GetGenericsName();
-                ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(Type.GetType(\"{fullName}\")!, static (x, y) =>");
-                ssb.AppendLine("{");
-                ssb.IncrementIndent();
+                Add_SetFormatterGenerator(ssb, fullName);
 
-                ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(x));");
-                ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
-
-                ssb.DecrementIndent();
-                ssb.AppendLine("});");
+                if (this.ObjectAttribute?.AddImmutable == true)
+                {
+                    Add_SetFormatterGenerator(ssb, $"{fullName}.{TinyhandBody.ImmutableClassName}");
+                }
             }
         }
         else
@@ -1923,6 +1924,19 @@ ModuleInitializerClass_Added:
 
             ssb.AppendLine($"var ft = x.MakeGenericType(y);");
             ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(ft));");
+            ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
+
+            ssb.DecrementIndent();
+            ssb.AppendLine("});");
+        }
+
+        static void Add_SetFormatterGenerator(ScopingStringBuilder ssb, string name)
+        {
+            ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(Type.GetType(\"{name}\")!, static (x, y) =>");
+            ssb.AppendLine("{");
+            ssb.IncrementIndent();
+
+            ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(x));");
             ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
 
             ssb.DecrementIndent();
