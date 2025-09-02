@@ -9,7 +9,7 @@ namespace Playground;
 [TinyhandObject(AddImmutable = true)]
 public partial class PartialImplementationClass
 {
-    public sealed class Immutable : ITinyhandSerializable<Immutable>, ITinyhandReconstructable<Immutable>, ITinyhandCloneable<Immutable>
+    /*public sealed class Immutable : ITinyhandSerializable<Immutable>, ITinyhandReconstructable<Immutable>, ITinyhandCloneable<Immutable>
     {
         private readonly PartialImplementationClass underlyingObject;
 
@@ -47,8 +47,7 @@ public partial class PartialImplementationClass
 
     public Immutable ToImmutable() => new(this);
 
-    public Immutable CloneAndToImmutable() => new(TinyhandSerializer.CloneObject(this));
-
+    public Immutable CloneAndToImmutable() => new(TinyhandSerializer.CloneObject(this));*/
 
     public PartialImplementationClass()
     {

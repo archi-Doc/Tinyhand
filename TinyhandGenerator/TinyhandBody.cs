@@ -277,6 +277,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG057", title: "LockObject4", messageFormat: "Since the implementation of IStructualObject functions requires mutual exclusion in code that contains await, consider using SemaphoreLock",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Error_AddImmutable = new DiagnosticDescriptor(
+        id: "TG058", title: "Immutable class", messageFormat: "Immutable can only be added to classes",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {

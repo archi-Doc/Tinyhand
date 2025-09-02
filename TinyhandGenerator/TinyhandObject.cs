@@ -951,6 +951,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             this.Body.ReportDiagnostic(TinyhandBody.Error_ImplicitExplicitKey, this.Location, this.FullName);
         }
 
+        if (this.ObjectAttribute?.AddImmutable == true &&
+            this.Kind != VisceralObjectKind.Class)
+        {
+            this.Body.ReportDiagnostic(TinyhandBody.Error_AddImmutable, this.Location);
+        }
+
         // Union
         this.Union?.CheckAndPrepare();
 
@@ -2162,14 +2168,61 @@ ModuleInitializerClass_Added:
 
     internal void GenerateImmutable(ScopingStringBuilder ssb, GeneratorInformation info)
     {
+        this.GenerateImmutableClass(ssb, info);
+        this.GenerateImmutableMethod(ssb, info);
     }
 
     internal void GenerateImmutableClass(ScopingStringBuilder ssb, GeneratorInformation info)
     {
+        var underlyingClassName = this.SimpleName;
+
+        using (var classScope = ssb.ScopeBrace($"public sealed class {TinyhandBody.ImmutableClassName} : ITinyhandSerializable<{TinyhandBody.ImmutableClassName}>, ITinyhandReconstructable<{TinyhandBody.ImmutableClassName}>, ITinyhandCloneable<{TinyhandBody.ImmutableClassName}>"))
+        {
+            ssb.AppendLine($"private readonly {underlyingClassName} {TinyhandBody.UnderlyingObjectName};");
+            ssb.AppendLine($"public {TinyhandBody.ImmutableClassName}({underlyingClassName} obj) {{ this.{TinyhandBody.UnderlyingObjectName} = obj; }}");
+            ssb.AppendLine($"public {underlyingClassName} GetUnderlyingObject() => this.{TinyhandBody.UnderlyingObjectName};");
+
+            using (var serializeScope = ssb.ScopeBrace($"static void ITinyhandSerializable<{TinyhandBody.ImmutableClassName}>.Serialize(ref TinyhandWriter writer, scoped ref {TinyhandBody.ImmutableClassName}? value, TinyhandSerializerOptions options)"))
+            {// Serialize
+                ssb.AppendLine("if (value is null) writer.WriteNil();");
+                ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, in value.{TinyhandBody.UnderlyingObjectName}, options);");
+            }
+
+            using (var deserializeScope = ssb.ScopeBrace($"static void ITinyhandSerializable<{TinyhandBody.ImmutableClassName}>.Deserialize(ref TinyhandReader reader, scoped ref {TinyhandBody.ImmutableClassName}? value, TinyhandSerializerOptions options)"))
+            {// Deserialize
+                ssb.AppendLine($"if (TinyhandSerializer.DeserializeObject<{underlyingClassName}>(ref reader, options) is {{ }} obj) value = new(obj);");
+            }
+
+            using (var reconstructScope = ssb.ScopeBrace($"static void ITinyhandReconstructable<{TinyhandBody.ImmutableClassName}>.Reconstruct([NotNull] scoped ref {TinyhandBody.ImmutableClassName}? value, TinyhandSerializerOptions options)"))
+            {// Reconstruct
+                ssb.AppendLine($"value ??= new(TinyhandSerializer.ReconstructObject<{underlyingClassName}>(options));");
+            }
+
+            using (var cloneScope = ssb.ScopeBrace($"static {TinyhandBody.ImmutableClassName}? ITinyhandCloneable<{TinyhandBody.ImmutableClassName}>.Clone(scoped ref {TinyhandBody.ImmutableClassName}? value, TinyhandSerializerOptions options)"))
+            {// Clone
+                ssb.AppendLine($"if (TinyhandSerializer.CloneObject(value?.{TinyhandBody.UnderlyingObjectName}, options) is {{ }} obj) return new(obj);");
+                ssb.AppendLine("else return default;");
+            }
+
+            ssb.AppendLine();
+
+            foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
+            {
+                if (x.TypeObjectWithNullable is { } memberType)
+                {
+                    ssb.AppendLine($"public {memberType.FullNameWithNullable} {x.SimpleName} => this.{TinyhandBody.UnderlyingObjectName}.{x.SimpleName};");
+                }
+            }
+
+            ssb.AppendLine();
+        }
     }
 
     internal void GenerateImmutableMethod(ScopingStringBuilder ssb, GeneratorInformation info)
     {
+        ssb.AppendLine($"public {TinyhandBody.ImmutableClassName} ToImmutable() => new(this);");
+        ssb.AppendLine($"public {TinyhandBody.ImmutableClassName} CloneAndToImmutable() => new(TinyhandSerializer.CloneObject(this));");
+        ssb.AppendLine();
     }
 
     internal void GenerateAccessorDelegate(ScopingStringBuilder ssb, GeneratorInformation info)
