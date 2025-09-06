@@ -77,8 +77,9 @@ public class JournalTester : IStructualRoot
         }
     }
 
-    public bool TryAddToSaveQueue()
-        => false;
+    public void AddToSaveQueue()
+    {
+    }
 
     public int JournalLength { get; init; }
 

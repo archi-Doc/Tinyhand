@@ -3110,7 +3110,7 @@ ModuleInitializerClass_Added:
 
                         if (structualEnabled)
                         {
-                            ssb.AppendLine($"(({TinyhandBody.IStructualObject})this).StructualRoot?.TryAddToSaveQueue();");
+                            ssb.AppendLine($"(({TinyhandBody.IStructualObject})this).StructualRoot?.AddToSaveQueue();");
                         }
                     }
                 }
