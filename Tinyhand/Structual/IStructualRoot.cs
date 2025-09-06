@@ -10,5 +10,5 @@ public interface IStructualRoot
 
     ulong AddJournal(ref TinyhandWriter writer);
 
-    bool TryAddToSaveQueue();
+    void AddToSaveQueue();
 }
