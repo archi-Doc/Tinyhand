@@ -281,6 +281,12 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG058", title: "Immutable class", messageFormat: "Immutable can only be added to classes",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Error_UnsafeRequired = new DiagnosticDescriptor(
+        id: "TG059", title: "Unsafe required", messageFormat: "Since Tinyhand uses unsafe code, please enable AllowUnsafeBlocks in the project settings",
+        category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+    public static bool RequiresUnsafeBlocks = false;
+
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
