@@ -1373,7 +1373,7 @@ Exit:
                 if (this.Kind == VisceralObjectKind.Field)
                 {// Requires unsafe deserialize method
                     parent.ObjectFlag |= TinyhandObjectFlag.RequiresUnsafeDeserialize;
-                    TinyhandBody.RequiresUnsafeBlocks = true;
+                    this.Body.RequiresUnsafeBlocks = true;
                 }
                 else if (this.Kind == VisceralObjectKind.Property)
                 {// Getter-only property is not supported.
