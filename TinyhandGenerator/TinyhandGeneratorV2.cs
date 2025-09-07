@@ -183,7 +183,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
 
         if (compilation.Options is CSharpCompilationOptions csharpCompilationOptions &&
             !csharpCompilationOptions.AllowUnsafe &&
-            TinyhandBody.RequiresUnsafeBlocks)
+            body.RequiresUnsafeBlocks)
         {
             body.ReportDiagnostic(TinyhandBody.Error_UnsafeRequired, default);
         }

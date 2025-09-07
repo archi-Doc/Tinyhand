@@ -285,7 +285,11 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG059", title: "Unsafe required", messageFormat: "Since Tinyhand uses unsafe code, please enable AllowUnsafeBlocks in the project settings",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static bool RequiresUnsafeBlocks = false;
+    internal bool RequiresUnsafeBlocks = false;
+
+    internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
+
+    internal IAssemblySymbol AssemblySymbol;
 
     public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
@@ -298,10 +302,6 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     {
         this.AssemblySymbol = assemblySymbol;
     }
-
-    internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
-
-    internal IAssemblySymbol AssemblySymbol;
 
     // internal List<UnionToItem> UnionToList = new();
 
