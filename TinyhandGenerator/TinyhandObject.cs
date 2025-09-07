@@ -71,6 +71,7 @@ public enum TinyhandObjectFlag
     IsRepeatableRead = 1 << 28, // IsolationLevel.RepeatableRead
     HasIIntegralityObject = 1 << 29, // Has IIntegralityObject interface
     ExternalObject = 1 << 30, // Has external attribute
+    RequiresUnsafeDeserialize = 1 << 31, // Requires unsafe deserialize
 }
 
 public class TinyhandObject : VisceralObjectBase<TinyhandObject>
@@ -135,9 +136,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public TinyhandObject? ClosedGenericHint { get; private set; }
 
-    public bool RequiresUnsafeDeserialize { get; private set; }
-
-    public string UnsafeDeserializeString => this.RequiresUnsafeDeserialize ? "unsafe " : string.Empty;
+    public string UnsafeDeserializeString => this.ObjectFlag.HasFlag(TinyhandObjectFlag.RequiresUnsafeDeserialize) ? "unsafe " : string.Empty;
 
     public string InIfStruct => this.Kind == VisceralObjectKind.Struct ? "in " : string.Empty;
 
@@ -1373,7 +1372,8 @@ Exit:
             {
                 if (this.Kind == VisceralObjectKind.Field)
                 {// Requires unsafe deserialize method
-                    parent.RequiresUnsafeDeserialize = true;
+                    parent.ObjectFlag |= TinyhandObjectFlag.RequiresUnsafeDeserialize;
+                    TinyhandBody.RequiresUnsafeBlocks = true;
                 }
                 else if (this.Kind == VisceralObjectKind.Property)
                 {// Getter-only property is not supported.

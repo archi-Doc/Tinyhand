@@ -155,8 +155,6 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                 continue;
             }
 
-            context.CancellationToken.ThrowIfCancellationRequested();
-
             var model = compilation.GetSemanticModel(x.SyntaxTree);
 #pragma warning disable RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
             if (model.GetDeclaredSymbol(x) is INamedTypeSymbol symbol)
@@ -177,23 +175,26 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
 
         // this.SalvageCloseGeneric(body, generics, processed);
 
-        context.CancellationToken.ThrowIfCancellationRequested();
         body.Prepare();
         if (body.Abort)
         {
             return;
         }
 
-        context.CancellationToken.ThrowIfCancellationRequested();
+        if (compilation.Options is CSharpCompilationOptions csharpCompilationOptions &&
+            !csharpCompilationOptions.AllowUnsafe &&
+            TinyhandBody.RequiresUnsafeBlocks)
+        {
+            body.ReportDiagnostic(TinyhandBody.Error_UnsafeRequired, default);
+        }
+
         generateMemberBody.Prepare();
         if (generateMemberBody.Abort)
         {
             return;
         }
 
-        context.CancellationToken.ThrowIfCancellationRequested();
         body.Generate(this, context.CancellationToken);
-        context.CancellationToken.ThrowIfCancellationRequested();
         generateMemberBody.Generate(this, context.CancellationToken);
     }
 
