@@ -10,6 +10,11 @@ namespace Tinyhand;
 public enum JournalType : byte
 {
     /// <summary>
+    /// Indicates a record entry in the journal.
+    /// </summary>
+    Record,
+
+    /*/// <summary>
     /// Indicates the starting point of a journal.
     /// </summary>
     Startingpoint,
@@ -17,12 +22,7 @@ public enum JournalType : byte
     /// <summary>
     /// Indicates a waypoint in the journal.
     /// </summary>
-    Waypoint,
-
-    /// <summary>
-    /// Indicates a record entry in the journal.
-    /// </summary>
-    Record,
+    Waypoint,*/
 }
 
 /// <summary>
