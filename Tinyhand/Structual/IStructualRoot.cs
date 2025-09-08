@@ -18,11 +18,11 @@ public interface IStructualRoot
     bool TryGetJournalWriter(JournalType recordType, out TinyhandWriter writer);
 
     /// <summary>
-    /// Writes the journal entry using the provided <see cref="TinyhandWriter"/> and disposes of the writer.
+    /// Adds the journal entry using the provided <see cref="TinyhandWriter"/> and disposes of the writer.
     /// </summary>
     /// <param name="writer">A reference to the <see cref="TinyhandWriter"/> to write and dispose.</param>
     /// <returns>The position of the written journal entry.</returns>
-    ulong WriteJournalAndDispose(ref TinyhandWriter writer);
+    ulong AddJournalAndDispose(ref TinyhandWriter writer);
 
     /// <summary>
     /// Adds the current instance to the save queue for persistence.
