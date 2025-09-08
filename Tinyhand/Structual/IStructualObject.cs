@@ -106,7 +106,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
             }
 
             writer.Write(record);
-            root.WriteJournalAndDispose(ref writer);
+            root.AddJournalAndDispose(ref writer);
         }
     }
 
@@ -130,11 +130,11 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
 
     /// <summary>
     /// Attempts to get a journal writer for this object, constructing the locator path as needed.<br/>
-    /// The writer instance is released when a journal is added through <see cref="IStructualRoot.WriteJournalAndDispose"/>.
+    /// The writer instance is released when a journal is added through <see cref="IStructualRoot.AddJournalAndDispose"/>.
     /// </summary>
     /// <param name="root">When this method returns, contains the root object if successful; otherwise, null.</param>
     /// <param name="writer">When this method returns, contains the journal writer if successful; otherwise, the default value.<br/>
-    /// The Writer instance is released when a journal is added through <see cref="IStructualRoot.WriteJournalAndDispose"/>.</param>
+    /// The Writer instance is released when a journal is added through <see cref="IStructualRoot.AddJournalAndDispose"/>.</param>
     /// <param name="includeCurrent">Whether to include the current object in the locator path.</param>
     /// <returns>True if a journal writer was successfully obtained; otherwise, false.</returns>
     public bool TryGetJournalWriter([NotNullWhen(true)] out IStructualRoot? root, out TinyhandWriter writer, bool includeCurrent = true)

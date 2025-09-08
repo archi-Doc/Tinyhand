@@ -44,7 +44,7 @@ public class JournalTester : IStructualRoot
         return true;
     }
 
-    public ulong WriteJournalAndDispose(ref TinyhandWriter writer)
+    public ulong AddJournalAndDispose(ref TinyhandWriter writer)
     {
         writer.FlushAndGetMemory(out var memory, out _);
         writer.Dispose();
