@@ -15,7 +15,7 @@ public static class JournalHelper
 
         while (reader.Consumed < data.Length)
         {
-            if (!reader.TryReadRecord(out var length, out var journalType))
+            if (!reader.TryReadJournal(out var length, out var journalType))
             {
                 return false;
             }
@@ -25,7 +25,7 @@ public static class JournalHelper
             {
                 if (journalType == JournalType.Record)
                 {
-                    if (journalObject.ReadRecord(ref reader))
+                    if (journalObject.ProcessJournalRecord(ref reader))
                     {// Success
                     }
                     else
@@ -52,16 +52,15 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryReadRecord(this ref TinyhandReader reader, out int length, out JournalType journalType)
+    public static bool TryReadJournal(this ref TinyhandReader reader, out int length, out JournalType journalType)
     {
         try
         {
-            var b0 = reader.ReadUInt8();
-            var b1 = reader.ReadUInt8();
-            var b2 = reader.ReadUInt8();
-            length = b0 << 16 | b1 << 8 | b2;
-
+            reader.TryRead(out byte b0);
+            reader.TryRead(out byte b1);
+            reader.TryRead(out byte b2);
             reader.TryRead(out byte code);
+            length = b0 << 16 | b1 << 8 | b2;
             journalType = (JournalType)code;
         }
         catch

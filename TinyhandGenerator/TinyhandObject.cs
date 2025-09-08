@@ -3526,7 +3526,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"{this.UnsafeDeserializeString}bool {TinyhandBody.IStructualObject}.ReadRecord(ref TinyhandReader reader)"))
+        using (var scopeMethod = ssb.ScopeBrace($"{this.UnsafeDeserializeString}bool {TinyhandBody.IStructualObject}.ProcessJournalRecord(ref TinyhandReader reader)"))
         {
             // Lock
             var lockExpression = this.GetLockExpression("this");
@@ -3639,14 +3639,14 @@ ModuleInitializerClass_Added:
                 x.TypeObject?.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject) == true ||
                 x.TypeObject?.Kind == VisceralObjectKind.Error)
             {
-                ssb.AppendLine($"if (reader.IsNext_NonValue() && {ssb.FullObject} is {TinyhandBody.IStructualObject} obj && obj.ReadRecord(ref reader)) return true;");
+                ssb.AppendLine($"if (reader.IsNext_NonValue() && {ssb.FullObject} is {TinyhandBody.IStructualObject} obj && obj.ProcessJournalRecord(ref reader)) return true;");
             }
 
             ssb.AppendLine("reader.Read_Value();");
 
             /*if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
             {
-                ssb.AppendLine($"return (({TinyhandBody.IStructualObject}){ssb.FullObject}).ReadRecord(ref reader);");
+                ssb.AppendLine($"return (({TinyhandBody.IStructualObject}){ssb.FullObject}).ProcessJournalRecord(ref reader);");
             }*/
 
             assignment.Start();

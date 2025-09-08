@@ -40,12 +40,11 @@ public class JournalTester : IStructualRoot
         writer = new(initialBuffer);
         writer.Advance(3); // Size(0-16MB): byte[3]
         writer.WriteRawUInt8(Unsafe.As<JournalType, byte>(ref recordType)); // JournalRecordType: byte
-        // writer.RawWriteUInt32(plane); // Plane: byte[4]
 
         return true;
     }
 
-    public ulong AddJournal(ref TinyhandWriter writer)
+    public ulong WriteJournalAndDispose(ref TinyhandWriter writer)
     {
         writer.FlushAndGetMemory(out var memory, out _);
         writer.Dispose();
