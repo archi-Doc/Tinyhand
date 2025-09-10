@@ -27,5 +27,7 @@ public interface IStructualRoot
     /// <summary>
     /// Adds the current instance to the save queue for persistence.
     /// </summary>
-    void AddToSaveQueue();
+    /// <param name="delaySeconds">The number of seconds to delay before saving.<br/>
+    /// If 0 is specified, the default delay time is used.</param>
+    void AddToSaveQueue(int delaySeconds = 0);
 }

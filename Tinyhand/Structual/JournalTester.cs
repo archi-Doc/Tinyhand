@@ -76,7 +76,7 @@ public class JournalTester : IStructualRoot
         }
     }
 
-    public void AddToSaveQueue()
+    public void AddToSaveQueue(int delaySeconds)
     {
     }
 
