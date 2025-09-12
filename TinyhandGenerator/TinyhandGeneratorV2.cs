@@ -134,7 +134,7 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
         this.AssemblyId = this.AssemblyName.GetHashCode();
         this.OutputKind = compilation.Options.OutputKind;
 
-        var body = new TinyhandBody(context, this.AssemblySymbol);
+        var body = new TinyhandBody(compilation, context, this.AssemblySymbol);
         var generateMemberBody = new TinyhandGenerateMemberBody(context);
         // receiver.Generics.Prepare(compilation);
 #pragma warning disable RS1024 // Symbols should be compared for equality

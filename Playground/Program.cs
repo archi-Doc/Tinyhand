@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using CrystalData;
 using Tinyhand;
@@ -55,7 +56,9 @@ public partial class PartialImplementationClass
     }
 
     [Key(0)]
-    public string Name { get; set; } = "Test";
+    [MaxLength(100)]
+    [DefaultValue("Test2")]
+    public partial string Name { get; set; } = "Test";
 
     [Key(1)]
     public int Id { get; set; }

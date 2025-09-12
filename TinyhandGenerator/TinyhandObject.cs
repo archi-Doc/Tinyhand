@@ -534,6 +534,23 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 if (x.ConstructorArguments.Length > 0)
                 {
                     this.DefaultValue = x.ConstructorArguments[0] ?? "null";
+
+                    foreach (var y in this.symbol.DeclaringSyntaxReferences)
+                    {
+                        if (y.GetSyntax() is not PropertyDeclarationSyntax pds)
+                            continue;
+
+                        if (pds.Initializer is not EqualsValueClauseSyntax eq)
+                            continue;
+
+                        var model = this.Body.Compilation.GetSemanticModel(pds.SyntaxTree);
+
+                        var cv = model.GetConstantValue(eq.Value);
+                        if (cv.HasValue)
+                        {
+                            var vv = cv.Value;
+                        }
+                    }
                 }
             }
             else if (x.FullName == MaxLengthAttributeMock.FullName)

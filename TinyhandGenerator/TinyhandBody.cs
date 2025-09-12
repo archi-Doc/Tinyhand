@@ -289,17 +289,21 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
 
     internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
 
+    internal Compilation Compilation;
+
     internal IAssemblySymbol AssemblySymbol;
 
-    public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
+    public TinyhandBody(Compilation compilation, GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
+        this.Compilation = compilation;
         this.AssemblySymbol = assemblySymbol;
     }
 
-    public TinyhandBody(SourceProductionContext context, IAssemblySymbol assemblySymbol)
+    public TinyhandBody(Compilation compilation, SourceProductionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
+        this.Compilation = compilation;
         this.AssemblySymbol = assemblySymbol;
     }
 
