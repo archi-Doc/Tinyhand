@@ -24,7 +24,27 @@ public partial class DefaultValueTestClass2
     public short b = -1;
 }
 
-    [TinyhandObject]
+[TinyhandObject]
+public partial struct DefaultTestStructDouble : ITinyhandDefault<double>
+{
+    public DefaultTestStructDouble(double d)
+    {
+        this.Double = d;
+    }
+
+    public bool CanSkipSerialization()
+        => false;
+
+    public void SetDefaultValue(double defaultValue)
+    {
+        this.Double = defaultValue;
+    }
+
+    [Key(0)]
+    public double Double { get; private set; }
+}
+
+[TinyhandObject]
 public partial class DefaultValueTestClass
 {
     [Key(0)]
@@ -74,6 +94,9 @@ public partial class DefaultValueTestClass
 
     [Key(15)]
     public TestEnum p { get; set; } = TestEnum.C;
+
+    [Key(16)]
+    public DefaultTestStructDouble DoubleStruct { get; set; } = new(1.23d);
 }
 
 [TinyhandObject(AddImmutable = true)]
