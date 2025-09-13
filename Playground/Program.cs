@@ -8,6 +8,56 @@ using Tinyhand.IO;
 
 namespace Playground;
 
+[TinyhandObject]
+public partial class DefaultValueTestClass
+{
+    [Key(0)]
+    private int a = 0;
+
+    [Key(1)]
+    private short b = -1;
+
+    [Key(2)]
+    private long c = 1 + 2 + 3;
+
+    [Key(3)]
+    private float d = 0.1f;
+
+    [Key(4)]
+    public double e = 0.1 + 123d;
+
+    [Key(5)]
+    public double f = double.PositiveInfinity;
+
+    [Key(6)]
+    public uint g = default;
+
+    [Key(7)]
+    public uint h = default!;
+
+    [Key(8)]
+    public string i = string.Empty;
+
+    [Key(9)]
+    public string? j = null;
+
+    [Key(10)]
+    public string k = "Test";
+
+    [Key(11)]
+    public string l = "";
+
+    [Key(12)]
+    public byte[] m = [];
+
+    [Key(13)]
+    public byte[]? n = null;
+
+    [Key(14)]
+    public byte[]? o = default;
+
+}
+
 [TinyhandObject(AddImmutable = true)]
 public partial class PartialImplementationClass
 {

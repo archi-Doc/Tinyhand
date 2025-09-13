@@ -583,11 +583,15 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
+        //
         if (this.KeyAttribute is not null &&
             this.TypeObject is not null &&
             VisceralDefaultValue.IsDefaultableType(this.TypeObject.FullName))
-        {
-            var de = this.GetDefaultValue(this.symbol);
+        {//
+            if (this.GetDefaultValue(this.symbol) is { } defaultValue)
+            {
+                this.DefaultValue = defaultValue;
+            }
         }
 
         if (this.ObjectAttribute != null)
@@ -615,9 +619,10 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             if (equalsSyntax is not null)
             {
                 var model = this.Body.Compilation.GetSemanticModel(syntaxTree);
-                var cv = model.GetConstantValue(equalsSyntax.Value);
+                // var cv = model.GetConstantValue(equalsSyntax.Value);
+                var cv = equalsSyntax.Value.ToString();
 
-                return equalsSyntax.Value.ToString();
+                return cv.ToString();
             }
         }
 

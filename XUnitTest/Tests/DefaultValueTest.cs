@@ -62,6 +62,9 @@ public partial class DefaultTestClass
     [DefaultValue("Test")]
     // [DefaultValue(new[] { "1", "2" })]
     public DefaultTestClassName NameClass { get; set; }
+
+    [DefaultValue(null)]
+    public byte[]? ByteArray { get; set; }
 }
 
 [TinyhandObject(SkipSerializingDefaultValue = true)]
