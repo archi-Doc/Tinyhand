@@ -18,7 +18,7 @@ public partial record MyClass // partial class is required for source generator.
 
     [Key(2)]
     [DefaultValue("Doe")] // If there is no corresponding data, the default value is set.
-    public string LastName { get; set; } = string.Empty;
+    public string LastName { get; set; } = "Doe";
 
     // All fields or properties that should not be serialized must be annotated with [IgnoreMember].
     [IgnoreMember]

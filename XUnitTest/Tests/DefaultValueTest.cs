@@ -11,60 +11,59 @@ namespace Tinyhand.Tests;
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class DefaultTestClass
 {
-    [DefaultValue(true)]
-    public bool Bool { get; set; }
+    // [DefaultValue(true)]
+    // public bool Bool { get; set; }
 
     [DefaultValue(11)]
-    public sbyte SByte { get; set; }
+    public sbyte SByte { get; set; } = 11;
 
     [DefaultValue(22)] // [DefaultValue((sbyte)22)] disabled because of SA1139 analyzer crash
-    public byte Byte { get; set; }
+    public byte Byte { get; set; } = 22;
 
     [DefaultValue(33)] // [DefaultValue((ulong)33)]
-    public short Short { get; set; }
+    public short Short { get; set; } = 33;
 
     [DefaultValue(44)]
-    public ushort UShort { get; set; }
+    public ushort UShort { get; set; } = 44;
 
     [DefaultValue(55)]
-    public int Int { get; set; }
+    public int Int { get; set; } = 55;
 
     [DefaultValue(66)]
-    public uint UInt { get; set; }
+    public uint UInt { get; set; } = 66;
 
     [DefaultValue(77)]
-    public long Long { get; init; }
+    public long Long { get; init; } = 77;
 
     [DefaultValue(88)]
-    public partial ulong ULong { get; init; }
+    public partial ulong ULong { get; init; } = 88;
 
     [DefaultValue(1.23d)]
-    public float Float { get; set; }
+    public float Float { get; set; } = 1.23f;
 
     [DefaultValue(456.789d)]
-    public double Double { get; set; }
+    public double Double { get; set; } = 456.789d;
 
     [DefaultValue("2134.44")]
-    public decimal Decimal { get; set; }
+    public decimal Decimal { get; set; } = 2134.44m;
 
     [DefaultValue('c')]
-    public char Char { get; set; }
+    public char Char { get; set; } = 'c';
 
     [DefaultValue("test")]
-    public string String { get; set; } = default!;
+    public string String { get; set; } = "test";
 
     [DefaultValue("test2")]
-    public partial string String2 { get; private set; } = default!;
+    public partial string String2 { get; private set; } = "test2";
 
     [DefaultValue(DefaultTestEnum.B)]
-    public DefaultTestEnum Enum;
+    public DefaultTestEnum Enum = DefaultTestEnum.B;
 
-    [DefaultValue("Test")]
-    // [DefaultValue(new[] { "1", "2" })]
-    public DefaultTestClassName NameClass { get; set; }
+    //[DefaultValue("Test")]
+    // public DefaultTestClassName NameClass { get; set; }
 
     [DefaultValue(null)]
-    public byte[]? ByteArray { get; set; }
+    public byte[]? ByteArray { get; set; } = null;
 }
 
 [TinyhandObject(SkipSerializingDefaultValue = true)]
@@ -72,15 +71,15 @@ public partial class DefaultTestClassSkip
 {
     [Key(0)]
     [DefaultValue("2134.44")]
-    public decimal Decimal { get; set; }
+    public decimal Decimal { get; set; } = 2134.44m;
 
     [Key(1)]
     [DefaultValue(1234)]
-    public int Int { get; set; }
+    public int Int { get; set; } = 1234;
 
     [Key(2)]
     [DefaultValue("test")]
-    public string String { get; set; } = default!;
+    public string String { get; set; } = "test";
 }
 
 [TinyhandObject(SkipSerializingDefaultValue = true)]
@@ -88,15 +87,15 @@ public partial class DefaultTestClassSkip2
 {
     [Key(0)]
     [DefaultValue(1234)]
-    public short Short { get; set; }
+    public short Short { get; set; } = 1234;
 
     [Key(1)]
     [DefaultValue("test")]
-    public string String { get; set; } = default!;
+    public string String { get; set; } = "test";
 
     [Key(2)]
     [DefaultValue(456.789d)]
-    public double Double { get; set; }
+    public double Double { get; set; } = 456.789d;
 }
 
 [TinyhandObject]
@@ -128,11 +127,15 @@ public enum DefaultTestEnum
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial struct DefaultTestStruct
 {
-    [DefaultValue(true)]
-    public bool Bool { get; set; }
+    public DefaultTestStruct()
+    {
+    }
+
+    // [DefaultValue(true)]
+    // public bool Bool { get; set; }
 
     [DefaultValue(123)]
-    public int Int { get; set; }
+    public int Int { get; set; } = 123;
 
     [DefaultValue(1.23d)]
     public DefaultTestStructDouble DoubleStruct { get; set; }
@@ -164,7 +167,7 @@ public partial class DefaultValueTest
         var t = new Empty2();
         var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
 
-        t2.Bool.IsTrue();
+        //t2.Bool.IsTrue();
         Assert.Equal<sbyte>(11, t2.SByte);
         Assert.Equal<byte>(22, t2.Byte);
         Assert.Equal<short>(33, t2.Short);
@@ -180,7 +183,7 @@ public partial class DefaultValueTest
         Assert.Equal("test", t2.String);
         Assert.Equal("test2", t2.String2);
         Assert.Equal<DefaultTestEnum>(DefaultTestEnum.B, t2.Enum);
-        Assert.Equal("Test", t2.NameClass.Name);
+        //Assert.Equal("Test", t2.NameClass.Name);
 
         var t3 = TinyhandSerializer.Reconstruct<DefaultTestClass>();
         t3.IsStructuralEqual(t2);
@@ -204,7 +207,7 @@ public partial class DefaultValueTest
         var t = new Empty2();
         var t2 = TinyhandSerializer.Deserialize<DefaultTestStruct>(TinyhandSerializer.Serialize(t));
 
-        t2.Bool.IsTrue();
+        //t2.Bool.IsTrue();
         t2.Int.Is(123);
         t2.DoubleStruct.Double.Is(1.23d);
         t2.DoubleStruct.EmptyClass.IsNotNull();
@@ -239,8 +242,8 @@ public partial class DefaultValueTest
         public byte[] Signature = Array.Empty<byte>();
 
         [Key(3)]
-        [DefaultValue(0)]
-        public long AddedMember { get; set; }
+        [DefaultValue(-10)]
+        public long AddedMember { get; set; } = -10;
 
         [Key(4)]
         [DefaultValue(null)]

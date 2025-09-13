@@ -53,7 +53,7 @@ public partial class DefaultValueTestClass
     public string k = "Test";
 
     [Key(11)]
-    public string l = "";
+    public string l = "test\"\"\"e";
 
     [Key(12)]
     public byte[] m = [];
@@ -118,7 +118,7 @@ public partial class PartialImplementationClass
     [Key(0)]
     [MaxLength(100)]
     [DefaultValue("Test2")]
-    public partial string Name { get; set; } = "Test" + "1";
+    public partial string Name { get; set; } = "Test" + "2";
 
     [Key(1)]
     public int Id { get; set; }

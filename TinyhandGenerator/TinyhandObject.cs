@@ -115,15 +115,17 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public List<CallbackMethod>? CallbackMethods { get; private set; }
 
-    public object? DefaultValue { get; private set; }
+    // public bool IsDefaultable { get; private set; }
 
-    public string? DefaultValueTypeName { get; private set; }
+    public bool IsDefaultable => this.DefaultValue is not null;
+
+    public string? DefaultValue { get; private set; }
+
+    // public string? DefaultValueTypeName { get; private set; }
 
     public Location? DefaultValueLocation { get; private set; }
 
     public TinyhandObject? DefaultInterface { get; private set; }
-
-    public bool IsDefaultable { get; private set; }
 
     public bool SupportStructualObject => this.ObjectAttribute?.Structual == true || this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject);
 
@@ -529,14 +531,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
                 }
             }
-            else if (x.FullName == typeof(DefaultValueAttribute).FullName)
+            /*else if (x.FullName == typeof(DefaultValueAttribute).FullName)
             {// DefaultValueAttribute
                 this.DefaultValueLocation = x.Location;
                 if (x.ConstructorArguments.Length > 0)
                 {
                     this.DefaultValue = x.ConstructorArguments[0] ?? "null";
                 }
-            }
+            }*/
             else if (x.FullName == MaxLengthAttributeMock.FullName)
             {// MaxLengthAttribute
                 try
@@ -685,7 +687,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             return valueObject switch
             {
                 char c => "'" + c.ToString() + "'",
-                string s => "\"" + s + "\"",
+                string s => "\"" + VisceralDefaultValue.GetEscapedString(s) + "\"",
                 uint u => u.ToString() + "u",
                 long l => l.ToString() + "L",
                 ulong ul => ul.ToString() + "ul",
@@ -1606,7 +1608,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             }
         }
 
-        if (this.DefaultValue != null)
+        /*if (this.DefaultValue != null)
         {
             if (this.TypeObject.Array_Rank > 0)
             {
@@ -1640,11 +1642,6 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
                 if (this.DefaultValueTypeName != null && VisceralDefaultValue.IsEnumUnderlyingType(this.DefaultValueTypeName))
                 {
-                    /* var idx = (int)this.DefaultValue;
-                    if (idx >= 0 && idx < this.TypeObject.AllMembers.Length)
-                    {
-                        this.DefaultValue = new EnumString(this.TypeObject.AllMembers[idx].FullName);
-                    }*/
                     if (this.TypeObject.Enum_GetEnumObjectFromObject(this.DefaultValue) is { } enumObject)
                     {
                         this.IsDefaultable = true;
@@ -1683,7 +1680,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                     this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultInterface, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
                 }
             }
-        }
+        }*/
 
         // ReconstructTarget
         if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))

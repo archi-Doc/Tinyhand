@@ -9,7 +9,7 @@ namespace Tinyhand.Tests;
 public partial class GenericsTestClass<T>
 {
     [DefaultValue(12)]
-    public int Int { get; set; } // 12
+    public int Int { get; set; } = 12; // 12
 
     public T TValue { get; set; } = default!;
 
@@ -18,7 +18,7 @@ public partial class GenericsTestClass<T>
     {
         [Key(0)]
         [DefaultValue("TH")]
-        public string String { get; set; } = default!; // 12
+        public string String { get; set; } = "TH"; // 12
 
         [Key(1)]
         public U UValue { get; set; } = default!;

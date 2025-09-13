@@ -215,6 +215,10 @@ public static class VisceralDefaultValue
         {
             return "null";
         }
+        else if (obj is string st)
+        {
+            return st;
+        }
 
         var type = obj.GetType();
         if (type.IsGenericType)
