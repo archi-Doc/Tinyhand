@@ -16,7 +16,15 @@ public enum TestEnum
     D,
 }
 
-[TinyhandObject]
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class DefaultValueTestClass2
+{
+    public int a = 0;
+
+    public short b = -1;
+}
+
+    [TinyhandObject]
 public partial class DefaultValueTestClass
 {
     [Key(0)]

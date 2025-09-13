@@ -586,15 +586,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
-        if (this.KeyAttribute is not null &&
-            this.TypeObject is not null)
-        {
-            if (this.GetDefaultValue(this.TypeObject, this.symbol) is { } defaultValue)
-            {
-                this.DefaultValue = defaultValue;
-            }
-        }
-
         if (this.ObjectAttribute != null)
         {// TinyhandObject
             this.ConfigureObject();
@@ -619,10 +610,21 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
             if (equalsSyntax is null)
             {
-                return default;
+                continue;
             }
 
             var rawValue = equalsSyntax.Value.ToString();
+
+            if (typeObject.Kind == VisceralObjectKind.Enum)
+            {// Enum
+                return rawValue;
+            }
+            else if (!typeObject.IsPrimitive &&
+                typeObject.Kind == VisceralObjectKind.Struct)
+            {// Struct is not supported.
+                return default;
+            }
+
             if (rawValue == "null" ||
                 rawValue == "null!" ||
                 rawValue == "default" ||
@@ -646,12 +648,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 rawValue.StartsWith("new "))
             {// Not default value
                 return default;
-            }
-
-            // Enum
-            if (typeObject.Kind == VisceralObjectKind.Enum)
-            {
-                return rawValue;
             }
 
             /*if (symbol is IPropertySymbol ps && ps.Type.TypeKind == TypeKind.Enum)
@@ -1381,6 +1377,15 @@ Exit:
                 else if (x.KeyAttribute.IntKey != null)
                 {// Integer key
                     intKeyExists = true;
+                }
+
+                if (x.KeyAttribute is not null &&
+                    x.TypeObject is not null)
+                {// Get default value
+                    if (this.GetDefaultValue(x.TypeObject, x.symbol) is { } defaultValue)
+                    {
+                        x.DefaultValue = defaultValue;
+                    }
                 }
             }
 
@@ -4127,7 +4132,7 @@ ModuleInitializerClass_Added:
                 assignment.End();
             }
 
-            if (x!.IsDefaultable)
+            if (x.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
@@ -4218,7 +4223,7 @@ ModuleInitializerClass_Added:
                 assignment.End();
             }
 
-            if (x!.IsDefaultable)
+            if (x.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
