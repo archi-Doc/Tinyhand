@@ -588,7 +588,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         if (this.KeyAttribute is not null &&
             this.TypeObject is not null)
         {//
-            if (this.GetDefaultValue(this.symbol) is { } defaultValue)
+            if (this.GetDefaultValue(this.TypeObject, this.symbol) is { } defaultValue)
             {
                 this.DefaultValue = defaultValue;
             }
@@ -600,7 +600,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
     }
 
-    private string? GetDefaultValue(ISymbol? symbol)
+    private string? GetDefaultValue(TinyhandObject typeObject, ISymbol? symbol)
     {
         if (symbol is null)
         {
@@ -628,11 +628,17 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 rawValue == "default!" ||
                 rawValue == "[]")
             {// Primary constants
-                return rawValue;
+                if (typeObject.ObjectAttribute is not null)
+                {
+                    return rawValue;
+                }
+                else
+                {
+                    return default;
+                }
             }
             else if (rawValue == "true" ||
                 rawValue == "false" ||
-                rawValue == string.Empty ||
                 rawValue == "string.Empty" ||
                 rawValue == "\"\"" ||
                 rawValue == "new()" ||
@@ -642,14 +648,19 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
 
             // Enum
-            if (symbol is IPropertySymbol ps && ps.Type.TypeKind == TypeKind.Enum)
+            if (typeObject.Kind == VisceralObjectKind.Enum)
+            {
+                return rawValue;
+            }
+
+            /*if (symbol is IPropertySymbol ps && ps.Type.TypeKind == TypeKind.Enum)
             {
                 return rawValue;
             }
             else if (symbol is IFieldSymbol fs && fs.Type.TypeKind == TypeKind.Enum)
             {
                 return rawValue;
-            }
+            }*/
 
             // var cv = equalsSyntax.Value.ToString();
             var model = this.Body.Compilation.GetSemanticModel(syntaxTree);
