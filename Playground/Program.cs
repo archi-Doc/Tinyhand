@@ -58,7 +58,7 @@ public partial class PartialImplementationClass
     [Key(0)]
     [MaxLength(100)]
     [DefaultValue("Test2")]
-    public partial string Name { get; set; } = "Test";
+    public partial string Name { get; set; } = "Test" + "1";
 
     [Key(1)]
     public int Id { get; set; }

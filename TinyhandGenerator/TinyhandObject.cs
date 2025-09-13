@@ -534,23 +534,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 if (x.ConstructorArguments.Length > 0)
                 {
                     this.DefaultValue = x.ConstructorArguments[0] ?? "null";
-
-                    foreach (var y in this.symbol.DeclaringSyntaxReferences)
-                    {
-                        if (y.GetSyntax() is not PropertyDeclarationSyntax pds)
-                            continue;
-
-                        if (pds.Initializer is not EqualsValueClauseSyntax eq)
-                            continue;
-
-                        var model = this.Body.Compilation.GetSemanticModel(pds.SyntaxTree);
-
-                        var cv = model.GetConstantValue(eq.Value);
-                        if (cv.HasValue)
-                        {
-                            var vv = cv.Value;
-                        }
-                    }
                 }
             }
             else if (x.FullName == MaxLengthAttributeMock.FullName)
@@ -600,10 +583,45 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
+        if (this.KeyAttribute is not null &&
+            this.TypeObject is not null &&
+            VisceralDefaultValue.IsDefaultableType(this.TypeObject.FullName))
+        {
+            var de = this.GetDefaultValue(this.symbol);
+        }
+
         if (this.ObjectAttribute != null)
         {// TinyhandObject
             this.ConfigureObject();
         }
+    }
+
+    private string? GetDefaultValue(ISymbol? symbol)
+    {
+        if (symbol is null)
+        {
+            return default;
+        }
+
+        foreach (var x in symbol.DeclaringSyntaxReferences)
+        {
+            var (equalsSyntax, syntaxTree) = x.GetSyntax() switch
+            {
+                PropertyDeclarationSyntax property => (property.Initializer, property.SyntaxTree),
+                VariableDeclaratorSyntax variable => (variable.Initializer, variable.SyntaxTree),
+                _ => default,
+            };
+
+            if (equalsSyntax is not null)
+            {
+                var model = this.Body.Compilation.GetSemanticModel(syntaxTree);
+                var cv = model.GetConstantValue(equalsSyntax.Value);
+
+                return equalsSyntax.Value.ToString();
+            }
+        }
+
+        return default;
     }
 
     private bool MethodCompare_Serialize(IMethodSymbol ms)
