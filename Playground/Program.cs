@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading;
 using CrystalData;
 using Tinyhand;
 using Tinyhand.IO;
@@ -25,7 +23,7 @@ public partial class DefaultValueTestClass2
 }
 
 [TinyhandObject]
-public partial struct DefaultTestStructDouble : ITinyhandDefault<double>
+public partial struct DefaultTestStructDouble : ITinyhandDefault
 {
     public DefaultTestStructDouble(double d)
     {
@@ -35,11 +33,6 @@ public partial struct DefaultTestStructDouble : ITinyhandDefault<double>
     public bool CanSkipSerialization()
         => false;
 
-    public void SetDefaultValue(double defaultValue)
-    {
-        this.Double = defaultValue;
-    }
-
     [Key(0)]
     public double Double { get; private set; }
 }
@@ -47,6 +40,10 @@ public partial struct DefaultTestStructDouble : ITinyhandDefault<double>
 [TinyhandObject]
 public partial class DefaultValueTestClass
 {
+    public DefaultValueTestClass(bool invalidatePrimaryConstructor)
+    {
+    }
+
     [Key(0)]
     private int a = 0;
 
@@ -176,5 +173,7 @@ internal class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
+
+        var p = new DefaultValueTestClass(true);
     }
 }
