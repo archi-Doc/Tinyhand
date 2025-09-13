@@ -584,10 +584,9 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
-        //
         if (this.KeyAttribute is not null &&
             this.TypeObject is not null)
-        {//
+        {
             if (this.GetDefaultValue(this.TypeObject, this.symbol) is { } defaultValue)
             {
                 this.DefaultValue = defaultValue;
@@ -670,7 +669,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 return default;
             }
 
-            if (valueObject is float f)
+            /*if (valueObject is float f)
             {
                 return FloatToDefaultString(f);
             }
@@ -681,14 +680,20 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             else
             {
                 return valueObject.ToString();
-            }
+            }*/
 
-            /*return valueObject switch
+            return valueObject switch
             {
+                char c => "'" + c.ToString() + "'",
+                string s => "\"" + s + "\"",
+                uint u => u.ToString() + "u",
+                long l => l.ToString() + "L",
+                ulong ul => ul.ToString() + "ul",
                 float f => FloatToDefaultString(f),
                 double d => DoubleToDefaultString(d),
+                decimal m => m.ToString(CultureInfo.InvariantCulture) + "m",
                 _ => valueObject.ToString(),
-            };*/
+            };
 
             static string FloatToDefaultString(float f)
             {
