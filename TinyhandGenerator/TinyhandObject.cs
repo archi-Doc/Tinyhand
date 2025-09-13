@@ -115,15 +115,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public List<CallbackMethod>? CallbackMethods { get; private set; }
 
-    // public bool IsDefaultable { get; private set; }
-
-    public bool IsDefaultable => this.DefaultValue is not null;
+    public bool IsDefaultable => this.DefaultValue is not null &&
+        (this.TypeObject?.Kind == VisceralObjectKind.Struct || this.TypeObject?.FullName == "string");
 
     public string? DefaultValue { get; private set; }
 
     // public string? DefaultValueTypeName { get; private set; }
 
-    public Location? DefaultValueLocation { get; private set; }
+    // public Location? DefaultValueLocation { get; private set; }
 
     public TinyhandObject? DefaultInterface { get; private set; }
 
@@ -4555,7 +4554,7 @@ ModuleInitializerClass_Added:
         ScopingStringBuilder.IScope? skipDefaultValueScope = null;
         if (skipDefaultValue)
         {
-            if (x.IsDefaultable)
+            if (x.DefaultValue is not null)
             {
                 using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject} == {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)})"))
                 {

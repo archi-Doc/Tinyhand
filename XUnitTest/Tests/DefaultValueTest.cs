@@ -138,12 +138,17 @@ public partial struct DefaultTestStruct
     public int Int { get; set; } = 123;
 
     [DefaultValue(1.23d)]
-    public DefaultTestStructDouble DoubleStruct { get; set; }
+    public DefaultTestStructDouble DoubleStruct { get; set; } = new(1.23d);
 }
 
 [TinyhandObject]
 public partial struct DefaultTestStructDouble : ITinyhandDefault<double>
 {
+    public DefaultTestStructDouble(double d)
+    {
+        this.Double = d;
+    }
+
     public bool CanSkipSerialization()
         => false;
 
@@ -167,7 +172,7 @@ public partial class DefaultValueTest
         var t = new Empty2();
         var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
 
-        //t2.Bool.IsTrue();
+        // t2.Bool.IsTrue();
         Assert.Equal<sbyte>(11, t2.SByte);
         Assert.Equal<byte>(22, t2.Byte);
         Assert.Equal<short>(33, t2.Short);
@@ -207,7 +212,7 @@ public partial class DefaultValueTest
         var t = new Empty2();
         var t2 = TinyhandSerializer.Deserialize<DefaultTestStruct>(TinyhandSerializer.Serialize(t));
 
-        //t2.Bool.IsTrue();
+        // t2.Bool.IsTrue();
         t2.Int.Is(123);
         t2.DoubleStruct.Double.Is(1.23d);
         t2.DoubleStruct.EmptyClass.IsNotNull();
