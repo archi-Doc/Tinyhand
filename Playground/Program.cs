@@ -8,6 +8,14 @@ using Tinyhand.IO;
 
 namespace Playground;
 
+public enum TestEnum
+{
+    A,
+    B,
+    C,
+    D,
+}
+
 [TinyhandObject]
 public partial class DefaultValueTestClass
 {
@@ -56,6 +64,8 @@ public partial class DefaultValueTestClass
     [Key(14)]
     public byte[]? o = default;
 
+    [Key(15)]
+    public TestEnum p { get; set; } = TestEnum.C;
 }
 
 [TinyhandObject(AddImmutable = true)]

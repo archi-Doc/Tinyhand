@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlTypes;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -585,8 +586,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
         //
         if (this.KeyAttribute is not null &&
-            this.TypeObject is not null &&
-            VisceralDefaultValue.IsDefaultableType(this.TypeObject.FullName))
+            this.TypeObject is not null)
         {//
             if (this.GetDefaultValue(this.symbol) is { } defaultValue)
             {
@@ -616,13 +616,107 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 _ => default,
             };
 
-            if (equalsSyntax is not null)
+            if (equalsSyntax is null)
             {
-                var model = this.Body.Compilation.GetSemanticModel(syntaxTree);
-                // var cv = model.GetConstantValue(equalsSyntax.Value);
-                var cv = equalsSyntax.Value.ToString();
+                return default;
+            }
 
-                return cv.ToString();
+            var rawValue = equalsSyntax.Value.ToString();
+            if (rawValue == "null" ||
+                rawValue == "null!" ||
+                rawValue == "default" ||
+                rawValue == "default!" ||
+                rawValue == "[]")
+            {// Primary constants
+                return rawValue;
+            }
+            else if (rawValue == "true" ||
+                rawValue == "false" ||
+                rawValue == string.Empty ||
+                rawValue == "string.Empty" ||
+                rawValue == "\"\"" ||
+                rawValue == "new()" ||
+                rawValue.StartsWith("new "))
+            {// Not default value
+                return default;
+            }
+
+            // Enum
+            if (symbol is IPropertySymbol ps && ps.Type.TypeKind == TypeKind.Enum)
+            {
+                return rawValue;
+            }
+            else if (symbol is IFieldSymbol fs && fs.Type.TypeKind == TypeKind.Enum)
+            {
+                return rawValue;
+            }
+
+            // var cv = equalsSyntax.Value.ToString();
+            var model = this.Body.Compilation.GetSemanticModel(syntaxTree);
+            var constantValue = model.GetConstantValue(equalsSyntax.Value);
+            if (constantValue.Value is not { } valueObject)
+            {
+                return default;
+            }
+
+            if (valueObject is float f)
+            {
+                return FloatToDefaultString(f);
+            }
+            else if (valueObject is double d)
+            {
+                return DoubleToDefaultString(d);
+            }
+            else
+            {
+                return valueObject.ToString();
+            }
+
+            /*return valueObject switch
+            {
+                float f => FloatToDefaultString(f),
+                double d => DoubleToDefaultString(d),
+                _ => valueObject.ToString(),
+            };*/
+
+            static string FloatToDefaultString(float f)
+            {
+                if (float.IsNaN(f))
+                {
+                    return "float.NaN";
+                }
+                else if (float.IsPositiveInfinity(f))
+                {
+                    return "float.PositiveInfinity";
+                }
+                else if (float.IsNegativeInfinity(f))
+                {
+                    return "float.NegativeInfinity";
+                }
+                else
+                {
+                    return f.ToString(CultureInfo.InvariantCulture) + "f";
+                }
+            }
+
+            static string DoubleToDefaultString(double d)
+            {
+                if (double.IsNaN(d))
+                {
+                    return "double.NaN";
+                }
+                else if (double.IsPositiveInfinity(d))
+                {
+                    return "double.PositiveInfinity";
+                }
+                else if (double.IsNegativeInfinity(d))
+                {
+                    return "double.NegativeInfinity";
+                }
+                else
+                {
+                    return d.ToString(CultureInfo.InvariantCulture) + "d";
+                }
             }
         }
 
