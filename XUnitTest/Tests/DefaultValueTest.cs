@@ -146,7 +146,7 @@ public partial struct DefaultTestStructDouble : ITinyhandDefault
     }
 
     public bool CanSkipSerialization()
-        => false;
+        => this.Double == 1.23d;
 
     [Key(1)]
     public double Double { get; private set; }

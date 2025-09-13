@@ -24,7 +24,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string SetMembersMethod = "SetMembers";
     public static readonly string Namespace = "Tinyhand";
     public static readonly string ITinyhandDefault = "ITinyhandDefault";
-    public static readonly string SetDefaultValueMethod = "SetDefaultValue";
+    // public static readonly string SetDefaultValueMethod = "SetDefaultValue";
     public static readonly string CanSkipSerializationMethod = "CanSkipSerialization";
     public static readonly string LockObject = "__lockObject__";
     public static readonly string LockTaken = "__lockTaken__";

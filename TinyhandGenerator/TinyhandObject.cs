@@ -166,7 +166,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public MethodCondition MethodCondition_CanSkipSerialization { get; private set; }
 
-    public MethodCondition MethodCondition_SetDefaultValue { get; private set; }
+    // public MethodCondition MethodCondition_SetDefaultValue { get; private set; }
 
     public MethodCondition MethodCondition_Clone { get; private set; }
 
@@ -858,14 +858,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.MethodCondition_CanSkipSerialization = MethodCondition.Declared;
             }
 
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{this.DefaultInterface.FullName}.{TinyhandBody.SetDefaultValueMethod}"))
+            /*if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{this.DefaultInterface.FullName}.{TinyhandBody.SetDefaultValueMethod}"))
             {
                 this.MethodCondition_SetDefaultValue = MethodCondition.ExplicitlyDeclared;
             }
             else
             {
                 this.MethodCondition_SetDefaultValue = MethodCondition.Declared;
-            }
+            }*/
         }
 
         // Method condition (IStructualObject)
@@ -2715,7 +2715,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, TinyhandObject x)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
-        if (x.DefaultValue != null)
+        /*if (x.DefaultValue != null)
         {
             if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
             {
@@ -2725,7 +2725,7 @@ ModuleInitializerClass_Added:
             {
                 ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})vd).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(x.DefaultValue)});");
             }
-        }
+        }*/
 
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
@@ -2764,7 +2764,7 @@ ModuleInitializerClass_Added:
 
         ssb.AppendLine($"TinyhandSerializer.ReconstructObject(ref v2, options);");
 
-        if (defaultValue != null)
+        /*if (defaultValue != null)
         {
             if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
             {
@@ -2774,7 +2774,7 @@ ModuleInitializerClass_Added:
             {
                 ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})v2).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
             }
-        }
+        }*/
 
         ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
