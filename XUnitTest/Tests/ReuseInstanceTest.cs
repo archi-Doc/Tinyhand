@@ -25,10 +25,10 @@ public partial class ReuseInstanceClass
     [Reuse(false)]
     public ReuseClass ReuseClassFalse { get; set; } = new();
 
-    public ReuseStruct ReuseStruct { get; set; } = new();
+    public ReuseStruct ReuseStruct = new();
 
     [Reuse(false)]
-    public ReuseStruct ReuseStructFalse { get; set; } = new();
+    public ReuseStruct ReuseStructFalse = new();
 }
 
 [TinyhandObject]
@@ -73,6 +73,11 @@ public class ReuseInstanceTest
     public void Test1()
     {
         var t = TinyhandSerializer.Reconstruct<ReuseInstanceClass>();
+        t.ReuseClass.Flag = true;
+        t.ReuseClassFalse.Flag = false;
+        t.ReuseStruct.Flag = true;
+        t.ReuseStructFalse.Flag = false;
+
         t.ReuseClass.Flag.Is(true);
         t.ReuseClassFalse.Flag.Is(false);
         t.ReuseStruct.Flag.Is(true);
@@ -106,6 +111,11 @@ public class ReuseInstanceTest
     public void Test2()
     {
         var t = TinyhandSerializer.Reconstruct<ReuseInstanceClass>();
+        t.ReuseClass.Flag = true;
+        t.ReuseClassFalse.Flag = false;
+        t.ReuseStruct.Flag = true;
+        t.ReuseStructFalse.Flag = false;
+
         t.ReuseClass.Flag.Is(true);
         t.ReuseClassFalse.Flag.Is(false);
         t.ReuseStruct.Flag.Is(true);
