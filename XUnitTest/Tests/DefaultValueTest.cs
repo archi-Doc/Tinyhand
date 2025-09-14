@@ -134,22 +134,21 @@ public partial struct DefaultTestStruct
     public int Int { get; set; } = 123;
 
     [DefaultValue(1.23d)]
-    public DefaultTestStructDouble DoubleStruct { get; set; } = new(1.23d);
+    public DefaultTestStructDouble DoubleStruct { get; set; }
 }
 
 [TinyhandObject]
 public partial struct DefaultTestStructDouble : ITinyhandDefault
 {
-    public DefaultTestStructDouble(double d)
+    public DefaultTestStructDouble()
     {
-        this.Double = d;
     }
 
     public bool CanSkipSerialization()
         => this.Double == 1.23d;
 
     [Key(1)]
-    public double Double { get; private set; }
+    public double Double { get; private set; } = 1.23d;
 
     [Key(0)]
     public EmptyClass EmptyClass { get; set; }

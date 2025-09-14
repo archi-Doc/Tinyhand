@@ -94,6 +94,9 @@ public partial class DefaultValueTestClass
 
     [Key(16)]
     public DefaultTestStructDouble DoubleStruct { get; set; } = new(1.23d);
+
+    [Key(17)]
+    public byte[]? AddedBytes { get; set; } = null;
 }
 
 [TinyhandObject(AddImmutable = true)]

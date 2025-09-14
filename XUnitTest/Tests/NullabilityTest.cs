@@ -12,7 +12,7 @@ public partial class NullableTestClass
 
     public int? NullableInt { get; set; } = default!; // null
 
-    public string String { get; set; } = default!; // If this value is null, Tinyhand will automatically change the value to string.Empty.
+    public string String { get; set; } = string.Empty;
 
     public string? NullableString { get; set; } = default!; // This is nullable type, so the value remains null.
 

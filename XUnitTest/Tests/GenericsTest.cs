@@ -28,7 +28,7 @@ public partial class GenericsTestClass<T>
     public partial class GenericsNestedClass2
     {
         [Key(0)]
-        public string String { get; set; } = default!; // 12
+        public string String { get; set; } = string.Empty; // 12
     }
 
     public GenericsNestedClass<double> NestedClass { get; set; } = default!;

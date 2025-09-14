@@ -627,10 +627,29 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             if (rawValue == "null" ||
                 rawValue == "null!" ||
                 rawValue == "default" ||
-                rawValue == "default!" ||
-                rawValue == "[]")
+                rawValue == "default!")
             {// Primary constants
-                if (typeObject.ObjectAttribute is not null)
+                if (typeObject.Kind == VisceralObjectKind.Class)
+                {
+                    return rawValue;
+                }
+                else
+                {
+                    return default;
+                }
+
+                /*if (typeObject.ObjectAttribute is not null)
+                {
+                    return rawValue;
+                }
+                else
+                {
+                    return default;
+                }*/
+            }
+            else if (rawValue == "[]")
+            {
+                if (typeObject.Array_Rank > 0)
                 {
                     return rawValue;
                 }
@@ -4330,7 +4349,7 @@ ModuleInitializerClass_Added:
         {
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
-            {// Default
+            {
                 using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
                 {
                     assignment.Start();
@@ -4556,7 +4575,8 @@ ModuleInitializerClass_Added:
         {
             if (x.DefaultValue is not null)
             {
-                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject} == {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)})"))
+                var qeualExpression = x.DefaultValue == "[]" ? ".SequenceEqual([])" : $" == {x.DefaultValue}";
+                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject}{qeualExpression})"))
                 {
                     ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");
                 }
