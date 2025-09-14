@@ -28,25 +28,27 @@ public partial class ObjectH2H
     public ObjectH2H()
     {
         this.B = Enumerable.Range(0, ArrayN).ToArray();
+        this.Y = 100;
+        this.Z = 10000;
     }
 
     [ProtoMember(1)]
     [MessagePack.Key(0)]
     [MemoryPackOrder(0)]
     [Key(0)]
-    public int X { get; set; } = 0;
+    public int X { get; set; }
 
     [ProtoMember(2)]
     [MessagePack.Key(1)]
     [MemoryPackOrder(1)]
     [Key(1)]
-    public int Y { get; set; } = 100;
+    public int Y { get; set; }
 
     [ProtoMember(3)]
     [MessagePack.Key(2)]
     [MemoryPackOrder(2)]
     [Key(2)]
-    public int Z { get; set; } = 10000;
+    public int Z { get; set; }
 
     [ProtoMember(4)]
     [MessagePack.Key(3)]
@@ -58,7 +60,7 @@ public partial class ObjectH2H
     [MessagePack.Key(8)]
     [MemoryPackOrder(8)]
     [Key(8)]
-    public int[] B { get; set; } = new int[0];
+    public int[] B { get; set; } = [];
 }
 
 [MessagePack.MessagePackObject(true)]
@@ -80,7 +82,7 @@ public partial class ObjectH2H2
 
     public string A { get; set; } = "H2Htest";
 
-    public int[] B { get; set; } = new int[0];
+    public int[] B { get; set; } = [];
 }
 
 [Config(typeof(BenchmarkConfig))]

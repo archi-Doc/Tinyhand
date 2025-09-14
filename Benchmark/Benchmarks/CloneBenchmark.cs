@@ -19,7 +19,7 @@ public partial class CloneTestClass
     public int[] Array { get; set; } = default!;
 
     [Key(3)]
-    public List<int> List { get; set; } = default!;
+    public List<int> List { get; set; } = [];
 
     public CloneTestClass()
     {
