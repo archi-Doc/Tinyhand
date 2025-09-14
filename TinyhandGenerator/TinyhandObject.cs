@@ -4567,8 +4567,9 @@ ModuleInitializerClass_Added:
         {
             if (x.DefaultValue is not null)
             {
-                var qeualExpression = x.DefaultValue == "[]" ? ".SequenceEqual([])" : $" == {x.DefaultValue}";
-                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject}{qeualExpression})"))
+                // var equalExpression = x.DefaultValue == "[]" ? ".SequenceEqual([])" : $" == {x.DefaultValue}";
+                var equalExpression = x.DefaultValue == "[]" ? ".Length == 0" : $" == {x.DefaultValue}";
+                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject}{equalExpression})"))
                 {
                     ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");
                 }
