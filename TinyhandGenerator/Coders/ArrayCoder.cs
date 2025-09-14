@@ -91,7 +91,7 @@ public class ArrayCoder : ITinyhandCoder
             {
                 using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
                 {
-                    ssb.AppendLine($"{ssb.FullObject} = global::System.Array.Empty<{this.element.FullNameWithNullable}>();");
+                    ssb.AppendLine($"{ssb.FullObject} = [];");
                 }
 
                 using (var b = ssb.ScopeBrace($"else"))
@@ -108,13 +108,13 @@ public class ArrayCoder : ITinyhandCoder
 
         void CodeDeserializerNonNullable()
         {
-            ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options) ?? global::System.Array.Empty<{this.element.FullNameWithNullable}>();");
+            ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options) ?? [];");
         }
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::System.Array.Empty<{this.element.FullName}>();");
+        ssb.AppendLine($"{ssb.FullObject} = [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -260,7 +260,7 @@ public class GenericArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::System.Array.Empty<{this.element.FullName}>();");
+        ssb.AppendLine($"{ssb.FullObject} = [];");
     }
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)

@@ -3811,7 +3811,7 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"return (({TinyhandBody.IStructualObject}){ssb.FullObject}).ProcessJournalRecord(ref reader);");
             }*/
 
-            assignment.Start();
+            assignment.Start(false);
 
             var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
             if (coder != null)
@@ -4102,7 +4102,7 @@ ModuleInitializerClass_Added:
             var exclude = x.KeyAttribute?.Exclude == true ? "!options.IsExcludeMode && " : string.Empty;
             using (var valid = ssb.ScopeBrace($"if ({exclude}numberOfData-- > 0 && !reader.TryReadNil())"))
             {
-                assignment.Start();
+                assignment.Start(false);
 
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
@@ -4146,7 +4146,7 @@ ModuleInitializerClass_Added:
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    assignment.Start();
+                    assignment.Start(false);
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                     assignment.End();
                 }
@@ -4155,7 +4155,7 @@ ModuleInitializerClass_Added:
             {
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    assignment.Start();
+                    assignment.Start(true, false);
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -4193,7 +4193,7 @@ ModuleInitializerClass_Added:
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
             using (var valid = ssb.ScopeBrace($"if (!reader.TryReadNil())"))
             {
-                assignment.Start();
+                assignment.Start(false);
 
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
@@ -4237,7 +4237,7 @@ ModuleInitializerClass_Added:
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    assignment.Start();
+                    assignment.Start(false);
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                     assignment.End();
                 }
@@ -4246,7 +4246,7 @@ ModuleInitializerClass_Added:
             {
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    assignment.Start();
+                    assignment.Start(true, false);
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -4285,7 +4285,7 @@ ModuleInitializerClass_Added:
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
             {// Default
-                assignment.Start(true);
+                assignment.Start(false, true);
                 ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                 assignment.End();
                 return;
@@ -4303,7 +4303,7 @@ ModuleInitializerClass_Added:
             {// TinyhandObject. For the purpose of default value and instance reuse.
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
-                    assignment.Start();
+                    assignment.Start(true);
                     withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     assignment.End();
                 }
@@ -4312,7 +4312,7 @@ ModuleInitializerClass_Added:
             {// Coder
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
-                    assignment.Start();
+                    assignment.Start(true);
                     coder.CodeReconstruct(ssb, info);
                     assignment.End();
                 }
@@ -4344,7 +4344,7 @@ ModuleInitializerClass_Added:
             {
                 using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
                 {
-                    assignment.Start();
+                    assignment.Start(false);
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                     assignment.End();
                 }
@@ -4357,7 +4357,7 @@ ModuleInitializerClass_Added:
 
             using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
             {
-                assignment.Start();
+                assignment.Start(true);
 
                 if (x.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated || x.ReconstructState == ReconstructState.Do)
                 {// T
@@ -4395,13 +4395,13 @@ ModuleInitializerClass_Added:
             if (withNullable.Object.ObjectAttribute != null &&
                 withNullable.Object.ObjectAttribute.UseResolver == false)
             {// TinyhandObject.
-                assignment.Start(true);
+                assignment.Start(false, true);
                 ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject({sourceObject}, options)!;");
                 assignment.End(true);
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
             {// Coder
-                assignment.Start(true);
+                assignment.Start(true, true);
                 coder.CodeClone(ssb, info, sourceObject);
                 assignment.End(true);
             }
@@ -4412,7 +4412,7 @@ ModuleInitializerClass_Added:
                     this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                 }
 
-                assignment.Start(true);
+                assignment.Start(false, true);
                 ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
                 assignment.End(true);
             }

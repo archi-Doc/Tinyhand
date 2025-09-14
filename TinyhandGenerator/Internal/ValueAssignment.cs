@@ -25,7 +25,7 @@ internal ref struct ValueAssignment
         this.@object = @object;
     }
 
-    public void Start(bool brace = false)
+    public void Start(bool requiresValueReference, bool brace = false)
     {
         var withNullable = this.@object?.TypeObjectWithNullable;
         if (this.ssb is null || this.info is null || this.parent is null || this.@object is null || withNullable is null)
@@ -42,7 +42,8 @@ internal ref struct ValueAssignment
 
             this.temporaryValue = this.ssb.ScopeFullObject("vd");
 
-            if (withNullable.Object.Kind == VisceralObjectKind.Class)
+            if (requiresValueReference &&
+                withNullable.Object.Kind == VisceralObjectKind.Class)
             {// Special handling for specific types is undesirable, but...
                 if (this.@object.RefFieldDelegate is not null || this.@object.GetterDelegate is not null)
                 {// Ref field or getter delegate
@@ -56,7 +57,7 @@ internal ref struct ValueAssignment
             }
             else
             {
-                this.ssb.AppendLine(withNullable.FullNameWithNullable + " vd;"); // vd = default!
+                this.ssb.AppendLine(withNullable.FullNameWithNullable + " vd;");
             }
         }
     }
