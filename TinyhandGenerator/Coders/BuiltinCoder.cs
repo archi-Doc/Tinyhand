@@ -246,7 +246,7 @@ public sealed class StringCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = string.Empty;");
+        ssb.AppendLine($"{ssb.FullObject} ??= string.Empty;");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -277,7 +277,7 @@ public sealed class NullableStringCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = string.Empty;");
+        ssb.AppendLine($"{ssb.FullObject} ??= string.Empty;");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)

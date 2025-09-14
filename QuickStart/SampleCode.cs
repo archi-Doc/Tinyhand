@@ -24,7 +24,6 @@ public partial class InternalTestClass
         this.PrivateInt = 0;
         this.InternalInt = 0;
     }
-
 }
 
 [TinyhandObject]
@@ -379,9 +378,9 @@ public static class DeepCopyTest
 [TinyhandObject]
 public partial record MaxLengthClass
 {
-    [Key(0, AddProperty = "Name")] // "Name" property will be created.
+    [Key(0)] // "Name" property will be created.
     [MaxLength(3)] // The maximum length of Name property.
-    private string name = default!;
+    public partial string Name { get; set; } = string.Empty;
 
     [Key(1, AddProperty = "Ids")]
     [MaxLength(2)]
@@ -412,7 +411,7 @@ public static class MaxLengthTest
         Console.WriteLine();
 
         var st = TinyhandSerializer.SerializeToString(c);
-        st = """ "ABCD", {0, 1, 2, 3}, {"aaa", "bbbb", "cccc"} """;
+        st = "\"ABCD\", {0, 1, 2, 3}, {\"aaa\", \"bbbb\", \"cccc\"}";
         var c2 = TinyhandSerializer.DeserializeFromString<MaxLengthClass>(st);
 
         Console.WriteLine(c2!.ToString());

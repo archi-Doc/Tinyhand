@@ -103,14 +103,17 @@ public partial class DefaultTestClassName : ITinyhandDefault
 {
     public DefaultTestClassName()
     {
-        //his.Name = "Test";
+        this.Name2 = "Test2";
     }
 
     public bool CanSkipSerialization()
-        => this.Name == "Test";
+        => this.Name == "Test" && this.Name2 == "Test2";
 
     [Key(0)]
     public string Name { get; private set; } = "Test";
+
+    [Key(1)]
+    public string Name2 { get; private set; }
 }
 
 public enum DefaultTestEnum
@@ -180,6 +183,7 @@ public partial class DefaultValueTest
         Assert.Equal("test2", t2.String2);
         Assert.Equal<DefaultTestEnum>(DefaultTestEnum.B, t2.Enum);
         Assert.Equal("Test", t2.NameClass.Name);
+        Assert.Equal("Test2", t2.NameClass.Name2);
 
         var t3 = TinyhandSerializer.Reconstruct<DefaultTestClass>();
         t3.IsStructuralEqual(t2);

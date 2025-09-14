@@ -41,7 +41,23 @@ internal ref struct ValueAssignment
             }
 
             this.temporaryValue = this.ssb.ScopeFullObject("vd");
-            this.ssb.AppendLine(withNullable.FullNameWithNullable + " vd;"); // vd = default!
+
+            if (withNullable.FullName == "string")
+            {// Special handling for specific types is undesirable, but...
+                if (this.@object.RefFieldDelegate is not null || this.@object.GetterDelegate is not null)
+                {// Ref field or getter delegate
+                    var prefix = this.info.GeneratingStaticMethod ? (this.parent + ".") : string.Empty;
+                    this.ssb.AppendLine($"var vd = {prefix}{this.@object.RefFieldOrGetterDelegate}({this.parent.InIfStruct}{this.destObject});");
+                }
+                else
+                {
+                    this.ssb.AppendLine($"var vd = {this.parent.GetSourceName(this.destObject, this.@object)};"); // vd = v.Object;
+                }
+            }
+            else
+            {
+                this.ssb.AppendLine(withNullable.FullNameWithNullable + " vd;"); // vd = default!
+            }
         }
     }
 
