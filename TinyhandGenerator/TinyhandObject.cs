@@ -4148,7 +4148,8 @@ ModuleInitializerClass_Added:
                 assignment.End();
             }
 
-            if (x.IsDefaultable)
+            // AbandonReconstructCode
+            /*if (x.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
@@ -4177,7 +4178,7 @@ ModuleInitializerClass_Added:
 
                     assignment.End();
                 }
-            }
+            }*/
 
             this.GenerateJournal_SetParent(ssb, x, destObject, ref count);
         }
@@ -4239,7 +4240,8 @@ ModuleInitializerClass_Added:
                 assignment.End();
             }
 
-            if (x.IsDefaultable)
+            // AbandonReconstructCode
+            /*if (x.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
@@ -4268,7 +4270,7 @@ ModuleInitializerClass_Added:
 
                     assignment.End();
                 }
-            }
+            }*/
 
             // this.GenerateJournal_SetParent(ssb, "this");
         }

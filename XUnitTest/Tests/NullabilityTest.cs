@@ -16,11 +16,11 @@ public partial class NullableTestClass
 
     public string? NullableString { get; set; } = default!; // This is nullable type, so the value remains null.
 
-    public NullableSimpleClass SimpleClass { get; set; } = default!; // new SimpleClass()
+    public NullableSimpleClass SimpleClass { get; set; } = new(); // new SimpleClass()
 
     public NullableSimpleClass? NullableSimpleClass { get; set; } = default!; // null
 
-    public NullableSimpleClass[] Array { get; set; } = default!; // new NullableSimpleClass[0]
+    public NullableSimpleClass[] Array { get; set; } = []; // new NullableSimpleClass[0]
 
     public NullableSimpleClass[]? NullableArray { get; set; } = default!; // null
 
