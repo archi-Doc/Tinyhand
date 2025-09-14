@@ -530,14 +530,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
                 }
             }
-            /*else if (x.FullName == typeof(DefaultValueAttribute).FullName)
-            {// DefaultValueAttribute
-                this.DefaultValueLocation = x.Location;
-                if (x.ConstructorArguments.Length > 0)
-                {
-                    this.DefaultValue = x.ConstructorArguments[0] ?? "null";
-                }
-            }*/
             else if (x.FullName == MaxLengthAttributeMock.FullName)
             {// MaxLengthAttribute
                 try

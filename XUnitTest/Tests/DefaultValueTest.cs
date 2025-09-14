@@ -59,8 +59,8 @@ public partial class DefaultTestClass
     [DefaultValue(DefaultTestEnum.B)]
     public DefaultTestEnum Enum = DefaultTestEnum.B;
 
-    //[DefaultValue("Test")]
-    // public DefaultTestClassName NameClass { get; set; }
+    [DefaultValue("Test")]
+    public DefaultTestClassName NameClass { get; set; }
 
     [DefaultValue(null)]
     public byte[]? ByteArray { get; set; } = null;
@@ -101,16 +101,16 @@ public partial class DefaultTestClassSkip2
 [TinyhandObject]
 public partial class DefaultTestClassName : ITinyhandDefault
 {
-    public DefaultTestClassName(string name)
+    public DefaultTestClassName()
     {
-        this.Name = name;
+        //his.Name = "Test";
     }
 
     public bool CanSkipSerialization()
-        => false;
+        => this.Name == "Test";
 
     [Key(0)]
-    public string Name { get; private set; }
+    public string Name { get; private set; } = "Test";
 }
 
 public enum DefaultTestEnum
@@ -160,7 +160,8 @@ public partial class DefaultValueTest
     public void TestClass()
     {
         var t = new Empty2();
-        var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
+        var b = TinyhandSerializer.Serialize(t);
+        var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(b);
 
         // t2.Bool.IsTrue();
         Assert.Equal<sbyte>(11, t2.SByte);
@@ -178,7 +179,7 @@ public partial class DefaultValueTest
         Assert.Equal("test", t2.String);
         Assert.Equal("test2", t2.String2);
         Assert.Equal<DefaultTestEnum>(DefaultTestEnum.B, t2.Enum);
-        //Assert.Equal("Test", t2.NameClass.Name);
+        Assert.Equal("Test", t2.NameClass.Name);
 
         var t3 = TinyhandSerializer.Reconstruct<DefaultTestClass>();
         t3.IsStructuralEqual(t2);

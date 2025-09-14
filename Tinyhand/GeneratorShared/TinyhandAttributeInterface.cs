@@ -425,12 +425,6 @@ public interface ITinyhandCloneable<T>
 /// </summary>
 public interface ITinyhandDefault
 {
-    /* /// <summary>
-    /// Sets the default value (<see cref="DefaultValueAttribute"/>).
-    /// </summary>
-    /// <param name="defaultValue">The default value.</param>
-    void SetDefaultValue(TDefault defaultValue);*/
-
     /// <summary>
     /// Determines if serialization of this object can be omitted.
     /// </summary>
