@@ -11,58 +11,38 @@ namespace Tinyhand.Tests;
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class DefaultTestClass
 {
-    // [DefaultValue(true)]
-    // public bool Bool { get; set; }
-
-    [DefaultValue(11)]
     public sbyte SByte { get; set; } = 11;
 
-    [DefaultValue(22)] // [DefaultValue((sbyte)22)] disabled because of SA1139 analyzer crash
     public byte Byte { get; set; } = 22;
 
-    [DefaultValue(33)] // [DefaultValue((ulong)33)]
     public short Short { get; set; } = 33;
 
-    [DefaultValue(44)]
     public ushort UShort { get; set; } = 44;
 
-    [DefaultValue(55)]
     public int Int { get; set; } = 55;
 
-    [DefaultValue(66)]
     public uint UInt { get; set; } = 66;
 
-    [DefaultValue(77)]
     public long Long { get; init; } = 77;
 
-    [DefaultValue(88)]
     public partial ulong ULong { get; init; } = 88;
 
-    [DefaultValue(1.23d)]
     public float Float { get; set; } = 1.23f;
 
-    [DefaultValue(456.789d)]
     public double Double { get; set; } = 456.789d;
 
-    [DefaultValue("2134.44")]
     public decimal Decimal { get; set; } = 2134.44m;
 
-    [DefaultValue('c')]
     public char Char { get; set; } = 'c';
 
-    [DefaultValue("test")]
     public string String { get; set; } = "test";
 
-    [DefaultValue("test2")]
     public partial string String2 { get; private set; } = "test2";
 
-    [DefaultValue(DefaultTestEnum.B)]
     public DefaultTestEnum Enum = DefaultTestEnum.B;
 
-    [DefaultValue("Test")]
     public DefaultTestClassName NameClass { get; set; }
 
-    [DefaultValue(null)]
     public byte[]? ByteArray { get; set; } = null;
 }
 
@@ -70,15 +50,12 @@ public partial class DefaultTestClass
 public partial class DefaultTestClassSkip
 {
     [Key(0)]
-    [DefaultValue("2134.44")]
     public decimal Decimal { get; set; } = 2134.44m;
 
     [Key(1)]
-    [DefaultValue(1234)]
     public int Int { get; set; } = 1234;
 
     [Key(2)]
-    [DefaultValue("test")]
     public string String { get; set; } = "test";
 }
 
@@ -86,15 +63,12 @@ public partial class DefaultTestClassSkip
 public partial class DefaultTestClassSkip2
 {
     [Key(0)]
-    [DefaultValue(1234)]
     public short Short { get; set; } = 1234;
 
     [Key(1)]
-    [DefaultValue("test")]
     public string String { get; set; } = "test";
 
     [Key(2)]
-    [DefaultValue(456.789d)]
     public double Double { get; set; } = 456.789d;
 }
 
@@ -130,13 +104,8 @@ public partial struct DefaultTestStruct
     {
     }
 
-    // [DefaultValue(true)]
-    // public bool Bool { get; set; }
-
-    [DefaultValue(123)]
     public int Int { get; set; } = 123;
 
-    [DefaultValue(1.23d)]
     public DefaultTestStructDouble DoubleStruct { get; set; }
 }
 
@@ -242,11 +211,9 @@ public partial class DefaultValueTest
         public byte[] Signature = Array.Empty<byte>();
 
         [Key(3)]
-        [DefaultValue(-10)]
         public long AddedMember { get; set; } = -10;
 
         [Key(4)]
-        [DefaultValue(null)]
         public byte[]? AddedBytes { get; set; } = null;
     }
 

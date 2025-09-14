@@ -153,10 +153,8 @@ public class NullableTest
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class DefaultTestClass
 {
-    [DefaultValue(77)]
     public int Int { get; set; } = 77;
 
-    [DefaultValue("test")]
     public string String { get; set; } = "test";
 }
 
@@ -304,7 +302,6 @@ public partial class VersioningClass2
     public int Id { get; set; }
 
     [Key(1)]
-    [DefaultValue("John")]
     public string Name { get; set; } = "John";
 
     public override string ToString() => $"  Version 2, ID: {this.Id} Name: {this.Name}";

@@ -8,7 +8,6 @@ namespace Tinyhand.Tests;
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class ReconstructTestClass
 {
-    [DefaultValue(12)]
     public int Int { get; set; } = 12; // 12
 
     public EmptyClass EmptyClass { get; set; } // new()

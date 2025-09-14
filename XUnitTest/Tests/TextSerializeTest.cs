@@ -19,26 +19,19 @@ public partial record TextSerializeClass1
     [Key(" st d ")]
     public IDictionary<string, double> IDictionaryStringDouble { get; set; } = default!;
 
-    // [Key("double")]
-    // [DefaultValue(true)]
-    // public bool Bool { get; set; }
-
     public byte Byte { get; set; }
 
     [Key("2")]
-    [DefaultValue(77)]
     public int Int { get; set; } = 77;
 
     public MyClass MyClass0 { get; set; } = default!;
 
     [Key("St{")]
-    [DefaultValue("test\"\"\"e")]
     public string String { get; set; } = "test\"\"\"e";
 
     [Key("3 2")]
     public float Float { get; set; }
 
-    [DefaultValue(1d)]
     public double Double { get; set; } = 1d;
 
     public DateTime Date { get; set; } = DateTime.UtcNow;
@@ -47,10 +40,8 @@ public partial record TextSerializeClass1
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class TextSerializeClass2
 {
-    [DefaultValue(11)]
     public int Int { get; set; } = 11;
 
-    [DefaultValue("Test")]
     public string String { get; set; } = "Test";
 
     public int[] Array { get; set; }
@@ -59,16 +50,12 @@ public partial class TextSerializeClass2
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class TextSerializeClass3
 {
-    [DefaultValue(1.0d)]
     public double Double1 { get; set; } = 1.0d;
 
-    [DefaultValue(double.NaN)]
     public double DoubleNaN { get; set; } = double.NaN;
 
-    [DefaultValue(double.PositiveInfinity)]
     public double DoublePositiveInfinity { get; set; } = double.PositiveInfinity;
 
-    [DefaultValue(double.NegativeInfinity)]
     public double DoubleNegativeInfinity { get; set; } = double.NegativeInfinity;
 }
 

@@ -148,7 +148,6 @@ public partial class PartialImplementationClass
 
     [Key(0)]
     [MaxLength(100)]
-    [DefaultValue("Test2")]
     public partial string Name { get; set; } = "Test" + "2";
 
     [Key(1)]

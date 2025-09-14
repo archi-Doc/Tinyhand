@@ -17,7 +17,6 @@ public partial record MyClass // partial class is required for source generator.
     public string FirstName { get; set; } = string.Empty;
 
     [Key(2)]
-    [DefaultValue("Doe")]
     public string LastName { get; set; } = "Doe"; // Initial value is used when creating a new instance or deserializing if the value is missing.
 
     // All fields or properties that should not be serialized must be annotated with [IgnoreMember].

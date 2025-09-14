@@ -9,14 +9,11 @@ namespace Tinyhand.Tests;
 public partial class SerializationTargetClass1
 {
     [Key(0)]
-    [DefaultValue(1)]
     public int A = 1; // Serialize
 
     [IgnoreMember]
-    [DefaultValue(1)]
     public int B = 1; // Not
 
-    [DefaultValue(1)]
     private int C = 1; // Not
 
     public void Test(SerializationTargetClass1 target)
@@ -31,18 +28,14 @@ public partial class SerializationTargetClass1
 public partial class SerializationTargetClass2
 {
     [Key("A")]
-    [DefaultValue(1)]
     public int A = 1; // Serialize
 
     [IgnoreMember]
-    [DefaultValue(1)]
     public int B = 1; // Not
 
-    [DefaultValue(1)]
     private int C; // Not
 
     [KeyAsName]
-    [DefaultValue(1)]
     public int D = 1; // Serialize
 
     public void Test(SerializationTargetClass2 target)
@@ -62,7 +55,6 @@ public partial class SerializationGenericClass<T>
     public partial class TestClass
     {
         [Key(0)]
-        [DefaultValue(1)]
         public int A = 1; // Serialize
 
         public SerializationGenericClass<T> Parent { get; set; }
@@ -73,23 +65,17 @@ public partial class SerializationGenericClass<T>
 public partial class SerializationTargetClass3
 {
     [Key(0)]
-    [DefaultValue(1)]
     public int A = 1; // Serialize
 
-    [DefaultValue(1)]
     public int B = 1; // Not
 
-    [DefaultValue(1)]
     private int C = 1; // Not
 
     [Key(1)]
-    [DefaultValue(1)]
     private int D = 1; // Serialize
 
-    [DefaultValue(1)]
     public int E { get; set; } = 1;
 
-    [DefaultValue(1)]
     public int F { get; private set; } = 1;
 
     public void Test(SerializationTargetClass3 target)
@@ -107,17 +93,13 @@ public partial class SerializationTargetClass3
 public partial class SerializationTargetClass4
 {
     [Key("A")]
-    [DefaultValue(1)]
     public int A = 1; // Serialize
 
-    [DefaultValue(1)]
     public int B = 1; // Serialize
 
     [KeyAsName]
-    [DefaultValue(1)]
     private int C = 1; // Serialize
 
-    [DefaultValue(1)]
     private int D = 1; // Not
 
     public void Test(SerializationTargetClass4 target)
