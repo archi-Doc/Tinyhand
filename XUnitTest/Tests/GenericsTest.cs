@@ -8,8 +8,7 @@ namespace Tinyhand.Tests;
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class GenericsTestClass<T>
 {
-    [DefaultValue(12)]
-    public int Int { get; set; } // 12
+    public int Int { get; set; } = 12; // 12
 
     public T TValue { get; set; } = default!;
 
@@ -17,8 +16,7 @@ public partial class GenericsTestClass<T>
     public partial class GenericsNestedClass<U>
     {
         [Key(0)]
-        [DefaultValue("TH")]
-        public string String { get; set; } = default!; // 12
+        public string String { get; set; } = "TH"; // 12
 
         [Key(1)]
         public U UValue { get; set; } = default!;
@@ -28,7 +26,7 @@ public partial class GenericsTestClass<T>
     public partial class GenericsNestedClass2
     {
         [Key(0)]
-        public string String { get; set; } = default!; // 12
+        public string String { get; set; } = string.Empty; // 12
     }
 
     public GenericsNestedClass<double> NestedClass { get; set; } = default!;

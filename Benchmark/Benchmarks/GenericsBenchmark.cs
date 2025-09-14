@@ -47,9 +47,8 @@ public partial class NormalIntClass
     public int X { get; set; }
 
     [Key(1)]
-    [DefaultValue(22)]
     [MessagePack.Key(1)]
-    public int Y { get; set; }
+    public int Y { get; set; } = 22;
 
     [Key(2)]
     [MessagePack.Key(2)]
@@ -168,8 +167,7 @@ public partial class NormalStringClass
 {
     public int X { get; set; }
 
-    [DefaultValue(32)]
-    public int Y { get; set; }
+    public int Y { get; set; } = 32;
 
     public int[] A { get; set; } = default!;
 

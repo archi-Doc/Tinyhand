@@ -8,9 +8,9 @@ namespace Tinyhand.Tests;
 [TinyhandObject(ExplicitKeyOnly = true)]
 public partial class MaxLengthClass
 {
-    [Key(0, AddProperty = "X")]
+    [Key(0)]
     // [MaxLength(3)]
-    private int _x;
+    public partial int X { get; set; }
 
     [Key(1, AddProperty = "Name")]
     [MaxLength(3)]
@@ -20,9 +20,9 @@ public partial class MaxLengthClass
     [MaxLength(3)]
     private int[] _ids = default!;
 
-    [Key(3, AddProperty = "StringArray")]
+    [Key(3)]
     [MaxLength(3, 4)]
-    private string[] _stringArray = default!;
+    public partial string[] StringArray { get; set; } = default!;
 
     [Key(4, AddProperty = "StringList")]
     [MaxLength(4, 3)]
@@ -38,9 +38,9 @@ public partial class MaxLengthClass
 [TinyhandObject(ExplicitKeyOnly = false)]
 public partial class MaxLengthClass2 : MaxLengthClass
 {
-    [Key(5, AddProperty = "Byte")]
+    [Key(5)]
     [MaxLength(4)]
-    private byte[] _byte = default!;
+    public partial byte[] Byte { get; set; } = default!;
 
     [Key(6, AddProperty = "ByteArray")]
     [MaxLength(2, 3)]

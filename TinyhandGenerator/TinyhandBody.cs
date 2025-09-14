@@ -24,7 +24,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string SetMembersMethod = "SetMembers";
     public static readonly string Namespace = "Tinyhand";
     public static readonly string ITinyhandDefault = "ITinyhandDefault";
-    public static readonly string SetDefaultValueMethod = "SetDefaultValue";
+    // public static readonly string SetDefaultValueMethod = "SetDefaultValue";
     public static readonly string CanSkipSerializationMethod = "CanSkipSerialization";
     public static readonly string LockObject = "__lockObject__";
     public static readonly string LockTaken = "__lockTaken__";
@@ -289,17 +289,21 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
 
     internal Dictionary<string, List<TinyhandObject>> Namespaces = new();
 
+    internal Compilation Compilation;
+
     internal IAssemblySymbol AssemblySymbol;
 
-    public TinyhandBody(GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
+    public TinyhandBody(Compilation compilation, GeneratorExecutionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
+        this.Compilation = compilation;
         this.AssemblySymbol = assemblySymbol;
     }
 
-    public TinyhandBody(SourceProductionContext context, IAssemblySymbol assemblySymbol)
+    public TinyhandBody(Compilation compilation, SourceProductionContext context, IAssemblySymbol assemblySymbol)
         : base(context)
     {
+        this.Compilation = compilation;
         this.AssemblySymbol = assemblySymbol;
     }
 

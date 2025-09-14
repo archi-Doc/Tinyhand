@@ -1,11 +1,106 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
 using CrystalData;
 using Tinyhand;
 using Tinyhand.IO;
 
 namespace Playground;
+
+public enum TestEnum
+{
+    A,
+    B,
+    C,
+    D,
+}
+
+[TinyhandObject(ImplicitKeyAsName = true)]
+public partial class DefaultValueTestClass2
+{
+    public int a = 0;
+
+    public short b = -1;
+
+    public DefaultValueTestClass Class1 = new(true);
+
+    public byte[] ByteArray = [];
+}
+
+[TinyhandObject]
+public partial struct DefaultTestStructDouble : ITinyhandDefault
+{
+    public DefaultTestStructDouble(double d)
+    {
+        this.Double = d;
+    }
+
+    public bool CanSkipSerialization()
+        => this.Double == 1.23d;
+
+    [Key(0)]
+    public double Double { get; private set; }
+}
+
+[TinyhandObject]
+public partial class DefaultValueTestClass
+{
+    public DefaultValueTestClass(bool invalidatePrimaryConstructor)
+    {
+    }
+
+    [Key(0)]
+    private int a = 0;
+
+    [Key(1)]
+    private short b = -1;
+
+    [Key(2)]
+    private long c = 1 + 2 + 3;
+
+    [Key(3)]
+    private float d = 0.1f;
+
+    [Key(4)]
+    public double e = 0.1 + 123d;
+
+    [Key(5)]
+    public double f = double.PositiveInfinity;
+
+    [Key(6)]
+    public uint g = default;
+
+    [Key(7)]
+    public uint h = default!;
+
+    [Key(8)]
+    public string i = string.Empty;
+
+    [Key(9)]
+    public string? j = null;
+
+    [Key(10)]
+    public string k = "Test";
+
+    [Key(11)]
+    public string l = "test\"\"\"e";
+
+    [Key(12)]
+    public byte[] m = [];
+
+    [Key(13)]
+    public byte[]? n = null;
+
+    [Key(14)]
+    public byte[]? o = default;
+
+    [Key(15)]
+    public TestEnum p { get; set; } = TestEnum.C;
+
+    [Key(16)]
+    public DefaultTestStructDouble DoubleStruct { get; set; } = new(1.23d);
+
+    [Key(17)]
+    public byte[]? AddedBytes { get; set; } = null;
+}
 
 [TinyhandObject(AddImmutable = true)]
 public partial class PartialImplementationClass
@@ -55,7 +150,8 @@ public partial class PartialImplementationClass
     }
 
     [Key(0)]
-    public string Name { get; set; } = "Test";
+    [MaxLength(100)]
+    public partial string Name { get; set; } = "Test" + "2";
 
     [Key(1)]
     public int Id { get; set; }
@@ -82,5 +178,7 @@ internal class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
+
+        var p = new DefaultValueTestClass(true);
     }
 }

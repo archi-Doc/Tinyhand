@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlTypes;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -114,15 +115,16 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public List<CallbackMethod>? CallbackMethods { get; private set; }
 
-    public object? DefaultValue { get; private set; }
+    public bool IsDefaultable => this.DefaultValue is not null &&
+        (this.TypeObject?.Kind == VisceralObjectKind.Struct || this.TypeObject?.FullName == "string");
 
-    public string? DefaultValueTypeName { get; private set; }
+    public string? DefaultValue { get; private set; }
 
-    public Location? DefaultValueLocation { get; private set; }
+    // public string? DefaultValueTypeName { get; private set; }
+
+    // public Location? DefaultValueLocation { get; private set; }
 
     public TinyhandObject? DefaultInterface { get; private set; }
-
-    public bool IsDefaultable { get; private set; }
 
     public bool SupportStructualObject => this.ObjectAttribute?.Structual == true || this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject);
 
@@ -164,7 +166,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public MethodCondition MethodCondition_CanSkipSerialization { get; private set; }
 
-    public MethodCondition MethodCondition_SetDefaultValue { get; private set; }
+    // public MethodCondition MethodCondition_SetDefaultValue { get; private set; }
 
     public MethodCondition MethodCondition_Clone { get; private set; }
 
@@ -528,14 +530,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.ReportDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
                 }
             }
-            else if (x.FullName == typeof(DefaultValueAttribute).FullName)
-            {// DefaultValueAttribute
-                this.DefaultValueLocation = x.Location;
-                if (x.ConstructorArguments.Length > 0)
-                {
-                    this.DefaultValue = x.ConstructorArguments[0] ?? "null";
-                }
-            }
             else if (x.FullName == MaxLengthAttributeMock.FullName)
             {// MaxLengthAttribute
                 try
@@ -587,6 +581,170 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         {// TinyhandObject
             this.ConfigureObject();
         }
+    }
+
+    private string? GetDefaultValue(TinyhandObject typeObject, ISymbol? symbol)
+    {
+        if (symbol is null)
+        {
+            return default;
+        }
+
+        foreach (var x in symbol.DeclaringSyntaxReferences)
+        {
+            var (equalsSyntax, syntaxTree) = x.GetSyntax() switch
+            {
+                PropertyDeclarationSyntax property => (property.Initializer, property.SyntaxTree),
+                VariableDeclaratorSyntax variable => (variable.Initializer, variable.SyntaxTree),
+                _ => default,
+            };
+
+            if (equalsSyntax is null)
+            {
+                continue;
+            }
+
+            var rawValue = equalsSyntax.Value.ToString();
+
+            if (typeObject.Kind == VisceralObjectKind.Enum)
+            {// Enum
+                return rawValue;
+            }
+            else if (!typeObject.IsPrimitive &&
+                typeObject.Kind == VisceralObjectKind.Struct)
+            {// Struct is not supported.
+                return default;
+            }
+
+            if (rawValue == "null" ||
+                rawValue == "null!" ||
+                rawValue == "default" ||
+                rawValue == "default!")
+            {// Primary constants
+                if (typeObject.Kind == VisceralObjectKind.Class)
+                {
+                    return rawValue;
+                }
+                else
+                {
+                    return default;
+                }
+
+                /*if (typeObject.ObjectAttribute is not null)
+                {
+                    return rawValue;
+                }
+                else
+                {
+                    return default;
+                }*/
+            }
+            else if (rawValue == "[]")
+            {
+                if (typeObject.Array_Rank > 0)
+                {
+                    return rawValue;
+                }
+                else
+                {
+                    return default;
+                }
+            }
+            else if (rawValue == "true" ||
+                rawValue == "false" ||
+                rawValue == "string.Empty" ||
+                rawValue == "\"\"" ||
+                rawValue == "new()" ||
+                rawValue.StartsWith("new "))
+            {// Not default value
+                return default;
+            }
+
+            /*if (symbol is IPropertySymbol ps && ps.Type.TypeKind == TypeKind.Enum)
+            {
+                return rawValue;
+            }
+            else if (symbol is IFieldSymbol fs && fs.Type.TypeKind == TypeKind.Enum)
+            {
+                return rawValue;
+            }*/
+
+            // var cv = equalsSyntax.Value.ToString();
+            var model = this.Body.Compilation.GetSemanticModel(syntaxTree);
+            var constantValue = model.GetConstantValue(equalsSyntax.Value);
+            if (constantValue.Value is not { } valueObject)
+            {
+                return default;
+            }
+
+            /*if (valueObject is float f)
+            {
+                return FloatToDefaultString(f);
+            }
+            else if (valueObject is double d)
+            {
+                return DoubleToDefaultString(d);
+            }
+            else
+            {
+                return valueObject.ToString();
+            }*/
+
+            return valueObject switch
+            {
+                char c => "'" + c.ToString() + "'",
+                string s => "\"" + VisceralDefaultValue.GetEscapedString(s) + "\"",
+                uint u => u.ToString() + "u",
+                long l => l.ToString() + "L",
+                ulong ul => ul.ToString() + "ul",
+                float f => FloatToDefaultString(f),
+                double d => DoubleToDefaultString(d),
+                decimal m => m.ToString(CultureInfo.InvariantCulture) + "m",
+                _ => valueObject.ToString(),
+            };
+
+            static string FloatToDefaultString(float f)
+            {
+                if (float.IsNaN(f))
+                {
+                    return "float.NaN";
+                }
+                else if (float.IsPositiveInfinity(f))
+                {
+                    return "float.PositiveInfinity";
+                }
+                else if (float.IsNegativeInfinity(f))
+                {
+                    return "float.NegativeInfinity";
+                }
+                else
+                {
+                    return f.ToString(CultureInfo.InvariantCulture) + "f";
+                }
+            }
+
+            static string DoubleToDefaultString(double d)
+            {
+                if (double.IsNaN(d))
+                {
+                    return "double.NaN";
+                }
+                else if (double.IsPositiveInfinity(d))
+                {
+                    return "double.PositiveInfinity";
+                }
+                else if (double.IsNegativeInfinity(d))
+                {
+                    return "double.NegativeInfinity";
+                }
+                else
+                {
+                    return d.ToString(CultureInfo.InvariantCulture) + "d";
+                }
+            }
+        }
+
+        return default;
     }
 
     private bool MethodCompare_Serialize(IMethodSymbol ms)
@@ -711,14 +869,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.MethodCondition_CanSkipSerialization = MethodCondition.Declared;
             }
 
-            if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{this.DefaultInterface.FullName}.{TinyhandBody.SetDefaultValueMethod}"))
+            /*if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == $"{this.DefaultInterface.FullName}.{TinyhandBody.SetDefaultValueMethod}"))
             {
                 this.MethodCondition_SetDefaultValue = MethodCondition.ExplicitlyDeclared;
             }
             else
             {
                 this.MethodCondition_SetDefaultValue = MethodCondition.Declared;
-            }
+            }*/
         }
 
         // Method condition (IStructualObject)
@@ -1230,6 +1388,15 @@ Exit:
                 {// Integer key
                     intKeyExists = true;
                 }
+
+                if (x.KeyAttribute is not null &&
+                    x.TypeObject is not null)
+                {// Get default value
+                    if (this.GetDefaultValue(x.TypeObject, x.symbol) is { } defaultValue)
+                    {
+                        x.DefaultValue = defaultValue;
+                    }
+                }
             }
 
             if (stringKeyExists || (!intKeyExists && this.ObjectAttribute!.ImplicitKeyAsName == true))
@@ -1456,7 +1623,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
             }
         }
 
-        if (this.DefaultValue != null)
+        /*if (this.DefaultValue != null)
         {
             if (this.TypeObject.Array_Rank > 0)
             {
@@ -1490,11 +1657,6 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                 this.DefaultValueTypeName = VisceralHelper.Primitives_ShortenName(this.DefaultValue.GetType().FullName);
                 if (this.DefaultValueTypeName != null && VisceralDefaultValue.IsEnumUnderlyingType(this.DefaultValueTypeName))
                 {
-                    /* var idx = (int)this.DefaultValue;
-                    if (idx >= 0 && idx < this.TypeObject.AllMembers.Length)
-                    {
-                        this.DefaultValue = new EnumString(this.TypeObject.AllMembers[idx].FullName);
-                    }*/
                     if (this.TypeObject.Enum_GetEnumObjectFromObject(this.DefaultValue) is { } enumObject)
                     {
                         this.IsDefaultable = true;
@@ -1533,7 +1695,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
                     this.Body.ReportDiagnostic(TinyhandBody.Warning_DefaultInterface, this.DefaultValueLocation ?? this.Location, this.DefaultValueTypeName);
                 }
             }
-        }
+        }*/
 
         // ReconstructTarget
         if (parent.ObjectFlag.HasFlag(TinyhandObjectFlag.HasITinyhandSerializable))
@@ -2564,7 +2726,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateFormatter_Deserialize2(ScopingStringBuilder ssb, TinyhandObject x)
     {// Called by GenerateDeserializeCore, GenerateDeserializeCore2
-        if (x.DefaultValue != null)
+        /*if (x.DefaultValue != null)
         {
             if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
             {
@@ -2574,7 +2736,7 @@ ModuleInitializerClass_Added:
             {
                 ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})vd).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(x.DefaultValue)});");
             }
-        }
+        }*/
 
         if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
@@ -2613,7 +2775,7 @@ ModuleInitializerClass_Added:
 
         ssb.AppendLine($"TinyhandSerializer.ReconstructObject(ref v2, options);");
 
-        if (defaultValue != null)
+        /*if (defaultValue != null)
         {
             if (this.MethodCondition_SetDefaultValue == MethodCondition.Declared)
             {
@@ -2623,7 +2785,7 @@ ModuleInitializerClass_Added:
             {
                 ssb.AppendLine($"(({TinyhandBody.ITinyhandDefault})v2).{TinyhandBody.SetDefaultValueMethod}({VisceralDefaultValue.DefaultValueToString(defaultValue)});");
             }
-        }
+        }*/
 
         ssb.AppendLine($"{ssb.FullObject} = v2!;");
     }
@@ -3649,7 +3811,7 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"return (({TinyhandBody.IStructualObject}){ssb.FullObject}).ProcessJournalRecord(ref reader);");
             }*/
 
-            assignment.Start();
+            assignment.Start(false);
 
             var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
             if (coder != null)
@@ -3940,7 +4102,7 @@ ModuleInitializerClass_Added:
             var exclude = x.KeyAttribute?.Exclude == true ? "!options.IsExcludeMode && " : string.Empty;
             using (var valid = ssb.ScopeBrace($"if ({exclude}numberOfData-- > 0 && !reader.TryReadNil())"))
             {
-                assignment.Start();
+                assignment.Start(false);
 
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
@@ -3980,11 +4142,11 @@ ModuleInitializerClass_Added:
                 assignment.End();
             }
 
-            if (x!.IsDefaultable)
+            if (x.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    assignment.Start();
+                    assignment.Start(false);
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                     assignment.End();
                 }
@@ -3993,7 +4155,7 @@ ModuleInitializerClass_Added:
             {
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    assignment.Start();
+                    assignment.Start(true, false);
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -4031,7 +4193,7 @@ ModuleInitializerClass_Added:
             var coder = CoderResolver.Instance.TryGetCoder(withNullable);
             using (var valid = ssb.ScopeBrace($"if (!reader.TryReadNil())"))
             {
-                assignment.Start();
+                assignment.Start(false);
 
                 if (withNullable.Object.ObjectAttribute?.UseResolver == false &&
                     (withNullable.Object.ObjectAttribute != null || withNullable.Object.HasITinyhandSerializeConstraint()))
@@ -4071,11 +4233,11 @@ ModuleInitializerClass_Added:
                 assignment.End();
             }
 
-            if (x!.IsDefaultable)
+            if (x.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    assignment.Start();
+                    assignment.Start(false);
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                     assignment.End();
                 }
@@ -4084,7 +4246,7 @@ ModuleInitializerClass_Added:
             {
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
-                    assignment.Start();
+                    assignment.Start(true, false);
                     if (withNullable.Object.ObjectAttribute != null)
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
@@ -4123,7 +4285,7 @@ ModuleInitializerClass_Added:
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
             {// Default
-                assignment.Start(true);
+                assignment.Start(false, true);
                 ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                 assignment.End();
                 return;
@@ -4141,7 +4303,7 @@ ModuleInitializerClass_Added:
             {// TinyhandObject. For the purpose of default value and instance reuse.
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
-                    assignment.Start();
+                    assignment.Start(true);
                     withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     assignment.End();
                 }
@@ -4150,7 +4312,7 @@ ModuleInitializerClass_Added:
             {// Coder
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
-                    assignment.Start();
+                    assignment.Start(true);
                     coder.CodeReconstruct(ssb, info);
                     assignment.End();
                 }
@@ -4179,10 +4341,10 @@ ModuleInitializerClass_Added:
         {
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
-            {// Default
+            {
                 using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
                 {
-                    assignment.Start();
+                    assignment.Start(false);
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
                     assignment.End();
                 }
@@ -4195,7 +4357,7 @@ ModuleInitializerClass_Added:
 
             using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
             {
-                assignment.Start();
+                assignment.Start(true);
 
                 if (x.NullableAnnotationIfReferenceType == Arc.Visceral.NullableAnnotation.NotAnnotated || x.ReconstructState == ReconstructState.Do)
                 {// T
@@ -4233,13 +4395,13 @@ ModuleInitializerClass_Added:
             if (withNullable.Object.ObjectAttribute != null &&
                 withNullable.Object.ObjectAttribute.UseResolver == false)
             {// TinyhandObject.
-                assignment.Start(true);
+                assignment.Start(false, true);
                 ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject({sourceObject}, options)!;");
                 assignment.End(true);
             }
             else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
             {// Coder
-                assignment.Start(true);
+                assignment.Start(true, true);
                 coder.CodeClone(ssb, info, sourceObject);
                 assignment.End(true);
             }
@@ -4250,7 +4412,7 @@ ModuleInitializerClass_Added:
                     this.Body.ReportDiagnostic(TinyhandBody.Warning_NoCoder, x.Location, withNullable.FullName);
                 }
 
-                assignment.Start(true);
+                assignment.Start(false, true);
                 ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{withNullable.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
                 assignment.End(true);
             }
@@ -4403,9 +4565,11 @@ ModuleInitializerClass_Added:
         ScopingStringBuilder.IScope? skipDefaultValueScope = null;
         if (skipDefaultValue)
         {
-            if (x.IsDefaultable)
+            if (x.DefaultValue is not null)
             {
-                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject} == {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)})"))
+                // var equalExpression = x.DefaultValue == "[]" ? ".SequenceEqual([])" : $" == {x.DefaultValue}";
+                var equalExpression = x.DefaultValue == "[]" ? ".Length == 0" : $" == {x.DefaultValue}";
+                using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject}{equalExpression})"))
                 {
                     ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");
                 }

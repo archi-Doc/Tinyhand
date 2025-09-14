@@ -9,21 +9,18 @@ namespace Tinyhand.Tests;
 public partial class SerializationTargetClass1
 {
     [Key(0)]
-    [DefaultValue(1)]
-    public int A; // Serialize
+    public int A = 1; // Serialize
 
     [IgnoreMember]
-    [DefaultValue(1)]
-    public int B; // Not
+    public int B = 1; // Not
 
-    [DefaultValue(1)]
-    private int C; // Not
+    private int C = 1; // Not
 
     public void Test(SerializationTargetClass1 target)
     {
         this.A.Is(target.A);
-        this.B.IsNot(target.B);
-        this.C.IsNot(target.C);
+        this.B.Is(target.B);
+        this.C.Is(target.C);
     }
 }
 
@@ -31,25 +28,21 @@ public partial class SerializationTargetClass1
 public partial class SerializationTargetClass2
 {
     [Key("A")]
-    [DefaultValue(1)]
-    public int A; // Serialize
+    public int A = 1; // Serialize
 
     [IgnoreMember]
-    [DefaultValue(1)]
-    public int B; // Not
+    public int B = 1; // Not
 
-    [DefaultValue(1)]
     private int C; // Not
 
     [KeyAsName]
-    [DefaultValue(1)]
-    public int D; // Serialize
+    public int D = 1; // Serialize
 
     public void Test(SerializationTargetClass2 target)
     {
         this.A.Is(target.A);
-        this.B.IsNot(target.B);
-        this.C.IsNot(target.C);
+        this.B.Is(target.B);
+        this.C.Is(target.C);
         this.D.Is(target.D);
     }
 }
@@ -62,8 +55,7 @@ public partial class SerializationGenericClass<T>
     public partial class TestClass
     {
         [Key(0)]
-        [DefaultValue(1)]
-        public int A; // Serialize
+        public int A = 1; // Serialize
 
         public SerializationGenericClass<T> Parent { get; set; }
     }
@@ -73,33 +65,27 @@ public partial class SerializationGenericClass<T>
 public partial class SerializationTargetClass3
 {
     [Key(0)]
-    [DefaultValue(1)]
-    public int A; // Serialize
+    public int A = 1; // Serialize
 
-    [DefaultValue(1)]
-    public int B; // Not
+    public int B = 1; // Not
 
-    [DefaultValue(1)]
-    private int C; // Not
+    private int C = 1; // Not
 
     [Key(1)]
-    [DefaultValue(1)]
-    private int D; // Serialize
+    private int D = 1; // Serialize
 
-    [DefaultValue(1)]
-    public int E { get; set; }
+    public int E { get; set; } = 1;
 
-    [DefaultValue(1)]
-    public int F { get; private set; }
+    public int F { get; private set; } = 1;
 
     public void Test(SerializationTargetClass3 target)
     {
         this.A.Is(target.A);
-        this.B.IsNot(target.B);
-        this.C.IsNot(target.C);
+        this.B.Is(target.B);
+        this.C.Is(target.C);
         this.D.Is(target.D);
-        this.E.IsNot(target.E);
-        this.F.IsNot(target.F);
+        this.E.Is(target.E);
+        this.F.Is(target.F);
     }
 }
 
@@ -107,25 +93,21 @@ public partial class SerializationTargetClass3
 public partial class SerializationTargetClass4
 {
     [Key("A")]
-    [DefaultValue(1)]
-    public int A; // Serialize
+    public int A = 1; // Serialize
 
-    [DefaultValue(1)]
-    public int B; // Serialize
+    public int B = 1; // Serialize
 
     [KeyAsName]
-    [DefaultValue(1)]
-    private int C; // Serialize
+    private int C = 1; // Serialize
 
-    [DefaultValue(1)]
-    private int D; // Not
+    private int D = 1; // Not
 
     public void Test(SerializationTargetClass4 target)
     {
         this.A.Is(target.A);
         this.B.Is(target.B);
         this.C.Is(target.C);
-        this.D.IsNot(target.D);
+        this.D.Is(target.D);
     }
 }
 

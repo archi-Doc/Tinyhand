@@ -92,7 +92,7 @@ public class ListCoder : ITinyhandCoder
             {
                 using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
                 {
-                    ssb.AppendLine($"{ssb.FullObject} = new System.Collections.Generic.List<{this.element.FullNameWithNullable}>();");
+                    ssb.AppendLine($"{ssb.FullObject} = [];");
                 }
 
                 using (var b = ssb.ScopeBrace($"else"))
@@ -109,13 +109,13 @@ public class ListCoder : ITinyhandCoder
 
         void CodeDeserializerNonNullable()
         {
-            ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options) ?? new System.Collections.Generic.List<{this.element.FullNameWithNullable}>();");
+            ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options) ?? [];");
         }
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new System.Collections.Generic.List<{this.element.FullNameWithNullable}>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)

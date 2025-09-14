@@ -213,7 +213,7 @@ public partial class PrivateIntClass
     private int Y;
 
     [Key(2)]
-    private string A = default!;
+    private string A = string.Empty;
 
     [Key(3)]
     private string B = default!;

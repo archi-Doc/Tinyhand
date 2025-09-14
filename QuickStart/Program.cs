@@ -17,22 +17,20 @@ public partial record MyClass // partial class is required for source generator.
     public string FirstName { get; set; } = string.Empty;
 
     [Key(2)]
-    [DefaultValue("Doe")] // If there is no corresponding data, the default value is set.
-    public string LastName { get; set; } = string.Empty;
+    public string LastName { get; set; } = "Doe"; // Initial value is used when creating a new instance or deserializing if the value is missing.
 
     // All fields or properties that should not be serialized must be annotated with [IgnoreMember].
     [IgnoreMember]
     public string FullName { get { return FirstName + LastName; } }
 
     [Key(3)]
-    public List<string> Friends { get; set; } = default!; // Non-null value will be set by TinyhandSerializer.
+    public List<string> Friends { get; set; } = [];
 
     [Key(4)]
-    public int[]? Ids { get; set; } // Nullable value will be set null.
+    public int[]? Ids { get; set; } // Nullable value remains null
 
     public MyClass()
     {
-        // this.Reconstruct(TinyhandSerializerOptions.Standard); // optional: Call Reconstruct() to actually create instances of members.
     }
 }
 
@@ -62,6 +60,6 @@ class Program
         Console.WriteLine(myClassRecon?.ToString());
         Console.WriteLine();
 
-        MaxLengthTest.Test();
+        // MaxLengthTest.Test();
     }
 }

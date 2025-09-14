@@ -99,8 +99,7 @@ public class NullableCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = default;");
-        // ssb.AppendLine($"{ssb.FullObject} = new System.Nullable<{this.element.FullName}>();");
+        // ssb.AppendLine($"{ssb.FullObject} = default;");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)

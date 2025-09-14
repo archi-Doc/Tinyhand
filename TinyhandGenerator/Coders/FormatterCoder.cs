@@ -324,7 +324,7 @@ internal class FormatterCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Reconstruct(options);");
+        ssb.AppendLine($"{ssb.FullObject} ??= options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Reconstruct(options);");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)

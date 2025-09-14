@@ -24,7 +24,6 @@ public partial class InternalTestClass
         this.PrivateInt = 0;
         this.InternalInt = 0;
     }
-
 }
 
 [TinyhandObject]
@@ -154,14 +153,9 @@ public class NullableTest
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class DefaultTestClass
 {
-    [DefaultValue(true)]
-    public bool Bool { get; set; }
+    public int Int { get; set; } = 77;
 
-    [DefaultValue(77)]
-    public int Int { get; set; }
-
-    [DefaultValue("test")]
-    public string String { get; set; } = default!;
+    public string String { get; set; } = "test";
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -308,8 +302,7 @@ public partial class VersioningClass2
     public int Id { get; set; }
 
     [Key(1)]
-    [DefaultValue("John")]
-    public string Name { get; set; } = default!;
+    public string Name { get; set; } = "John";
 
     public override string ToString() => $"  Version 2, ID: {this.Id} Name: {this.Name}";
 }
@@ -382,9 +375,9 @@ public static class DeepCopyTest
 [TinyhandObject]
 public partial record MaxLengthClass
 {
-    [Key(0, AddProperty = "Name")] // "Name" property will be created.
+    [Key(0)] // "Name" property will be created.
     [MaxLength(3)] // The maximum length of Name property.
-    private string name = default!;
+    public partial string Name { get; set; } = string.Empty;
 
     [Key(1, AddProperty = "Ids")]
     [MaxLength(2)]
@@ -415,7 +408,7 @@ public static class MaxLengthTest
         Console.WriteLine();
 
         var st = TinyhandSerializer.SerializeToString(c);
-        st = """ "ABCD", {0, 1, 2, 3}, {"aaa", "bbbb", "cccc"} """;
+        st = "\"ABCD\", {0, 1, 2, 3}, {\"aaa\", \"bbbb\", \"cccc\"}";
         var c2 = TinyhandSerializer.DeserializeFromString<MaxLengthClass>(st);
 
         Console.WriteLine(c2!.ToString());
