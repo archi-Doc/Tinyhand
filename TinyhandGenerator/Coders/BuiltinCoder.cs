@@ -277,7 +277,7 @@ public sealed class NullableStringCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} ??= string.Empty;");
+        // ssb.AppendLine($"{ssb.FullObject} ??= string.Empty;");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -303,12 +303,12 @@ public sealed class StringArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader) ?? new string[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new string[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -334,12 +334,12 @@ public sealed class NullableStringArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeNullableStringArray(ref reader) ?? new string[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeNullableStringArray(ref reader);");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new string[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new string[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -401,7 +401,7 @@ public sealed class NullableStringListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<string>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<string>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -432,7 +432,7 @@ public sealed class UInt8ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = Array.Empty<byte>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -463,7 +463,7 @@ public sealed class NullableUInt8ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = Array.Empty<byte>();");
+        // ssb.AppendLine($"{ssb.FullObject} = Array.Empty<byte>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -494,7 +494,7 @@ public sealed class Utf8StringCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new();");
+        ssb.AppendLine($"{ssb.FullObject} ??= new();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -525,7 +525,7 @@ public sealed class NullableUtf8StringCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new();");
+        // ssb.AppendLine($"{ssb.FullObject} = new();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -567,7 +567,7 @@ public sealed class UInt8ListCoder : ITinyhandCoder
         {
             using (var b = ssb.ScopeBrace("if (reader.TryReadNil())"))
             {
-                ssb.AppendLine($"{ssb.FullObject} = new List<byte>();");
+                ssb.AppendLine($"{ssb.FullObject} = [];");
             }
 
             using (var b = ssb.ScopeBrace($"else"))
@@ -579,7 +579,7 @@ public sealed class UInt8ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<byte>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -633,7 +633,7 @@ public sealed class NullableUInt8ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<byte>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<byte>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)

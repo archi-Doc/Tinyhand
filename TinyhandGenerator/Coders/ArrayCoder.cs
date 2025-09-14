@@ -114,7 +114,7 @@ public class ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = [];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -260,7 +260,7 @@ public class GenericArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = [];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)

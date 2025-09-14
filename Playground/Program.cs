@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using CrystalData;
 using Tinyhand;
 using Tinyhand.IO;
@@ -20,6 +19,10 @@ public partial class DefaultValueTestClass2
     public int a = 0;
 
     public short b = -1;
+
+    public DefaultValueTestClass Class1 = new(true);
+
+    public byte[] ByteArray = [];
 }
 
 [TinyhandObject]

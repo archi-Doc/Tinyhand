@@ -203,7 +203,7 @@ public sealed class Int8ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new sbyte[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -234,7 +234,7 @@ public sealed class NullableInt8ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new sbyte[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new sbyte[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -265,7 +265,7 @@ public sealed class Int8ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<sbyte>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -296,7 +296,7 @@ public sealed class NullableInt8ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<sbyte>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<sbyte>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -412,7 +412,7 @@ public sealed class UInt16ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new ushort[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -443,7 +443,7 @@ public sealed class NullableUInt16ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new ushort[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new ushort[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -474,7 +474,7 @@ public sealed class UInt16ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<ushort>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -505,7 +505,7 @@ public sealed class NullableUInt16ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<ushort>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<ushort>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -621,7 +621,7 @@ public sealed class Int16ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new short[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -652,7 +652,7 @@ public sealed class NullableInt16ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new short[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new short[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -683,7 +683,7 @@ public sealed class Int16ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<short>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -714,7 +714,7 @@ public sealed class NullableInt16ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<short>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<short>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -830,7 +830,7 @@ public sealed class UInt32ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new uint[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -861,7 +861,7 @@ public sealed class NullableUInt32ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new uint[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new uint[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -892,7 +892,7 @@ public sealed class UInt32ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<uint>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -923,7 +923,7 @@ public sealed class NullableUInt32ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<uint>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<uint>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1039,7 +1039,7 @@ public sealed class Int32ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new int[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1070,7 +1070,7 @@ public sealed class NullableInt32ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new int[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new int[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1101,7 +1101,7 @@ public sealed class Int32ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<int>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1132,7 +1132,7 @@ public sealed class NullableInt32ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<int>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<int>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1248,7 +1248,7 @@ public sealed class UInt64ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new ulong[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1279,7 +1279,7 @@ public sealed class NullableUInt64ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new ulong[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new ulong[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1310,7 +1310,7 @@ public sealed class UInt64ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<ulong>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1341,7 +1341,7 @@ public sealed class NullableUInt64ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<ulong>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<ulong>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1457,7 +1457,7 @@ public sealed class Int64ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new long[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1488,7 +1488,7 @@ public sealed class NullableInt64ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new long[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new long[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1519,7 +1519,7 @@ public sealed class Int64ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<long>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1550,7 +1550,7 @@ public sealed class NullableInt64ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<long>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<long>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1666,7 +1666,7 @@ public sealed class SingleArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new float[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1697,7 +1697,7 @@ public sealed class NullableSingleArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new float[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new float[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1728,7 +1728,7 @@ public sealed class SingleListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<float>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1759,7 +1759,7 @@ public sealed class NullableSingleListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<float>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<float>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1875,7 +1875,7 @@ public sealed class DoubleArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new double[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1906,7 +1906,7 @@ public sealed class NullableDoubleArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new double[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new double[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1937,7 +1937,7 @@ public sealed class DoubleListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<double>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -1968,7 +1968,7 @@ public sealed class NullableDoubleListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<double>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<double>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2084,7 +2084,7 @@ public sealed class BooleanArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new bool[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2115,7 +2115,7 @@ public sealed class NullableBooleanArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new bool[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new bool[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2146,7 +2146,7 @@ public sealed class BooleanListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<bool>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2177,7 +2177,7 @@ public sealed class NullableBooleanListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<bool>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<bool>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2293,7 +2293,7 @@ public sealed class CharArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new char[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2324,7 +2324,7 @@ public sealed class NullableCharArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new char[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new char[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2355,7 +2355,7 @@ public sealed class CharListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<char>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2386,7 +2386,7 @@ public sealed class NullableCharListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<char>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<char>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2502,7 +2502,7 @@ public sealed class DateTimeArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new DateTime[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2533,7 +2533,7 @@ public sealed class NullableDateTimeArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new DateTime[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new DateTime[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2564,7 +2564,7 @@ public sealed class DateTimeListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<DateTime>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2595,7 +2595,7 @@ public sealed class NullableDateTimeListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<DateTime>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<DateTime>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2711,7 +2711,7 @@ public sealed class Int128ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new Int128[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2742,7 +2742,7 @@ public sealed class NullableInt128ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new Int128[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new Int128[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2773,7 +2773,7 @@ public sealed class Int128ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<Int128>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2804,7 +2804,7 @@ public sealed class NullableInt128ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<Int128>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<Int128>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2920,7 +2920,7 @@ public sealed class UInt128ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new UInt128[0];");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2951,7 +2951,7 @@ public sealed class NullableUInt128ArrayCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new UInt128[0];");
+        // ssb.AppendLine($"{ssb.FullObject} = new UInt128[0];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -2982,7 +2982,7 @@ public sealed class UInt128ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<UInt128>();");
+        ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
@@ -3013,7 +3013,7 @@ public sealed class NullableUInt128ListCoder : ITinyhandCoder
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        ssb.AppendLine($"{ssb.FullObject} = new List<UInt128>();");
+        // ssb.AppendLine($"{ssb.FullObject} = new List<UInt128>();");
     }
 
     public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
