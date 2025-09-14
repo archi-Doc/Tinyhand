@@ -3067,7 +3067,7 @@ ModuleInitializerClass_Added:
 
             foreach (var x in this.Members)
             {
-                this.GenerateReconstructCore(ssb, info, x);
+                // this.GenerateReconstructCore(ssb, info, x);
             }
 
             // this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode

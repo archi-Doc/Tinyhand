@@ -13,43 +13,43 @@ namespace Tinyhand.Tests;
 public partial class ArcCollectionsTestClass
 {
     [Key(0)]
-    public OrderedMap<int, string> Map1 { get; set; } = default!;
+    public OrderedMap<int, string> Map1 { get; set; } = [];
 
     [Key(1)]
-    public OrderedMultiMap<int, string> Map2 { get; set; } = default!;
+    public OrderedMultiMap<int, string> Map2 { get; set; } = [];
 
     [Key(2)]
-    public OrderedSet<int> Set1 { get; set; } = default!;
+    public OrderedSet<int> Set1 { get; set; } = [];
 
     [Key(3)]
-    public OrderedMultiSet<int> Set2 { get; set; } = default!;
+    public OrderedMultiSet<int> Set2 { get; set; } = [];
 
     [Key(4)]
-    public UnorderedMap<int, string> Map3 { get; set; } = default!;
+    public UnorderedMap<int, string> Map3 { get; set; } = [];
 
     [Key(5)]
-    public UnorderedMultiMap<int, string> Map4 { get; set; } = default!;
+    public UnorderedMultiMap<int, string> Map4 { get; set; } = [];
 
     [Key(6)]
-    public UnorderedSet<int> Set3 { get; set; } = default!;
+    public UnorderedSet<int> Set3 { get; set; } = [];
 
     [Key(7)]
-    public UnorderedMultiSet<int> Set4 { get; set; } = default!;
+    public UnorderedMultiSet<int> Set4 { get; set; } = [];
 
     [Key(8)]
-    public OrderedList<int> List1 { get; set; } = default!;
+    public OrderedList<int> List1 { get; set; } = [];
 
     [Key(9)]
-    public UnorderedList<int> List2 { get; set; } = default!;
+    public UnorderedList<int> List2 { get; set; } = [];
 
     [Key(10)]
-    public UnorderedLinkedList<int> List3 { get; set; } = default!;
+    public UnorderedLinkedList<int> List3 { get; set; } = [];
 
     [Key(11)]
-    public OrderedKeyValueList<int, string> List4 { get; set; } = default!;
+    public OrderedKeyValueList<int, string> List4 { get; set; } = [];
 
     [Key(12)]
-    public KeyValueList<int, string> List5 { get; set; } = default!;
+    public KeyValueList<int, string> List5 { get; set; } = [];
 }
 
 public class ArcCollectionsTest

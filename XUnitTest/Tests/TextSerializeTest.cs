@@ -14,10 +14,10 @@ public partial record TextSerializeClass1
     public MyClass2[] MyClass2Array { get; set; } = [];
 
     [Key("2int-string")]
-    public Dictionary<int, string> DictionaryIntString { get; set; } = default!;
+    public Dictionary<int, string> DictionaryIntString { get; set; } = [];
 
     [Key(" st d ")]
-    public IDictionary<string, double> IDictionaryStringDouble { get; set; } = default!;
+    public IDictionary<string, double> IDictionaryStringDouble { get; set; } = new Dictionary<string, double>();
 
     public byte Byte { get; set; }
 

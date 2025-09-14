@@ -84,10 +84,10 @@ public sealed partial class JournalClass2
 public partial class JournalClass2B
 {
     [Key(1)]
-    public JournalClass2 Class1 { get; set; }
+    public JournalClass2 Class1 { get; set; } = new();
 
     [Key(2)]
-    public JournalTestClass Class2 { get; set; }
+    public JournalTestClass Class2 { get; set; } = new();
 }
 
 [TinyhandObject(Structual = true, LockObject = "syncObject")]

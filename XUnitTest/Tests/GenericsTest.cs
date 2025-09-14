@@ -29,11 +29,11 @@ public partial class GenericsTestClass<T>
         public string String { get; set; } = string.Empty; // 12
     }
 
-    public GenericsNestedClass<double> NestedClass { get; set; } = default!;
+    public GenericsNestedClass<double> NestedClass { get; set; } = new();
 
-    public GenericsNestedClass2 NestedClass2 { get; set; } = default!;
+    public GenericsNestedClass2 NestedClass2 { get; set; } = new();
 
-    public GenericsTestClass2<int> ClassInt { get; set; } = default!;
+    public GenericsTestClass2<int> ClassInt { get; set; } = new();
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]

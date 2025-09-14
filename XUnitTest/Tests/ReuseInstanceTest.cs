@@ -20,15 +20,15 @@ public partial class ReuseInstanceClass
         this.ReuseStructFalse = new(flag);
     }
 
-    public ReuseClass ReuseClass { get; set; } = default!;
+    public ReuseClass ReuseClass { get; set; } = new();
 
     [Reuse(false)]
-    public ReuseClass ReuseClassFalse { get; set; } = default!;
+    public ReuseClass ReuseClassFalse { get; set; } = new();
 
-    public ReuseStruct ReuseStruct { get; set; } = default!;
+    public ReuseStruct ReuseStruct { get; set; } = new();
 
     [Reuse(false)]
-    public ReuseStruct ReuseStructFalse { get; set; } = default!;
+    public ReuseStruct ReuseStructFalse { get; set; } = new();
 }
 
 [TinyhandObject]
