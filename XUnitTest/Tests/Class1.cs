@@ -360,11 +360,6 @@ public partial class Callback1
     {
         this.CalledAfter = true;
     }
-
-    [TinyhandOnReconstructed]
-    public void OnAfterReconstruct()
-    {
-    }
 }
 
 [TinyhandObject]
@@ -398,11 +393,6 @@ public partial class Callback1_2
     void OnAfterDeserialize()
     {
         this.CalledAfter = true;
-    }
-
-    [TinyhandOnReconstructed]
-    void OnAfterReconstruct()
-    {
     }
 }
 
@@ -439,11 +429,6 @@ public partial struct Callback2
     {
         CalledAfter = true;
     }
-
-    [TinyhandOnReconstructed]
-    public void OnAfterReconstruct()
-    {
-    }
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -478,11 +463,6 @@ public partial struct Callback2_2
     void OnAfterDeserialize()
     {
         CalledAfter = true;
-    }
-
-    [TinyhandOnReconstructed]
-    void OnAfterReconstruct()
-    {
     }
 }
 

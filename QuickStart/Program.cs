@@ -27,7 +27,7 @@ public partial record MyClass // partial class is required for source generator.
     public List<string> Friends { get; set; } = [];
 
     [Key(4)]
-    public int[]? Ids { get; set; } // Nullable value remains null
+    public int[]? Ids { get; set; }
 
     public MyClass()
     {

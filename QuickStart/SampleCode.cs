@@ -98,12 +98,6 @@ public partial class SampleCallback
     {
         Console.WriteLine("OnDeserialized");
     }
-
-    [TinyhandOnReconstructed]
-    public void OnReconstructed()
-    {
-        Console.WriteLine("OnReconstructed");
-    }
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]

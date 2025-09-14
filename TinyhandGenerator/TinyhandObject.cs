@@ -3007,7 +3007,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateReconstruct_Method(ScopingStringBuilder ssb, GeneratorInformation info)
+    /* internal void GenerateReconstruct_Method(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         string methodCode;
         string objectCode;
@@ -3041,7 +3041,7 @@ ModuleInitializerClass_Added:
 
             this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
-    }
+    }*/
 
     internal void GenerateReconstruct_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -3063,14 +3063,14 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
             }
 
-            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructing); // CallbackMethodCode
+            // this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructing); // CallbackMethodCode
 
             foreach (var x in this.Members)
             {
                 this.GenerateReconstructCore(ssb, info, x);
             }
 
-            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
+            // this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
 
