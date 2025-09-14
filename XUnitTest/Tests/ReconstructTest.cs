@@ -8,9 +8,13 @@ namespace Tinyhand.Tests;
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class ReconstructTestClass
 {
+    public ReconstructTestClass()
+    {
+    }
+
     public int Int { get; set; } = 12; // 12
 
-    public EmptyClass EmptyClass { get; set; } // new()
+    public EmptyClass EmptyClass { get; set; } = new();
 
     [Reconstruct(false)]
     public EmptyClass EmptyClassOff { get; set; } // null
@@ -18,7 +22,7 @@ public partial class ReconstructTestClass
     public EmptyClass? EmptyClass2 { get; set; } // null
 
     [Reconstruct(true)]
-    public EmptyClass? EmptyClassOn { get; set; } // new()
+    public EmptyClass? EmptyClassOn { get; set; } = new();
 
     /* Error. A class to be reconstructed must have a default constructor.
     [IgnoreMember]

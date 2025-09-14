@@ -157,10 +157,10 @@ public partial class SimpleIntKeyData
     public SimpleStringKeyData? Prop4 { get; set; }
 
     [Key(4)]
-    public SimpleStructIntKeyData Prop5 { get; set; }
+    public SimpleStructIntKeyData Prop5 { get; set; } = new();
 
     [Key(5)]
-    public SimpleStructStringKeyData Prop6 { get; set; }
+    public SimpleStructStringKeyData Prop6 { get; set; } = new();
 
     [Key(6)]
     public byte[]? BytesSpecial { get; set; }
@@ -219,11 +219,15 @@ public partial struct SimpleStructIntKeyData
 [TinyhandObject]
 public partial struct SimpleStructStringKeyData
 {
+    public SimpleStructStringKeyData()
+    {
+    }
+
     [Key("key-X")]
     public int X { get; set; }
 
     [Key("key-Y")]
-    public int[] Y { get; set; }
+    public int[] Y { get; set; } = [];
 }
 
 [TinyhandObject]
@@ -360,11 +364,6 @@ public partial class Callback1
     {
         this.CalledAfter = true;
     }
-
-    [TinyhandOnReconstructed]
-    public void OnAfterReconstruct()
-    {
-    }
 }
 
 [TinyhandObject]
@@ -398,11 +397,6 @@ public partial class Callback1_2
     void OnAfterDeserialize()
     {
         this.CalledAfter = true;
-    }
-
-    [TinyhandOnReconstructed]
-    void OnAfterReconstruct()
-    {
     }
 }
 
@@ -439,11 +433,6 @@ public partial struct Callback2
     {
         CalledAfter = true;
     }
-
-    [TinyhandOnReconstructed]
-    public void OnAfterReconstruct()
-    {
-    }
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
@@ -478,11 +467,6 @@ public partial struct Callback2_2
     void OnAfterDeserialize()
     {
         CalledAfter = true;
-    }
-
-    [TinyhandOnReconstructed]
-    void OnAfterReconstruct()
-    {
     }
 }
 

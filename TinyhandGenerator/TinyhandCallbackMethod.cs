@@ -15,8 +15,8 @@ public enum CallbackKind
     OnSerialized,
     OnDeserializing,
     OnDeserialized,
-    OnReconstructing,
-    OnReconstructed,
+    // AbandonReconstructCode OnReconstructing,
+    // AbandonReconstructCode OnReconstructed,
 }
 
 public class CallbackMethod
@@ -76,7 +76,9 @@ public class CallbackMethod
                     error = true;
                 }
             }
-            else if (y.FullName == TinyhandOnReconstructingAttributeMock.FullName)
+
+            // AbandonReconstructCode
+            /* else if (y.FullName == TinyhandOnReconstructingAttributeMock.FullName)
             {// OnReconstructing
                 if (!method.IsStatic && method.Method_Parameters.Length == 0)
                 {
@@ -99,7 +101,7 @@ public class CallbackMethod
                     method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMetohd, method.Location);
                     error = true;
                 }
-            }
+            }*/
 
             if (currentKind != CallbackKind.None)
             {
@@ -144,13 +146,13 @@ public class CallbackMethod
         {
             this.Generate_OnSerializing(ssb);
         }*/
-    }
+        }
 
-    /*public void Generate_OnSerializing(ScopingStringBuilder ssb)
-    {
-    }
+        /*public void Generate_OnSerializing(ScopingStringBuilder ssb)
+        {
+        }
 
-    public void Generate_OnSerialized(ScopingStringBuilder ssb)
-    {
-    }*/
-}
+        public void Generate_OnSerialized(ScopingStringBuilder ssb)
+        {
+        }*/
+    }

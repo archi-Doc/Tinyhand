@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Tinyhand;
 
 namespace QuickStart;
@@ -27,7 +26,7 @@ public partial record MyClass // partial class is required for source generator.
     public List<string> Friends { get; set; } = [];
 
     [Key(4)]
-    public int[]? Ids { get; set; } // Nullable value remains null
+    public int[]? Ids { get; set; }
 
     public MyClass()
     {

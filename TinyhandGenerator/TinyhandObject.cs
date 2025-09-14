@@ -2933,10 +2933,13 @@ ModuleInitializerClass_Added:
 
     internal void GenerateReconstructRemaining(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do && x.KeyAttribute == null))
+        /*if (this.TypeObject?.Kind == VisceralObjectKind.Struct)
         {
-            this.GenerateReconstructCore(ssb, info, x);
-        }
+            foreach (var x in this.Members.Where(x => x.ReconstructState == ReconstructState.Do && x.KeyAttribute == null))
+            {
+                this.GenerateReconstructCore(ssb, info, x);
+            }
+        }*/
     }
 
     internal void GenerateJournal_SetParent(ScopingStringBuilder ssb, TinyhandObject? child, string parent, ref int count)
@@ -3007,7 +3010,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateReconstruct_Method(ScopingStringBuilder ssb, GeneratorInformation info)
+    /* internal void GenerateReconstruct_Method(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         string methodCode;
         string objectCode;
@@ -3041,7 +3044,7 @@ ModuleInitializerClass_Added:
 
             this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
-    }
+    }*/
 
     internal void GenerateReconstruct_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
@@ -3063,14 +3066,17 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
             }
 
-            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructing); // CallbackMethodCode
+            // this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructing); // CallbackMethodCode
 
-            foreach (var x in this.Members)
-            {
-                this.GenerateReconstructCore(ssb, info, x);
+            if (this.TypeObject?.Kind == VisceralObjectKind.Struct)
+            {// Since structs may be initialized with default instead of new(), Reconstruct processing is required.
+                foreach (var x in this.Members)
+                {
+                    this.GenerateReconstructCore(ssb, info, x);
+                }
             }
 
-            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
+            // this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
 
@@ -4142,7 +4148,8 @@ ModuleInitializerClass_Added:
                 assignment.End();
             }
 
-            if (x.IsDefaultable)
+            // AbandonReconstructCode
+            /*if (x.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
@@ -4171,7 +4178,7 @@ ModuleInitializerClass_Added:
 
                     assignment.End();
                 }
-            }
+            }*/
 
             this.GenerateJournal_SetParent(ssb, x, destObject, ref count);
         }
@@ -4233,7 +4240,8 @@ ModuleInitializerClass_Added:
                 assignment.End();
             }
 
-            if (x.IsDefaultable)
+            // AbandonReconstructCode
+            /*if (x.IsDefaultable)
             {// Default
                 using (var invalid = ssb.ScopeBrace("else"))
                 {
@@ -4262,7 +4270,7 @@ ModuleInitializerClass_Added:
 
                     assignment.End();
                 }
-            }
+            }*/
 
             // this.GenerateJournal_SetParent(ssb, "this");
         }
@@ -4568,7 +4576,23 @@ ModuleInitializerClass_Added:
             if (x.DefaultValue is not null)
             {
                 // var equalExpression = x.DefaultValue == "[]" ? ".SequenceEqual([])" : $" == {x.DefaultValue}";
-                var equalExpression = x.DefaultValue == "[]" ? ".Length == 0" : $" == {x.DefaultValue}";
+                string equalExpression;
+                if (x.DefaultValue == "[]")
+                {
+                    if (withNullable.Nullable == Arc.Visceral.NullableAnnotation.Annotated)
+                    {
+                        equalExpression = "?.Length == 0";
+                    }
+                    else
+                    {
+                        equalExpression = ".Length == 0";
+                    }
+                }
+                else
+                {
+                    equalExpression = $" == {x.DefaultValue}";
+                }
+
                 using (var scopeDefault = ssb.ScopeBrace($"if ({ssb.FullObject}{equalExpression})"))
                 {
                     ssb.AppendLine($"if (!options.IsSignatureMode) writer.WriteNil();");

@@ -84,10 +84,10 @@ public sealed partial class JournalClass2
 public partial class JournalClass2B
 {
     [Key(1)]
-    public JournalClass2 Class1 { get; set; }
+    public JournalClass2 Class1 { get; set; } = new();
 
     [Key(2)]
-    public JournalTestClass Class2 { get; set; }
+    public JournalTestClass Class2 { get; set; } = new();
 }
 
 [TinyhandObject(Structual = true, LockObject = "syncObject")]
@@ -159,7 +159,7 @@ public class JournalTest
     {
         var tester = new JournalTester();
         var c = TinyhandSerializer.Reconstruct<JournalClass2B>();
-        ((IStructualObject)c).StructualRoot = tester;
+        ((IStructualObject)c).SetupStructure(tester);
 
         c.Class1.X7 = 77;
         c.Class2.Id = 21;

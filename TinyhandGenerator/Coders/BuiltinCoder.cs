@@ -458,7 +458,7 @@ public sealed class NullableUInt8ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToArray();");
+        ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToNullableArray();");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)

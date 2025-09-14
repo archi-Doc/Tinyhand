@@ -115,14 +115,4 @@ public partial class LockObjectClass6
     protected void OnDeserialized()
     {
     }
-
-    [TinyhandOnReconstructing]
-    protected void OnReconstructing()
-    {
-    }
-
-    [TinyhandOnReconstructed]
-    protected void OnReconstructed()
-    {
-    }
 }

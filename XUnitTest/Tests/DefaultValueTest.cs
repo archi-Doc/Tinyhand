@@ -41,7 +41,7 @@ public partial class DefaultTestClass
 
     public DefaultTestEnum Enum = DefaultTestEnum.B;
 
-    public DefaultTestClassName NameClass { get; set; }
+    public DefaultTestClassName NameClass { get; set; } = new();
 
     public byte[]? ByteArray { get; set; } = null;
 }
@@ -106,7 +106,7 @@ public partial struct DefaultTestStruct
 
     public int Int { get; set; } = 123;
 
-    public DefaultTestStructDouble DoubleStruct { get; set; }
+    public DefaultTestStructDouble DoubleStruct { get; set; } = new();
 }
 
 [TinyhandObject]
