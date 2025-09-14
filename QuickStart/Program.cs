@@ -25,7 +25,7 @@ public partial record MyClass // partial class is required for source generator.
     public string FullName { get { return FirstName + LastName; } }
 
     [Key(3)]
-    public List<string> Friends { get; set; } = []; // Non-null value will be set by TinyhandSerializer.
+    public List<string> Friends { get; set; } = [];
 
     [Key(4)]
     public int[]? Ids { get; set; } // Nullable value remains null

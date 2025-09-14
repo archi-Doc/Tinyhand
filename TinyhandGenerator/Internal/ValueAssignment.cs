@@ -42,7 +42,7 @@ internal ref struct ValueAssignment
 
             this.temporaryValue = this.ssb.ScopeFullObject("vd");
 
-            if (withNullable.FullName == "string")
+            if (withNullable.Object.Kind == VisceralObjectKind.Class)
             {// Special handling for specific types is undesirable, but...
                 if (this.@object.RefFieldDelegate is not null || this.@object.GetterDelegate is not null)
                 {// Ref field or getter delegate
