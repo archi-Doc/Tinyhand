@@ -24,7 +24,7 @@ public partial record TextSerializeClass1
     [Key("2")]
     public int Int { get; set; } = 77;
 
-    public MyClass MyClass0 { get; set; } = default!;
+    public MyClass? MyClass0 { get; set; }
 
     [Key("St{")]
     public string String { get; set; } = "test\"\"\"e";
