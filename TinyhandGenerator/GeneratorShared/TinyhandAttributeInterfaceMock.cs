@@ -65,20 +65,12 @@ public sealed class TinyhandOnDeserializedAttributeMock
     public static readonly string FullName = "Tinyhand." + Name;
 }
 
-/* AbandonReconstructCode
-public sealed class TinyhandOnReconstructingAttributeMock
-{
-    public static readonly string SimpleName = "TinyhandOnReconstructing";
-    public static readonly string Name = SimpleName + "Attribute";
-    public static readonly string FullName = "Tinyhand." + Name;
-}
-
 public sealed class TinyhandOnReconstructedAttributeMock
 {
     public static readonly string SimpleName = "TinyhandOnReconstructed";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
-}*/
+}
 
 public sealed class TinyhandObjectAttributeMock
 {

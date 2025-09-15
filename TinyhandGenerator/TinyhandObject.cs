@@ -3076,7 +3076,7 @@ ModuleInitializerClass_Added:
                 }
             }
 
-            // this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
+            this.Generate_CallbackMethod(ssb, CallbackKind.OnReconstructed); // CallbackMethodCode
         }
     }
 
