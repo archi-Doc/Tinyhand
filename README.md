@@ -63,13 +63,12 @@ This is a small sample code to use Tinyhand.
 ```csharp
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using Tinyhand;
 
-namespace ConsoleApp1;
+namespace QuickStart;
 
 [TinyhandObject] // Annote a [TinyhandObject] attribute.
-public partial class MyClass // partial class is required for source generator.
+public partial record MyClass // partial class is required for source generator.
 {
     // Key attributes take a serialization index (or string name)
     // The values must be unique and versioning has to be considered as well.
@@ -80,22 +79,20 @@ public partial class MyClass // partial class is required for source generator.
     public string FirstName { get; set; } = string.Empty;
 
     [Key(2)]
-    [DefaultValue("Doe")] // If there is no corresponding data, the default value is set.
-    public string LastName { get; set; } = string.Empty;
+    public string LastName { get; set; } = "Doe"; // Initial value is used when creating a new instance or deserializing if the value is missing.
 
-    // All fields or properties that should not be serialized must be annotated with [IgnoreMember].
+    // All fields or properties that should not be serialized must be annotated with [IgnoreMember] attibute.
     [IgnoreMember]
     public string FullName { get { return FirstName + LastName; } }
 
     [Key(3)]
-    public List<string> Friends { get; set; } = default!; // Non-null value will be set by TinyhandSerializer.
+    public List<string> Friends { get; set; } = [];
 
     [Key(4)]
-    public int[]? Ids { get; set; } // Nullable value will be set null.
+    public int[]? Ids { get; set; }
 
     public MyClass()
     {
-        // this.Reconstruct(TinyhandSerializerOptions.Standard); // optional: Call Reconstruct() to actually create instances of members.
     }
 }
 
@@ -113,11 +110,19 @@ class Program
         var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
         var b = TinyhandSerializer.Serialize(myClass);
         var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b);
+        Console.WriteLine($"myClass2:");
+        Console.WriteLine(myClass2?.ToString());
+        Console.WriteLine();
 
         b = TinyhandSerializer.Serialize(new EmptyClass()); // Empty data
         var myClass3 = TinyhandSerializer.Deserialize<MyClass>(b); // Create an instance and set non-null values of the members.
 
         var myClassRecon = TinyhandSerializer.Reconstruct<MyClass>(); // Create a new instance whose members have default values.
+        Console.WriteLine($"myClassRecon:");
+        Console.WriteLine(myClassRecon?.ToString());
+        Console.WriteLine();
+
+        NullableTest.Test();
     }
 }
 ```
@@ -339,9 +344,11 @@ public class NullableTest
 
 ### Default value
 
-You can specify the default value for a member using `DefaultValueAttribute `(System.ComponentModel).
+The default values of class members are usually set through initializers.
 
-If the serialized data does not have a matching data for a member, Tinyhand will set the default value for that member.
+ When serializing, Tinyhand outputs **Nil** if a member has its default value; otherwise, it outputs the actual value.
+
+ During deserialization, if a valid value is present, it is assigned to the member; if the value is **Nil** or the corresponding data is missing, the member remains unchanged (retaining its default value).
 
 Primitive types (`bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `decimal`, `string`, `char`, `enum`) are supported.
 
@@ -349,39 +356,14 @@ Primitive types (`bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `lon
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class DefaultTestClass
 {
-    [DefaultValue(true)]
-    public bool Bool { get; set; }
+    public int Int { get; set; } = 77;
 
-    [DefaultValue(77)]
-    public int Int { get; set; }
-
-    [DefaultValue("test")]
-    public string String { get; set; }
-    
-    [DefaultValue("Test")] // Default value for TinyhandObject is supported.
-    public DefaultTestClassName NameClass { get; set; }
+    public string String { get; set; } = "test";
 }
 
 [TinyhandObject(ImplicitKeyAsName = true)]
 public partial class StringEmptyClass
 {
-}
-
-[TinyhandObject]
-public partial class DefaultTestClassName
-{
-    public DefaultTestClassName()
-    {
-        
-    }
-
-    public void SetDefault(string name)
-    {// To receive the default value, SetDefault() is required.
-        // Constructor -> SetDefault -> Deserialize or Reconstruct
-        this.Name = name;
-    }
-
-    public string Name { get; private set; }
 }
 
 public class DefaultTest
