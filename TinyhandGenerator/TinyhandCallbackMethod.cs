@@ -15,8 +15,7 @@ public enum CallbackKind
     OnSerialized,
     OnDeserializing,
     OnDeserialized,
-    // AbandonReconstructCode OnReconstructing,
-    // AbandonReconstructCode OnReconstructed,
+    OnReconstructed,
 }
 
 public class CallbackMethod
@@ -76,20 +75,6 @@ public class CallbackMethod
                     error = true;
                 }
             }
-
-            // AbandonReconstructCode
-            /* else if (y.FullName == TinyhandOnReconstructingAttributeMock.FullName)
-            {// OnReconstructing
-                if (!method.IsStatic && method.Method_Parameters.Length == 0)
-                {
-                    currentKind = CallbackKind.OnReconstructing;
-                }
-                else
-                {
-                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMetohd, method.Location);
-                    error = true;
-                }
-            }
             else if (y.FullName == TinyhandOnReconstructedAttributeMock.FullName)
             {// OnReconstructed
                 if (!method.IsStatic && method.Method_Parameters.Length == 0)
@@ -101,7 +86,7 @@ public class CallbackMethod
                     method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMetohd, method.Location);
                     error = true;
                 }
-            }*/
+            }
 
             if (currentKind != CallbackKind.None)
             {

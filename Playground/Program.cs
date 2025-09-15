@@ -100,6 +100,11 @@ public partial class DefaultValueTestClass
 
     [Key(17)]
     public byte[]? AddedBytes { get; set; } = null;
+
+    [TinyhandOnReconstructed]
+    void OnReconstructed()
+    {
+    }
 }
 
 [TinyhandObject(AddImmutable = true)]

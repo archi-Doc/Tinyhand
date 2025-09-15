@@ -468,6 +468,11 @@ public partial struct Callback2_2
     {
         CalledAfter = true;
     }
+
+    [TinyhandOnReconstructed]
+    void OnReconstructed()
+    {
+    }
 }
 
 [TinyhandObject]
