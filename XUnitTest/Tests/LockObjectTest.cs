@@ -64,7 +64,7 @@ public partial struct LockObjectStruct
 
 [TinyhandObject(Structual = true, LockObject = "semaphore")]
 public partial class LockObjectClass3
-{// Delete()
+{
     [Key(0)]
     public int X { get; set; }
 

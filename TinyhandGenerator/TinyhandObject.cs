@@ -2976,7 +2976,7 @@ ModuleInitializerClass_Added:
             (this.ObjectAttribute?.Structual == true && typeObject.Kind == VisceralObjectKind.Error))
         {// IStructualObject or unknown generated class
             var objName = $"obj{key.ToString()}";
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) await {objName}.Delete(forceDeleteAfter).ConfigureAwait(false);");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) await {objName}.DeleteData(forceDeleteAfter).ConfigureAwait(false);");
         }
     }
 
@@ -3626,7 +3626,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateIStructualObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"async Task {TinyhandBody.IStructualObject}.Delete(DateTime forceDeleteAfter)"))
+        using (var scopeMethod = ssb.ScopeBrace($"async Task {TinyhandBody.IStructualObject}.DeleteData(DateTime forceDeleteAfter)"))
         {
             if (this.IntKey_Array is not null)
             {
