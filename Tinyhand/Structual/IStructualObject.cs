@@ -72,7 +72,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
     /// <see cref="DateTime.UtcNow"/> or earlier: forcibly delete data without waiting.
     /// </param>
     /// <returns>A <see cref="Task"/> representing the asynchronous delete operation.</returns>
-    Task Delete(DateTime forceDeleteAfter = default)
+    Task DeleteData(DateTime forceDeleteAfter = default)
         => Task.CompletedTask;
 
     /// <summary>
