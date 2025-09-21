@@ -56,13 +56,13 @@ public enum JournalRecord : byte
 
     /// <summary>
     /// Represents the operation of adding an item to a collection.<br/>
-    /// This entry is intended to be processed by this object.
+    /// Subsequent processing is delegated to the descendant objects.
     /// </summary>
     AddItem,
 
     /// <summary>
     /// Represents the operation of deleting an item from a collection.<br/>
-    /// This entry is intended to be processed by this object.
+    /// Subsequent processing is delegated to the descendant objects.
     /// </summary>
     DeleteItem,
 

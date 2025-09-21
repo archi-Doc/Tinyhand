@@ -97,7 +97,7 @@ public static class JournalHelper
         return result;
     }
 
-    /// <summary>
+    /* /// <summary>
     /// Attempts to peek at the next journal record in the reader and checks if it is either a <see cref="JournalRecord.Key"/> or <see cref="JournalRecord.Locator"/>.<br/>
     /// If the next record is <see cref="JournalRecord.Key"/> or <see cref="JournalRecord.Locator"/>, sets <paramref name="journalRecord"/> and returns <c>true</c>.<br/>
     /// Otherwise, advances the reader by one byte, sets <paramref name="journalRecord"/>, and returns <c>false</c>.<br/>
@@ -123,6 +123,39 @@ public static class JournalHelper
             {
                 reader.Advance(1);
                 return false;
+            }
+        }
+
+        journalRecord = JournalRecord.Invalid;
+        return false;
+    }*/
+
+    /// <summary>
+    /// Attempts to peek at the next journal record in the reader and determines if it should be processed by this object or delegated to descendant objects.<br/>
+    /// If the next record is <see cref="JournalRecord.Value"/> or <see cref="JournalRecord.Delete"/>, advances the reader by one byte, sets <paramref name="journalRecord"/>, and returns <c>false</c>.<br/>
+    /// Otherwise, sets <paramref name="journalRecord"/> and returns <c>true</c>.<br/>
+    /// If there are no remaining bytes, sets <paramref name="journalRecord"/> to <see cref="JournalRecord.Invalid"/> and returns <c>false</c>.
+    /// </summary>
+    /// <param name="reader">The <see cref="TinyhandReader"/> to read from.</param>
+    /// <param name="journalRecord">When this method returns, contains the journal record that was peeked or <see cref="JournalRecord.Invalid"/> if none was found.</param>
+    /// <returns>
+    /// <c>true</c> if the next journal record is intended to be processed by descendant objects; <c>false</c> if it is intended to be processed by this object or if no record is found.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryReadJournalRecord_PeekIDelegated(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    {
+        if (reader.Remaining > 0)
+        {
+            journalRecord = (JournalRecord)reader.NextCode;
+            if (journalRecord == JournalRecord.Value ||
+                journalRecord == JournalRecord.Delete)
+            {// Journal is intended to be processed by this object.
+                reader.Advance(1);
+                return false;
+            }
+            else
+            {// Journal is intended to be processed by descendant objects.
+                return true;
             }
         }
 
