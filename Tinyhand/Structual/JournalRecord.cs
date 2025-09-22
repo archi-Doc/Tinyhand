@@ -14,15 +14,15 @@ public enum JournalType : byte
     /// </summary>
     Record,
 
-    /*/// <summary>
-    /// Indicates the starting point of a journal.
-    /// </summary>
-    Startingpoint,
-
     /// <summary>
     /// Indicates a waypoint in the journal.
     /// </summary>
-    Waypoint,*/
+    Waypoint,
+
+    /*/// <summary>
+    /// Indicates the starting point of a journal.
+    /// </summary>
+    Startingpoint, */
 }
 
 /// <summary>
