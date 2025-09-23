@@ -223,8 +223,6 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
     }
 
-    public bool IsStoragePoint => this.FullName == TinyhandBody.StoragePointName;
-
     public bool IsOptimizedType => this.FullName switch
     {
         "bool" => true,
@@ -1206,6 +1204,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
                 baseObject = baseObject.BaseObject?.OriginalDefinition;
             }
+        }
+
+        // Derived from StoragePoint<TData>
+        if (this.IsDerivedFrom(TinyhandBody.StoragePointName))
+        {
+            this.ObjectFlag |= TinyhandObjectFlag.DerivedFromStoragePoint;
         }
 
         if (!string.IsNullOrEmpty(lockObjectName))
