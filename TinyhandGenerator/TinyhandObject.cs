@@ -61,7 +61,7 @@ public enum TinyhandObjectFlag
     UnsafeConstructor = 1 << 12,
     MinimumConstructorPrepared = 1 << 13,
 
-    IsThreadSafe = 1 << 20, // Is thread-safe type
+    DerivedFromStoragePoint = 1 << 20, // Derived from StoragePoint (thread-safe)
     HasIStringConvertible = 1 << 21, // Has IStringConvertible interface
     HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
@@ -1528,9 +1528,9 @@ Exit:
             parent.ObjectFlag |= TinyhandObjectFlag.UnsafeConstructor;
         }
 
-        if (this.TypeObject.OriginalDefinition?.FullName == TinyhandBody.StoragePointName)
+        if (this.TypeObject.IsDerivedFrom(TinyhandBody.StoragePointName))
         {
-            this.ObjectFlag |= TinyhandObjectFlag.IsThreadSafe;
+            this.ObjectFlag |= TinyhandObjectFlag.DerivedFromStoragePoint;
         }
 
         if (!this.IsSerializable || this.IsReadOnly)
@@ -3540,9 +3540,12 @@ ModuleInitializerClass_Added:
     {
         ssb.AppendLine();
 
-        ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructualRoot}? {TinyhandBody.IStructualObject}.StructualRoot {{ get; set; }}");
-        ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructualObject}? {TinyhandBody.IStructualObject}.StructualParent {{ get; set; }}");
-        ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IStructualObject}.StructualKey {{ get; set; }} = -1;");
+        if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint))
+        {
+            ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructualRoot}? {TinyhandBody.IStructualObject}.StructualRoot {{ get; set; }}");
+            ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructualObject}? {TinyhandBody.IStructualObject}.StructualParent {{ get; set; }}");
+            ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IStructualObject}.StructualKey {{ get; set; }} = -1;");
+        }
 
         this.GenerateSetParent(ssb, info, out var count);
         this.GenerateReadRecord(ssb, info);
@@ -3594,7 +3597,7 @@ ModuleInitializerClass_Added:
 
                 using (var t = ssb.ScopeObject("this"))
                 {
-                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == false))
+                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint) == false))
                     {// Other
                         lockScope ??= lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
                         using (var m = this.ScopeMember(ssb, x))
@@ -3610,7 +3613,7 @@ ModuleInitializerClass_Added:
                         lockScope = default;
                     }
 
-                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == true))
+                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint) == true))
                     {// Thread-safe
                         using (var m = this.ScopeMember(ssb, x))
                         {
@@ -3636,7 +3639,7 @@ ModuleInitializerClass_Added:
                     var lockExpression = this.GetLockExpression("this");
                     ScopingStringBuilder.IScope? lockScope = default;
 
-                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == false))
+                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint) == false))
                     {// Other
                         lockScope ??= lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
                         using (var m = this.ScopeMember(ssb, x))
@@ -3647,7 +3650,7 @@ ModuleInitializerClass_Added:
 
                     lockScope?.Dispose();
 
-                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.IsThreadSafe) == true))
+                    foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint) == true))
                     {// Thread-safe
                         using (var m = this.ScopeMember(ssb, x))
                         {

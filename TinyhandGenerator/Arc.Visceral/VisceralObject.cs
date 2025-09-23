@@ -3040,6 +3040,22 @@ public abstract class VisceralObjectBase<T> : IComparable<T>
         }
     }
 
+    public bool IsDerivedFrom(string fullName)
+    {
+        var t = (T?)this.OriginalDefinition;
+        while (t is not null)
+        {
+            if (t.FullName == fullName)
+            {
+                return true;
+            }
+
+            t = t.BaseObject?.OriginalDefinition;
+        }
+
+        return false;
+    }
+
     public bool ContainsNonPublicObject()
     {
         var x = this;
