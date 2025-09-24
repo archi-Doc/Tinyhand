@@ -3791,6 +3791,15 @@ ModuleInitializerClass_Added:
                 }
             }
 
+            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint))
+            {
+                using (var scopeValue = ssb.ScopeBrace("else if (record == JournalRecord.Value)"))
+                {
+                    ssb.AppendLine("this.pointId = reader.ReadUInt64();");
+                    ssb.AppendLine("return true;");
+                }
+            }
+
             lockScope?.Dispose();
 
             ssb.AppendLine("return false;");
