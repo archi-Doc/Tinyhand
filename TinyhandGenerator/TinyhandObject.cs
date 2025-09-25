@@ -2955,13 +2955,21 @@ ModuleInitializerClass_Added:
             return;
         }
 
+        var appendCode = false;
         if (typeObject.ObjectAttribute?.Structual == true || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStructualObject))
         {
-            ssb.AppendLine($"(({TinyhandBody.IStructualObject}){ssb.FullObject})?.{TinyhandBody.SetupStructure}({parent}, {key.ToString()});");
-            count++;
+            appendCode = true;
+            // ssb.AppendLine($"(({TinyhandBody.IStructualObject}){ssb.FullObject})?.{TinyhandBody.SetupStructure}({parent}, {key.ToString()});");
+            // count++;
         }
-        else if (this.ObjectAttribute?.Structual == true && typeObject.Kind == VisceralObjectKind.Error)
+        else if (this.ObjectAttribute?.Structual == true &&
+            (typeObject.Kind == VisceralObjectKind.Error || typeObject.ObjectFlag.HasFlag(TinyhandObjectFlag.ExternalObject)))
         {// Maybe generated class
+            appendCode = true;
+        }
+
+        if (appendCode)
+        {
             var keyString = key.ToString();
             var objName = "obj" + keyString;
             ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) {objName}.{TinyhandBody.SetupStructure}({parent}, {keyString});");
