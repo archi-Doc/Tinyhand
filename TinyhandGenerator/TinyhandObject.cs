@@ -2974,7 +2974,7 @@ ModuleInitializerClass_Added:
         if (typeObject.IsStructualTarget)
         {// IStructualObject or unknown generated class
             var objName = $"obj{key.ToString()}";
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) await {objName}.DeleteData(forceDeleteAfter).ConfigureAwait(false);");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) await {objName}.DeleteData(forceDeleteAfter, writeJournal).ConfigureAwait(false);");
         }
     }
 
@@ -3625,7 +3625,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateIStructualObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"async Task {TinyhandBody.IStructualObject}.DeleteData(DateTime forceDeleteAfter)"))
+        using (var scopeMethod = ssb.ScopeBrace($"async Task {TinyhandBody.IStructualObject}.DeleteData(DateTime forceDeleteAfter, bool writeJournal)"))
         {
             if (this.IntKey_Array is not null)
             {
