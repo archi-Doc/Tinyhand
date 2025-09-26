@@ -71,8 +71,9 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
     /// <see langword="default"/>: Do not forcibly delete; wait until all operations are finished.<br/>
     /// <see cref="DateTime.UtcNow"/> or earlier: forcibly delete data without waiting.
     /// </param>
+    /// <param name="writeJournal">Indicates whether to write the deletion operation to the journal.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous delete operation.</returns>
-    Task DeleteData(DateTime forceDeleteAfter = default)
+    Task DeleteData(DateTime forceDeleteAfter = default, bool writeJournal = true)
         => Task.CompletedTask;
 
     /// <summary>
