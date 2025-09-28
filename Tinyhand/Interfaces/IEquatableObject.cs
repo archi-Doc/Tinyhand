@@ -13,7 +13,7 @@ public interface IEquatableObject
     /// <summary>
     /// Determines whether the current object is equal to another object.
     /// </summary>
-    /// <param name="other">The object to compare with the current object.</param>
+    /// <param name="otherObject">The object to compare with the current object.</param>
     /// <returns><c>true</c> if the objects are considered equal; otherwise, <c>false</c>.</returns>
-    bool ObjectEquals(object other);
+    bool ObjectEquals(object? otherObject);
 }
