@@ -878,20 +878,20 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         }
 
         // Method condition (IStructualObject)
-        var structualInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.IStructualObject}";
-        if (this.Interfaces.Any(x => x.FullName == structualInterface))
+        var structuralInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.IStructualObject}";
+        if (this.Interfaces.Any(x => x.FullName == structuralInterface))
         {// IStructualObject implemented
             this.ObjectFlag |= TinyhandObjectFlag.IStructualObjectImplemented;
         }
 
-        structualInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
+        structuralInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
         this.MethodCondition_WriteCustomLocator = MethodCondition.MemberMethod;
         this.MethodCondition_ReadCustomRecord = MethodCondition.MemberMethod;
-        if (this.Interfaces.Any(x => x.FullName == structualInterface))
+        if (this.Interfaces.Any(x => x.FullName == structuralInterface))
         {// ITinyhandCustomJournal implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandCustomJournal;
 
-            var methodName = structualInterface + ".WriteCustomLocator";
+            var methodName = structuralInterface + ".WriteCustomLocator";
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
             {
                 this.MethodCondition_WriteCustomLocator = MethodCondition.ExplicitlyDeclared;
@@ -901,7 +901,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.MethodCondition_WriteCustomLocator = MethodCondition.Declared;
             }
 
-            methodName = structualInterface + ".ReadCustomRecord";
+            methodName = structuralInterface + ".ReadCustomRecord";
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
             {
                 this.MethodCondition_ReadCustomRecord = MethodCondition.ExplicitlyDeclared;
@@ -1120,7 +1120,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         this.Union?.CheckAndPrepare();
 
         // Target
-        var structualRequired = false;
+        var structuralRequired = false;
         foreach (var x in this.Members)
         {
             if (!x.IsSerializable || x.IsReadOnly)
@@ -1150,14 +1150,14 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 typeObject.TryConfigure();
                 if (typeObject.SupportStructualObject)
                 {
-                    structualRequired = true;
+                    structuralRequired = true;
                 }
             }
 
             x.ObjectFlag |= TinyhandObjectFlag.Target | TinyhandObjectFlag.CloneTarget;
         }
 
-        if (structualRequired && !this.SupportStructualObject)
+        if (structuralRequired && !this.SupportStructualObject)
         {
             this.Body.ReportDiagnostic(TinyhandBody.Warning_StructualRequired, this.Location, this.FullName);
         }
@@ -3185,7 +3185,7 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
-            var structualEnabled = this.ObjectAttribute?.Structual == true ||
+            var structuralEnabled = this.ObjectAttribute?.Structual == true ||
             this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructualObjectImplemented);
 
             var property = x.Property_Accessibility;
@@ -3250,7 +3250,7 @@ ModuleInitializerClass_Added:
                         var lockExpression = this.GetLockExpression("this");
                         var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
 
-                        if (structualEnabled)
+                        if (structuralEnabled)
                         {
                             x.CodeJournal(ssb, null);
                         }
@@ -3272,7 +3272,7 @@ ModuleInitializerClass_Added:
 
                         lockScope?.Dispose();
 
-                        if (structualEnabled)
+                        if (structuralEnabled)
                         {
                             ssb.AppendLine($"(({TinyhandBody.IStructualObject})this).StructualRoot?.AddToSaveQueue();");
                         }
@@ -3665,10 +3665,10 @@ ModuleInitializerClass_Added:
         {
             ssb.AppendLine($"(({TinyhandBody.IStructualObject})this).SetParentAndKey(parent, key);");
 
-            // ssb.AppendLine($"var structualObject = ({TinyhandBody.IStructualObject})this;");
-            // ssb.AppendLine($"structualObject.StructualRoot = parent?.StructualRoot;");
-            // ssb.AppendLine($"structualObject.StructualParent = parent;");
-            // ssb.AppendLine($"structualObject.StructualKey = key;");
+            // ssb.AppendLine($"var structuralObject = ({TinyhandBody.IStructualObject})this;");
+            // ssb.AppendLine($"structuralObject.StructualRoot = parent?.StructualRoot;");
+            // ssb.AppendLine($"structuralObject.StructualParent = parent;");
+            // ssb.AppendLine($"structuralObject.StructualKey = key;");
 
             if (this.IntKey_Array is not null)
             {
