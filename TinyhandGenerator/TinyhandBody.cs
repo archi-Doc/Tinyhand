@@ -30,8 +30,8 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly string LockTaken = "__lockTaken__";
     public static readonly string SemaphoreLockName = "Arc.Threading.SemaphoreLock";
     public static readonly string LockName = "System.Threading.Lock";
-    public static readonly string IStructualRoot = "IStructualRoot";
-    public static readonly string IStructualObject = "IStructualObject";
+    public static readonly string IStructuralRoot = "IStructuralRoot";
+    public static readonly string IStructuralObject = "IStructuralObject";
     public static readonly string SetupStructure = "SetupStructure";
     public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
     public static readonly string ITinyhandCustomJournalFull = "Tinyhand.ITinyhandCustomJournal";
@@ -269,12 +269,12 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG055", title: "Union target error", messageFormat: "Types must be closed-constructed generic types, because serialization requires fixed type information",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Warning_StructualRequired = new DiagnosticDescriptor(
-        id: "TG056", title: "Structual required", messageFormat: "'{0}' contains members that implement IStructualObject, and Structual must be enabled for it to function correctly",
+    public static readonly DiagnosticDescriptor Warning_StructuralRequired = new DiagnosticDescriptor(
+        id: "TG056", title: "Structural required", messageFormat: "'{0}' contains members that implement IStructuralObject, and Structural must be enabled for it to function correctly",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_LockObject4 = new DiagnosticDescriptor(
-        id: "TG057", title: "LockObject4", messageFormat: "Since the implementation of IStructualObject functions requires mutual exclusion in code that contains await, consider using SemaphoreLock",
+        id: "TG057", title: "LockObject4", messageFormat: "Since the implementation of IStructuralObject functions requires mutual exclusion in code that contains await, consider using SemaphoreLock",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_AddImmutable = new DiagnosticDescriptor(

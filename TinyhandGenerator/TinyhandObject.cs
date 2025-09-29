@@ -66,7 +66,7 @@ public enum TinyhandObjectFlag
     HasITinyhandSerializable = 1 << 22, // Has ITinyhandSerializable interface
     CanCreateInstance = 1 << 23, // Can create an instance
     InterfaceImplemented = 1 << 24, // ITinyhandSerializable, ITinyhandReconstructable, ITinyhandCloneable
-    IStructualObjectImplemented = 1 << 25, // IStructualObject interface is implemented
+    IStructuralObjectImplemented = 1 << 25, // IStructuralObject interface is implemented
     HasITinyhandCustomJournal = 1 << 26, // Has ITinyhandCustomJournal interface
     HasValueLinkObject = 1 << 27, // Has ValueLinkgObject attribute
     IsRepeatableRead = 1 << 28, // IsolationLevel.RepeatableRead
@@ -126,7 +126,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public TinyhandObject? DefaultInterface { get; private set; }
 
-    public bool SupportStructualObject => this.ObjectAttribute?.Structual == true || this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructualObjectImplemented);
+    public bool SupportStructuralObject => this.ObjectAttribute?.Structural == true || this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructuralObjectImplemented);
 
     public bool IsAbstractOrInterface => this.Kind == VisceralObjectKind.Interface || (this.symbol is INamedTypeSymbol nts && nts.IsAbstract);
 
@@ -877,21 +877,21 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }*/
         }
 
-        // Method condition (IStructualObject)
-        var structualInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.IStructualObject}";
-        if (this.Interfaces.Any(x => x.FullName == structualInterface))
-        {// IStructualObject implemented
-            this.ObjectFlag |= TinyhandObjectFlag.IStructualObjectImplemented;
+        // Method condition (IStructuralObject)
+        var structuralInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.IStructuralObject}";
+        if (this.Interfaces.Any(x => x.FullName == structuralInterface))
+        {// IStructuralObject implemented
+            this.ObjectFlag |= TinyhandObjectFlag.IStructuralObjectImplemented;
         }
 
-        structualInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
+        structuralInterface = $"{TinyhandBody.Namespace}.{TinyhandBody.ITinyhandCustomJournal}";
         this.MethodCondition_WriteCustomLocator = MethodCondition.MemberMethod;
         this.MethodCondition_ReadCustomRecord = MethodCondition.MemberMethod;
-        if (this.Interfaces.Any(x => x.FullName == structualInterface))
+        if (this.Interfaces.Any(x => x.FullName == structuralInterface))
         {// ITinyhandCustomJournal implemented
             this.ObjectFlag |= TinyhandObjectFlag.HasITinyhandCustomJournal;
 
-            var methodName = structualInterface + ".WriteCustomLocator";
+            var methodName = structuralInterface + ".WriteCustomLocator";
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
             {
                 this.MethodCondition_WriteCustomLocator = MethodCondition.ExplicitlyDeclared;
@@ -901,7 +901,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.MethodCondition_WriteCustomLocator = MethodCondition.Declared;
             }
 
-            methodName = structualInterface + ".ReadCustomRecord";
+            methodName = structuralInterface + ".ReadCustomRecord";
             if (this.GetMembers(VisceralTarget.Method).Any(x => x.SimpleName == methodName))
             {
                 this.MethodCondition_ReadCustomRecord = MethodCondition.ExplicitlyDeclared;
@@ -1120,7 +1120,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         this.Union?.CheckAndPrepare();
 
         // Target
-        var structualRequired = false;
+        var structuralRequired = false;
         foreach (var x in this.Members)
         {
             if (!x.IsSerializable || x.IsReadOnly)
@@ -1148,18 +1148,18 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             if (x.TypeObject?.OriginalDefinition is { } typeObject)
             {
                 typeObject.TryConfigure();
-                if (typeObject.SupportStructualObject)
+                if (typeObject.SupportStructuralObject)
                 {
-                    structualRequired = true;
+                    structuralRequired = true;
                 }
             }
 
             x.ObjectFlag |= TinyhandObjectFlag.Target | TinyhandObjectFlag.CloneTarget;
         }
 
-        if (structualRequired && !this.SupportStructualObject)
+        if (structuralRequired && !this.SupportStructuralObject)
         {
-            this.Body.ReportDiagnostic(TinyhandBody.Warning_StructualRequired, this.Location, this.FullName);
+            this.Body.ReportDiagnostic(TinyhandBody.Warning_StructuralRequired, this.Location, this.FullName);
         }
 
         // Key, SerializeTarget
@@ -2181,9 +2181,9 @@ ModuleInitializerClass_Added:
         {
             interfaceString = $" : ITinyhandSerializable<{this.RegionalName}>, ITinyhandReconstructable<{this.RegionalName}>, ITinyhandCloneable<{this.RegionalName}>";
 
-            if (this.ObjectAttribute.Structual && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructualObjectImplemented))
+            if (this.ObjectAttribute.Structural && !this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructuralObjectImplemented))
             {
-                interfaceString += $", {TinyhandBody.IStructualObject}";
+                interfaceString += $", {TinyhandBody.IStructuralObject}";
             }
 
             interfaceString += $", ITinyhandSerializable";
@@ -2251,9 +2251,9 @@ ModuleInitializerClass_Added:
 
                 x.GenerateMethod(ssb, info);
 
-                if (x.ObjectAttribute.Structual && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructualObjectImplemented))
+                if (x.ObjectAttribute.Structural && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructuralObjectImplemented))
                 {
-                    x.GenerateIStructualObject(ssb, info);
+                    x.GenerateIStructuralObject(ssb, info);
                 }
             }
 
@@ -2948,18 +2948,18 @@ ModuleInitializerClass_Added:
 
     internal void GenerateJournal_SetParent(ScopingStringBuilder ssb, TinyhandObject? child, string parent, ref int count)
     {
-        if (!this.SupportStructualObject ||
+        if (!this.SupportStructuralObject ||
             child?.TypeObject is not { } typeObject ||
             child.KeyAttribute?.IntKey is not int key)
         {
             return;
         }
 
-        if (typeObject.IsStructualTarget)
+        if (typeObject.IsStructuralTarget)
         {
             var keyString = key.ToString();
             var objName = "obj" + keyString;
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) {objName}.{TinyhandBody.SetupStructure}({parent}, {keyString});");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructuralObject} {objName}) {objName}.{TinyhandBody.SetupStructure}({parent}, {keyString});");
             count++;
         }
     }
@@ -2971,10 +2971,10 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        if (typeObject.IsStructualTarget)
-        {// IStructualObject or unknown generated class
+        if (typeObject.IsStructuralTarget)
+        {// IStructuralObject or unknown generated class
             var objName = $"obj{key.ToString()}";
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName}) await {objName}.DeleteData(forceDeleteAfter, writeJournal).ConfigureAwait(false);");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructuralObject} {objName}) await {objName}.DeleteData(forceDeleteAfter, writeJournal).ConfigureAwait(false);");
         }
     }
 
@@ -2985,10 +2985,10 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        if (typeObject.IsStructualTarget)
-        {// IStructualObject or unknown generated class
+        if (typeObject.IsStructuralTarget)
+        {// IStructuralObject or unknown generated class
             var objName = $"obj{key.ToString()}";
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName} && await {objName}.StoreData(storeMode).ConfigureAwait(false) == false) return false;");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructuralObject} {objName} && await {objName}.StoreData(storeMode).ConfigureAwait(false) == false) return false;");
         }
     }
 
@@ -2999,10 +2999,10 @@ ModuleInitializerClass_Added:
             return;
         }
 
-        if (typeObject.IsStructualTarget)
-        {// IStructualObject or unknown generated class
+        if (typeObject.IsStructuralTarget)
+        {// IStructuralObject or unknown generated class
             var objName = $"obj{key.ToString()}";
-            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructualObject} {objName} && await {objName}.Save(unloadMode).ConfigureAwait(false) == false) return false;");
+            ssb.AppendLine($"if ({ssb.FullObject} is {TinyhandBody.IStructuralObject} {objName} && await {objName}.Save(unloadMode).ConfigureAwait(false) == false) return false;");
         }
     }
 
@@ -3185,8 +3185,8 @@ ModuleInitializerClass_Added:
                 continue;
             }
 
-            var structualEnabled = this.ObjectAttribute?.Structual == true ||
-            this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructualObjectImplemented);
+            var structuralEnabled = this.ObjectAttribute?.Structural == true ||
+            this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructuralObjectImplemented);
 
             var property = x.Property_Accessibility;
             var partialProperty = "partial ";
@@ -3250,7 +3250,7 @@ ModuleInitializerClass_Added:
                         var lockExpression = this.GetLockExpression("this");
                         var lockScope = lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
 
-                        if (structualEnabled)
+                        if (structuralEnabled)
                         {
                             x.CodeJournal(ssb, null);
                         }
@@ -3272,9 +3272,9 @@ ModuleInitializerClass_Added:
 
                         lockScope?.Dispose();
 
-                        if (structualEnabled)
+                        if (structuralEnabled)
                         {
-                            ssb.AppendLine($"(({TinyhandBody.IStructualObject})this).StructualRoot?.AddToSaveQueue();");
+                            ssb.AppendLine($"(({TinyhandBody.IStructuralObject})this).StructuralRoot?.AddToSaveQueue();");
                         }
                     }
                 }
@@ -3532,15 +3532,15 @@ ModuleInitializerClass_Added:
         ssb.AppendLine($" public static {this.LocalName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
     }
 
-    internal void GenerateIStructualObject(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateIStructuralObject(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         ssb.AppendLine();
 
         if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint))
         {
-            ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructualRoot}? {TinyhandBody.IStructualObject}.StructualRoot {{ get; set; }}");
-            ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructualObject}? {TinyhandBody.IStructualObject}.StructualParent {{ get; set; }}");
-            ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IStructualObject}.StructualKey {{ get; set; }} = -1;");
+            ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructuralRoot}? {TinyhandBody.IStructuralObject}.StructuralRoot {{ get; set; }}");
+            ssb.AppendLine($"[IgnoreMember] {TinyhandBody.IStructuralObject}? {TinyhandBody.IStructuralObject}.StructuralParent {{ get; set; }}");
+            ssb.AppendLine($"[IgnoreMember] int {TinyhandBody.IStructuralObject}.StructuralKey {{ get; set; }} = -1;");
         }
 
         this.GenerateSetParent(ssb, info, out var count);
@@ -3548,15 +3548,15 @@ ModuleInitializerClass_Added:
 
         if (count > 0)
         {
-            // this.GenerateIStructualObject_Save(ssb, info);
-            this.GenerateIStructualObject_Erase(ssb, info);
-            this.GenerateIStructualObject_StoreData(ssb, info);
+            // this.GenerateIStructuralObject_Save(ssb, info);
+            this.GenerateIStructuralObject_Erase(ssb, info);
+            this.GenerateIStructuralObject_StoreData(ssb, info);
         }
     }
 
-    internal void GenerateIStructualObject_Save(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateIStructuralObject_Save(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.IStructualObject}.Save(UnloadMode unloadMode)"))
+        using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.IStructuralObject}.Save(UnloadMode unloadMode)"))
         {
             if (this.IntKey_Array is not null)
             {
@@ -3581,9 +3581,9 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateIStructualObject_StoreData(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateIStructuralObject_StoreData(ScopingStringBuilder ssb, GeneratorInformation info)
     {// Task<bool> StoreData(StoreMode storeMode)
-        using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.IStructualObject}.StoreData(StoreMode storeMode)"))
+        using (var scopeMethod = ssb.ScopeBrace($"async Task<bool> {TinyhandBody.IStructuralObject}.StoreData(StoreMode storeMode)"))
         {
             if (this.IntKey_Array is not null)
             {
@@ -3623,9 +3623,9 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateIStructualObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateIStructuralObject_Erase(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"async Task {TinyhandBody.IStructualObject}.DeleteData(DateTime forceDeleteAfter, bool writeJournal)"))
+        using (var scopeMethod = ssb.ScopeBrace($"async Task {TinyhandBody.IStructuralObject}.DeleteData(DateTime forceDeleteAfter, bool writeJournal)"))
         {
             if (this.IntKey_Array is not null)
             {
@@ -3659,16 +3659,16 @@ ModuleInitializerClass_Added:
     }
 
     internal void GenerateSetParent(ScopingStringBuilder ssb, GeneratorInformation info, out int count)
-    {// public void SetupStructure(IStructualObject? parent, int key = -1)
+    {// public void SetupStructure(IStructuralObject? parent, int key = -1)
         count = 0;
-        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructualObject}.{TinyhandBody.SetupStructure}({TinyhandBody.IStructualObject}? parent, int key)"))
+        using (var scopeMethod = ssb.ScopeBrace($"void {TinyhandBody.IStructuralObject}.{TinyhandBody.SetupStructure}({TinyhandBody.IStructuralObject}? parent, int key)"))
         {
-            ssb.AppendLine($"(({TinyhandBody.IStructualObject})this).SetParentAndKey(parent, key);");
+            ssb.AppendLine($"(({TinyhandBody.IStructuralObject})this).SetParentAndKey(parent, key);");
 
-            // ssb.AppendLine($"var structualObject = ({TinyhandBody.IStructualObject})this;");
-            // ssb.AppendLine($"structualObject.StructualRoot = parent?.StructualRoot;");
-            // ssb.AppendLine($"structualObject.StructualParent = parent;");
-            // ssb.AppendLine($"structualObject.StructualKey = key;");
+            // ssb.AppendLine($"var structuralObject = ({TinyhandBody.IStructuralObject})this;");
+            // ssb.AppendLine($"structuralObject.StructuralRoot = parent?.StructuralRoot;");
+            // ssb.AppendLine($"structuralObject.StructuralParent = parent;");
+            // ssb.AppendLine($"structuralObject.StructuralKey = key;");
 
             if (this.IntKey_Array is not null)
             {
@@ -3693,7 +3693,7 @@ ModuleInitializerClass_Added:
 
     internal void GenerateReadRecord(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        using (var scopeMethod = ssb.ScopeBrace($"{this.UnsafeDeserializeString}bool {TinyhandBody.IStructualObject}.ProcessJournalRecord(ref TinyhandReader reader)"))
+        using (var scopeMethod = ssb.ScopeBrace($"{this.UnsafeDeserializeString}bool {TinyhandBody.IStructuralObject}.ProcessJournalRecord(ref TinyhandReader reader)"))
         {
             // Lock
             var lockExpression = this.GetLockExpression("this");
@@ -3811,16 +3811,16 @@ ModuleInitializerClass_Added:
         var destObject = ssb.FullObject; // Hidden members
         using (var m = this.ScopeSimpleMember(ssb, x))
         {
-            if (x.TypeObject?.IsStructualTarget == true)
+            if (x.TypeObject?.IsStructuralTarget == true)
             {
-                ssb.AppendLine($"if (reader.IsNext_NonValue() && {ssb.FullObject} is {TinyhandBody.IStructualObject} obj && obj.ProcessJournalRecord(ref reader)) return true;");
+                ssb.AppendLine($"if (reader.IsNext_NonValue() && {ssb.FullObject} is {TinyhandBody.IStructuralObject} obj && obj.ProcessJournalRecord(ref reader)) return true;");
             }
 
             ssb.AppendLine("reader.Read_Value();");
 
             /*if (x.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIJournalObject))
             {
-                ssb.AppendLine($"return (({TinyhandBody.IStructualObject}){ssb.FullObject}).ProcessJournalRecord(ref reader);");
+                ssb.AppendLine($"return (({TinyhandBody.IStructuralObject}){ssb.FullObject}).ProcessJournalRecord(ref reader);");
             }*/
 
             assignment.Start(false);
@@ -4902,15 +4902,15 @@ ModuleInitializerClass_Added:
     private string AddedPropertyOrPartialProperty
         => this.IsPartialProperty ? this.SimpleName : this.KeyAttribute?.AddProperty ?? string.Empty;
 
-    private bool IsStructualTarget
+    private bool IsStructuralTarget
     {
         get
         {
-            if (this.ObjectAttribute?.Structual == true)
+            if (this.ObjectAttribute?.Structural == true)
             {
                 return true;
             }
-            else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructualObjectImplemented) == true)
+            else if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.IStructuralObjectImplemented) == true)
             {
                 return true;
             }

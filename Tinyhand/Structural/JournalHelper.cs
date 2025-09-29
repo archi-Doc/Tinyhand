@@ -8,7 +8,7 @@ namespace Tinyhand.IO;
 
 public static class JournalHelper
 {
-    public static bool ReadJournal(IStructualObject journalObject, ReadOnlyMemory<byte> data)
+    public static bool ReadJournal(IStructuralObject journalObject, ReadOnlyMemory<byte> data)
     {
         var reader = new TinyhandReader(data.Span);
         var success = true;

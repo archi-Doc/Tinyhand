@@ -143,7 +143,7 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// <summary>
     /// Gets or sets a value indicating whether or not to generate code to manage objects in a tree structure for journaling and data persistence [default is <see langword="false"/>].
     /// </summary>
-    public bool Structual { get; set; } = false;
+    public bool Structural { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not to register as a serializable TinyhandObject, but the actual code is to be generated externally (e.g., by a source generator).

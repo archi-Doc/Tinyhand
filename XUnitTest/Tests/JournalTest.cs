@@ -16,7 +16,7 @@ public readonly partial struct JournalIdentifier
     public readonly int Id1;
 }
 
-/*[TinyhandObject(Structual = false)] // causes a warning if Structual = false
+/*[TinyhandObject(Structural = false)] // causes a warning if Structural = false
 public partial class JournalRoot
 {
     [Key(0)]
@@ -24,7 +24,7 @@ public partial class JournalRoot
     public StoragePoint<int> Class1 { get; set; } = new();
 }*/
 
-[TinyhandObject(Structual = true)]
+[TinyhandObject(Structural = true)]
 public partial class JournalClass
 {
     [Key(0)]
@@ -49,7 +49,7 @@ public partial class JournalClass
     public readonly int Id3;
 }
 
-[TinyhandObject(Structual = true, LockObject = "semaphore")]
+[TinyhandObject(Structural = true, LockObject = "semaphore")]
 public sealed partial class JournalClass2
 {
     public JournalClass2()
@@ -80,7 +80,7 @@ public sealed partial class JournalClass2
     private SemaphoreLock semaphore = new();
 }
 
-[TinyhandObject(Structual = true)]
+[TinyhandObject(Structural = true)]
 public partial class JournalClass2B
 {
     [Key(1)]
@@ -90,7 +90,7 @@ public partial class JournalClass2B
     public JournalTestClass Class2 { get; set; } = new();
 }
 
-[TinyhandObject(Structual = true, LockObject = "syncObject")]
+[TinyhandObject(Structural = true, LockObject = "syncObject")]
 public partial class JournalClass3 : ITinyhandCustomJournal
 {
     [Key(0)]
@@ -114,7 +114,7 @@ public partial class JournalClass3 : ITinyhandCustomJournal
     }
 }
 
-[TinyhandObject(Structual = true)]
+[TinyhandObject(Structural = true)]
 public partial class JournalTestClass
 {
     public JournalTestClass()
@@ -143,7 +143,7 @@ public class JournalTest
         var c = new JournalTestClass(1, "one");
 
         var cc = new JournalTestClass();
-        ((IStructualObject)cc).StructualRoot = tester;
+        ((IStructuralObject)cc).StructuralRoot = tester;
         cc.Id = c.Id;
         cc.Name = c.Name;
 
@@ -159,7 +159,7 @@ public class JournalTest
     {
         var tester = new JournalTester();
         var c = TinyhandSerializer.Reconstruct<JournalClass2B>();
-        ((IStructualObject)c).SetupStructure(tester);
+        ((IStructuralObject)c).SetupStructure(tester);
 
         c.Class1.X7 = 77;
         c.Class2.Id = 21;
