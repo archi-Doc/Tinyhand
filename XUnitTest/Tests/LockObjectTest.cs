@@ -62,7 +62,7 @@ public partial struct LockObjectStruct
     private object syncObject = new();
 }
 
-[TinyhandObject(Structual = true, LockObject = "semaphore")]
+[TinyhandObject(Structural = true, LockObject = "semaphore")]
 public partial class LockObjectClass3
 {
     [Key(0)]

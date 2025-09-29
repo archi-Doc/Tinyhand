@@ -7,7 +7,7 @@ namespace Tinyhand;
 /// <summary>
 /// Defines the contract for a structural root that supports journal operations and save queue management.
 /// </summary>
-public interface IStructualRoot
+public interface IStructuralRoot
 {
     /// <summary>
     /// Attempts to obtain a <see cref="TinyhandWriter"/> for writing a journal entry of the specified <see cref="JournalType"/>.

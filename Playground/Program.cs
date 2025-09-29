@@ -6,7 +6,7 @@ using ValueLink;
 
 namespace Playground;
 
-[TinyhandObject(Structual = true)]
+[TinyhandObject(Structural = true)]
 [ValueLinkObject]
 public partial class ChildClass
 {
@@ -20,14 +20,14 @@ public partial class ChildClass
     public int Id { get; set; }
 }
 
-[TinyhandObject(Structual = true)]
-public partial class StructualClass
+[TinyhandObject(Structural = true)]
+public partial class StructuralClass
 {
     [Key(0)]
     public int A { get; set; }
 
     [Key(1)]
-    public StructualClass? B { get; set; }
+    public StructuralClass? B { get; set; }
 
     [Key(2)]
     public ChildClass C { get; set; } = new();

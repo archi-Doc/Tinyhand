@@ -8,7 +8,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
-public class JournalTester : IStructualRoot, IStructualObject
+public class JournalTester : IStructuralRoot, IStructuralObject
 {
     private const int MaxJournalLength = 1024 * 1024 * 1; // 1 MB
     private const int MaxRecordLength = 1024 * 16; // 16 KB
@@ -82,19 +82,19 @@ public class JournalTester : IStructualRoot, IStructualObject
 
     public int JournalLength { get; init; }
 
-    IStructualRoot? IStructualObject.StructualRoot
+    IStructuralRoot? IStructuralObject.StructuralRoot
     {
         get => this;
         set { }
     }
 
-    IStructualObject? IStructualObject.StructualParent
+    IStructuralObject? IStructuralObject.StructuralParent
     {
         get => default;
         set { }
     }
 
-    int IStructualObject.StructualKey
+    int IStructuralObject.StructuralKey
     {
         get => 0;
         set { }

@@ -7,17 +7,17 @@ using Tinyhand.IO;
 namespace Tinyhand.Tests;
 
 [TinyhandObject]
-public sealed partial class StoragePoint<TData> : SemaphoreLock, IStructualObject, ITinyhandSerializable<StoragePoint<TData>>, ITinyhandReconstructable<StoragePoint<TData>>, ITinyhandCloneable<StoragePoint<TData>>
+public sealed partial class StoragePoint<TData> : SemaphoreLock, IStructuralObject, ITinyhandSerializable<StoragePoint<TData>>, ITinyhandReconstructable<StoragePoint<TData>>, ITinyhandCloneable<StoragePoint<TData>>
 {
     #region FieldAndProperty
 
     public ulong PointId { get; private set; } // Key:0
 
-    IStructualRoot? IStructualObject.StructualRoot { get; set; }
+    IStructuralRoot? IStructuralObject.StructuralRoot { get; set; }
 
-    IStructualObject? IStructualObject.StructualParent { get; set; }
+    IStructuralObject? IStructuralObject.StructuralParent { get; set; }
 
-    int IStructualObject.StructualKey { get; set; }
+    int IStructuralObject.StructuralKey { get; set; }
 
     #endregion
 

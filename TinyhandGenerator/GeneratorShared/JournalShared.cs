@@ -142,7 +142,7 @@ internal static class JournalShared
 
     public static void CodeJournal(this TinyhandObject obj, ScopingStringBuilder ssb, TinyhandObject? locator)
     {
-        using (var journalScope = ssb.ScopeBrace($"if ((({TinyhandBody.IStructualObject})this).TryGetJournalWriter(out var root, out var writer, true))"))
+        using (var journalScope = ssb.ScopeBrace($"if ((({TinyhandBody.IStructuralObject})this).TryGetJournalWriter(out var root, out var writer, true))"))
         {
             if (obj.ContainingObject is { } containingObject)
             {

@@ -14,33 +14,33 @@ namespace Tinyhand;
 /// Represents a structural object that can participate in a hierarchical structure,
 /// support journaling, and provide serialization/deserialization capabilities.
 /// </summary>
-public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
+public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
 {
     /// <summary>
     /// Gets or sets the root of the structure to which this object belongs.
     /// </summary>
-    IStructualRoot? StructualRoot { get; set; }
+    IStructuralRoot? StructuralRoot { get; set; }
 
     /// <summary>
     /// Gets or sets the parent structural object.
     /// </summary>
-    IStructualObject? StructualParent { get; set; }
+    IStructuralObject? StructuralParent { get; set; }
 
     /// <summary>
     /// Gets or sets the key that identifies this object within its parent.
     /// </summary>
-    int StructualKey { get; set; }
+    int StructuralKey { get; set; }
 
     /// <summary>
     /// Sets up the structure by assigning the parent and key, and propagating the root.
     /// </summary>
     /// <param name="parent">The parent structural object.</param>
     /// <param name="key">The key for this object within its parent. Default is -1.</param>
-    public void SetupStructure(IStructualObject? parent, int key = -1)
+    public void SetupStructure(IStructuralObject? parent, int key = -1)
     {
-        this.StructualRoot = parent?.StructualRoot;
-        this.StructualParent = parent;
-        this.StructualKey = key;
+        this.StructuralRoot = parent?.StructuralRoot;
+        this.StructuralParent = parent;
+        this.StructuralKey = key;
     }
 
     /// <summary>
@@ -48,11 +48,11 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
     /// </summary>
     /// <param name="parent">The parent structural object.</param>
     /// <param name="key">The key for this object within its parent. Default is -1.</param>
-    public sealed void SetParentAndKey(IStructualObject? parent, int key = -1)
+    public sealed void SetParentAndKey(IStructuralObject? parent, int key = -1)
     {
-        this.StructualRoot = parent?.StructualRoot;
-        this.StructualParent = parent;
-        this.StructualKey = key;
+        this.StructuralRoot = parent?.StructuralRoot;
+        this.StructuralParent = parent;
+        this.StructuralKey = key;
     }
 
     /// <summary>
@@ -118,10 +118,10 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteKeyOrLocator(ref TinyhandWriter writer)
     {
-        if (this.StructualKey >= 0)
+        if (this.StructuralKey >= 0)
         {
             writer.Write_Key();
-            writer.Write(this.StructualKey);
+            writer.Write(this.StructuralKey);
         }
         else
         {
@@ -131,19 +131,19 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
 
     /// <summary>
     /// Attempts to get a journal writer for this object, constructing the locator path as needed.<br/>
-    /// The writer instance is released when a journal is added through <see cref="IStructualRoot.AddJournalAndDispose"/>.
+    /// The writer instance is released when a journal is added through <see cref="IStructuralRoot.AddJournalAndDispose"/>.
     /// </summary>
     /// <param name="root">When this method returns, contains the root object if successful; otherwise, null.</param>
     /// <param name="writer">When this method returns, contains the journal writer if successful; otherwise, the default value.<br/>
-    /// The Writer instance is released when a journal is added through <see cref="IStructualRoot.AddJournalAndDispose"/>.</param>
+    /// The Writer instance is released when a journal is added through <see cref="IStructuralRoot.AddJournalAndDispose"/>.</param>
     /// <param name="includeCurrent">Whether to include the current object in the locator path.</param>
     /// <returns>True if a journal writer was successfully obtained; otherwise, false.</returns>
-    public bool TryGetJournalWriter([NotNullWhen(true)] out IStructualRoot? root, out TinyhandWriter writer, bool includeCurrent = true)
+    public bool TryGetJournalWriter([NotNullWhen(true)] out IStructuralRoot? root, out TinyhandWriter writer, bool includeCurrent = true)
     {
-        var p = this.StructualParent;
+        var p = this.StructuralParent;
         if (p == null)
         {
-            if (this.StructualRoot is null)
+            if (this.StructuralRoot is null)
             {
                 root = null;
                 writer = default;
@@ -151,16 +151,16 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
             }
             else
             {
-                root = this.StructualRoot;
+                root = this.StructuralRoot;
                 return root.TryGetJournalWriter(JournalType.Record, out writer);
             }
         }
         else
         {
-            var p2 = p.StructualParent;
+            var p2 = p.StructuralParent;
             if (p2 is null)
             {
-                if (p.StructualRoot is null)
+                if (p.StructuralRoot is null)
                 {
                     root = null;
                     writer = default;
@@ -168,7 +168,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                 }
                 else
                 {
-                    root = p.StructualRoot;
+                    root = p.StructuralRoot;
                     root.TryGetJournalWriter(JournalType.Record, out writer);
                 }
 
@@ -181,10 +181,10 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
             }
             else
             {
-                var p3 = p2.StructualParent;
+                var p3 = p2.StructuralParent;
                 if (p3 is null)
                 {
-                    if (p2.StructualRoot is null)
+                    if (p2.StructuralRoot is null)
                     {
                         root = null;
                         writer = default;
@@ -192,7 +192,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                     }
                     else
                     {
-                        root = p2.StructualRoot;
+                        root = p2.StructuralRoot;
                         root.TryGetJournalWriter(JournalType.Record, out writer);
                     }
 
@@ -206,10 +206,10 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                 }
                 else
                 {
-                    var p4 = p3.StructualParent;
+                    var p4 = p3.StructuralParent;
                     if (p4 is null)
                     {
-                        if (p3.StructualRoot is null)
+                        if (p3.StructuralRoot is null)
                         {
                             root = null;
                             writer = default;
@@ -217,7 +217,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                         }
                         else
                         {
-                            root = p3.StructualRoot;
+                            root = p3.StructuralRoot;
                             root.TryGetJournalWriter(JournalType.Record, out writer);
                         }
 
@@ -232,10 +232,10 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                     }
                     else
                     {
-                        var p5 = p4.StructualParent;
+                        var p5 = p4.StructuralParent;
                         if (p5 is null)
                         {
-                            if (p4.StructualRoot is null)
+                            if (p4.StructuralRoot is null)
                             {
                                 root = null;
                                 writer = default;
@@ -243,7 +243,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                             }
                             else
                             {
-                                root = p4.StructualRoot;
+                                root = p4.StructuralRoot;
                                 root.TryGetJournalWriter(JournalType.Record, out writer);
                             }
 
@@ -259,10 +259,10 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                         }
                         else
                         {
-                            var p6 = p5.StructualParent;
+                            var p6 = p5.StructuralParent;
                             if (p6 is null)
                             {
-                                if (p5.StructualRoot is null)
+                                if (p5.StructuralRoot is null)
                                 {
                                     root = null;
                                     writer = default;
@@ -270,7 +270,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                                 }
                                 else
                                 {
-                                    root = p5.StructualRoot;
+                                    root = p5.StructuralRoot;
                                     root.TryGetJournalWriter(JournalType.Record, out writer);
                                 }
 
@@ -287,10 +287,10 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                             }
                             else
                             {
-                                var p7 = p6.StructualParent;
+                                var p7 = p6.StructuralParent;
                                 if (p7 is null)
                                 {
-                                    if (p6.StructualRoot is null)
+                                    if (p6.StructuralRoot is null)
                                     {
                                         root = null;
                                         writer = default;
@@ -298,7 +298,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                                     }
                                     else
                                     {
-                                        root = p6.StructualRoot;
+                                        root = p6.StructuralRoot;
                                         root.TryGetJournalWriter(JournalType.Record, out writer);
                                     }
 
@@ -316,10 +316,10 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                                 }
                                 else
                                 {
-                                    var p8 = p7.StructualParent;
+                                    var p8 = p7.StructuralParent;
                                     if (p8 is null)
                                     {
-                                        if (p7.StructualRoot is null)
+                                        if (p7.StructuralRoot is null)
                                         {
                                             root = null;
                                             writer = default;
@@ -327,7 +327,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                                         }
                                         else
                                         {
-                                            root = p7.StructualRoot;
+                                            root = p7.StructuralRoot;
                                             root.TryGetJournalWriter(JournalType.Record, out writer);
                                         }
 
@@ -346,10 +346,10 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                                     }
                                     else
                                     {
-                                        var p9 = p8.StructualParent;
+                                        var p9 = p8.StructuralParent;
                                         if (p9 is null)
                                         {
-                                            if (p8.StructualRoot is null)
+                                            if (p8.StructuralRoot is null)
                                             {
                                                 root = null;
                                                 writer = default;
@@ -357,7 +357,7 @@ public interface IStructualObject // TinyhandGenerator, ValueLinkGenerator
                                             }
                                             else
                                             {
-                                                root = p8.StructualRoot;
+                                                root = p8.StructuralRoot;
                                                 root.TryGetJournalWriter(JournalType.Record, out writer);
                                             }
 
