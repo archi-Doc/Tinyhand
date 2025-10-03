@@ -97,6 +97,8 @@ public record TinyhandSerializerOptions
 
     public static TinyhandSerializerOptions ConvertToString { get; } = Standard with { Flags = SerializationFlag.ConvertToString, };
 
+    public static TinyhandSerializerOptions ConvertToSimpoleString { get; } = Standard with { Flags = SerializationFlag.ConvertToString, Compose = TinyhandComposeOption.Simple, };
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandSerializerOptions"/> class.
     /// </summary>

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Arc;
 using Arc.Crypto;
@@ -9,7 +10,7 @@ using Xunit;
 namespace Tinyhand.Tests;
 
 [TinyhandObject]
-public partial class StringConvertibleTestClass : IStringConvertible<StringConvertibleTestClass>
+public partial class StringConvertibleTestClass : IStringConvertible<StringConvertibleTestClass>, IEquatable<StringConvertibleTestClass>
 {// @Base64.Url(Byte16)
     public static int MaxStringLength
         => 23;
@@ -38,6 +39,16 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
         instance.Byte16 = b;
         read = source.Length + 1;
         return true;
+    }
+
+    public bool Equals(StringConvertibleTestClass? other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        return this.Byte16.SequenceEqual(other.Byte16);
     }
 
     int IStringConvertible<StringConvertibleTestClass>.GetStringLength()
@@ -77,6 +88,16 @@ public partial class StringConvertibleTestClass2
     // TestRecord Class3 { get; set; } = new();
 }
 
+[TinyhandObject]
+public partial class StringConvertibleTestClass3
+{
+    [Key(0)]
+    public StringConvertibleTestClass[] Array { get; set; } = [];
+
+    [Key(1)]
+    public List<StringConvertibleTestClass> List { get; set; } = new();
+}
+
 public class StringConvertibleTest
 {
     [Fact]
@@ -99,5 +120,13 @@ public class StringConvertibleTest
         var tc4 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass2>(st);
         tc4.Class1.Byte16.SequenceEqual(tc3.Class1.Byte16).IsTrue();
         tc4.Class2.Byte16.SequenceEqual(tc3.Class2.Byte16).IsTrue();
+
+        var tc5 = new StringConvertibleTestClass3();
+        tc5.Array = [tc, tc2!,];
+        tc5.List = [tc, tc2!,];
+        st = TinyhandSerializer.SerializeToString(tc5, TinyhandSerializerOptions.ConvertToSimpoleString);
+        var tc6 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass3>(st);
+        tc6.Array.SequenceEqual(tc5.Array).IsTrue();
+        tc6.List.SequenceEqual(tc5.List).IsTrue();
     }
 }

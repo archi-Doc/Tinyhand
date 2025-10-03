@@ -33,11 +33,11 @@ public sealed class ObjectResolver : ICoderResolver
         return value;
     }
 
-    public ITinyhandCoder AddFormatter(string fullNameWithNullable, bool nonNullableReference = false)
+    public ITinyhandCoder AddFormatter(string fullNameWithNullable, bool nonNullableReference, bool isStringConvertible)
     {
         if (!this.stringToCoder.TryGetValue(fullNameWithNullable, out var coder))
         {
-            coder = new ObjectCoder(fullNameWithNullable, nonNullableReference);
+            coder = new ObjectCoder(fullNameWithNullable, nonNullableReference, isStringConvertible);
             this.stringToCoder[fullNameWithNullable] = coder;
         }
 
@@ -51,11 +51,12 @@ public sealed class ObjectResolver : ICoderResolver
             return null;
         }
 
+        var isStringConvertible = withNullable.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible);
         if (withNullable.Object.Kind.IsReferenceType())
         {// Reference type
             var fullName = withNullable.FullNameWithNullable.TrimEnd('?');
-            var c = this.AddFormatter(fullName, true); // T (non-nullable)
-            var c2 = this.AddFormatter(fullName + "?"); // T?
+            var c = this.AddFormatter(fullName, true, isStringConvertible); // T (non-nullable)
+            var c2 = this.AddFormatter(fullName + "?", false, isStringConvertible); // T?
 
             if (withNullable.Nullable == NullableAnnotation.NotAnnotated)
             {// T
@@ -68,7 +69,7 @@ public sealed class ObjectResolver : ICoderResolver
         }
         else
         {// Value type
-            return this.AddFormatter(withNullable.FullNameWithNullable); // T
+            return this.AddFormatter(withNullable.FullNameWithNullable, false, isStringConvertible); // T
         }
     }
 
@@ -77,11 +78,12 @@ public sealed class ObjectResolver : ICoderResolver
 
 internal class ObjectCoder : ITinyhandCoder
 {
-    public ObjectCoder(string fullNameWithNullable, bool nonNullableReference)
+    public ObjectCoder(string fullNameWithNullable, bool nonNullableReference, bool isStringConvertible)
     {
         this.FullNameWithNullable = fullNameWithNullable;
         this.FullName = fullNameWithNullable.TrimEnd('?');
         this.NonNullableReference = nonNullableReference;
+        this.IsStringConvertible = isStringConvertible;
     }
 
     public bool RequiresRefValue => true;
@@ -92,21 +94,44 @@ internal class ObjectCoder : ITinyhandCoder
 
     public bool NonNullableReference { get; }
 
+    public bool IsStringConvertible { get; }
+
     public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
     {
-        // ssb.AppendLine($"options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Serialize(ref writer, {ssb.FullObject}, options);");
-        ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+        if (this.IsStringConvertible)
+        {
+            ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
+            ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+        }
+        else
+        {
+            ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+        }
     }
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        if (!this.NonNullableReference)
-        {// Value type or Nullable reference type
-            ssb.AppendLine($"TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, ref {ssb.FullObject}, options);");
+        if (this.IsStringConvertible)
+        {
+            if (!this.NonNullableReference)
+            {// Value type or Nullable reference type
+                ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject(ref reader, ref {ssb.FullObject}, options);");
+            }
+            else
+            {// Non-nullable reference type
+                ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject2(ref reader, ref {ssb.FullObject}, options);");
+            }
         }
         else
-        {// Non-nullable reference type
-            ssb.AppendLine($"TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, ref {ssb.FullObject}, options);");
+        {
+            if (!this.NonNullableReference)
+            {// Value type or Nullable reference type
+                ssb.AppendLine($"TinyhandSerializer.DeserializeObject<{this.FullName}>(ref reader, ref {ssb.FullObject}, options);");
+            }
+            else
+            {// Non-nullable reference type
+                ssb.AppendLine($"TinyhandSerializer.DeserializeAndReconstructObject<{this.FullName}>(ref reader, ref {ssb.FullObject}, options);");
+            }
         }
     }
 
