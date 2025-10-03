@@ -10,7 +10,7 @@ using Xunit;
 namespace Tinyhand.Tests;
 
 [TinyhandObject]
-public partial class StringConvertibleTestClass : IStringConvertible<StringConvertibleTestClass>
+public partial class StringConvertibleTestClass : IStringConvertible<StringConvertibleTestClass>, IEquatable<StringConvertibleTestClass>
 {// @Base64.Url(Byte16)
     public static int MaxStringLength
         => 23;
@@ -39,6 +39,16 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
         instance.Byte16 = b;
         read = source.Length + 1;
         return true;
+    }
+
+    public bool Equals(StringConvertibleTestClass? other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+
+        return this.Byte16.SequenceEqual(other.Byte16);
     }
 
     int IStringConvertible<StringConvertibleTestClass>.GetStringLength()
@@ -115,5 +125,8 @@ public class StringConvertibleTest
         tc5.Array = [tc, tc2!,];
         tc5.List = [tc, tc2!,];
         st = TinyhandSerializer.SerializeToString(tc5, TinyhandSerializerOptions.ConvertToSimpoleString);
+        var tc6 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass3>(st);
+        tc6.Array.SequenceEqual(tc5.Array).IsTrue();
+        tc6.List.SequenceEqual(tc5.List).IsTrue();
     }
 }
