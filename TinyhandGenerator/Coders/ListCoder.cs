@@ -162,7 +162,15 @@ public class ListCoder : ITinyhandCoder
                     {
                         if (this.elementCoder == null)
                         {// use option.Resolver.GetFormatter<T>()
-                            ssb.AppendLine($"formatter.Serialize(ref writer, {ssb.FullObject}, options);");
+                            if (this.element.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
+                            {
+                                ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
+                                ssb.AppendLine($"else formatter.Serialize(ref writer, {ssb.FullObject}, options);");
+                            }
+                            else
+                            {
+                                ssb.AppendLine($"formatter.Serialize(ref writer, {ssb.FullObject}, options);");
+                            }
                         }
                         else
                         {// use coder
@@ -194,7 +202,24 @@ public class ListCoder : ITinyhandCoder
                 {// list[i]
                     if (this.elementCoder == null)
                     {// use option.Resolver.GetFormatter<T>()
-                        ssb.AppendLine("list.Add(formatter.Deserialize(ref reader, options)!);");
+                        if (this.element.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
+                        {
+                            ssb.AppendLine($"{this.element.FullNameWithNullable} lv = default!;");
+                            if (this.element.Nullable == NullableAnnotation.NotAnnotated)
+                            {
+                                ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject(ref reader, ref lv, options);");
+                            }
+                            else
+                            {
+                                ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject2(ref reader, ref lv, options);");
+                            }
+
+                            ssb.AppendLine("list.Add(lv);");
+                        }
+                        else
+                        {
+                            ssb.AppendLine("list.Add(formatter.Deserialize(ref reader, options)!);");
+                        }
                     }
                     else
                     {// use coder

@@ -160,7 +160,15 @@ public class ArrayCoder : ITinyhandCoder
                     {
                         if (this.elementCoder == null)
                         {// use option.Resolver.GetFormatter<T>()
-                            ssb.AppendLine($"formatter.Serialize(ref writer, {ssb.FullObject}, options);");
+                            if (this.element.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
+                            {
+                                ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
+                                ssb.AppendLine($"else formatter.Serialize(ref writer, {ssb.FullObject}, options);");
+                            }
+                            else
+                            {
+                                ssb.AppendLine($"formatter.Serialize(ref writer, {ssb.FullObject}, options);");
+                            }
                         }
                         else
                         {// use coder
@@ -202,13 +210,27 @@ public class ArrayCoder : ITinyhandCoder
                     {
                         if (this.elementCoder == null)
                         {// use option.Resolver.GetFormatter<T>()
-                            if (this.element.Nullable == NullableAnnotation.NotAnnotated)
+                            if (this.element.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
                             {
-                                ssb.AppendLine($"{element.FullObject} = formatter.Deserialize(ref reader, options)!;");
+                                if (this.element.Nullable == NullableAnnotation.NotAnnotated)
+                                {
+                                    ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject(ref reader, ref {element.FullObject}, options);");
+                                }
+                                else
+                                {
+                                    ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject2(ref reader, ref {element.FullObject}, options);");
+                                }
                             }
                             else
                             {
-                                ssb.AppendLine($"{element.FullObject} = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);");
+                                if (this.element.Nullable == NullableAnnotation.NotAnnotated)
+                                {
+                                    ssb.AppendLine($"{element.FullObject} = formatter.Deserialize(ref reader, options)!;");
+                                }
+                                else
+                                {
+                                    ssb.AppendLine($"{element.FullObject} = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);");
+                                }
                             }
                         }
                         else
