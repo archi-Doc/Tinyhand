@@ -33,7 +33,7 @@ public sealed class ObjectResolver : ICoderResolver
         return value;
     }
 
-    public ITinyhandCoder AddFormatter(string fullNameWithNullable, bool nonNullableReference = false)
+    public ITinyhandCoder AddFormatter(string fullNameWithNullable, bool nonNullableReference)
     {
         if (!this.stringToCoder.TryGetValue(fullNameWithNullable, out var coder))
         {
@@ -55,7 +55,7 @@ public sealed class ObjectResolver : ICoderResolver
         {// Reference type
             var fullName = withNullable.FullNameWithNullable.TrimEnd('?');
             var c = this.AddFormatter(fullName, true); // T (non-nullable)
-            var c2 = this.AddFormatter(fullName + "?"); // T?
+            var c2 = this.AddFormatter(fullName + "?", false); // T?
 
             if (withNullable.Nullable == NullableAnnotation.NotAnnotated)
             {// T
@@ -68,7 +68,7 @@ public sealed class ObjectResolver : ICoderResolver
         }
         else
         {// Value type
-            return this.AddFormatter(withNullable.FullNameWithNullable); // T
+            return this.AddFormatter(withNullable.FullNameWithNullable, false); // T
         }
     }
 
