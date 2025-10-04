@@ -144,7 +144,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public string InIfStruct => this.Kind == VisceralObjectKind.Struct ? "in " : string.Empty;
 
-    public TinyhandObject[]? IntKey_Array;
+    public TinyhandObject?[]? IntKey_Array;
 
     public int InclusiveCount;
 
@@ -1502,9 +1502,9 @@ Exit:
                 {// Reserved
                     this.Body.ReportDiagnostic(TinyhandBody.Error_IntKeyReserved, x.KeyVisceralAttribute?.Location, reservedMax - 1);
                 }
-                else if (this.IntKey_Array[i] != null)
+                else if (this.IntKey_Array[i] is not null)
                 {// Conflict
-                    this.IntKey_Array[i].ObjectFlag |= TinyhandObjectFlag.IntKeyConflicted;
+                    this.IntKey_Array[i]!.ObjectFlag |= TinyhandObjectFlag.IntKeyConflicted;
                     x.ObjectFlag |= TinyhandObjectFlag.IntKeyConflicted;
                 }
                 else
@@ -1536,7 +1536,7 @@ Exit:
             this.StringTrie ??= new(this);
             foreach (var x in this.IntKey_Array)
             {
-                if (x.KeyAttribute is { } keyAttribute)
+                if (x?.KeyAttribute is { } keyAttribute)
                 {
                     if (string.IsNullOrEmpty(keyAttribute.Alternate))
                     {
@@ -3677,7 +3677,7 @@ ModuleInitializerClass_Added:
                     foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint) == false))
                     {// Other
                         lockScope ??= lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
-                        using (var m = this.ScopeMember(ssb, x))
+                        using (var m = this.ScopeMember(ssb, x!))
                         {
                             this.GenerateJournal_StoreData(ssb, x);
                         }
@@ -3692,7 +3692,7 @@ ModuleInitializerClass_Added:
 
                     foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint) == true))
                     {// Thread-safe
-                        using (var m = this.ScopeMember(ssb, x))
+                        using (var m = this.ScopeMember(ssb, x!))
                         {
                             this.GenerateJournal_StoreData(ssb, x);
                         }
@@ -3719,7 +3719,7 @@ ModuleInitializerClass_Added:
                     foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint) == false))
                     {// Other
                         lockScope ??= lockExpression is null ? null : ssb.ScopeBrace(lockExpression);
-                        using (var m = this.ScopeMember(ssb, x))
+                        using (var m = this.ScopeMember(ssb, x!))
                         {
                             this.GenerateJournal_Delete(ssb, x);
                         }
@@ -3729,7 +3729,7 @@ ModuleInitializerClass_Added:
 
                     foreach (var x in this.IntKey_Array.Where(a => a?.ObjectFlag.HasFlag(TinyhandObjectFlag.DerivedFromStoragePoint) == true))
                     {// Thread-safe
-                        using (var m = this.ScopeMember(ssb, x))
+                        using (var m = this.ScopeMember(ssb, x!))
                         {
                             this.GenerateJournal_Delete(ssb, x);
                         }
@@ -3832,7 +3832,7 @@ ModuleInitializerClass_Added:
                     {
                         if (intArray[i] is not null)
                         {
-                            trie.AddNode(i, intArray[i]);
+                            trie.AddNode(i, intArray[i]!);
                         }
                     }
 
@@ -4851,7 +4851,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, bool skipDefaultValue, ConvertToStringOrientation convertToStringOrientation)
+    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, bool skipDefaultValue, ConvertToStringOrientation convertToStringOrientation)
     {
         var exclude = x?.KeyAttribute?.Exclude == true ? true : false;
         bool decrease = false;
