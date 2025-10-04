@@ -256,6 +256,8 @@ public class KeyAttributeMock
 
     public bool IgnoreKeyReservation { get; set; } = false;
 
+    public string Alternate { get; set; } = string.Empty;
+
     // public bool ConvertToString { get; set; } = false;
 
     // public bool Utf8String { get; set; } = false;
@@ -320,6 +322,12 @@ public class KeyAttributeMock
         if (v != null)
         {
             attribute.IgnoreKeyReservation = (bool)v;
+        }
+
+        v = VisceralHelper.GetValue(-1, nameof(Alternate), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.Alternate = (string)v;
         }
 
         /*v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);
