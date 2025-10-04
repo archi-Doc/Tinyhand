@@ -285,6 +285,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG059", title: "Unsafe required", messageFormat: "Since Tinyhand uses unsafe code, please enable AllowUnsafeBlocks in the project settings",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor Warning_InvalidDualKey = new DiagnosticDescriptor(
+        id: "TG060", title: "Invalid dual key", messageFormat: "If a string key is specified, the dual key option becomes invalid",
+        category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
     internal bool RequiresUnsafeBlocks = false;
 
     internal Dictionary<string, List<TinyhandObject>> Namespaces = new();

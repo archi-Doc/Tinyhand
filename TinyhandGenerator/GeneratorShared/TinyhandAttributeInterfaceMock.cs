@@ -116,6 +116,8 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool AddImmutable { get; set; } = false;
 
+    public bool DualKey { get; set; } = false;
+
     public TinyhandObjectAttributeMock()
     {
     }
@@ -221,6 +223,12 @@ public sealed class TinyhandObjectAttributeMock
             attribute.AddImmutable = (bool)val;
         }
 
+        val = VisceralHelper.GetValue(-1, nameof(DualKey), constructorArguments, namedArguments);
+        if (val != null)
+        {
+            attribute.DualKey = (bool)val;
+        }
+
         return attribute;
     }
 
@@ -247,6 +255,8 @@ public class KeyAttributeMock
     public PropertyAccessibility PropertyAccessibility { get; set; } = PropertyAccessibility.PublicSetter;
 
     public bool IgnoreKeyReservation { get; set; } = false;
+
+    public string Alternate { get; set; } = string.Empty;
 
     // public bool ConvertToString { get; set; } = false;
 
@@ -312,6 +322,12 @@ public class KeyAttributeMock
         if (v != null)
         {
             attribute.IgnoreKeyReservation = (bool)v;
+        }
+
+        v = VisceralHelper.GetValue(-1, nameof(Alternate), constructorArguments, namedArguments);
+        if (v != null)
+        {
+            attribute.Alternate = (string)v;
         }
 
         /*v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);

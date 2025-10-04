@@ -2,21 +2,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.SqlTypes;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Tinyhand.Coders;
 using TinyhandGenerator;
 using TinyhandGenerator.Internal;
-using static System.Net.Mime.MediaTypeNames;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1204 // Static elements should appear before instance elements
@@ -25,6 +20,13 @@ using static System.Net.Mime.MediaTypeNames;
 #pragma warning disable SA1602 // Enumeration items should be documented
 
 namespace Tinyhand.Generator;
+
+public enum ConvertToStringOrientation
+{
+    NotSpecified,
+    ConvertToString,
+    NoConvertToString,
+}
 
 public enum ReconstructState
 {
@@ -155,6 +157,8 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
     public int IntKey_Max { get; private set; } = -1;
 
     public int IntKey_Number { get; private set; } = 0;
+
+    public bool AllowDualKey => this.ObjectAttribute?.DualKey == true;
 
     public MethodCondition MethodCondition_Serialize { get; private set; }
 
@@ -1405,6 +1409,12 @@ Exit:
 
             if (stringKeyExists || (!intKeyExists && this.ObjectAttribute!.ImplicitKeyAsName == true))
             {// String key
+                if (this.ObjectAttribute?.DualKey == true)
+                {
+                    this.ObjectAttribute.DualKey = false;
+                    this.Body.ReportDiagnostic(TinyhandBody.Warning_InvalidDualKey, this.Location);
+                }
+
                 this.ObjectFlag |= TinyhandObjectFlag.StringKeyObject;
                 this.CheckObject_StringKey();
             }
@@ -1438,7 +1448,11 @@ Exit:
                     this.Body.AddDiagnostic(TinyhandBody.Warning_InvalidKeyMarker, x.KeyVisceralAttribute?.Location);
                 }*/
 
-                this.StringTrie.AddNode(s, x);
+                var r = this.StringTrie.AddNode(s, x);
+                if (r.Result == VisceralTrieAddNodeResult.KeyCollision)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_StringKeyConflict, x.KeyVisceralAttribute?.Location);
+                }
             }
         }
     }
@@ -1514,6 +1528,28 @@ Exit:
         if (unusedKeys >= 10 && unusedKeys > (this.IntKey_Number * 2))
         {// Too many unused key.
             this.Body.ReportDiagnostic(TinyhandBody.Warning_IntKeyUnused, this.Location);
+        }
+
+        // Dual key
+        if (this.AllowDualKey)
+        {
+            this.StringTrie ??= new(this);
+            foreach (var x in this.IntKey_Array)
+            {
+                if (x.KeyAttribute is { } keyAttribute)
+                {
+                    if (string.IsNullOrEmpty(keyAttribute.Alternate))
+                    {
+                        keyAttribute.Alternate = x.SimpleName;
+                    }
+
+                    var r = this.StringTrie.AddNode(keyAttribute.Alternate, x);
+                    if (r.Result == VisceralTrieAddNodeResult.KeyCollision)
+                    {
+                        this.Body.ReportDiagnostic(TinyhandBody.Error_StringKeyConflict, x.KeyVisceralAttribute?.Location);
+                    }
+                }
+            }
         }
 
         return;
@@ -2622,13 +2658,28 @@ ModuleInitializerClass_Added:
 
             this.Generate_CallbackMethod(ssb, CallbackKind.OnSerializing); // CallbackMethodCode
 
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
-            {// String Key
-                this.GenerateSerializerStringKey(ssb, info);
+            if (this.AllowDualKey)
+            {
+                using (var scopeConvertToString = ssb.ScopeBrace("if (options.HasConvertToStringFlag)"))
+                {
+                    this.GenerateSerializerStringKey(ssb, info, ConvertToStringOrientation.ConvertToString);
+                }
+
+                using (var scopeConvertToInt = ssb.ScopeBrace("else"))
+                {
+                    this.GenerateSerializerIntKey(ssb, info, ConvertToStringOrientation.NoConvertToString);
+                }
             }
             else
-            {// Int Key
-                this.GenerateSerializerIntKey(ssb, info);
+            {
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
+                {// String Key
+                    this.GenerateSerializerStringKey(ssb, info, ConvertToStringOrientation.NotSpecified);
+                }
+                else
+                {// Int Key
+                    this.GenerateSerializerIntKey(ssb, info, ConvertToStringOrientation.NotSpecified);
+                }
             }
 
             this.Generate_CallbackMethod(ssb, CallbackKind.OnSerialized); // CallbackMethodCode
@@ -2835,13 +2886,28 @@ ModuleInitializerClass_Added:
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
-            {// String Key
-                this.GenerateDeserializerStringKey(ssb, info);
+            if (this.AllowDualKey)
+            {
+                using (var scopeConvertToString = ssb.ScopeBrace("if (options.HasConvertToStringFlag)"))
+                {
+                    this.GenerateDeserializerStringKey(ssb, info);
+                }
+
+                using (var scopeConvertToInt = ssb.ScopeBrace("else"))
+                {
+                    this.GenerateDeserializerIntKey(ssb, info);
+                }
             }
             else
-            {// Int Key
-                this.GenerateDeserializerIntKey(ssb, info);
+            {
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
+                {// String Key
+                    this.GenerateDeserializerStringKey(ssb, info);
+                }
+                else
+                {// Int Key
+                    this.GenerateDeserializerIntKey(ssb, info);
+                }
             }
         }
     }
@@ -2882,13 +2948,28 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
             }
 
-            if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
-            {// String Key
-                this.GenerateDeserializerStringKey(ssb, info);
+            if (this.AllowDualKey)
+            {
+                using (var scopeConvertToString = ssb.ScopeBrace("if (options.HasConvertToStringFlag)"))
+                {
+                    this.GenerateDeserializerStringKey(ssb, info);
+                }
+
+                using (var scopeConvertToInt = ssb.ScopeBrace("else"))
+                {
+                    this.GenerateDeserializerIntKey(ssb, info);
+                }
             }
             else
-            {// Int Key
-                this.GenerateDeserializerIntKey(ssb, info);
+            {
+                if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
+                {// String Key
+                    this.GenerateDeserializerStringKey(ssb, info);
+                }
+                else
+                {// Int Key
+                    this.GenerateDeserializerIntKey(ssb, info);
+                }
             }
         }
     }
@@ -3744,22 +3825,8 @@ ModuleInitializerClass_Added:
             using (var scopeKey = ssb.ScopeBrace("if (record == JournalRecord.Key)"))
             {
                 ssb.AppendLine("var options = TinyhandSerializerOptions.Standard;");
-                if (this.StringTrie is not null)
-                {// String Key
-                    using (var thisScope = ssb.ScopeObject("this"))
-                    {
-                        var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
-                            ssb,
-                            (ctx, obj, node) =>
-                            {
-                                this.GenerateReadRecordCore(ssb, info, node.Member);
-                            });
-
-                        this.StringTrie.Generate(context);
-                    }
-                }
-                else if (this.IntKey_Array is { } intArray)
-                {// Int Key
+                if (this.IntKey_Array is { } intArray)
+                {// Int Key (priority)
                     var trie = new VisceralTrieInt<TinyhandObject>(this);
                     for (var i = 0; i < intArray.Length; i++)
                     {
@@ -3779,6 +3846,20 @@ ModuleInitializerClass_Added:
                             });
 
                         trie.Generate(context);
+                    }
+                }
+                else if (this.StringTrie is not null)
+                {// String Key
+                    using (var thisScope = ssb.ScopeObject("this"))
+                    {
+                        var context = new VisceralTrieString<TinyhandObject>.VisceralTrieContext(
+                            ssb,
+                            (ctx, obj, node) =>
+                            {
+                                this.GenerateReadRecordCore(ssb, info, node.Member);
+                            });
+
+                        this.StringTrie.Generate(context);
                     }
                 }
             }
@@ -4492,7 +4573,8 @@ ModuleInitializerClass_Added:
 
         if (this.StringTrieReconstructNumber > 0)
         {
-            ssb.AppendLine($"var deserializedFlag = new bool[{this.StringTrieReconstructNumber}];");
+            // ssb.AppendLine($"var deserializedFlag = new bool[{this.StringTrieReconstructNumber}];");
+            ssb.AppendLine($"Span<bool> deserializedFlag = stackalloc bool[{this.StringTrieReconstructNumber}];");
         }
 
         ssb.AppendLine("var numberOfData = reader.ReadMapHeader2();");
@@ -4553,7 +4635,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateSerializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, bool skipDefaultValue)
+    internal void GenerateSerializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, bool skipDefaultValue, ConvertToStringOrientation convertToStringOrientation)
     {
         var withNullable = x?.TypeObjectWithNullable;
         if (x == null || withNullable == null)
@@ -4631,8 +4713,19 @@ ModuleInitializerClass_Added:
 
         if (withNullable.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
-            ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
-            ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+            if (convertToStringOrientation == ConvertToStringOrientation.ConvertToString)
+            {
+                ssb.AppendLine($"writer.WriteStringConvertible({ssb.FullObject});");
+            }
+            else if (convertToStringOrientation == ConvertToStringOrientation.NoConvertToString)
+            {
+                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+            }
+            else
+            {
+                ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
+                ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+            }
         }
         else
         {
@@ -4730,7 +4823,7 @@ ModuleInitializerClass_Added:
         }
     }*/
 
-    internal void GenerateSerializerIntKey(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateSerializerIntKey(ScopingStringBuilder ssb, GeneratorInformation info, ConvertToStringOrientation convertToStringOrientation)
     {
         if (this.IntKey_Array == null)
         {
@@ -4754,11 +4847,11 @@ ModuleInitializerClass_Added:
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
-            this.GenerateSerializerKey(ssb, info, x, skipDefaultValue);
+            this.GenerateSerializerKey(ssb, info, x, skipDefaultValue, convertToStringOrientation);
         }
     }
 
-    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, bool skipDefaultValue)
+    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, bool skipDefaultValue, ConvertToStringOrientation convertToStringOrientation)
     {
         var exclude = x?.KeyAttribute?.Exclude == true ? true : false;
         bool decrease = false;
@@ -4796,7 +4889,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine($"writer.Level -= {level};");
         }
 
-        this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+        this.GenerateSerializeCore(ssb, info, x, skipDefaultValue, convertToStringOrientation);
 
         if (decrease)
         {
@@ -4810,7 +4903,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateSerializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateSerializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info, ConvertToStringOrientation convertToStringOrientation)
     {
         if (this.StringTrie == null)
         {
@@ -4830,7 +4923,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine($"writer.WriteString({x.Utf8String});");
             if (x.Member is not null)
             {
-                this.GenerateSerializerKey(ssb, info, x.Member, skipDefaultValue);
+                this.GenerateSerializerKey(ssb, info, x.Member, skipDefaultValue, convertToStringOrientation);
             }
         }
     }

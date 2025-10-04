@@ -160,6 +160,12 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// </summary>
     public bool AddImmutable { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether or not to allow dual keys consisting of an base int key and a alternate string key [default is <see langword="false"/>].<br/>
+    /// Specify the key using an integer key, and provide an alternate string key if necessary.
+    /// </summary>
+    public bool DualKey { get; set; } = false;
+
     public TinyhandObjectAttribute()
     {
     }
@@ -213,6 +219,12 @@ public class KeyAttribute : Attribute
     /// <b>Valid for fields only.</b>
     /// </summary>
     public string AddProperty { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets an alternative string key.<br/>
+    /// Valid only when the dual key option is enabled.
+    /// </summary>
+    public string Alternate { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets an accessibility of a property that will be created from the field.<br/>
