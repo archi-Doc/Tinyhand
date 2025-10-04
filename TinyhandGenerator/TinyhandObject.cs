@@ -2662,23 +2662,23 @@ ModuleInitializerClass_Added:
             {
                 using (var scopeConvertToString = ssb.ScopeBrace("if (options.HasConvertToStringFlag)"))
                 {
-                    this.GenerateSerializerStringKey(ssb, info);
+                    this.GenerateSerializerStringKey(ssb, info, ConvertToStringOrientation.ConvertToString);
                 }
 
                 using (var scopeConvertToInt = ssb.ScopeBrace("else"))
                 {
-                    this.GenerateSerializerIntKey(ssb, info);
+                    this.GenerateSerializerIntKey(ssb, info, ConvertToStringOrientation.NoConvertToString);
                 }
             }
             else
             {
                 if (this.ObjectFlag.HasFlag(TinyhandObjectFlag.StringKeyObject))
                 {// String Key
-                    this.GenerateSerializerStringKey(ssb, info);
+                    this.GenerateSerializerStringKey(ssb, info, ConvertToStringOrientation.NotSpecified);
                 }
                 else
                 {// Int Key
-                    this.GenerateSerializerIntKey(ssb, info);
+                    this.GenerateSerializerIntKey(ssb, info, ConvertToStringOrientation.NotSpecified);
                 }
             }
 
@@ -4635,7 +4635,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateSerializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, bool skipDefaultValue)
+    internal void GenerateSerializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, bool skipDefaultValue, ConvertToStringOrientation convertToStringOrientation)
     {
         var withNullable = x?.TypeObjectWithNullable;
         if (x == null || withNullable == null)
@@ -4713,8 +4713,19 @@ ModuleInitializerClass_Added:
 
         if (withNullable.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
         {
-            ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
-            ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+            if (convertToStringOrientation == ConvertToStringOrientation.ConvertToString)
+            {
+                ssb.AppendLine($"writer.WriteStringConvertible({ssb.FullObject});");
+            }
+            else if (convertToStringOrientation == ConvertToStringOrientation.NoConvertToString)
+            {
+                ssb.AppendLine($"TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+            }
+            else
+            {
+                ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
+                ssb.AppendLine($"else TinyhandSerializer.SerializeObject(ref writer, {ssb.FullObject}, options);");
+            }
         }
         else
         {
@@ -4812,7 +4823,7 @@ ModuleInitializerClass_Added:
         }
     }*/
 
-    internal void GenerateSerializerIntKey(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateSerializerIntKey(ScopingStringBuilder ssb, GeneratorInformation info, ConvertToStringOrientation convertToStringOrientation)
     {
         if (this.IntKey_Array == null)
         {
@@ -4836,11 +4847,11 @@ ModuleInitializerClass_Added:
         var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
         foreach (var x in this.IntKey_Array)
         {
-            this.GenerateSerializerKey(ssb, info, x, skipDefaultValue);
+            this.GenerateSerializerKey(ssb, info, x, skipDefaultValue, convertToStringOrientation);
         }
     }
 
-    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, bool skipDefaultValue)
+    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject x, bool skipDefaultValue, ConvertToStringOrientation convertToStringOrientation)
     {
         var exclude = x?.KeyAttribute?.Exclude == true ? true : false;
         bool decrease = false;
@@ -4878,7 +4889,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine($"writer.Level -= {level};");
         }
 
-        this.GenerateSerializeCore(ssb, info, x, skipDefaultValue);
+        this.GenerateSerializeCore(ssb, info, x, skipDefaultValue, convertToStringOrientation);
 
         if (decrease)
         {
@@ -4892,7 +4903,7 @@ ModuleInitializerClass_Added:
         }
     }
 
-    internal void GenerateSerializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void GenerateSerializerStringKey(ScopingStringBuilder ssb, GeneratorInformation info, ConvertToStringOrientation convertToStringOrientation)
     {
         if (this.StringTrie == null)
         {
@@ -4912,7 +4923,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine($"writer.WriteString({x.Utf8String});");
             if (x.Member is not null)
             {
-                this.GenerateSerializerKey(ssb, info, x.Member, skipDefaultValue);
+                this.GenerateSerializerKey(ssb, info, x.Member, skipDefaultValue, convertToStringOrientation);
             }
         }
     }
