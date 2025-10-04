@@ -1438,7 +1438,11 @@ Exit:
                     this.Body.AddDiagnostic(TinyhandBody.Warning_InvalidKeyMarker, x.KeyVisceralAttribute?.Location);
                 }*/
 
-                this.StringTrie.AddNode(s, x);
+                var r = this.StringTrie.AddNode(s, x);
+                if (r.Result == VisceralTrieAddNodeResult.KeyCollision)
+                {
+                    this.Body.ReportDiagnostic(TinyhandBody.Error_StringKeyConflict, x.KeyVisceralAttribute?.Location);
+                }
             }
         }
     }

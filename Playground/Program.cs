@@ -20,11 +20,20 @@ public partial class ChildClass
     public int Id { get; set; }
 }
 
+[TinyhandObject]
+public partial class TestClass
+{
+    [Key("A")]
+    public int A { get; set; }
+
+    [Key("B")]
+    public int B { get; set; }
+}
+
 [TinyhandObject(Structural = true, DualKey = true)]
 public partial class StructuralClass
 {
-    [Key(0)]
-    [KeyAsName]
+    [Key(0, Alternate = "AA")]
     public int A { get; set; }
 
     [Key(1)]
