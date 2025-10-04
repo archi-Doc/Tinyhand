@@ -5,7 +5,6 @@ using System.Linq;
 using Arc.Collections;
 using Tinyhand;
 using Xunit;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Tinyhand.Tests;
 

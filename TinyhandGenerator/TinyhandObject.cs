@@ -2,21 +2,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.SqlTypes;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Tinyhand.Coders;
 using TinyhandGenerator;
 using TinyhandGenerator.Internal;
-using static System.Net.Mime.MediaTypeNames;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
 #pragma warning disable SA1204 // Static elements should appear before instance elements
@@ -25,6 +20,13 @@ using static System.Net.Mime.MediaTypeNames;
 #pragma warning disable SA1602 // Enumeration items should be documented
 
 namespace Tinyhand.Generator;
+
+public enum ConvertToStringOrientation
+{
+    NotSpecified,
+    ConvertToString,
+    NoConvertToString,
+}
 
 public enum ReconstructState
 {
