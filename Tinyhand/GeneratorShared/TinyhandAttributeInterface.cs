@@ -215,6 +215,12 @@ public class KeyAttribute : Attribute
     public string AddProperty { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets an alternative string key.<br/>
+    /// If an alternate key is specified for any item, then all other keys are required to have alternate keys as well.
+    /// </summary>
+    public string Alternate { get; set; } = string.Empty;//
+
+    /// <summary>
     /// Gets or sets an accessibility of a property that will be created from the field.<br/>
     /// </summary>
     public PropertyAccessibility PropertyAccessibility { get; set; }
