@@ -4571,7 +4571,8 @@ ModuleInitializerClass_Added:
 
         if (this.StringTrieReconstructNumber > 0)
         {
-            ssb.AppendLine($"var deserializedFlag = new bool[{this.StringTrieReconstructNumber}];");
+            // ssb.AppendLine($"var deserializedFlag = new bool[{this.StringTrieReconstructNumber}];");
+            ssb.AppendLine($"Span<bool> deserializedFlag = stackalloc bool[{this.StringTrieReconstructNumber}];");
         }
 
         ssb.AppendLine("var numberOfData = reader.ReadMapHeader2();");
