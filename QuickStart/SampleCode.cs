@@ -37,7 +37,7 @@ public partial class DefaultBehaviourClass
     private int Z; // By adding the Key attribute, You can add a private member to the serialization target.
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class KeyAsNameClass
 {
     public int X; // Serialized with the key "X"
@@ -71,7 +71,7 @@ public partial class ReadonlyGetteronlyClass
     public int Y { get; } = 0; // Error!
 }*/
 
-[TinyhandObject(ExplicitKeyOnly = true)]
+[TinyhandObject(ExplicitKeysOnly = true)]
 public partial class ExplicitKeyClass
 {
     public int X; // No warning. Not serialized.
@@ -99,7 +99,7 @@ public partial class SampleCallback
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class NullableTestClass
 {
     public int Int { get; set; } // 0
@@ -141,7 +141,7 @@ public class NullableTest
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class DefaultTestClass
 {
     public int Int { get; set; } = 77;
@@ -149,7 +149,7 @@ public partial class DefaultTestClass
     public string String { get; set; } = "test";
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class StringEmptyClass
 {
 }
@@ -163,7 +163,7 @@ public class DefaultTest
     }
 }
 
-[TinyhandObject(ReuseMember = true)]
+[TinyhandObject(ReuseMembers = true)]
 public partial class ReuseTestClass
 {
     [Key(0)]
@@ -177,7 +177,7 @@ public partial class ReuseTestClass
     public bool Flag { get; set; } = false;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class ReuseObject
 {
     public ReuseObject()
@@ -322,7 +322,7 @@ public static class VersioningTest
     }
 }
 
-[TinyhandObject(ExplicitKeyOnly = true)]
+[TinyhandObject(ExplicitKeysOnly = true)]
 public partial class DeepCopyClass
 {
     public int Id { get; set; }

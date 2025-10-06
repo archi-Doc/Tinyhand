@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject(ExplicitKeyOnly = true)]
+[TinyhandObject(ExplicitKeysOnly = true)]
 public partial class MaxLengthClass
 {
     [Key(0)]
@@ -35,7 +35,7 @@ public partial class MaxLengthClass
     public int testId;
 }
 
-[TinyhandObject(ExplicitKeyOnly = false)]
+[TinyhandObject(ExplicitKeysOnly = false)]
 public partial class MaxLengthClass2 : MaxLengthClass
 {
     [Key(5)]

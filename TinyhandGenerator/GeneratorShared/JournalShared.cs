@@ -119,7 +119,7 @@ internal static class JournalShared
                     break;
                 }
             }
-            else if (x.FullName == KeyAsNameAttributeMock.FullName)
+            else if (x.FullName == MemberNameAsKeyAttributeMock.FullName)
             {// KeyAsNameAttribute
                 stringKey = obj.SimpleName;
                 break;

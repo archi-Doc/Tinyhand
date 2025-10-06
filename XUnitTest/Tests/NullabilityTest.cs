@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class NullableTestClass
 {
     public int Int { get; set; } = default!; // 0
@@ -36,7 +36,7 @@ public partial class NullableSimpleClass
     public double Double { get; set; }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class NullableTestClass1
 {
     public string[] A = default!;

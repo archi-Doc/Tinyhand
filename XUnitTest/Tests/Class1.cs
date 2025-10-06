@@ -45,7 +45,7 @@ public enum LongEnum : long { A, B, C, D, E }
 
 public enum ULongEnum : ulong { A, B, C, D, E }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class FormatterResolverClass
 {
     public FormatterResolverClass()
@@ -171,7 +171,7 @@ public partial class SimpleIntKeyData
     ////public int Prop7 { get; set; }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class SimpleStringKeyData
 {
     public int Prop1 { get; set; }
@@ -250,7 +250,7 @@ public partial class EmptyClass
 {
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class EmptyClass2
 {
 }
@@ -260,7 +260,7 @@ public partial struct EmptyStruct
 {
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial struct EmptyStruct2
 {
 }
@@ -400,7 +400,7 @@ public partial class Callback1_2
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial struct Callback2
 {
     public static bool CalledAfter = false;
@@ -435,7 +435,7 @@ public partial struct Callback2
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial struct Callback2_2
 {
     public int X { get; set; }
@@ -488,7 +488,7 @@ public partial class MyClass
     public int MyProperty3 { get; set; }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial record MyClass2(int X, int Y, string[] Z);
 
 [TinyhandObject]
@@ -496,7 +496,7 @@ public partial class Empty1
 {
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class Empty2
 {
 }
@@ -508,7 +508,7 @@ public partial class NonEmpty1
     public int MyProperty { get; set; }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class NonEmpty2
 {
     public int MyProperty { get; set; }
@@ -693,7 +693,7 @@ public partial class PrimitiveIntKeyClass
     public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;*/
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class PrimitiveStringKeyClass
 {
     public bool BoolField = true;
@@ -757,7 +757,7 @@ public partial class PrimitiveStringKeyClass
     // public DateTime DateTimeProperty { get; set; } = DateTime.UtcNow;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class PrimitiveArrayClass
 {
     public bool[] BoolArray { get; set; } = { true, false, true, };
@@ -791,7 +791,7 @@ public partial class PrimitiveArrayClass
     // public DateTime[] DateTimeArray { get; set; } = { DateTime.UtcNow, DateTime.UtcNow, };
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class PrimitiveNullableArrayClass
 {
     public bool?[] BoolArray { get; set; } = { true, false, true, null, };
@@ -825,7 +825,7 @@ public partial class PrimitiveNullableArrayClass
     // public DateTime?[] DateTimeArray { get; set; } = { DateTime.UtcNow, null, DateTime.UtcNow, };
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class PrimitiveNullableArrayClass2
 {
     public bool?[]? BoolArray { get; set; } = { true, false, true, null, };

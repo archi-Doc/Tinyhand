@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial record TextSerializeClass1
 {
     public MyClass2[] MyClass2Array { get; set; } = [];
@@ -37,7 +37,7 @@ public partial record TextSerializeClass1
     public DateTime Date { get; set; } = DateTime.UtcNow;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class TextSerializeClass2
 {
     public int Int { get; set; } = 11;
@@ -47,7 +47,7 @@ public partial class TextSerializeClass2
     public int[] Array { get; set; }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class TextSerializeClass3
 {
     public double Double1 { get; set; } = 1.0d;
@@ -68,18 +68,18 @@ public partial class TextSerializeClass4
         [TinyhandObject]
         public partial class NestedClass2
         {
-            [TinyhandObject(ImplicitKeyAsName = true)]
+            [TinyhandObject(ImplicitMemberNameAsKey = true)]
             public partial class NestedClass3
             {
-                [KeyAsName]
+                [MemberNameAsKey]
                 public int[] IntArray { get; set; } = [1, 2, 3,];
 
                 public partial string[] StringArray { get; set; } = [];
 
-                [KeyAsName]
+                [MemberNameAsKey]
                 public Dictionary<int, int> IntMap { get; set; } = [];
 
-                [KeyAsName]
+                [MemberNameAsKey]
                 public string[] StringArray2 { get; set; } = [];
             }
 

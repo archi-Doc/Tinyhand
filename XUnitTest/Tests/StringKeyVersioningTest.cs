@@ -7,13 +7,13 @@ namespace Tinyhand.Tests;
 [TinyhandObject]
 public partial class StringKeyVersioningTestClass
 {
-    [KeyAsName]
+    [MemberNameAsKey]
     public int Id { get; set; }
 
     [IgnoreMember]
     public int Id2 { get; set; }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int Id3 { get; set; }
 
     public StringKeyVersioningTestClass()
@@ -31,10 +31,10 @@ public partial class StringKeyVersioningTestClass
 [TinyhandObject]
 public partial class StringKeyVersioningTestClass2
 {
-    [KeyAsName]
+    [MemberNameAsKey]
     public int Id { get; set; }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int Id2 { get; set; }
 
     [IgnoreMember]
@@ -52,7 +52,7 @@ public partial class StringKeyVersioningTestClass2
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class StringKeyVersioningTestClass3
 {
     public int Id { get; set; }

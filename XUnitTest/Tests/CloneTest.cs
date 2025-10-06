@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class CloneTestClass1
 {
     public Memory<byte> MemoryByte { get; set; } = new(new byte[] { 1, 10, 20, });
@@ -14,7 +14,7 @@ public partial class CloneTestClass1
     public ReadOnlySequence<byte> ReadOnlySequenceByte { get; set; } = new(new byte[] { 1, 10, 20, });
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class CloneTestClass2 : ITinyhandCloneable<CloneTestClass2>
 {
     public int X { get; set; }
@@ -27,7 +27,7 @@ public partial class CloneTestClass2 : ITinyhandCloneable<CloneTestClass2>
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class CloneTestClass3 : ITinyhandCloneable<CloneTestClass3>
 {
     public int X { get; set; }

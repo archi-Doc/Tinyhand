@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class MemberNameTestClass
 {
     public MemberNameTestItem?[] array = new MemberNameTestItem[10];
@@ -13,7 +13,7 @@ public partial class MemberNameTestClass
     public int System;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class MemberNameTestItem
 {
     public int ii;

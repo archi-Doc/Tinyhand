@@ -28,7 +28,7 @@ public partial class EnumAsStringClass2
 [TinyhandObject(EnumAsString = true)]
 public partial class EnumAsStringClass3
 {
-    [KeyAsName]
+    [MemberNameAsKey]
     public TestEnum X { get; set; }
 }
 

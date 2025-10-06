@@ -64,7 +64,7 @@ public partial class ObjectH2H
 }
 
 [MessagePack.MessagePackObject(true)]
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class ObjectH2H2
 {
     public const int ArrayN = 10;

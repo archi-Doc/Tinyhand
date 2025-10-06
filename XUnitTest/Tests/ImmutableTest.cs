@@ -13,7 +13,7 @@ public partial struct ImmutableTestStruct
     public string Name;
 }*/
 
-[TinyhandObject(ImplicitKeyAsName = true, AddImmutable = true, IncludePrivateMembers = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true, AddImmutable = true, IncludePrivateMembers = true)]
 public partial class ImmutableTestClass
 {
     public ImmutableTestClass()

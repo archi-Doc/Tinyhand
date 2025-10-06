@@ -190,11 +190,11 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_KeyAsNameExclusive = new DiagnosticDescriptor(
-        id: "TG036", title: "KeyAsName exclusive", messageFormat: "KeyAttribute and KeyAsNameAttribute are exclusive",
+        id: "TG036", title: "MemberNameAsKey exclusive", messageFormat: "KeyAttribute and MemberNameAsKeyAttribute are exclusive",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_ImplicitExplicitKey = new DiagnosticDescriptor(
-        id: "TG037", title: "Implicit Explicit conflict", messageFormat: "ImplicitKeyAsName and ExplicitKeyOnly are exclusive",
+        id: "TG037", title: "Implicit Explicit conflict", messageFormat: "ImplicitMemberNameAsKey and ExplicitKeysOnly are exclusive",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_UnionToError = new DiagnosticDescriptor(

@@ -158,7 +158,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public int IntKey_Number { get; private set; } = 0;
 
-    public bool AllowDualKey => this.ObjectAttribute?.DualKey == true;
+    public bool AllowDualKey => this.ObjectAttribute?.AllowAlternateKey == true;
 
     public MethodCondition MethodCondition_Serialize { get; private set; }
 
@@ -476,7 +476,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                     this.Body.ReportDiagnostic(TinyhandBody.Error_KeyAttributeError, x.Location);
                 }
             }
-            else if (x.FullName == KeyAsNameAttributeMock.FullName)
+            else if (x.FullName == MemberNameAsKeyAttributeMock.FullName)
             {// KeyAsNameAttribute
                 if (this.KeyAttribute != null)
                 {// KeyAttribute and KeyAsNameAttribute are exclusive.
@@ -1109,7 +1109,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             }
         }
 
-        if (this.ObjectAttribute?.ImplicitKeyAsName == true && this.ObjectAttribute?.ExplicitKeyOnly == true)
+        if (this.ObjectAttribute?.ImplicitMemberNameAsKey == true && this.ObjectAttribute?.ExplicitKeysOnly == true)
         {
             this.Body.ReportDiagnostic(TinyhandBody.Error_ImplicitExplicitKey, this.Location, this.FullName);
         }
@@ -1135,7 +1135,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             if (x.ContainingObject is { } containingObject)
             {
                 containingObject.TryConfigure();
-                if (containingObject.ObjectAttribute?.ExplicitKeyOnly == true)
+                if (containingObject.ObjectAttribute?.ExplicitKeysOnly == true)
                 {// Explicit key only
                     if (x.KeyAttribute == null)
                     {
@@ -1382,8 +1382,8 @@ Exit:
             {
                 if (x.KeyAttribute == null)
                 {// No KeyAttribute
-                    if (this.ObjectAttribute!.ImplicitKeyAsName)
-                    {// ImplicitKeyAsName
+                    if (this.ObjectAttribute!.ImplicitMemberNameAsKey)
+                    {// ImplicitMemberNameAsKey
                         x.KeyAttribute = new KeyAttributeMock(x.SimpleName);
                         stringKeyExists = true;
                     }
@@ -1407,11 +1407,11 @@ Exit:
                 }
             }
 
-            if (stringKeyExists || (!intKeyExists && this.ObjectAttribute!.ImplicitKeyAsName == true))
+            if (stringKeyExists || (!intKeyExists && this.ObjectAttribute!.ImplicitMemberNameAsKey == true))
             {// String key
-                if (this.ObjectAttribute?.DualKey == true)
+                if (this.ObjectAttribute?.AllowAlternateKey == true)
                 {
-                    this.ObjectAttribute.DualKey = false;
+                    this.ObjectAttribute.AllowAlternateKey = false;
                     this.Body.ReportDiagnostic(TinyhandBody.Warning_InvalidDualKey, this.Location);
                 }
 
@@ -1791,7 +1791,7 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         }
 
         // ReuseInstanceTarget
-        var reuseInstanceFlag = parent.ObjectAttribute?.ReuseMember == true;
+        var reuseInstanceFlag = parent.ObjectAttribute?.ReuseMembers == true;
         if (this.ReuseAttribute?.ReuseInstance == true)
         {
             if (this.TypeObject.ObjectAttribute != null)
@@ -1961,8 +1961,8 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
     {
         if (this.ReconstructState == ReconstructState.IfPreferable)
         {
-            // Parent's ReconstructMember is false
-            if (parent.ObjectAttribute?.ReconstructMember == false)
+            // Parent's ReconstructMembers is false
+            if (parent.ObjectAttribute?.ReconstructMembers == false)
             {
                 this.ReconstructState = ReconstructState.Dont;
             }
@@ -4844,7 +4844,7 @@ ModuleInitializerClass_Added:
             ssb.AppendLine($"else if (options.IsExcludeMode) writer.WriteArrayHeader({this.InclusiveCount});");
         }
 
-        var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
+        var skipDefaultValue = this.ObjectAttribute?.SkipDefaultValues == true;
         foreach (var x in this.IntKey_Array)
         {
             this.GenerateSerializerKey(ssb, info, x, skipDefaultValue, convertToStringOrientation);
@@ -4917,7 +4917,7 @@ ModuleInitializerClass_Added:
         }
 
         ssb.AppendLine($"writer.WriteMapHeader({this.StringTrie.NodeList.Count});");
-        var skipDefaultValue = this.ObjectAttribute?.SkipSerializingDefaultValue == true;
+        var skipDefaultValue = this.ObjectAttribute?.SkipDefaultValues == true;
         foreach (var x in this.StringTrie.NodeList)
         {
             ssb.AppendLine($"writer.WriteString({x.Utf8String});");

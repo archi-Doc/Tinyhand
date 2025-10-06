@@ -88,15 +88,15 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool IncludePrivateMembers { get; set; } = false;
 
-    public bool ImplicitKeyAsName { get; set; } = false;
+    public bool ImplicitMemberNameAsKey { get; set; } = false;
 
-    public bool ExplicitKeyOnly { get; set; } = false;
+    public bool ExplicitKeysOnly { get; set; } = false;
 
-    public bool ReconstructMember { get; set; } = true;
+    public bool ReconstructMembers { get; set; } = true;
 
-    public bool ReuseMember { get; set; } = true;
+    public bool ReuseMembers { get; set; } = true;
 
-    public bool SkipSerializingDefaultValue { get; set; } = true;
+    public bool SkipDefaultValues { get; set; } = true;
 
     public bool UseServiceProvider { get; set; } = false;
 
@@ -116,7 +116,7 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool AddImmutable { get; set; } = false;
 
-    public bool DualKey { get; set; } = false;
+    public bool AllowAlternateKey { get; set; } = false;
 
     public TinyhandObjectAttributeMock()
     {
@@ -133,10 +133,10 @@ public sealed class TinyhandObjectAttributeMock
         var attribute = new TinyhandObjectAttributeMock();
 
         object? val;
-        val = VisceralHelper.GetValue(-1, nameof(ImplicitKeyAsName), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(ImplicitMemberNameAsKey), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.ImplicitKeyAsName = (bool)val;
+            attribute.ImplicitMemberNameAsKey = (bool)val;
         }
 
         val = VisceralHelper.GetValue(-1, nameof(IncludePrivateMembers), constructorArguments, namedArguments);
@@ -145,28 +145,28 @@ public sealed class TinyhandObjectAttributeMock
             attribute.IncludePrivateMembers = (bool)val;
         }
 
-        val = VisceralHelper.GetValue(-1, nameof(ExplicitKeyOnly), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(ExplicitKeysOnly), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.ExplicitKeyOnly = (bool)val;
+            attribute.ExplicitKeysOnly = (bool)val;
         }
 
-        val = VisceralHelper.GetValue(-1, nameof(ReconstructMember), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(ReconstructMembers), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.ReconstructMember = (bool)val;
+            attribute.ReconstructMembers = (bool)val;
         }
 
-        val = VisceralHelper.GetValue(-1, nameof(ReuseMember), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(ReuseMembers), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.ReuseMember = (bool)val;
+            attribute.ReuseMembers = (bool)val;
         }
 
-        val = VisceralHelper.GetValue(-1, nameof(SkipSerializingDefaultValue), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(SkipDefaultValues), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.SkipSerializingDefaultValue = (bool)val;
+            attribute.SkipDefaultValues = (bool)val;
         }
 
         val = VisceralHelper.GetValue(-1, nameof(UseServiceProvider), constructorArguments, namedArguments);
@@ -223,10 +223,10 @@ public sealed class TinyhandObjectAttributeMock
             attribute.AddImmutable = (bool)val;
         }
 
-        val = VisceralHelper.GetValue(-1, nameof(DualKey), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(AllowAlternateKey), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.DualKey = (bool)val;
+            attribute.AllowAlternateKey = (bool)val;
         }
 
         return attribute;
@@ -352,17 +352,17 @@ public class KeyAttributeMock
     }
 }
 
-public class KeyAsNameAttributeMock
+public class MemberNameAsKeyAttributeMock
 {
-    public static readonly string SimpleName = "KeyAsName";
+    public static readonly string SimpleName = "MemberNameAsKey";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
     // public bool ConvertToString { get; set; } = false;
 
-    public static KeyAsNameAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static MemberNameAsKeyAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new KeyAsNameAttributeMock();
+        var attribute = new MemberNameAsKeyAttributeMock();
 
         /*var v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);
         if (v != null)

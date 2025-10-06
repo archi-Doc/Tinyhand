@@ -8,7 +8,7 @@ using Xunit;
 
 namespace XUnitTest.Tests;
 
-[TinyhandObject(DualKey = true)]
+[TinyhandObject(AllowAlternateKey = true)]
 public partial class DualKeyTestClass : IEquatable<DualKeyTestClass>
 {
     [Key(0)]

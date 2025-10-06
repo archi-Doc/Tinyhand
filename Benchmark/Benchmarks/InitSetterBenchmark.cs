@@ -244,10 +244,10 @@ public partial class DerivedPrivateIntClass : PrivateIntClass
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial record RecordClass(int X, int Y, string A, string B);
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class RecordClass2
 {
     public int X { get; init; }

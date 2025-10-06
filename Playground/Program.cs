@@ -6,14 +6,14 @@ using ValueLink;
 
 namespace Playground;
 
-[TinyhandObject(DualKey = true)]
+[TinyhandObject(AllowAlternateKey = true)]
 public partial class DualTestClass2
 {
     [Key(2)]
     public string C { get; set; } = "Test";
 }
 
-[TinyhandObject(DualKey = true)]
+[TinyhandObject(AllowAlternateKey = true)]
 public partial class DualTestClass
 {
     [Key(0)]

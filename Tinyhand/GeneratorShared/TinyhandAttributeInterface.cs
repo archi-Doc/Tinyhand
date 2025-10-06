@@ -90,29 +90,30 @@ public sealed class TinyhandObjectAttribute : Attribute
     public bool IncludePrivateMembers { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to use member names as string keys. String key and Int key are exclusive [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether or not to use member names as string keys.<br/>
+    /// String key and Int key are exclusive [default is <see langword="false"/>].
     /// </summary>
-    public bool ImplicitKeyAsName { get; set; } = false;
+    public bool ImplicitMemberNameAsKey { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [default is <see langword="false"/>].
     /// </summary>
-    public bool ExplicitKeyOnly { get; set; } = false;
+    public bool ExplicitKeysOnly { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [default is <see langword="true"/>].
     /// </summary>
-    public bool ReconstructMember { get; set; } = true;
+    public bool ReconstructMembers { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [default is <see langword="true"/>].
     /// </summary>
-    public bool ReuseMember { get; set; } = true;
+    public bool ReuseMembers { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the the default value [default is <see langword="true"/>].
     /// </summary>
-    public bool SkipSerializingDefaultValue { get; set; } = true;
+    public bool SkipDefaultValues { get; set; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether or not to use <seealso cref="IServiceProvider"/> to create an instance [default is <see langword="false"/>]. Set <see cref="TinyhandSerializer.ServiceProvider"/>.
@@ -164,7 +165,7 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// Gets or sets a value indicating whether or not to allow dual keys consisting of an base int key and a alternate string key [default is <see langword="false"/>].<br/>
     /// Specify the key using an integer key, and provide an alternate string key if necessary.
     /// </summary>
-    public bool DualKey { get; set; } = false;
+    public bool AllowAlternateKey { get; set; } = false;
 
     public TinyhandObjectAttribute()
     {
@@ -236,16 +237,6 @@ public class KeyAttribute : Attribute
     /// </summary>
     public bool IgnoreKeyReservation { get; set; } = false;
 
-    /*/// <summary>
-    /// Gets or sets a value indicating whether or not to  convert it to a string [default is <see langword="false"/>].<br/>The object must implement <see cref="Arc.IStringConvertible{T}"/>.
-    /// </summary>
-    public bool ConvertToString { get; set; } = false;*/
-
-    /*/// <summary>
-    /// Gets or sets a value indicating whether the target type is utf-8 or not [default is <see langword="false"/>].
-    /// </summary>
-    public bool Utf8String { get; set; } = false;*/
-
     public KeyAttribute(int x)
     {
         this.IntKey = x;
@@ -258,17 +249,12 @@ public class KeyAttribute : Attribute
 }
 
 /// <summary>
-/// Adds the member to the serialization target and specify the Key as the member's name.
+/// Use the member name as a key and include it as a serialization target.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-public class KeyAsNameAttribute : Attribute
+public class MemberNameAsKeyAttribute : Attribute
 {
-    /*/// <summary>
-    /// Gets or sets a value indicating whether or not to serialize the object to a string [default is <see langword="false"/>].<br/>The object must implement <see cref="Arc.IStringConvertible{T}"/>.
-    /// </summary>
-    public bool ConvertToString { get; set; } = false;*/
-
-    public KeyAsNameAttribute()
+    public MemberNameAsKeyAttribute()
     {
     }
 }
