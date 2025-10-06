@@ -139,7 +139,7 @@ public partial class CustomIntClass : ITinyhandSerializable<CustomIntClass>
     public static ulong GetTypeIdentifier() => FarmHash.Hash64(typeof(CustomIntClass).FullName ?? string.Empty);
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 [MessagePack.MessagePackObject(true)]
 public partial class GenericsStringClass<T>
 {
@@ -161,7 +161,7 @@ public partial class GenericsStringClass<T>
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 [MessagePack.MessagePackObject(true)]
 public partial class NormalStringClass
 {

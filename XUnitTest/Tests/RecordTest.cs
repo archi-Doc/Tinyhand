@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject(ImplicitKeyAsName = true, IncludePrivateMembers = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true, IncludePrivateMembers = true)]
 public partial record TestRecord
 {
     public int X { get; set; }

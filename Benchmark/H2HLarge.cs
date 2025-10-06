@@ -10,7 +10,7 @@ using Tinyhand;
 
 namespace Benchmark.H2HTest;
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 [MessagePack.MessagePackObject(true)]
 public partial class LargeDataClass
 {

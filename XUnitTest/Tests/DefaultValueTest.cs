@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Tinyhand.Tests;
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class DefaultTestClass
 {
     public sbyte SByte { get; set; } = 11;
@@ -46,7 +46,7 @@ public partial class DefaultTestClass
     public byte[]? ByteArray { get; set; } = null;
 }
 
-[TinyhandObject(SkipSerializingDefaultValue = true)]
+[TinyhandObject(SkipDefaultValues = true)]
 public partial class DefaultTestClassSkip
 {
     [Key(0)]
@@ -59,7 +59,7 @@ public partial class DefaultTestClassSkip
     public string String { get; set; } = "test";
 }
 
-[TinyhandObject(SkipSerializingDefaultValue = true)]
+[TinyhandObject(SkipDefaultValues = true)]
 public partial class DefaultTestClassSkip2
 {
     [Key(0)]
@@ -97,7 +97,7 @@ public enum DefaultTestEnum
     C,
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial struct DefaultTestStruct
 {
     public DefaultTestStruct()

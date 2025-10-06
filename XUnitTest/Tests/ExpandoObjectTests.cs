@@ -109,7 +109,7 @@ public partial class ExpandoObjectTests
 #endif
 
     [DataContract]
-    [TinyhandObject(ImplicitKeyAsName = true)]
+    [TinyhandObject(ImplicitMemberNameAsKey = true)]
     public partial class CustomObject
     {
         [DataMember]

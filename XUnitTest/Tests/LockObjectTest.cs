@@ -37,7 +37,7 @@ public partial class LockObjectClass2b : LockObjectClass2
     public int Z { get; set; }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class LockObjectCollection
 {
     public LockObjectCollection()

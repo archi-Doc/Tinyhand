@@ -6,12 +6,12 @@ namespace CrystalData;
 
 #pragma warning disable SA1204 // Static elements should appear before instance elements
 
-[TinyhandObject(ExplicitKeyOnly = true)]
+[TinyhandObject(ExplicitKeysOnly = true)]
 public partial class TestPoint : StoragePoint<string>
 {
 }
 
-[TinyhandObject(ExplicitKeyOnly = true)]
+[TinyhandObject(ExplicitKeysOnly = true)]
 public partial class StoragePoint<TData>
     where TData : notnull
 {

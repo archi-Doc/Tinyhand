@@ -56,22 +56,22 @@ public sealed partial class JournalClass2
     {
     }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int X0 { get; set; }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int X1ABCDEFGHIJKLMN { get; set; }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int X2ABCDEFGHIJKLMNOPQRSTU { get; set; }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int X3 { get; set; }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int X4 { get; set; }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int X6 { get; set; }
 
     [Key("X7", AddProperty = "X7")]

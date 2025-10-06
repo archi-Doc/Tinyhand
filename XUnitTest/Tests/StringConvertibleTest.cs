@@ -81,10 +81,10 @@ public partial class StringConvertibleTestClass2
     [Key("Class1")]
     public StringConvertibleTestClass Class1 { get; set; } = new();
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public StringConvertibleTestClass? Class2 { get; set; } = new();
 
-    // [KeyAsName(ConvertToString = true)]
+    // [MemberNameAsKey(ConvertToString = true)]
     // TestRecord Class3 { get; set; } = new();
 }
 

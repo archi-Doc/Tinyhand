@@ -6,7 +6,7 @@ using Xunit;
 
 namespace XUnitTest.Tests;
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial record ExtensionTestClass(int Id, string Name);
 
 public class ExtensionTest

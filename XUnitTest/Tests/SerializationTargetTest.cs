@@ -35,7 +35,7 @@ public partial class SerializationTargetClass2
 
     private int C; // Not
 
-    [KeyAsName]
+    [MemberNameAsKey]
     public int D = 1; // Serialize
 
     public void Test(SerializationTargetClass2 target)
@@ -51,7 +51,7 @@ public partial class SerializationGenericClass<T>
 {
     public T Value { get; set; }
 
-    [TinyhandObject(ExplicitKeyOnly = true)] // ExplicitKeyOnly
+    [TinyhandObject(ExplicitKeysOnly = true)]
     public partial class TestClass
     {
         [Key(0)]
@@ -61,7 +61,7 @@ public partial class SerializationGenericClass<T>
     }
 }
 
-[TinyhandObject(ExplicitKeyOnly = true)] // ExplicitKeyOnly
+[TinyhandObject(ExplicitKeysOnly = true)]
 public partial class SerializationTargetClass3
 {
     [Key(0)]
@@ -89,7 +89,7 @@ public partial class SerializationTargetClass3
     }
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)] // ImplicitKeyAsName
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class SerializationTargetClass4
 {
     [Key("A")]
@@ -97,7 +97,7 @@ public partial class SerializationTargetClass4
 
     public int B = 1; // Serialize
 
-    [KeyAsName]
+    [MemberNameAsKey]
     private int C = 1; // Serialize
 
     private int D = 1; // Not

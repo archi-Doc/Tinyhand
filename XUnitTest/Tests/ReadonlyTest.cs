@@ -53,16 +53,16 @@ public readonly partial struct IdentifierReadonlyStruct : IEquatable<IdentifierR
 [TinyhandObject]
 public readonly partial struct IdentifierReadonlyStruct2
 {
-    [KeyAsName]
+    [MemberNameAsKey]
     readonly ulong Id0;
 
-    [KeyAsName]
+    [MemberNameAsKey]
     readonly ulong Id1;
 
-    [KeyAsName]
+    [MemberNameAsKey]
     ulong Id2 { get; init; }
 
-    [KeyAsName]
+    [MemberNameAsKey]
     readonly ulong Id3 { get; init; }
 
     public IdentifierReadonlyStruct2()

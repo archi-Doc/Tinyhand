@@ -173,7 +173,7 @@ TinyhandModule_YourAssemblyName.Initialize(); // Assembly name is necessary to a
 
 ## Serialization Target
 
-All public members are serialization targets by default. You need to add `Key` attributes to public members unless `ImplicitKeyAsName` is set to true.
+All public members are serialization targets by default. You need to add `Key` attributes to public members unless `ImplicitMemberNameAsKey` is set to true.
 
 ```csharp
 [TinyhandObject]
@@ -188,8 +188,8 @@ public partial class DefaultBehaviourClass
     private int Z; // By adding the Key attribute, You can add a private member to the serialization target.
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
-public partial class KeyAsNameClass
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
+public partial class MemberNameAsKeyClass
 {
     public int X; // Serialized with the key "X"
 
@@ -198,7 +198,7 @@ public partial class KeyAsNameClass
     [Key("Z")]
     private int Z; // Serialized with the key "Z"
     
-    [KeyAsName]
+    [MemberNameAsKey]
     public int A; // Use the member name as the key "A".
 }
 ```
@@ -244,7 +244,7 @@ public partial record RecordClass // Partial record required.
     public string A { get; init; } = default!;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)] // Short version, but string key is a bit slower than integer key.
+[TinyhandObject(ImplicitMemberNameAsKey = true)] // Short version, but string key is a bit slower than integer key.
 public partial record RecordClass2(int X, string A);
 ```
 
@@ -273,10 +273,10 @@ public partial class IncludePrivateClass
 
 ### Explicit key only
 
-By setting `ExplicitKeyOnly` to true, only members with the Key attribute will be serialized.
+By setting `ExplicitKeysOnly` to true, only members with the Key attribute will be serialized.
 
 ```csharp
-[TinyhandObject(ExplicitKeyOnly = true)]
+[TinyhandObject(ExplicitKeysOnly = true)]
 public partial class ExplicitKeyClass
 {
     public int X; // Not serialized (no error message).
@@ -295,7 +295,7 @@ public partial class ExplicitKeyClass
 Tinyhand tries to handle nullable/non-nullable reference types properly.
 
 ```csharp
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class NullableTestClass
 {
     public int Int { get; set; } = default!; // 0
@@ -353,7 +353,7 @@ The default values of class members are usually set through initializers.
 Primitive types (`bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `decimal`, `string`, `char`, `enum`) are supported.
 
 ```csharp
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class DefaultTestClass
 {
     public int Int { get; set; } = 77;
@@ -361,7 +361,7 @@ public partial class DefaultTestClass
     public string String { get; set; } = "test";
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class StringEmptyClass
 {
 }
@@ -376,7 +376,7 @@ public class DefaultTest
 }
 ```
 
-You can skip serializing values if the value is identical to the default value, by using `[TinyhandObject(SkipSerializingDefaultValue = true)]`.
+You can skip serializing values if the value is identical to the default value, by using `[TinyhandObject(SkipDefaultValues = true)]`.
 
 
 
@@ -385,7 +385,7 @@ You can skip serializing values if the value is identical to the default value, 
 Tinyhand creates an instance of a member variable even if there is no matching data. By adding `[Reconstruct(false)]` or `[Reconstruct(true)]` to member attributes, you can change the behavior of whether an instance is created or not. 
 
 ```csharp
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class ReconstructTestClass
 {
     [DefaultValue(12)]
@@ -437,7 +437,7 @@ public class ClassWithDefaultConstructor
 }
 ```
 
-If you don't want to create an instance with default behavior, set `ReconstructMember` of `TinyhandObject` to false ` [TinyhandObject(ReconstructMember = false)]`.
+If you don't want to create an instance with default behavior, set `ReconstructMembers` of `TinyhandObject` to false ` [TinyhandObject(ReconstructMembers = false)]`.
 
 
 
@@ -448,7 +448,7 @@ Tinyhand will reuse an instance if its members have valid values. The type of th
 By adding `[Reuse(true)]` or `[Reuse(false)]` to member attributes, you can change the behavior of whether an instance is reused or not.
 
 ```csharp
-[TinyhandObject(ReuseMember = true)]
+[TinyhandObject(ReuseMembers = true)]
 public partial class ReuseTestClass
 {
     [Key(0)]
@@ -462,7 +462,7 @@ public partial class ReuseTestClass
     public bool Flag { get; set; } = false;
 }
 
-[TinyhandObject(ImplicitKeyAsName = true)]
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
 public partial class ReuseObject
 {
     public ReuseObject()
@@ -508,7 +508,7 @@ public class ReuseTest
 }
 ```
 
-If you don't want to reuse an instance with default behavior, set `ReuseMember` of `TinyhandObject` to false ` [TinyhandObject(ReuseMember = false)]`.
+If you don't want to reuse an instance with default behavior, set `ReuseMembers` of `TinyhandObject` to false ` [TinyhandObject(ReuseMembers = false)]`.
 
 
 
@@ -806,7 +806,7 @@ public partial class SampleCallback
 You can easily create a deep copy of the object by simply writing this code `TinyhandSerializer.Clone(obj)`.
 
 ```csharp
-[TinyhandObject(ExplicitKeyOnly = true)]
+[TinyhandObject(ExplicitKeysOnly = true)]
 public partial class DeepCopyClass
 {
     public int Id { get; set; }
