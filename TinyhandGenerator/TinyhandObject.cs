@@ -158,7 +158,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public int IntKey_Number { get; private set; } = 0;
 
-    public bool AllowDualKey => this.ObjectAttribute?.AllowAlternateKey == true;
+    public bool AllowDualKey => this.ObjectAttribute?.AddAlternateKey == true;
 
     public MethodCondition MethodCondition_Serialize { get; private set; }
 
@@ -1409,9 +1409,9 @@ Exit:
 
             if (stringKeyExists || (!intKeyExists && this.ObjectAttribute!.ImplicitMemberNameAsKey == true))
             {// String key
-                if (this.ObjectAttribute?.AllowAlternateKey == true)
+                if (this.ObjectAttribute?.AddAlternateKey == true)
                 {
-                    this.ObjectAttribute.AllowAlternateKey = false;
+                    this.ObjectAttribute.AddAlternateKey = false;
                     this.Body.ReportDiagnostic(TinyhandBody.Warning_InvalidDualKey, this.Location);
                 }
 

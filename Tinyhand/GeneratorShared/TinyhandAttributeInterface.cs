@@ -162,10 +162,10 @@ public sealed class TinyhandObjectAttribute : Attribute
     public bool AddImmutable { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to allow dual keys consisting of an base int key and a alternate string key [default is <see langword="false"/>].<br/>
+    /// Gets or sets a value indicating whether or not to add dual keys consisting of an base int key and a alternate string key [default is <see langword="false"/>].<br/>
     /// Specify the key using an integer key, and provide an alternate string key if necessary.
     /// </summary>
-    public bool AllowAlternateKey { get; set; } = false;
+    public bool AddAlternateKey { get; set; } = false;
 
     public TinyhandObjectAttribute()
     {

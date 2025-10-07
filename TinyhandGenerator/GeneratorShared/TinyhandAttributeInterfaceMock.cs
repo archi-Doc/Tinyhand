@@ -116,7 +116,7 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool AddImmutable { get; set; } = false;
 
-    public bool AllowAlternateKey { get; set; } = false;
+    public bool AddAlternateKey { get; set; } = false;
 
     public TinyhandObjectAttributeMock()
     {
@@ -223,10 +223,10 @@ public sealed class TinyhandObjectAttributeMock
             attribute.AddImmutable = (bool)val;
         }
 
-        val = VisceralHelper.GetValue(-1, nameof(AllowAlternateKey), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(AddAlternateKey), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.AllowAlternateKey = (bool)val;
+            attribute.AddAlternateKey = (bool)val;
         }
 
         return attribute;
