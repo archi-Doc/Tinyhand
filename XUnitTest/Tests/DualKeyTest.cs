@@ -59,5 +59,8 @@ public class DualKeyTest
         var strictOption = TinyhandSerializerOptions.ConvertToString with { Compose = TinyhandComposeOption.Strict, };
         tc2 = TinyhandSerializer.DeserializeFromString<DualKeyTestClass>("{A = 1, Class1=\"@AQIDBAUGBwgJCgsMDQ4PEA\"}", strictOption);
         tc2.Equals(tc).IsTrue();
+
+        tc2 = TinyhandSerializer.DeserializeFromString<DualKeyTestClass>("{ A = 1, Class1=\"@AQIDBAUGBwgJCgsMDQ4PEA\"}", strictOption);
+        tc2.Equals(tc).IsTrue();
     }
 }
