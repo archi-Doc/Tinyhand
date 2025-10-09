@@ -374,7 +374,7 @@ public static class TinyhandTreeConverter
     /// <returns>Returns the number of the processed items.</returns>
     internal static uint FromReaderToBinary(ref TinyhandUtf8Reader reader, ref TinyhandWriter writer, out bool assignedFlag, FromReaderToBinary_State state)
     {
-        uint assignedCount = 0;
+        // uint assignedCount = 0;
         uint count = 0;
 
         assignedFlag = false;
@@ -431,7 +431,7 @@ public static class TinyhandTreeConverter
                     return count;
 
                 case TinyhandAtomType.Identifier: // objectA
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.WriteString(reader.ValueSpan);
                         count++;
@@ -440,7 +440,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 case TinyhandAtomType.SpecialIdentifier: // @mode
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         var utf8 = reader.ValueSpan;
                         writer.WriteStringHeader(utf8.Length + 1);
@@ -456,11 +456,11 @@ public static class TinyhandTreeConverter
 
                 case TinyhandAtomType.Assignment: // =
                     assignedFlag = true;
-                    assignedCount++;
+                    // assignedCount++;
                     break;
 
                 case TinyhandAtomType.Value_Base64: // b"Base64"
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.Write(reader.ValueBinary);
                         count++;
@@ -469,7 +469,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 case TinyhandAtomType.Value_String: // "text"
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.WriteString(reader.ValueSpan);
                         count++;
@@ -478,7 +478,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 case TinyhandAtomType.Value_Long: // -123(long)
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.Write(reader.ValueLong);
                         count++;
@@ -487,7 +487,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 case TinyhandAtomType.Value_ULong: // 123(ulong)
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.Write(reader.ValueULong);
                         count++;
@@ -496,7 +496,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 case TinyhandAtomType.Value_Double: // 1.23(double)
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.Write(reader.ValueDouble);
                         count++;
@@ -505,7 +505,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 case TinyhandAtomType.Value_Null: // null
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.WriteNil();
                         count++;
@@ -514,7 +514,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 case TinyhandAtomType.Value_True: // true
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.Write(true);
                         count++;
@@ -523,7 +523,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 case TinyhandAtomType.Value_False: // false
-                    if (assignedCount <= 1)
+                    // if (assignedCount <= 1)
                     {
                         writer.Write(false);
                         count++;
@@ -532,7 +532,7 @@ public static class TinyhandTreeConverter
                     break;
 
                 default:
-                    assignedCount = 0;
+                    // assignedCount = 0;
                     break;
             }
         }
