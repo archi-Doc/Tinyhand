@@ -28,8 +28,5 @@ internal class Program
     static void Main(string[] args)
     {
         Console.WriteLine("Hello, World!");
-
-        var tc = TinyhandSerializer.DeserializeFromString<DualTestClass>("A=123, B=\"A\", C={\"BB\"}");
-        tc = TinyhandSerializer.DeserializeFromString<DualTestClass>("A=123 B=\"A\" C={\"BB\"}");
     }
 }
