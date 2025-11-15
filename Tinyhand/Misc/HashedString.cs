@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Threading;
-using Arc.Crypto;
+using Arc.Collections;
 using Tinyhand.Tree;
 
 namespace Tinyhand;
