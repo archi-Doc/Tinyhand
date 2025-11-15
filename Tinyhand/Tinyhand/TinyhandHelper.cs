@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Arc.Crypto;
+using Arc.Collections;
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
 #pragma warning disable SA1405 // Debug.Assert should provide message text
