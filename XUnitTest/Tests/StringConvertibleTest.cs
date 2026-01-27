@@ -124,7 +124,7 @@ public class StringConvertibleTest
         var tc5 = new StringConvertibleTestClass3();
         tc5.Array = [tc, tc2!,];
         tc5.List = [tc, tc2!,];
-        st = TinyhandSerializer.SerializeToString(tc5, TinyhandSerializerOptions.ConvertToSimpoleString);
+        st = TinyhandSerializer.SerializeToString(tc5, TinyhandSerializerOptions.ConvertToSimpleString);
         var tc6 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass3>(st);
         tc6.Array.SequenceEqual(tc5.Array).IsTrue();
         tc6.List.SequenceEqual(tc5.List).IsTrue();
