@@ -288,7 +288,8 @@ public static class TinyhandComposer
         {
             var newLine = true;
             if (element.Parent == null ||
-                this.option == TinyhandComposeOption.Simple)
+                this.option == TinyhandComposeOption.Simple ||
+                this.option == TinyhandComposeOption.Strict)
             {
                 newLine = false;
             }
@@ -322,7 +323,9 @@ public static class TinyhandComposer
                     break;
                 }
 
-                if (!hasAssignment || this.option == TinyhandComposeOption.Simple)
+                if (!hasAssignment ||
+                    this.option == TinyhandComposeOption.Simple ||
+                    this.option == TinyhandComposeOption.Strict)
                 {
                     writer.WriteUInt16(0x2C20); // ", "
                 }
