@@ -231,7 +231,8 @@ public static class TinyhandTreeConverter
 
                         if (i != (length - 1))
                         {
-                            if (groupWriter.ComposeOption == TinyhandComposeOption.Simple)
+                            if (groupWriter.ComposeOption == TinyhandComposeOption.Simple ||
+                                groupWriter.ComposeOption == TinyhandComposeOption.Strict)
                             {
                                 writer.WriteUInt16(0x2C20); // ", "
                             }
