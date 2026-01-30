@@ -5,7 +5,6 @@ using System.Dynamic;
 using System.Runtime.Serialization;
 using Tinyhand.Resolvers;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Tinyhand.Tests;
 
