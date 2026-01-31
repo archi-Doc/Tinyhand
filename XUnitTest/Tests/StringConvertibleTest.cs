@@ -98,8 +98,30 @@ public partial class StringConvertibleTestClass3
     public List<StringConvertibleTestClass> List { get; set; } = new();
 }
 
+[TinyhandObject(AddAlternateKey = true)]
+public partial record StringConvertibleTestClass4
+{
+    [Key(0)]
+    public string Code { get; init; } = string.Empty;
+
+    [Key(1)]
+    public string LongKeyKeyKey { get; init; } = string.Empty;
+}
+
 public class StringConvertibleTest
 {
+    [Fact]
+    public void Test4()
+    {
+        var options = TinyhandSerializerOptions.ConvertToStrictString;
+        var tc = new StringConvertibleTestClass4() with { Code = "AB", };
+        var st = TinyhandSerializer.SerializeToString(tc, options);
+        var tc2 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass4>(st, options);
+        tc2.Code.Is(tc.Code);
+        tc2 = TinyhandSerializer.DeserializeFromString<StringConvertibleTestClass4>("{Member1=2, Member2=\"3\", Code=\"AB\"}", options);
+        tc2.Code.Is(tc.Code);
+    }
+
     [Fact]
     public void Test1()
     {
