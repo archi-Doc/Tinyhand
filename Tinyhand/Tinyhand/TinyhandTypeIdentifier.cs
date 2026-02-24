@@ -190,6 +190,42 @@ public static class TinyhandTypeIdentifier
     }
 
     /// <summary>
+    /// Determines whether the specified type <typeparamref name="T"/> is registered with the serializer.
+    /// </summary>
+    /// <typeparam name="T">The type to check for registration.</typeparam>
+    /// <returns>
+    /// <c>true</c> if the type is registered; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsRegistered<T>()
+    {
+        return TypeIdentifierToType.ContainsKey(GetTypeIdentifier<T>());
+    }
+
+    /// <summary>
+    /// Determines whether the specified <see cref="Type"/> is registered with the serializer.
+    /// </summary>
+    /// <param name="type">The type to check for registration.</param>
+    /// <returns>
+    /// <c>true</c> if the type is registered; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsRegistered(Type type)
+    {
+        return TypeIdentifierToType.ContainsKey(GetTypeIdentifier(type));
+    }
+
+    /// <summary>
+    /// Determines whether the specified type identifier is registered with the serializer.
+    /// </summary>
+    /// <param name="typeIdentifier">The type identifier to check for registration.</param>
+    /// <returns>
+    /// <c>true</c> if the type identifier is registered; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsRegistered(uint typeIdentifier)
+    {
+        return TypeIdentifierToType.ContainsKey(typeIdentifier);
+    }
+
+    /// <summary>
     /// Tries to serialize the specified value of type <typeparamref name="T"/> using the registered type identifier.
     /// </summary>
     /// <typeparam name="T">The type of the value to serialize.</typeparam>
@@ -439,7 +475,14 @@ public static class TinyhandTypeIdentifier
     /// <returns><c>true</c> if the type was successfully registered; otherwise, <c>false</c>.</returns>
     public static bool Register(Type type)
     {
-        if (type.IsAbstract || type.IsInterface || type.IsGenericTypeDefinition || type.IsArray || type.IsPointer || type == typeof(void))
+        if (type.IsAbstract || type.IsInterface)
+        {
+            if (type == typeof(Type))
+            {
+                return false;
+            }
+        }
+        else if (type.IsGenericTypeDefinition || type.IsArray || type.IsPointer || type == typeof(void))
         {// Not instantiable type
             return false;
         }
