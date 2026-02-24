@@ -128,8 +128,10 @@ public class StringConvertibleTest
         tc.Equals(tc2).IsTrue();
 
         var typeIdentifier = TinyhandTypeIdentifier.GetTypeIdentifier<StringConvertibleTestClass>();
-        tc2 = (StringConvertibleTestClass)TinyhandTypeIdentifier.TryDeserializeFromString(typeIdentifier, st, options);
-        tc2 = (StringConvertibleTestClass)TinyhandTypeIdentifier.TryDeserializeFromString(typeIdentifier, st2, options);
+        tc2 = (StringConvertibleTestClass)TinyhandTypeIdentifier.TryParseOrDeserializeFromString(typeIdentifier, st, options);
+        tc.Equals(tc2).IsTrue();
+        tc2 = (StringConvertibleTestClass)TinyhandTypeIdentifier.TryParseOrDeserializeFromString(typeIdentifier, st2, options);
+        tc.Equals(tc2).IsTrue();
     }
 
     [Fact]
