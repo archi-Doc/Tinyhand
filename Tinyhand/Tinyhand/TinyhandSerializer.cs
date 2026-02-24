@@ -379,6 +379,23 @@ public static partial class TinyhandSerializer
     #endregion
 
     /// <summary>
+    /// Determines whether the specified type <typeparamref name="T"/> is registered with the resolver in the given <see cref="TinyhandSerializerOptions"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to check for registration.</typeparam>
+    /// <param name="options">
+    /// The serializer options to use for checking registration.
+    /// If <c>null</c>, <see cref="DefaultOptions"/> will be used.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if a formatter for type <typeparamref name="T"/> is registered; otherwise, <c>false</c>.
+    /// </returns>
+    public static bool IsRegistered<T>(TinyhandSerializerOptions? options = null)
+    {
+        options = options ?? DefaultOptions;
+        return options.Resolver.TryGetFormatter<T>() is not null;
+    }
+
+    /// <summary>
     /// Create a new instance of the given type.
     /// </summary>
     /// <typeparam name="T">The type of value to reconstruct.</typeparam>
