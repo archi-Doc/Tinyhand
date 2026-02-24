@@ -3,10 +3,12 @@
 using System;
 using System.Buffers;
 using System.Threading;
+using Arc;
 using Arc.Collections;
 using Arc.IO;
 using Tinyhand.IO;
 using Tinyhand.Tree;
+using static FastExpressionCompiler.ImTools.SmallMap;
 
 #pragma warning disable SA1618 // Generic type parameters should be documented
 
@@ -357,6 +359,29 @@ public static partial class TinyhandSerializer
         catch
         {
             return default;
+        }
+    }
+
+    public static T? TryParseOrDeserializeFromString<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
+        where T : ITinyhandSerializable<T>, IStringConvertible<T>
+    {
+        if (utf16.Length >= 2 &&
+            utf16[0] == TinyhandConstants.OpenBraceChar &&
+            utf16[^1] == TinyhandConstants.CloseBraceChar)
+        {// {Text}
+            try
+            {
+                return DeserializeFromString<T>(utf16, options);
+            }
+            catch
+            {
+                return default;
+            }
+        }
+        else
+        {// text
+            T.TryParse(utf16, out var obj, out _);
+            return obj;
         }
     }
 

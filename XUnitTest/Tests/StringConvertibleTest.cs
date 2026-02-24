@@ -111,6 +111,28 @@ public partial record StringConvertibleTestClass4
 public class StringConvertibleTest
 {
     [Fact]
+    public void Test5()
+    {
+        var options = TinyhandSerializerOptions.ConvertToStrictString;
+
+        var tc = new StringConvertibleTestClass();
+        tc.Byte16 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,];
+        var st = tc.ConvertToString();
+        StringConvertibleTestClass.TryParse(st, out var tc2, out var read);
+        tc.Equals(tc2).IsTrue();
+        var st2 = TinyhandSerializer.SerializeToString(tc, options);
+
+        tc2 = TinyhandSerializer.TryParseOrDeserializeFromString<StringConvertibleTestClass>(st, options);
+        tc.Equals(tc2).IsTrue();
+        tc2 = TinyhandSerializer.TryParseOrDeserializeFromString<StringConvertibleTestClass>(st2, options);
+        tc.Equals(tc2).IsTrue();
+
+        var typeIdentifier = TinyhandTypeIdentifier.GetTypeIdentifier<StringConvertibleTestClass>();
+        tc2 = (StringConvertibleTestClass)TinyhandTypeIdentifier.TryDeserializeFromString(typeIdentifier, st, options);
+        tc2 = (StringConvertibleTestClass)TinyhandTypeIdentifier.TryDeserializeFromString(typeIdentifier, st2, options);
+    }
+
+    [Fact]
     public void Test4()
     {
         var options = TinyhandSerializerOptions.ConvertToStrictString;
