@@ -39,7 +39,7 @@ public static class TinyhandTypeIdentifier
 
         public SerializeWriterDelegate? SerializeWriter => field ??= this.CreateSerializeWriter();
 
-        public Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? DeserializeFromString => field ??= this.CreateDeserializeFromString();
+        public Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? TryDeserializeFromString => field ??= this.CreateTryDeserializeFromString();
 
         public Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? Deserialize => field ??= this.CreateDeserialize();
 
@@ -158,7 +158,7 @@ public static class TinyhandTypeIdentifier
             return Expression.Lambda<Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>>(body, param1, param2).CompileFast();
         }
 
-        private Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? CreateDeserializeFromString()
+        private Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? CreateTryDeserializeFromString()
         {
             if (!this.EnsureType())
             {
@@ -166,7 +166,7 @@ public static class TinyhandTypeIdentifier
             }
 
             var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("DeserializeFromString", this.type, [typeof(ReadOnlySpan<char>), typeof(TinyhandSerializerOptions)]);
+            var method = TinyhandHelper.GetSerializerMethod("TryDeserializeFromString", this.type, [typeof(ReadOnlySpan<char>), typeof(TinyhandSerializerOptions)]);
             var param1 = Expression.Parameter(typeof(ReadOnlySpan<char>), "utf16");
             var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
             var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
@@ -434,19 +434,12 @@ public static class TinyhandTypeIdentifier
     public static object? TryDeserializeFromString(uint typeIdentifier, ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
     {
         var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.DeserializeFromString is null)
+        if (methodClass.TryDeserializeFromString is null)
         {
             return default;
         }
 
-        try
-        {
-            return methodClass.DeserializeFromString(utf16, options);
-        }
-        catch
-        {
-            return default;
-        }
+        return methodClass.TryDeserializeFromString(utf16, options);
     }
 
     /// <summary>
