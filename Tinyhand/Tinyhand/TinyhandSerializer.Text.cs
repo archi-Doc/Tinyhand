@@ -349,18 +349,18 @@ public static partial class TinyhandSerializer
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static T? DeserializeFromString<T>(string utf16, TinyhandSerializerOptions? options = null)
+    public static T? DeserializeFromString<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
     {
         const long ArrayPoolMaxSizeBeforeUsingNormalAlloc = 1024 * 1024;
         byte[]? tempArray = null;
 
         Span<byte> utf8 = utf16.Length <= (ArrayPoolMaxSizeBeforeUsingNormalAlloc / TinyhandConstants.MaxExpansionFactorWhileTranscoding) ?
             tempArray = ArrayPool<byte>.Shared.Rent(utf16.Length * TinyhandConstants.MaxExpansionFactorWhileTranscoding) :
-            new byte[TinyhandHelper.GetUtf8ByteCount(utf16.AsSpan())];
+            new byte[TinyhandHelper.GetUtf8ByteCount(utf16)];
 
         try
         {
-            int actualByteCount = TinyhandHelper.GetUtf8FromText(utf16.AsSpan(), utf8);
+            int actualByteCount = TinyhandHelper.GetUtf8FromText(utf16, utf8);
             utf8 = utf8.Slice(0, actualByteCount);
             return DeserializeFromUtf8<T>(utf8, options);
         }
