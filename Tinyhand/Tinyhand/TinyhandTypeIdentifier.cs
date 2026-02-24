@@ -183,7 +183,7 @@ public static class TinyhandTypeIdentifier
                 return default;
             }
 
-            if (!typeof(IStringConvertible<>).MakeGenericType(this.type).IsAssignableFrom(this.type))
+            if (!BaseHelper.ImplementsIStringConvertible(this.type))
             {
                 return this.TryDeserializeFromString;
             }
