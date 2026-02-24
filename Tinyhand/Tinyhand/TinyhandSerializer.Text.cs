@@ -342,6 +342,25 @@ public static partial class TinyhandSerializer
     public static T? DeserializeFromUtf8<T>(ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null) => DeserializeFromUtf8<T>(utf8.Span, options);
 
     /// <summary>
+    /// Attempts to deserialize a value of a given type from a string (UTF-16). Returns the default value if deserialization fails.
+    /// </summary>
+    /// <typeparam name="T">The type of value to deserialize.</typeparam>
+    /// <param name="utf16">The string (UTF-16) to deserialize from.</param>
+    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <returns>The deserialized value, or the default value of <typeparamref name="T"/> if deserialization fails.</returns>
+    public static T? TryDeserializeFromString<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
+    {
+        try
+        {
+            return DeserializeFromString<T>(utf16, options);
+        }
+        catch
+        {
+            return default;
+        }
+    }
+
+    /// <summary>
     /// Deserializes a value of a given type from a string (UTF-16).
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>

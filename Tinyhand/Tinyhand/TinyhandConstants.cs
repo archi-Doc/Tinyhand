@@ -10,8 +10,11 @@ namespace Tinyhand;
 
 public static class TinyhandConstants
 {
-    public const byte OpenBrace = (byte)'{';
-    public const byte CloseBrace = (byte)'}';
+    public const char OpenBraceChar = '{';
+    public const char CloseBraceChar = '}';
+
+    public const byte OpenBrace = (byte)OpenBraceChar;
+    public const byte CloseBrace = (byte)CloseBraceChar;
     public const byte OpenBracket = (byte)'[';
     public const byte CloseBracket = (byte)']';
     public const byte Space = (byte)' ';
