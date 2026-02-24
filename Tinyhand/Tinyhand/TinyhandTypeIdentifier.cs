@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Arc;
 using Arc.Collections;
 using FastExpressionCompiler;
 using Tinyhand.IO;
@@ -40,6 +41,8 @@ public static class TinyhandTypeIdentifier
         public SerializeWriterDelegate? SerializeWriter => field ??= this.CreateSerializeWriter();
 
         public Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? TryDeserializeFromString => field ??= this.CreateTryDeserializeFromString();
+
+        public Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? TryParseOrDeserializeFromString => field ??= this.CreateTryParseOrDeserializeFromString();
 
         public Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? Deserialize => field ??= this.CreateDeserialize();
 
@@ -167,6 +170,26 @@ public static class TinyhandTypeIdentifier
 
             var typeInfo = this.type.GetTypeInfo();
             var method = TinyhandHelper.GetSerializerMethod("TryDeserializeFromString", this.type, [typeof(ReadOnlySpan<char>), typeof(TinyhandSerializerOptions)]);
+            var param1 = Expression.Parameter(typeof(ReadOnlySpan<char>), "utf16");
+            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
+            var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
+            return Expression.Lambda<Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>>(body, param1, param2).CompileFast();
+        }
+
+        private Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? CreateTryParseOrDeserializeFromString()
+        {
+            if (!this.EnsureType())
+            {
+                return default;
+            }
+
+            if (!typeof(IStringConvertible<>).MakeGenericType(this.type).IsAssignableFrom(this.type))
+            {
+                return this.TryDeserializeFromString;
+            }
+
+            var typeInfo = this.type.GetTypeInfo();
+            var method = TinyhandHelper.GetSerializerMethod("TryParseOrDeserializeFromString", this.type, [typeof(ReadOnlySpan<char>), typeof(TinyhandSerializerOptions)]);
             var param1 = Expression.Parameter(typeof(ReadOnlySpan<char>), "utf16");
             var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
             var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
@@ -440,6 +463,17 @@ public static class TinyhandTypeIdentifier
         }
 
         return methodClass.TryDeserializeFromString(utf16, options);
+    }
+
+    public static object? TryParseOrDeserializeFromString(uint typeIdentifier, ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
+    {
+        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
+        if (methodClass.TryParseOrDeserializeFromString is null)
+        {
+            return default;
+        }
+
+        return methodClass.TryParseOrDeserializeFromString(utf16, options);
     }
 
     /// <summary>
