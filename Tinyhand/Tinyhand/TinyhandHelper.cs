@@ -391,7 +391,11 @@ public static class TinyhandHelper
         }
     }
 
-    public static uint GetFullNameId<T>() => IdCache<T>.Id;
+    /*public static uint GetFullNameId<T>()
+        => IdCache<T>.Id;
+
+    public static uint GetFullNameId(Type type)
+        => (uint)Arc.Crypto.FarmHash.Hash64(type.FullName ?? string.Empty);
 
     private static class IdCache<T>
     {
@@ -399,9 +403,9 @@ public static class TinyhandHelper
 
         static IdCache()
         {
-            Id = (uint)Arc.Crypto.FarmHash.Hash64(typeof(T).FullName ?? string.Empty);
+            Id = GetFullNameId(typeof(T));
         }
-    }
+    }*/
 
     internal static MethodInfo GetSerializerMethod(string methodName, Type type, Type?[] parameters)
     {
