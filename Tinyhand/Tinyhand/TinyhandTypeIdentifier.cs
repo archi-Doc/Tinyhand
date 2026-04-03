@@ -592,8 +592,8 @@ public static class TinyhandTypeIdentifier
                 return false;
             }
         }
-        else if (type.IsGenericTypeDefinition || type.IsArray || type.IsPointer || type == typeof(void))
-        {// Not instantiable type
+        else if (type.IsGenericTypeDefinition || type.IsPointer || type == typeof(void))
+        {// Not instantiable type (type.IsArray?).
             return false;
         }
 
