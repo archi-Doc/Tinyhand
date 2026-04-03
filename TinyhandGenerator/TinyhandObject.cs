@@ -1214,6 +1214,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         if (this.IsDerivedFrom(TinyhandBody.StoragePointName))
         {
             this.ObjectFlag |= TinyhandObjectFlag.DerivedFromStoragePoint;
+            this.ObjectAttribute?.Structural = true; // Enable Structual to ensure StoragePoint works correctly.
         }
 
         if (!string.IsNullOrEmpty(lockObjectName))
@@ -1571,6 +1572,7 @@ Exit:
         if (this.TypeObject.IsDerivedFrom(TinyhandBody.StoragePointName))
         {
             this.ObjectFlag |= TinyhandObjectFlag.DerivedFromStoragePoint;
+            this.ObjectAttribute?.Structural = true; // Enable Structual to ensure StoragePoint works correctly.
         }
 
         if (!this.IsSerializable || this.IsReadOnly)
