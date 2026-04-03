@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using FastExpressionCompiler;
 using Tinyhand.IO;
 
@@ -19,6 +20,13 @@ public partial class TinyhandSerializer
 {
     private static readonly Func<Type, CompiledMethods> CreateCompiledMethods;
     private static readonly ThreadsafeTypeKeyHashtable<CompiledMethods> Serializes = new(capacity: 64);
+
+#pragma warning disable CA2255 // The 'ModuleInitializer' attribute should not be used in libraries
+    [ModuleInitializer]
+#pragma warning restore CA2255 // The 'ModuleInitializer' attribute should not be used in libraries
+    public static void Initialize()
+    {
+    }
 
     static TinyhandSerializer()
     {

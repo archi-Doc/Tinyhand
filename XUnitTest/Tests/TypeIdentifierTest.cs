@@ -51,27 +51,18 @@ public class TypeIdentifierTest
         var obj = TinyhandTypeIdentifier.TryReconstruct(typeIdentifier);
     }
 
-    /*[Fact]
+    [Fact]
     public void Test1()
     {
-        var t = (ITinyhandSerializable)new OuterClass();
-        var identifier = FarmHash.Hash64("Tinyhand.Tests.OuterClass");
-        t.GetTypeIdentifier().Is(identifier);
-        TinyhandSerializer.GetTypeIdentifierObject<OuterClass>().Is(identifier);
+        var typeIdentifier = TinyhandTypeIdentifier.GetTypeIdentifier<TestRecord>();
+        typeIdentifier.IsNot(0u);
 
-        t = (ITinyhandSerializable)new GenericsTestClass<string>();
-        identifier = FarmHash.Hash64("Tinyhand.Tests.GenericsTestClass<string>");
-        t.GetTypeIdentifier().Is(identifier);
-        TinyhandSerializer.GetTypeIdentifierObject<GenericsTestClass<string>>().Is(identifier);
+        typeIdentifier = TinyhandTypeIdentifier.GetTypeIdentifier<byte[]>();
+        typeIdentifier.IsNot(0u);
 
-        t = (ITinyhandSerializable)new GenericsTestClass<int>();
-        identifier = FarmHash.Hash64("Tinyhand.Tests.GenericsTestClass<int>");
-        t.GetTypeIdentifier().Is(identifier);
-        TinyhandSerializer.GetTypeIdentifierObject<GenericsTestClass<int>>().Is(identifier);
-
-        t = (ITinyhandSerializable)(new GenericsTestClass<string>.GenericsNestedClass<double>());
-        identifier = FarmHash.Hash64("Tinyhand.Tests.GenericsTestClass<string>.GenericsNestedClass<double>");
-        t.GetTypeIdentifier().Is(identifier);
-        TinyhandSerializer.GetTypeIdentifierObject<GenericsTestClass<string>.GenericsNestedClass<double>>().Is(identifier);
-    }*/
+        var byteArray = new byte[100];
+        var r = TinyhandTypeIdentifier.TrySerializeRentMemory(typeIdentifier, byteArray);
+        r.TypeIdentifier.IsNot(0u);
+        r.RentMemory.IsEmpty.IsFalse();
+    }
 }
