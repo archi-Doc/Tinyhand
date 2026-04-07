@@ -164,6 +164,8 @@ public class TextSerializeTest
         c3.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<EmptyClass2>(st));
         st = TinyhandSerializer.SerializeToString(c3, simple);
         c3.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<EmptyClass2>(st));
+        st = TinyhandSerializer.SerializeToString(c3, TinyhandSerializerOptions.ConvertToStrictString);
+        c3.IsStructuralEqual(TinyhandSerializer.DeserializeFromString<EmptyClass2>(st, TinyhandSerializerOptions.ConvertToStrictString));
 
         var c4 = new FormatterResolverClass();
         st = TinyhandSerializer.SerializeToString(c4);
