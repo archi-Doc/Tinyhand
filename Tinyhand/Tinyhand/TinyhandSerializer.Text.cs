@@ -424,6 +424,9 @@ public static partial class TinyhandSerializer
 
         static OmitTopLevelBracketCache()
         {
+            //CanOmit = true;
+            //return;
+
             try
             {
                 var value = TinyhandSerializer.Reconstruct<T>();
