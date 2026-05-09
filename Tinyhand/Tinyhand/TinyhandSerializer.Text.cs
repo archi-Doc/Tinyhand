@@ -94,7 +94,7 @@ public static partial class TinyhandSerializer
     }
 
     public static void DeserializeObjectFromUtf8<T>(ReadOnlySpan<byte> utf8, scoped ref T? value, TinyhandSerializerOptions? options = null)
-    where T : ITinyhandSerializable<T>
+        where T : ITinyhandSerializable<T>
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
@@ -424,10 +424,9 @@ public static partial class TinyhandSerializer
 
         static OmitTopLevelBracketCache()
         {
-            //CanOmit = true;
-            //return;
+            CanOmit = typeof(ITinyhandSerializable).IsAssignableFrom(typeof(T));
 
-            try
+            /*try
             {
                 var value = TinyhandSerializer.Reconstruct<T>();
                 var reader = new TinyhandReader(TinyhandSerializer.Serialize<T>(value));
@@ -455,7 +454,7 @@ public static partial class TinyhandSerializer
             {// Maybe TinyhandUnion
                 CanOmit = true;
                 return;
-            }
+            }*/
         }
     }
 }
