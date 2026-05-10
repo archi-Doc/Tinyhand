@@ -425,6 +425,10 @@ public static partial class TinyhandSerializer
         static OmitTopLevelBracketCache()
         {
             CanOmit = typeof(ITinyhandSerializable).IsAssignableFrom(typeof(T));
+            if (typeof(ITinyhandBracketTest).IsAssignableFrom(typeof(T)))
+            {
+                CanOmit = false;
+            }
 
             /*try
             {
