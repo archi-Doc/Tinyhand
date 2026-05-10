@@ -342,6 +342,8 @@ public sealed class TinyhandGeneratorOptionAttribute : Attribute
     }
 }
 
+public interface ITinyhandBracketTest;//
+
 /// <summary>
 /// An interface for serialize/deserialize methods.
 /// </summary>
