@@ -342,7 +342,10 @@ public sealed class TinyhandGeneratorOptionAttribute : Attribute
     }
 }
 
-public interface ITinyhandBracketTest;//
+/// <summary>
+/// Marks a type as serializable using a single Tinyhand layout, either map or array.
+/// </summary>
+public interface ITinyhandSingleLayoutSerializable;
 
 /// <summary>
 /// An interface for serialize/deserialize methods.
