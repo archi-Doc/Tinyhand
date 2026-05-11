@@ -424,12 +424,9 @@ public static partial class TinyhandSerializer
 
         static OmitTopLevelBracketCache()
         {
-            CanOmit = typeof(ITinyhandSerializable).IsAssignableFrom(typeof(T));
-            if (typeof(ITinyhandBracketTest).IsAssignableFrom(typeof(T)))
-            {
-                CanOmit = false;
-            }
+            CanOmit = typeof(ITinyhandSingleLayoutSerializable).IsAssignableFrom(typeof(T));
 
+            // The following code was removed because creating an object for the check has side effects.
             /*try
             {
                 var value = TinyhandSerializer.Reconstruct<T>();

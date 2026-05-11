@@ -2224,7 +2224,7 @@ ModuleInitializerClass_Added:
                 interfaceString += $", {TinyhandBody.IStructuralObject}";
             }
 
-            interfaceString += $", ITinyhandSerializable";
+            interfaceString += $", ITinyhandSerializable, ITinyhandSingleLayoutSerializable";
         }
 
         // Prepare generator information
