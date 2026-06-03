@@ -104,8 +104,38 @@ public partial class TextSerializeClass4
     public int Id { get; set; }
 }
 
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
+public partial record class SolutionFile
+{
+    [TinyhandObject(ImplicitMemberNameAsKey = true)]
+    public partial record class DefaultClass
+    {
+        public string LangVersion { get; init; } = "0.0.1";
+
+        public string Version { get; init; } = "0.0.1";
+    }
+
+    public List<string> Projects { get; init; } = [];
+
+    public DefaultClass Default { get; init; } = new();
+}
+
 public class TextSerializeTest
 {
+    [Fact]
+    public void TestSolutionFile()
+    {
+        var st = """
+            Projects=
+              "./Test.kimiproj"
+            Default=
+              Version='0.0.1'
+              LangVersion=k0.1
+            """;
+
+        var tc = TinyhandSerializer.DeserializeFromString<SolutionFile>(st);
+    }
+
     [Fact]
     public void Test0()
     {// Requires visual assessment: st
