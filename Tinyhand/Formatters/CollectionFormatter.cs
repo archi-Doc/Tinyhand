@@ -142,7 +142,9 @@ public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
         => new ReadOnlyMemory<byte>(value.ToArray());
 }
 
-public sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
+// A char-optimized formatter. Disabled because char value characteristics
+// may increase the output size despite possible performance improvements.
+/* public sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
 {
     public static readonly CharMemoryFormatter Instance = new();
 
@@ -198,7 +200,7 @@ public sealed class CharReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
 
     public ReadOnlyMemory<char> Clone(ReadOnlyMemory<char> value, TinyhandSerializerOptions options)
         => new ReadOnlyMemory<char>(value.ToArray());
-}
+}*/
 
 public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlySequence<byte>>
 {
