@@ -1130,6 +1130,22 @@ public ref partial struct TinyhandReader
         }
     }
 
+    /// <summary>
+    /// Gets the length, in bytes, of the next binary value.
+    /// </summary>
+    /// <returns>The length of the next binary payload.</returns>
+    /// <exception cref="EndOfStreamException">
+    /// Thrown when there are not enough bytes remaining to read the binary length.
+    /// </exception>
+    /// <exception cref="TinyhandUnexpectedCodeException">
+    /// Thrown when the next MessagePack code does not represent a binary value.
+    /// </exception>
+    public int GetBytesLength()
+    {
+        ThrowInsufficientBufferUnless(this.TryGetBytesLength(out int length));
+        return length;
+    }
+
     /*public T? TryReadStringConvertible<T>()
         where T : IStringConvertible<T>
     {
@@ -1174,12 +1190,6 @@ public ref partial struct TinyhandReader
             string.Format("Unexpected msgpack code {0} ({1}) encountered.", code, MessagePackCode.ToFormatName(code)),
             MessagePackCode.ToMessagePackType(code),
             expected);
-    }
-
-    private int GetBytesLength()
-    {
-        ThrowInsufficientBufferUnless(this.TryGetBytesLength(out int length));
-        return length;
     }
 
     private bool TryGetBytesLength(out int length)

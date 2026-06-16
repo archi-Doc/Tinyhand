@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
@@ -139,6 +140,64 @@ public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
 
     public ReadOnlyMemory<byte> Clone(ReadOnlyMemory<byte> value, TinyhandSerializerOptions options)
         => new ReadOnlyMemory<byte>(value.ToArray());
+}
+
+public sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
+{
+    public static readonly CharMemoryFormatter Instance = new();
+
+    private CharMemoryFormatter()
+    {
+    }
+
+    public void Serialize(ref TinyhandWriter writer, Memory<char> value, TinyhandSerializerOptions options)
+    {
+        writer.Write(MemoryMarshal.AsBytes(value.Span));
+    }
+
+    public void Deserialize(ref TinyhandReader reader, ref Memory<char> value, TinyhandSerializerOptions options)
+    {
+        var length = reader.GetBytesLength();
+        var span = reader.ReadRaw(length);
+        value = new Memory<char>(MemoryMarshal.Cast<byte, char>(span).ToArray());
+    }
+
+    public Memory<char> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return Memory<char>.Empty;
+    }
+
+    public Memory<char> Clone(Memory<char> value, TinyhandSerializerOptions options)
+        => new Memory<char>(value.ToArray());
+}
+
+public sealed class CharReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMemory<char>>
+{
+    public static readonly CharReadOnlyMemoryFormatter Instance = new();
+
+    private CharReadOnlyMemoryFormatter()
+    {
+    }
+
+    public void Serialize(ref TinyhandWriter writer, ReadOnlyMemory<char> value, TinyhandSerializerOptions options)
+    {
+        writer.Write(MemoryMarshal.AsBytes(value.Span));
+    }
+
+    public void Deserialize(ref TinyhandReader reader, ref ReadOnlyMemory<char> value, TinyhandSerializerOptions options)
+    {
+        var length = reader.GetBytesLength();
+        var span = reader.ReadRaw(length);
+        value = new ReadOnlyMemory<char>(MemoryMarshal.Cast<byte, char>(span).ToArray());
+    }
+
+    public ReadOnlyMemory<char> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return Memory<char>.Empty;
+    }
+
+    public ReadOnlyMemory<char> Clone(ReadOnlyMemory<char> value, TinyhandSerializerOptions options)
+        => new ReadOnlyMemory<char>(value.ToArray());
 }
 
 public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlySequence<byte>>

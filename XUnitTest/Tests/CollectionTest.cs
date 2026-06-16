@@ -19,6 +19,18 @@ public class CollectionTest
         return TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize(value));
     }
 
+    [Fact]
+    public void CharMemoryTest()
+    {
+        var memory = new Memory<char>(['a', 'b', 'c']);
+        var memory2 = Convert(memory);
+        memory2.Span.SequenceEqual(memory.Span).IsTrue();
+
+        var rom = new ReadOnlyMemory<char>(['a', 'b', 'c', 'd',]);
+        var rom2 = Convert(rom);
+        rom2.Span.SequenceEqual(rom.Span).IsTrue();
+    }
+
     public static object[][] CollectionTestData = new object[][]
     {
         new object[] { new int[] { 1, 10, 100 }, null },
