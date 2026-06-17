@@ -124,8 +124,8 @@ public sealed class BuiltinResolver : IFormatterResolver
         { typeof(ReadOnlySequence<byte>?), new StaticNullableFormatter<ReadOnlySequence<byte>>(ByteReadOnlySequenceFormatter.Instance) },
         { typeof(ArraySegment<byte>), ByteArraySegmentFormatter.Instance },
         { typeof(ArraySegment<byte>?), new StaticNullableFormatter<ArraySegment<byte>>(ByteArraySegmentFormatter.Instance) },
-        // { typeof(Memory<char>), CharMemoryFormatter.Instance },
-        // { typeof(ReadOnlyMemory<char>), CharReadOnlyMemoryFormatter.Instance },
+        { typeof(Memory<char>), CharMemoryFormatter.Instance },
+        { typeof(ReadOnlyMemory<char>), CharReadOnlyMemoryFormatter.Instance },
 
         // Extra
         { typeof(IPAddress), IPAddressFormatter.Instance },
