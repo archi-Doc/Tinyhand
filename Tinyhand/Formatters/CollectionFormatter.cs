@@ -142,9 +142,7 @@ public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
         => new ReadOnlyMemory<byte>(value.ToArray());
 }
 
-// A char-optimized formatter. Disabled because char value characteristics
-// may increase the output size despite possible performance improvements.
-/* public sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
+public sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
 {
     public static readonly CharMemoryFormatter Instance = new();
 
@@ -154,14 +152,32 @@ public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
 
     public void Serialize(ref TinyhandWriter writer, Memory<char> value, TinyhandSerializerOptions options)
     {
-        writer.Write(MemoryMarshal.AsBytes(value.Span));
+        var span = value.Span;
+        writer.WriteArrayHeader(span.Length);
+        foreach (var x in span)
+        {
+            writer.Write(x);
+        }
     }
 
     public void Deserialize(ref TinyhandReader reader, ref Memory<char> value, TinyhandSerializerOptions options)
     {
-        var length = reader.GetBytesLength();
-        var span = reader.ReadRaw(length);
-        value = new Memory<char>(MemoryMarshal.Cast<byte, char>(span).ToArray());
+        if (reader.TryReadNil())
+        {
+            value = Memory<char>.Empty;
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new char[len];
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
+            {
+                span[i] = reader.ReadChar();
+            }
+
+            value = new Memory<char>(array);
+        }
     }
 
     public Memory<char> Reconstruct(TinyhandSerializerOptions options)
@@ -183,24 +199,42 @@ public sealed class CharReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
 
     public void Serialize(ref TinyhandWriter writer, ReadOnlyMemory<char> value, TinyhandSerializerOptions options)
     {
-        writer.Write(MemoryMarshal.AsBytes(value.Span));
+        var span = value.Span;
+        writer.WriteArrayHeader(span.Length);
+        foreach (var x in span)
+        {
+            writer.Write(x);
+        }
     }
 
     public void Deserialize(ref TinyhandReader reader, ref ReadOnlyMemory<char> value, TinyhandSerializerOptions options)
     {
-        var length = reader.GetBytesLength();
-        var span = reader.ReadRaw(length);
-        value = new ReadOnlyMemory<char>(MemoryMarshal.Cast<byte, char>(span).ToArray());
+        if (reader.TryReadNil())
+        {
+            value = ReadOnlyMemory<char>.Empty;
+        }
+        else
+        {
+            var len = reader.ReadArrayHeader();
+            var array = new char[len];
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
+            {
+                span[i] = reader.ReadChar();
+            }
+
+            value = new ReadOnlyMemory<char>(array);
+        }
     }
 
     public ReadOnlyMemory<char> Reconstruct(TinyhandSerializerOptions options)
     {
-        return Memory<char>.Empty;
+        return ReadOnlyMemory<char>.Empty;
     }
 
     public ReadOnlyMemory<char> Clone(ReadOnlyMemory<char> value, TinyhandSerializerOptions options)
         => new ReadOnlyMemory<char>(value.ToArray());
-}*/
+}
 
 public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlySequence<byte>>
 {

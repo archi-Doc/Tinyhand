@@ -17,7 +17,7 @@ namespace Benchmark;
 
 public class Program
 {
-    public static Stopwatch Stopwatch { get; } = new ();
+    public static Stopwatch Stopwatch { get; } = new();
 
     public static void Main(string[] args)
     {
@@ -47,10 +47,11 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<H2HTest.H2HBenchmark>();
+        DebugRun<CharBufferBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
+            typeof(CharBufferBenchmark),
             typeof(Struct128Benchmark),
             typeof(GetXxHashBenchmark),
             typeof(ReadOnlySpanTest),
