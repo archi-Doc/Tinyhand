@@ -23,10 +23,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -42,9 +43,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new byte[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadUInt8();
+                span[i] = reader.ReadUInt8();
             }
 
             return array;
@@ -112,10 +114,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -131,9 +134,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new sbyte[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadInt8();
+                span[i] = reader.ReadInt8();
             }
 
             return array;
@@ -201,10 +205,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -220,9 +225,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new ushort[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadUInt16();
+                span[i] = reader.ReadUInt16();
             }
 
             return array;
@@ -290,10 +296,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -309,9 +316,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new short[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadInt16();
+                span[i] = reader.ReadInt16();
             }
 
             return array;
@@ -379,10 +387,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -398,9 +407,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new uint[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadUInt32();
+                span[i] = reader.ReadUInt32();
             }
 
             return array;
@@ -468,10 +478,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -487,9 +498,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new int[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadInt32();
+                span[i] = reader.ReadInt32();
             }
 
             return array;
@@ -557,10 +569,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -576,9 +589,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new ulong[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadUInt64();
+                span[i] = reader.ReadUInt64();
             }
 
             return array;
@@ -646,10 +660,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -665,9 +680,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new long[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadInt64();
+                span[i] = reader.ReadInt64();
             }
 
             return array;
@@ -735,10 +751,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -754,9 +771,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new float[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadSingle();
+                span[i] = reader.ReadSingle();
             }
 
             return array;
@@ -824,10 +842,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -843,9 +862,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new double[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadDouble();
+                span[i] = reader.ReadDouble();
             }
 
             return array;
@@ -913,10 +933,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -932,9 +953,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new bool[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadBoolean();
+                span[i] = reader.ReadBoolean();
             }
 
             return array;
@@ -1002,10 +1024,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1021,9 +1044,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new char[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadChar();
+                span[i] = reader.ReadChar();
             }
 
             return array;
@@ -1091,10 +1115,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1110,9 +1135,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new DateTime[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadDateTime();
+                span[i] = reader.ReadDateTime();
             }
 
             return array;
@@ -1180,10 +1206,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1199,9 +1226,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new Int128[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadInt128();
+                span[i] = reader.ReadInt128();
             }
 
             return array;
@@ -1269,10 +1297,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Length);
-            for (int i = 0; i < value.Length; i++)
+            var span = value.AsSpan();
+            writer.WriteArrayHeader(span.Length);
+            for (var i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1288,9 +1317,10 @@ public static partial class Builtin
         {
             var len = reader.ReadArrayHeader();
             var array = new UInt128[len];
-            for (int i = 0; i < array.Length; i++)
+            var span = array.AsSpan();
+            for (var i = 0; i < span.Length; i++)
             {
-                array[i] = reader.ReadUInt128();
+                span[i] = reader.ReadUInt128();
             }
 
             return array;
