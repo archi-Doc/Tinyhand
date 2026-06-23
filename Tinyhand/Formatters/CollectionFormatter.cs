@@ -7,12 +7,155 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.InteropServices;
+using Arc.Collections;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 
 namespace Tinyhand.Formatters;
+
+public sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hashtable<T>>
+{
+    public void Serialize(ref TinyhandWriter writer, Utf16Hashtable<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        IFormatterResolver resolver = options.Resolver;
+        ITinyhandFormatter<string> keyFormatter = resolver.GetFormatter<string>();
+        ITinyhandFormatter<T> valueFormatter = resolver.GetFormatter<T>();
+
+        int count;
+        {
+            var col = value as ICollection<KeyValuePair<TKey, TValue>>;
+            if (col != null)
+            {
+                count = col.Count;
+            }
+            else
+            {
+                var col2 = value as IReadOnlyCollection<KeyValuePair<TKey, TValue>>;
+                if (col2 != null)
+                {
+                    count = col2.Count;
+                }
+                else
+                {
+                    throw new TinyhandException("DictionaryFormatterBase's TDictionary supports only ICollection<KVP> or IReadOnlyCollection<KVP>");
+                }
+            }
+        }
+
+        writer.WriteMapHeader(count);
+
+        TEnumerator e = this.GetSourceEnumerator(value);
+        try
+        {
+            while (e.MoveNext())
+            {
+                KeyValuePair<TKey, TValue> item = e.Current;
+                keyFormatter.Serialize(ref writer, item.Key, options);
+                valueFormatter.Serialize(ref writer, item.Value, options);
+            }
+        }
+        finally
+        {
+            e.Dispose();
+        }
+    }
+
+    public void Deserialize(ref TinyhandReader reader, ref Utf16Hashtable<T>? value, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+        }
+        else
+        {
+            var resolver = options.Resolver;
+            var keyFormatter = resolver.GetFormatter<TKey>();
+            var valueFormatter = resolver.GetFormatter<TValue>();
+
+            var len = reader.ReadMapHeader2();
+
+            TIntermediate dict = this.Create(value, len, options);
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                for (int i = 0; i < len; i++)
+                {
+                    var key = keyFormatter.Deserialize(ref reader, options);
+                    var v = valueFormatter.Deserialize(ref reader, options);
+                    this.Add(dict, i, key!, v!, options);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+
+            value = this.Complete(dict);
+        }
+    }
+
+    public Utf16Hashtable<T> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new();
+    }
+
+    public Utf16Hashtable<T>? Clone(Utf16Hashtable<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return default(TDictionary);
+        }
+
+        var resolver = options.Resolver;
+        var keyFormatter = resolver.GetFormatter<TKey>();
+        var valueFormatter = resolver.GetFormatter<TValue>();
+
+        int count;
+        {
+            var col = value as ICollection<KeyValuePair<TKey, TValue>>;
+            if (col != null)
+            {
+                count = col.Count;
+            }
+            else
+            {
+                var col2 = value as IReadOnlyCollection<KeyValuePair<TKey, TValue>>;
+                if (col2 != null)
+                {
+                    count = col2.Count;
+                }
+                else
+                {
+                    throw new TinyhandException("DictionaryFormatterBase's TDictionary supports only ICollection<KVP> or IReadOnlyCollection<KVP>");
+                }
+            }
+        }
+
+        var dict = this.Create(default, count, options);
+        var e = this.GetSourceEnumerator(value);
+        try
+        {
+            var i = 0;
+            while (e.MoveNext())
+            {
+                var item = e.Current;
+                this.Add(dict, i++, keyFormatter.Clone(item.Key, options)!, valueFormatter.Clone(item.Value, options)!, options);
+            }
+        }
+        finally
+        {
+            e.Dispose();
+        }
+
+        return this.Complete(dict);
+    }
+}
 
 public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
 {
