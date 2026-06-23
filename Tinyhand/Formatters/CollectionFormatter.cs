@@ -24,46 +24,13 @@ public sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hashtab
             return;
         }
 
-        IFormatterResolver resolver = options.Resolver;
-        ITinyhandFormatter<string> keyFormatter = resolver.GetFormatter<string>();
-        ITinyhandFormatter<T> valueFormatter = resolver.GetFormatter<T>();
-
-        int count;
+        ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
+        var pairs = value.ToKeyValuePairs();
+        writer.WriteMapHeader(pairs.Length);
+        foreach (var x in pairs)
         {
-            var col = value as ICollection<KeyValuePair<TKey, TValue>>;
-            if (col != null)
-            {
-                count = col.Count;
-            }
-            else
-            {
-                var col2 = value as IReadOnlyCollection<KeyValuePair<TKey, TValue>>;
-                if (col2 != null)
-                {
-                    count = col2.Count;
-                }
-                else
-                {
-                    throw new TinyhandException("DictionaryFormatterBase's TDictionary supports only ICollection<KVP> or IReadOnlyCollection<KVP>");
-                }
-            }
-        }
-
-        writer.WriteMapHeader(count);
-
-        TEnumerator e = this.GetSourceEnumerator(value);
-        try
-        {
-            while (e.MoveNext())
-            {
-                KeyValuePair<TKey, TValue> item = e.Current;
-                keyFormatter.Serialize(ref writer, item.Key, options);
-                valueFormatter.Serialize(ref writer, item.Value, options);
-            }
-        }
-        finally
-        {
-            e.Dispose();
+            writer.Write(x.Key);
+            valueFormatter.Serialize(ref writer, x.Value, options);
         }
     }
 
@@ -74,29 +41,24 @@ public sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hashtab
         }
         else
         {
-            var resolver = options.Resolver;
-            var keyFormatter = resolver.GetFormatter<TKey>();
-            var valueFormatter = resolver.GetFormatter<TValue>();
+            ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
+            var count = reader.ReadMapHeader2();
+            value ??= new();
 
-            var len = reader.ReadMapHeader2();
-
-            TIntermediate dict = this.Create(value, len, options);
             options.Security.DepthStep(ref reader);
             try
             {
-                for (int i = 0; i < len; i++)
+                for (var i = 0; i < count; i++)
                 {
-                    var key = keyFormatter.Deserialize(ref reader, options);
-                    var v = valueFormatter.Deserialize(ref reader, options);
-                    this.Add(dict, i, key!, v!, options);
+                    var key = reader.ReadString() ?? string.Empty;
+                    var v = valueFormatter.Deserialize(ref reader, options) ?? valueFormatter.Reconstruct(options);
+                    value.Add(key, v);
                 }
             }
             finally
             {
                 reader.Depth--;
             }
-
-            value = this.Complete(dict);
         }
     }
 
@@ -109,51 +71,19 @@ public sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hashtab
     {
         if (value == null)
         {
-            return default(TDictionary);
+            return default;
         }
 
-        var resolver = options.Resolver;
-        var keyFormatter = resolver.GetFormatter<TKey>();
-        var valueFormatter = resolver.GetFormatter<TValue>();
+        ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
+        var pairs = value.ToKeyValuePairs();
 
-        int count;
+        var table = new Utf16Hashtable<T>();
+        foreach (var x in pairs)
         {
-            var col = value as ICollection<KeyValuePair<TKey, TValue>>;
-            if (col != null)
-            {
-                count = col.Count;
-            }
-            else
-            {
-                var col2 = value as IReadOnlyCollection<KeyValuePair<TKey, TValue>>;
-                if (col2 != null)
-                {
-                    count = col2.Count;
-                }
-                else
-                {
-                    throw new TinyhandException("DictionaryFormatterBase's TDictionary supports only ICollection<KVP> or IReadOnlyCollection<KVP>");
-                }
-            }
+            table.TryAdd(x.Key, valueFormatter.Clone(x.Value, options) ?? valueFormatter.Reconstruct(options));
         }
 
-        var dict = this.Create(default, count, options);
-        var e = this.GetSourceEnumerator(value);
-        try
-        {
-            var i = 0;
-            while (e.MoveNext())
-            {
-                var item = e.Current;
-                this.Add(dict, i++, keyFormatter.Clone(item.Key, options)!, valueFormatter.Clone(item.Value, options)!, options);
-            }
-        }
-        finally
-        {
-            e.Dispose();
-        }
-
-        return this.Complete(dict);
+        return table;
     }
 }
 
