@@ -7,12 +7,85 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.InteropServices;
+using Arc.Collections;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 
 namespace Tinyhand.Formatters;
+
+public sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hashtable<T>>
+{
+    public void Serialize(ref TinyhandWriter writer, Utf16Hashtable<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
+        var pairs = value.ToKeyValuePairs();
+        writer.WriteMapHeader(pairs.Length);
+        foreach (var x in pairs)
+        {
+            writer.Write(x.Key);
+            valueFormatter.Serialize(ref writer, x.Value, options);
+        }
+    }
+
+    public void Deserialize(ref TinyhandReader reader, ref Utf16Hashtable<T>? value, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
+        {
+        }
+        else
+        {
+            ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
+            var count = reader.ReadMapHeader2();
+            value ??= new();
+
+            options.Security.DepthStep(ref reader);
+            try
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    var key = reader.ReadString() ?? string.Empty;
+                    var v = valueFormatter.Deserialize(ref reader, options) ?? valueFormatter.Reconstruct(options);
+                    value.Add(key, v);
+                }
+            }
+            finally
+            {
+                reader.Depth--;
+            }
+        }
+    }
+
+    public Utf16Hashtable<T> Reconstruct(TinyhandSerializerOptions options)
+    {
+        return new();
+    }
+
+    public Utf16Hashtable<T>? Clone(Utf16Hashtable<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return default;
+        }
+
+        ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
+        var pairs = value.ToKeyValuePairs();
+
+        var table = new Utf16Hashtable<T>();
+        foreach (var x in pairs)
+        {
+            table.TryAdd(x.Key, valueFormatter.Clone(x.Value, options) ?? valueFormatter.Reconstruct(options));
+        }
+
+        return table;
+    }
+}
 
 public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
 {

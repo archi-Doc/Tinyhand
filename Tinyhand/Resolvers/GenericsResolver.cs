@@ -112,6 +112,7 @@ namespace Tinyhand.Internal
             { typeof(OrderedList<>), typeof(OrderedListFormatter<>) },
             { typeof(UnorderedList<>), typeof(UnorderedListFormatter<>) },
             { typeof(UnorderedLinkedList<>), typeof(UnorderedLinkedListFormatter<>) },
+            { typeof(Utf16Hashtable<>), typeof(Utf16HashtableFormatter<>) },
         };
 
         // Reduce IL2CPP code generate size(don't write long code in <T>)
