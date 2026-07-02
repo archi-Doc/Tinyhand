@@ -6,7 +6,7 @@ using System.Buffers.Text;
 
 namespace Arc.IO;
 
-public ref struct ByteWriter
+/*public ref struct ByteWriter
 {
     private ByteBufferWriter writer;
 
@@ -241,4 +241,4 @@ public ref struct ByteWriter
     private static unsafe void WriteBigEndian(float value, Span<byte> span) => WriteBigEndian(*(int*)&value, span);
 
     private static unsafe void WriteBigEndian(double value, Span<byte> span) => WriteBigEndian(*(long*)&value, span);
-}
+}*/

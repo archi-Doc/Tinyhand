@@ -46,11 +46,6 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
             return memory;
         }
-
-        /*var size = (int)this.lastVault!.RunningIndex + this.lastVault!.Size;
-        var memory = BytePool.Default.Rent(size).AsMemory(0, size);
-        new ReadOnlySequence<byte>(this.firstVault, 0, this.lastVault!, this.lastVault!.Size).CopyTo(memory.Span);
-        return memory;*/
     }
 
     public ReadOnlySequence<byte> ToReadOnlySequence()
@@ -207,11 +202,12 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
         internal void Advance(int count)
         {
-            this.Size += count;
-            if (count < 0 || this.Size > this.RentArray.Array.Length)
+            if ((uint)count > (uint)this.Remaining)
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
+
+            this.Size += count;
         }
 
         internal void SetNext(ByteVault next)
@@ -227,7 +223,6 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
             this.Next = null;
             this.RunningIndex = 0;
             this.Size = 0;
-            // arrayPool.Return(this.Array); // Called by ByteSequence.
             this.RentArray = null!;
         }
     }
