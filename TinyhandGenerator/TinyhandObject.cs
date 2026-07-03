@@ -1281,6 +1281,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
         foreach (var x in this.GetMembers(VisceralTarget.Method).Where(a => a.Method_IsConstructor && a.ContainingObject == this))
         {
+            if (x.MethodIncludesParameterWithRef())
+            {
+                continue;
+            }
+
             if (x.IsPublic)
             {
                 if (publicConstructor is null ||
@@ -3601,6 +3606,11 @@ ModuleInitializerClass_Added:
             sb.Append(") ");
             st = sb.ToString();
         }
+        else if (this.BaseObject is not null &&
+            this.BaseObject.ObjectAttribute is not null)
+        {
+            st = $": base({TinyhandBody.UnsafeEnumName}.Parameter)";
+        }
 
         StringBuilder? sb2 = default;
         foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget))
@@ -3616,7 +3626,18 @@ ModuleInitializerClass_Added:
         var memberNotNull = sb2?.ToString() ?? string.Empty;
 
         ssb.AppendLine();
-        ssb.AppendLine($"[SetsRequiredMembers] private {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {st}{{ {memberNotNull}}}");
+
+        string constructorAccessibility;
+        if (this.IsSealed)
+        {
+            constructorAccessibility = "private";
+        }
+        else
+        {
+            constructorAccessibility = "protected";
+        }
+
+        ssb.AppendLine($"[SetsRequiredMembers] {constructorAccessibility} {this.SimpleName}({TinyhandBody.UnsafeEnumName} p) {st}{{ {memberNotNull}}}");
         ssb.AppendLine($" public static {this.LocalName} {TinyhandBody.UnsafeConstructorName}() => new({TinyhandBody.UnsafeEnumName}.Parameter);");
     }
 
@@ -5025,5 +5046,21 @@ ModuleInitializerClass_Added:
 
             return false;
         }
+    }
+
+    private bool MethodIncludesParameterWithRef()
+    {
+        if (this.symbol is IMethodSymbol ms)
+        {
+            foreach (var x in ms.Parameters)
+            {
+                if (x.RefKind != RefKind.None)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

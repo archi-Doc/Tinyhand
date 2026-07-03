@@ -1,7 +1,10 @@
-﻿using System;
-using Tinyhand;
+﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-namespace Playground;
+using System.Text;
+using Tinyhand;
+using Xunit;
+
+namespace XUnitTest.Tests;
 
 [TinyhandObject]
 public partial class ConstructorWithRefClass
@@ -23,10 +26,10 @@ public partial class ConstructorWithRefClass2 : ConstructorWithRefClass
     }
 }
 
-internal class Program
+public class ConstructorWithRefTest
 {
-    static void Main(string[] args)
+    [Fact]
+    public void Test1()
     {
-        Console.WriteLine("Hello, World!");
     }
 }
