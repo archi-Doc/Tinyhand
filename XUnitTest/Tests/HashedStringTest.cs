@@ -76,11 +76,11 @@ public class HashedStringTest
         HashedString.Get(Hashed.NameA).IsNot("A");
         HashedString.Get(Hashed.NameB).Is("b");
         HashedString.Get(Hashed.NameD).Is("d");
-        HashedString.Get(Hashed.GroupA.NameX).Is("X");
+        HashedString.Get(Hashed.GroupA.NameX).Is("&X");
         HashedString.Get(Hashed.GroupA.NameY).Is("Y");
 
         HashedString.Get("NameA").Is("a");
         HashedString.Get("Namea").IsNot("a");
-        HashedString.Get("GroupA.NameX").Is("X");
+        HashedString.Get("GroupA.NameX").Is("&X");
     }
 }
