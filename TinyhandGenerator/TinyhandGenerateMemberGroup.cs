@@ -185,6 +185,11 @@ internal class TinyhandGenerateMemberGroup
                     count += 4;
                     continue;
 
+                case '&': // &amp;
+                    change = true;
+                    count += 5;
+                    continue;
+
                 default:
                     count++;
                     continue;
@@ -239,6 +244,14 @@ internal class TinyhandGenerateMemberGroup
                     chars[count++] = '&';
                     chars[count++] = 'g';
                     chars[count++] = 't';
+                    chars[count++] = ';';
+                    continue;
+
+                case '&': // &amp;
+                    chars[count++] = '&';
+                    chars[count++] = 'a';
+                    chars[count++] = 'm';
+                    chars[count++] = 'p';
                     chars[count++] = ';';
                     continue;
 
