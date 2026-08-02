@@ -80,16 +80,14 @@ public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveV
         TagTable[6] = new(v => v.I32.ToString(), v => v.I32.GetHashCode(), (x, y) => x.I32 == y.I32); // I32
         TagTable[7] = new(v => v.I64.ToString(), v => v.I64.GetHashCode(), (x, y) => x.I64 == y.I64); // I64
         TagTable[8] = new(v => v.I128.ToString(), v => v.I128.GetHashCode(), (x, y) => x.I128 == y.I128); // I128
-        TagTable[9] = new(v => v.I128.ToString(), v => v.I128.GetHashCode(), (x, y) => x.I128 == y.I128); // Isize
-        TagTable[10] = new(v => v.U8.ToString(), v => v.U8.GetHashCode(), (x, y) => x.U8 == y.U8); // U8
-        TagTable[11] = new(v => v.U16.ToString(), v => v.U16.GetHashCode(), (x, y) => x.U16 == y.U16); // U16
-        TagTable[12] = new(v => v.U32.ToString(), v => v.U32.GetHashCode(), (x, y) => x.U32 == y.U32); // U32
-        TagTable[13] = new(v => v.U64.ToString(), v => v.U64.GetHashCode(), (x, y) => x.U64 == y.U64); // U64
-        TagTable[14] = new(v => v.U128.ToString(), v => v.U128.GetHashCode(), (x, y) => x.U128 == y.U128); // U128
-        TagTable[15] = new(v => v.U128.ToString(), v => v.U128.GetHashCode(), (x, y) => x.U128 == y.U128); // Usize
-        TagTable[16] = new(v => v.F64.ToString(), v => v.F64.GetHashCode(), (x, y) => double.Equals(x.F64, y.F64)); // Float
-        TagTable[17] = new(v => v.F32.ToString(), v => v.F32.GetHashCode(), (x, y) => float.Equals(x.F32, y.F32)); // F32
-        TagTable[18] = new(v => v.F64.ToString(), v => v.F64.GetHashCode(), (x, y) => double.Equals(x.F64, y.F64)); // F64
+        TagTable[9] = new(v => v.U8.ToString(), v => v.U8.GetHashCode(), (x, y) => x.U8 == y.U8); // U8
+        TagTable[10] = new(v => v.U16.ToString(), v => v.U16.GetHashCode(), (x, y) => x.U16 == y.U16); // U16
+        TagTable[11] = new(v => v.U32.ToString(), v => v.U32.GetHashCode(), (x, y) => x.U32 == y.U32); // U32
+        TagTable[12] = new(v => v.U64.ToString(), v => v.U64.GetHashCode(), (x, y) => x.U64 == y.U64); // U64
+        TagTable[13] = new(v => v.U128.ToString(), v => v.U128.GetHashCode(), (x, y) => x.U128 == y.U128); // U128
+        TagTable[14] = new(v => v.F64.ToString(), v => v.F64.GetHashCode(), (x, y) => double.Equals(x.F64, y.F64)); // Float
+        TagTable[15] = new(v => v.F32.ToString(), v => v.F32.GetHashCode(), (x, y) => float.Equals(x.F32, y.F32)); // F32
+        TagTable[16] = new(v => v.F64.ToString(), v => v.F64.GetHashCode(), (x, y) => double.Equals(x.F64, y.F64)); // F64
     }
 
     [FieldOffset(0)]
@@ -279,18 +277,17 @@ public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveV
 
     public override int GetHashCode()
     {
-        if (this.tagOrString is string st)
+        return this.GetTable().getHashCode(this);
+
+        /*if (this.tagOrString is string st)
         {
             return st.GetHashCode();
         }
         else
         {
             return this.I128.GetHashCode();
-        }
+        }*/
     }
-
-    public int GetHashCode2()
-        => this.GetTable().getHashCode(this);
 
     public static bool operator ==(PrimitiveValue left, PrimitiveValue right)
         => left.Equals(right);
@@ -370,11 +367,6 @@ public enum PrimitiveValueKind : byte
     I128,
 
     /// <summary>
-    /// A signed pointer-sized integer.
-    /// </summary>
-    Isize,
-
-    /// <summary>
     /// An unsigned 8-bit integer.
     /// </summary>
     U8,
@@ -398,11 +390,6 @@ public enum PrimitiveValueKind : byte
     /// An unsigned 128-bit integer.
     /// </summary>
     U128,
-
-    /// <summary>
-    /// An unsigned pointer-sized integer.
-    /// </summary>
-    USize,
 
     /// <summary>
     /// A floating-point without an explicit type suffix.
