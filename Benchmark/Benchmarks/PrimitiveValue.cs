@@ -50,44 +50,71 @@ public sealed class TagObject
 [StructLayout(LayoutKind.Explicit)]
 public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveValue>, ITinyhandReconstructable<PrimitiveValue>, ITinyhandCloneable<PrimitiveValue>
 {// 32
-    private readonly struct Table
-    {
-        public readonly Func<PrimitiveValue, string> toString;
-        public readonly Func<PrimitiveValue, int> getHashCode;
+    private delegate void SerializeAction(ref TinyhandWriter writer, PrimitiveValue value);
 
-        public readonly Func<PrimitiveValue, PrimitiveValue, bool> equals;
-
-        public Table(Func<PrimitiveValue, string> toString, Func<PrimitiveValue, int> getHashCode, Func<PrimitiveValue, PrimitiveValue, bool> equals)
-        {
-            this.toString = toString;
-            this.getHashCode = getHashCode;
-            this.equals = equals;
-        }
-    }
-
-    private static readonly Table[] TagTable;
+    private static readonly Func<PrimitiveValue, string>[] toStringTable;
+    private static readonly Func<PrimitiveValue, int>[] getHashCodeTable;
+    private static readonly SerializeAction[] serializeTable;
 
     static PrimitiveValue()
     {
+        var length = (int)PrimitiveValueKind.F64 + 1;
+        getHashCodeTable = new Func<PrimitiveValue, int>[length];
+        getHashCodeTable[0] = static v => 0; // Invalid
+        getHashCodeTable[1] = static v => v.String.GetHashCode(); // String
+        getHashCodeTable[2] = static v => v.Bool.GetHashCode(); // Bool
+        getHashCodeTable[3] = static v => v.I128.GetHashCode(); // Integer
+        getHashCodeTable[4] = static v => v.I8.GetHashCode(); // I8
+        getHashCodeTable[5] = static v => v.I16.GetHashCode(); // I16
+        getHashCodeTable[6] = static v => v.I32.GetHashCode(); // I32
+        getHashCodeTable[7] = static v => v.I64.GetHashCode(); // I64
+        getHashCodeTable[8] = static v => v.I128.GetHashCode(); // I128
+        getHashCodeTable[9] = static v => v.U8.GetHashCode(); // U8
+        getHashCodeTable[10] = static v => v.U16.GetHashCode(); // U16
+        getHashCodeTable[11] = static v => v.U32.GetHashCode(); // U32
+        getHashCodeTable[12] = static v => v.U64.GetHashCode(); // U64
+        getHashCodeTable[13] = static v => v.U128.GetHashCode(); // U128
+        getHashCodeTable[14] = static v => v.F64.GetHashCode(); // Float
+        getHashCodeTable[15] = static v => v.F32.GetHashCode(); // F32
+        getHashCodeTable[16] = static v => v.F64.GetHashCode(); // F64
 
-        TagTable = new Table[(int)PrimitiveValueKind.F64 + 1];
-        TagTable[0] = new(v => string.Empty, v => 0, (x, y) => false); // Invalid
-        TagTable[1] = new(v => v.Bool.ToString(), v => v.Bool.GetHashCode(), (x, y) => string.Equals(x.String, y.String)); // String
-        TagTable[2] = new(v => v.Bool.ToString(), v => v.Bool.GetHashCode(), (x, y) => x.Bool == y.Bool); // Bool
-        TagTable[3] = new(v => v.I128.ToString(), v => v.I128.GetHashCode(), (x, y) => x.I128 == y.I128); // Integer
-        TagTable[4] = new(v => v.I8.ToString(), v => v.I8.GetHashCode(), (x, y) => x.I8 == y.I8); // I8
-        TagTable[5] = new(v => v.I16.ToString(), v => v.I16.GetHashCode(), (x, y) => x.I16 == y.I16); // I16
-        TagTable[6] = new(v => v.I32.ToString(), v => v.I32.GetHashCode(), (x, y) => x.I32 == y.I32); // I32
-        TagTable[7] = new(v => v.I64.ToString(), v => v.I64.GetHashCode(), (x, y) => x.I64 == y.I64); // I64
-        TagTable[8] = new(v => v.I128.ToString(), v => v.I128.GetHashCode(), (x, y) => x.I128 == y.I128); // I128
-        TagTable[9] = new(v => v.U8.ToString(), v => v.U8.GetHashCode(), (x, y) => x.U8 == y.U8); // U8
-        TagTable[10] = new(v => v.U16.ToString(), v => v.U16.GetHashCode(), (x, y) => x.U16 == y.U16); // U16
-        TagTable[11] = new(v => v.U32.ToString(), v => v.U32.GetHashCode(), (x, y) => x.U32 == y.U32); // U32
-        TagTable[12] = new(v => v.U64.ToString(), v => v.U64.GetHashCode(), (x, y) => x.U64 == y.U64); // U64
-        TagTable[13] = new(v => v.U128.ToString(), v => v.U128.GetHashCode(), (x, y) => x.U128 == y.U128); // U128
-        TagTable[14] = new(v => v.F64.ToString(), v => v.F64.GetHashCode(), (x, y) => double.Equals(x.F64, y.F64)); // Float
-        TagTable[15] = new(v => v.F32.ToString(), v => v.F32.GetHashCode(), (x, y) => float.Equals(x.F32, y.F32)); // F32
-        TagTable[16] = new(v => v.F64.ToString(), v => v.F64.GetHashCode(), (x, y) => double.Equals(x.F64, y.F64)); // F64
+        toStringTable = new Func<PrimitiveValue, string>[length];
+        toStringTable[0] = static v => string.Empty; // Invalid
+        toStringTable[1] = static v => v.String; // String
+        toStringTable[2] = static v => v.Bool.ToString(); // Bool
+        toStringTable[3] = static v => v.I128.ToString(); // Integer
+        toStringTable[4] = static v => v.I8.ToString(); // I8
+        toStringTable[5] = static v => v.I16.ToString(); // I16
+        toStringTable[6] = static v => v.I32.ToString(); // I32
+        toStringTable[7] = static v => v.I64.ToString(); // I64
+        toStringTable[8] = static v => v.I128.ToString(); // I128
+        toStringTable[9] = static v => v.U8.ToString(); // U8
+        toStringTable[10] = static v => v.U16.ToString(); // U16
+        toStringTable[11] = static v => v.U32.ToString(); // U32
+        toStringTable[12] = static v => v.U64.ToString(); // U64
+        toStringTable[13] = static v => v.U128.ToString(); // U128
+        toStringTable[14] = static v => v.F64.ToString(); // Float
+        toStringTable[15] = static v => v.F32.ToString(); // F32
+        toStringTable[16] = static v => v.F64.ToString(); // F64
+
+        serializeTable = new SerializeAction[length];
+        serializeTable[0] = static (ref x, v) => x.WriteNil(); // Invalid
+        serializeTable[1] = static (ref x, v) => x.Write(v.String); // String
+        serializeTable[2] = static (ref x, v) => x.Write(v.Bool); // Bool
+        serializeTable[3] = static (ref x, v) => x.Write(v.I128); // Integer
+        serializeTable[4] = static (ref x, v) => x.Write(v.I8); // I8
+        serializeTable[5] = static (ref x, v) => x.Write(v.I16); // I16
+        serializeTable[6] = static (ref x, v) => x.Write(v.I32); // I32
+        serializeTable[7] = static (ref x, v) => x.Write(v.I64); // I64
+        serializeTable[8] = static (ref x, v) => x.Write(v.I128); // I128
+        serializeTable[9] = static (ref x, v) => x.Write(v.U8); // U8
+        serializeTable[10] = static (ref x, v) => x.Write(v.U16); // U16
+        serializeTable[11] = static (ref x, v) => x.Write(v.U32); // U32
+        serializeTable[12] = static (ref x, v) => x.Write(v.U64); // U64
+        serializeTable[13] = static (ref x, v) => x.Write(v.U128); // U128
+        serializeTable[14] = static (ref x, v) => x.Write(v.F64); // Float
+        serializeTable[15] = static (ref x, v) => x.Write(v.F32); // F32
+        serializeTable[16] = static (ref x, v) => x.Write(v.F64); // F64
     }
 
     [FieldOffset(0)]
@@ -256,7 +283,8 @@ public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveV
         {
             return float.Equals(this.F32, other.F32);
         }
-        else if (tag == (int)PrimitiveValueKind.F64)
+        else if (tag == (int)PrimitiveValueKind.Float ||
+            tag == (int)PrimitiveValueKind.F64)
         {
             return double.Equals(this.F64, other.F64);
         }
@@ -266,18 +294,17 @@ public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveV
         }
     }
 
-    public bool Equals2(PrimitiveValue other)
-        => this.GetTable().equals(this, other);
-
     public override bool Equals(object? obj)
         => obj is PrimitiveValue other && this.Equals(other);
 
     public override string ToString()
-        => this.GetTable().toString(this);
+        => toStringTable[TagObject.ToTag(this.tagOrString)](this);
 
     public override int GetHashCode()
     {
-        return this.GetTable().getHashCode(this);
+        return getHashCodeTable[TagObject.ToTag(this.tagOrString)](this);
+
+        // return this.GetTable().getHashCode(this);
 
         /*if (this.tagOrString is string st)
         {
@@ -295,18 +322,51 @@ public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveV
     public static bool operator !=(PrimitiveValue left, PrimitiveValue right)
         => !left.Equals(right);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Table GetTable()
-        => TagTable[TagObject.ToTag(this.tagOrString)];
-
     public static void Serialize(ref TinyhandWriter writer, scoped ref PrimitiveValue value, TinyhandSerializerOptions options)
     {
-        throw new NotImplementedException();
+        serializeTable[TagObject.ToTag(value.tagOrString)](ref writer, value);
     }
 
     public static void Deserialize(ref TinyhandReader reader, scoped ref PrimitiveValue value, TinyhandSerializerOptions options)
     {
-        throw new NotImplementedException();
+        reader.TryRead(out byte code);
+        switch (code)
+        {
+            case MessagePackCode.Int8:
+                {
+                    reader.TryRead(out sbyte v);
+                    value = new(v);
+                }
+                break;
+
+            case MessagePackCode.Int16:
+                {
+                    reader.TryReadBigEndian(out short v);
+                    value = new(v);
+                }
+                break;
+
+            case MessagePackCode.Int32:
+                {
+                    reader.TryReadBigEndian(out int v);
+                    value = new(v);
+                }
+                break;
+
+            case MessagePackCode.Int64:
+                {
+                    reader.TryReadBigEndian(out long v);
+                    value = new(v);
+                }
+                break;
+
+            case MessagePackExtensionCodes.Int128:
+                {
+                    reader.TryReadBigEndian(out Int128 v);
+                    value = new(v);
+                }
+                break;
+        }
     }
 
     public static void Reconstruct([NotNull] scoped ref PrimitiveValue value, TinyhandSerializerOptions options)

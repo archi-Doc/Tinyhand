@@ -33,6 +33,10 @@ public class PrimitiveValueBenchmark
 
         this.targetTag = TagObject.FromTag(6);
         this.targetObject = this.targetTag;
+
+        var pv = new PrimitiveValue(123456);
+        var b = TinyhandSerializer.Serialize(pv);
+        var pv2 = TinyhandSerializer.Deserialize<PrimitiveValue>(b);
     }
 
     [GlobalSetup]
@@ -48,26 +52,11 @@ public class PrimitiveValueBenchmark
     }
 
     [Benchmark]
-    public int GetHash2()
-    {
-        var v = new PrimitiveValue(this.x);
-        return v.GetHashCode2();
-    }
-
-    [Benchmark]
     public bool Equal()
     {
         var v = new PrimitiveValue(this.x);
         var v2 = new PrimitiveValue(this.x);
         return v.Equals(v2);
-    }
-
-    [Benchmark]
-    public bool Equal2()
-    {
-        var v = new PrimitiveValue(this.x);
-        var v2 = new PrimitiveValue(this.x);
-        return v.Equals2(v2);
     }
 
     /*[Benchmark]

@@ -970,7 +970,7 @@ public static partial class TinyhandSerializer
         }
 
         writer.WriteArrayHeader(sequenceCount + 1);
-        writer.WriteExtensionFormatHeader(new ExtensionHeader(Tinyhand.MessagePackExtensionCodes.Lz4BlockArray, extHeaderSize));
+        writer.WriteExtensionFormatHeader(new ExtensionHeader(MessagePackExtensionCodes.Lz4BlockArray, extHeaderSize));
         foreach (var item in msgpackUncompressedData)
         {
             writer.Write(item.Length);

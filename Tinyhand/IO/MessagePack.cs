@@ -35,17 +35,17 @@ public struct Nil : IEquatable<Nil>
 
 public struct ExtensionHeader : IEquatable<ExtensionHeader>
 {
-    public sbyte TypeCode { get; private set; }
+    public byte TypeCode { get; private set; }
 
     public uint Length { get; private set; }
 
-    public ExtensionHeader(sbyte typeCode, uint length)
+    public ExtensionHeader(byte typeCode, uint length)
     {
         this.TypeCode = typeCode;
         this.Length = length;
     }
 
-    public ExtensionHeader(sbyte typeCode, int length)
+    public ExtensionHeader(byte typeCode, int length)
     {
         this.TypeCode = typeCode;
         this.Length = (uint)length;
@@ -56,19 +56,19 @@ public struct ExtensionHeader : IEquatable<ExtensionHeader>
 
 public struct ExtensionResult
 {
-    public ExtensionResult(sbyte typeCode, Memory<byte> data)
+    public ExtensionResult(byte typeCode, Memory<byte> data)
     {
         this.TypeCode = typeCode;
         this.Data = new ReadOnlySequence<byte>(data);
     }
 
-    public ExtensionResult(sbyte typeCode, ReadOnlySequence<byte> data)
+    public ExtensionResult(byte typeCode, ReadOnlySequence<byte> data)
     {
         this.TypeCode = typeCode;
         this.Data = data;
     }
 
-    public sbyte TypeCode { get; private set; }
+    public byte TypeCode { get; private set; }
 
     public ReadOnlySequence<byte> Data { get; private set; }
 
@@ -280,14 +280,6 @@ public static class MessagePackCode
                 return code >= MinNegativeFixInt && code <= MaxNegativeFixInt;
         }
     }
-}
-
-/// <summary>
-/// The officially defined messagepack extension type codes.
-/// </summary>
-public static class ReservedMessagePackExtensionTypeCode
-{
-    public const sbyte DateTime = -1;
 }
 
 public static class MessagePackRange
