@@ -332,40 +332,104 @@ public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveV
         reader.TryRead(out byte code);
         switch (code)
         {
+            case MessagePackCode.Nil:
+                break;
+
+            case MessagePackCode.True:
+                {
+                    value = new(true);
+                    break;
+                }
+
+            case MessagePackCode.False:
+                {
+                    value = new(false);
+                    break;
+                }
+
             case MessagePackCode.Int8:
                 {
                     reader.TryRead(out sbyte v);
                     value = new(v);
+                    break;
                 }
-                break;
 
             case MessagePackCode.Int16:
                 {
                     reader.TryReadBigEndian(out short v);
                     value = new(v);
+                    break;
                 }
-                break;
 
             case MessagePackCode.Int32:
                 {
                     reader.TryReadBigEndian(out int v);
                     value = new(v);
+                    break;
                 }
-                break;
 
             case MessagePackCode.Int64:
                 {
                     reader.TryReadBigEndian(out long v);
                     value = new(v);
+                    break;
                 }
-                break;
 
             case MessagePackExtensionCodes.Int128:
                 {
                     reader.TryReadBigEndian(out Int128 v);
                     value = new(v);
+                    break;
                 }
-                break;
+
+            case MessagePackCode.UInt8:
+                {
+                    reader.TryRead(out byte v);
+                    value = new(v);
+                    break;
+                }
+
+            case MessagePackCode.UInt16:
+                {
+                    reader.TryReadBigEndian(out ushort v);
+                    value = new(v);
+                    break;
+                }
+
+            case MessagePackCode.UInt32:
+                {
+                    reader.TryReadBigEndian(out uint v);
+                    value = new(v);
+                    break;
+                }
+
+            case MessagePackCode.UInt64:
+                {
+                    reader.TryReadBigEndian(out ulong v);
+                    value = new(v);
+                    break;
+                }
+
+            case MessagePackExtensionCodes.UInt128:
+                {
+                    reader.TryReadBigEndian(out UInt128 v);
+                    value = new(v);
+                    break;
+                }
+
+            case MessagePackCode.Float32:
+                {
+                    reader.TryReadBigEndian(out float v);
+                    value = new(v);
+                    break;
+                }
+
+            case MessagePackCode.Float64:
+                {
+                    reader.TryReadBigEndian(out double v);
+                    value = new(v);
+                    break;
+                }
         }
     }
 
