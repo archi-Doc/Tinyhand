@@ -40,6 +40,28 @@ public class PrimitiveValueBenchmark
     }
 
     [Benchmark]
+    public int GetHash()
+    {
+        var v = new PrimitiveValue(true);
+        return v.GetHashCode();
+    }
+
+    [Benchmark]
+    public int GetHash2()
+    {
+        var v = new PrimitiveValue(true);
+        return v.GetHashCode2();
+    }
+
+    [Benchmark]
+    public bool Equal()
+    {
+        var v = new PrimitiveValue(123456789);
+        var v2 = new PrimitiveValue(123456789);
+        return v.Equals(v2);
+    }
+
+    /*[Benchmark]
     public int Find()
     {
         if (this.targetTag == this.tag0)
@@ -104,5 +126,5 @@ public class PrimitiveValueBenchmark
     public int GetTag3()
     {
         return TagObject.ToTag(this.targetObject);
-    }
+    }*/
 }
