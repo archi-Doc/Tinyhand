@@ -19,6 +19,7 @@ public class PrimitiveValueBenchmark
     private readonly TagObject tag6;
     private readonly TagObject targetTag;
     private readonly object targetObject;
+    private int x = 123456789;
 
     public PrimitiveValueBenchmark()
     {
@@ -42,30 +43,30 @@ public class PrimitiveValueBenchmark
     [Benchmark]
     public int GetHash()
     {
-        var v = new PrimitiveValue(true);
+        var v = new PrimitiveValue(this.x);
         return v.GetHashCode();
     }
 
     [Benchmark]
     public int GetHash2()
     {
-        var v = new PrimitiveValue(true);
+        var v = new PrimitiveValue(this.x);
         return v.GetHashCode2();
     }
 
     [Benchmark]
     public bool Equal()
     {
-        var v = new PrimitiveValue(123456789);
-        var v2 = new PrimitiveValue(123456789);
+        var v = new PrimitiveValue(this.x);
+        var v2 = new PrimitiveValue(this.x);
         return v.Equals(v2);
     }
 
     [Benchmark]
     public bool Equal2()
     {
-        var v = new PrimitiveValue(123456789);
-        var v2 = new PrimitiveValue(123456789);
+        var v = new PrimitiveValue(this.x);
+        var v2 = new PrimitiveValue(this.x);
         return v.Equals2(v2);
     }
 
