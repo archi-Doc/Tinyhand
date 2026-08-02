@@ -47,10 +47,11 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<CharBufferBenchmark>();
+        DebugRun<PrimitiveValueBenchmark>();
 
         var switcher = new BenchmarkSwitcher(new[]
         {
+            typeof(PrimitiveValueBenchmark),
             typeof(CharBufferBenchmark),
             typeof(Struct128Benchmark),
             typeof(GetXxHashBenchmark),
