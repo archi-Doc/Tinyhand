@@ -236,6 +236,12 @@ public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveV
         this.F64 = value;
     }
 
+    public PrimitiveValue(PrimitiveValue value)
+    {
+        this.tagOrString = value.tagOrString;
+        this.I128 = value.I128;
+    }
+
     public bool Equals(PrimitiveValue other)
     {
         var tag = TagObject.ToTag(this.tagOrString);
@@ -304,9 +310,9 @@ public readonly partial struct PrimitiveValue : ITinyhandSerializable<PrimitiveV
     {
     }
 
-    public static PrimitiveValue Clone(scoped ref PrimitiveValue value, TinyhandSerializerOptions options)
+    public unsafe static PrimitiveValue Clone(scoped ref PrimitiveValue value, TinyhandSerializerOptions options)
     {
-        throw new NotImplementedException();
+        return new(value);
     }
 }
 
