@@ -61,6 +61,14 @@ public class PrimitiveValueBenchmark
         return v.Equals(v2);
     }
 
+    [Benchmark]
+    public bool Equal2()
+    {
+        var v = new PrimitiveValue(123456789);
+        var v2 = new PrimitiveValue(123456789);
+        return v.Equals2(v2);
+    }
+
     /*[Benchmark]
     public int Find()
     {
