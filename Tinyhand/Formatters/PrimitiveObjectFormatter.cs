@@ -291,7 +291,7 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
 
             case MessagePackType.Extension:
                 ExtensionHeader ext = reader.ReadExtensionFormatHeader();
-                if (ext.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
+                if (ext.TypeCode == MessagePackExtensionCodes.DateTime)
                 {
                     value = reader.ReadDateTime(ext);
                     return;

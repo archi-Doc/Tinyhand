@@ -791,14 +791,14 @@ public ref struct TinyhandWriter
     }
 
     /// <summary>
-    /// Writes a <see cref="DateTime"/> using the message code <see cref="ReservedMessagePackExtensionTypeCode.DateTime"/>.
+    /// Writes a <see cref="DateTime"/> using the message code <see cref="MessagePackExtensionCodes.DateTime"/>.
     /// </summary>
     /// <param name="dateTime">The value to write.</param>
     public void Write(DateTime dateTime)
     {
         Span<byte> span = this.writer.GetSpan(10);
         span[0] = MessagePackCode.FixExt8;
-        span[1] = unchecked((byte)ReservedMessagePackExtensionTypeCode.DateTime);
+        span[1] = MessagePackExtensionCodes.DateTime;
         // WriteBigEndian(Unsafe.As<DateTime, ulong>(ref dateTime), span.Slice(2));
         WriteBigEndian(dateTime.ToBinary(), span.Slice(2));
         this.writer.Advance(10);

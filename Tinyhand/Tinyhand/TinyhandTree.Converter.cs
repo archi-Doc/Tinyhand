@@ -257,7 +257,7 @@ public static class TinyhandTreeConverter
                 groupWriter.Flush(ref writer);
                 var extHeader = reader.ReadExtensionFormatHeader();
                 string st;
-                if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
+                if (extHeader.TypeCode == MessagePackExtensionCodes.DateTime)
                 {// DateTime
                     var dt = reader.ReadDateTime(extHeader);
                     if (dt.Kind != DateTimeKind.Utc)
@@ -898,7 +898,7 @@ public static class TinyhandTreeConverter
 
             case MessagePackType.Extension:
                 ExtensionHeader extHeader = reader.ReadExtensionFormatHeader();
-                if (extHeader.TypeCode == ReservedMessagePackExtensionTypeCode.DateTime)
+                if (extHeader.TypeCode == MessagePackExtensionCodes.DateTime)
                 {// DateTime
                     var dt = reader.ReadDateTime(extHeader);
                     return new Value_String(dt.ToString("o", CultureInfo.InvariantCulture));

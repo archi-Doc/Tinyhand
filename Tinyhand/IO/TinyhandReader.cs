@@ -755,7 +755,7 @@ public ref partial struct TinyhandReader
     /// <see cref="MessagePackCode.FixExt4"/>,
     /// <see cref="MessagePackCode.FixExt8"/>, or
     /// <see cref="MessagePackCode.Ext8"/>.
-    /// Expects extension type code <see cref="ReservedMessagePackExtensionTypeCode.DateTime"/>.
+    /// Expects extension type code <see cref="MessagePackExtensionCodes.DateTime"/>.
     /// </summary>
     /// <returns>The value.</returns>
     public DateTime ReadDateTime()
@@ -773,13 +773,13 @@ public ref partial struct TinyhandReader
     /// <see cref="MessagePackCode.FixExt4"/>,
     /// <see cref="MessagePackCode.FixExt8"/>,
     /// <see cref="MessagePackCode.Ext8"/>.
-    /// Expects extension type code <see cref="ReservedMessagePackExtensionTypeCode.DateTime"/>.
+    /// Expects extension type code <see cref="MessagePackExtensionCodes.DateTime"/>.
     /// </summary>
     /// <param name="header">The extension header that was already read.</param>
     /// <returns>The value.</returns>
     public DateTime ReadDateTime(ExtensionHeader header)
     {
-        if (header.TypeCode != ReservedMessagePackExtensionTypeCode.DateTime)
+        if (header.TypeCode != MessagePackExtensionCodes.DateTime)
         {
             throw new TinyhandException(string.Format("Extension TypeCode is invalid. typeCode: {0}", header.TypeCode));
         }
@@ -1062,7 +1062,7 @@ public ref partial struct TinyhandReader
             return false;
         }
 
-        extensionHeader = new ExtensionHeader(unchecked((sbyte)typeCode), length);
+        extensionHeader = new ExtensionHeader(typeCode, length);
         return true;
     }
 
