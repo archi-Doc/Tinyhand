@@ -17,6 +17,8 @@ using System;
 
 namespace Benchmark.H2HTest;
 
+#pragma warning disable PBN0020
+
 [ProtoContract]
 [MessagePack.MessagePackObject]
 [TinyhandObject]
