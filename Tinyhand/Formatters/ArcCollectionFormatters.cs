@@ -30,7 +30,7 @@ public sealed class OrderedMapFormatter<TKey, TValue> : DictionaryFormatterBase<
     }
 }
 
-public sealed class OrderedSetFormatter<T> : CollectionFormatterBase<T, OrderedSet<T>, OrderedMap<T, int>.KeyCollection.Enumerator, OrderedSet<T>>
+public sealed class OrderedSetFormatter<T> : CollectionFormatterBase<T, OrderedSet<T>, OrderedSet<T>.Enumerator, OrderedSet<T>>
 {
     protected override int? GetCount(OrderedSet<T> sequence)
     {
@@ -52,7 +52,7 @@ public sealed class OrderedSetFormatter<T> : CollectionFormatterBase<T, OrderedS
         return new OrderedSet<T>();
     }
 
-    protected override OrderedMap<T, int>.KeyCollection.Enumerator GetSourceEnumerator(OrderedSet<T> source)
+    protected override OrderedSet<T>.Enumerator GetSourceEnumerator(OrderedSet<T> source)
     {
         return source.GetEnumerator();
     }
@@ -82,7 +82,7 @@ public sealed class OrderedMultiMapFormatter<TKey, TValue> : DictionaryFormatter
     }
 }
 
-public sealed class OrderedMultiSetFormatter<T> : CollectionFormatterBase<T, OrderedMultiSet<T>, OrderedMultiMap<T, int>.KeyCollection.Enumerator, OrderedMultiSet<T>>
+public sealed class OrderedMultiSetFormatter<T> : CollectionFormatterBase<T, OrderedMultiSet<T>, OrderedMultiSet<T>.Enumerator, OrderedMultiSet<T>>
 {
     protected override int? GetCount(OrderedMultiSet<T> sequence)
     {
@@ -104,7 +104,7 @@ public sealed class OrderedMultiSetFormatter<T> : CollectionFormatterBase<T, Ord
         return new OrderedMultiSet<T>();
     }
 
-    protected override OrderedMultiMap<T, int>.KeyCollection.Enumerator GetSourceEnumerator(OrderedMultiSet<T> source)
+    protected override OrderedMultiSet<T>.Enumerator GetSourceEnumerator(OrderedMultiSet<T> source)
     {
         return source.GetEnumerator();
     }
@@ -133,7 +133,7 @@ public sealed class UnorderedMapFormatter<TKey, TValue> : DictionaryFormatterBas
     }
 }
 
-public sealed class UnorderedSetFormatter<T> : CollectionFormatterBase<T, UnorderedSet<T>, UnorderedMap<T, int>.KeyCollection.Enumerator, UnorderedSet<T>>
+public sealed class UnorderedSetFormatter<T> : CollectionFormatterBase<T, UnorderedSet<T>, UnorderedMap<T, byte>.KeyEnumerable.Enumerator, UnorderedSet<T>>
 {
     protected override int? GetCount(UnorderedSet<T> sequence)
     {
@@ -155,59 +155,7 @@ public sealed class UnorderedSetFormatter<T> : CollectionFormatterBase<T, Unorde
         return new UnorderedSet<T>();
     }
 
-    protected override UnorderedMap<T, int>.KeyCollection.Enumerator GetSourceEnumerator(UnorderedSet<T> source)
-    {
-        return source.GetEnumerator();
-    }
-}
-
-public sealed class UnorderedMultiMapFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, UnorderedMultiMap<TKey, TValue>, UnorderedMultiMap<TKey, TValue>.Enumerator, UnorderedMultiMap<TKey, TValue>>
-    where TKey : notnull
-{
-    protected override void Add(UnorderedMultiMap<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
-    {
-        collection.Add(key, value);
-    }
-
-    protected override UnorderedMultiMap<TKey, TValue> Complete(UnorderedMultiMap<TKey, TValue> intermediateCollection)
-    {
-        return intermediateCollection;
-    }
-
-    protected override UnorderedMultiMap<TKey, TValue> Create(UnorderedMultiMap<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
-    {
-        return reuse ?? new UnorderedMultiMap<TKey, TValue>();
-    }
-
-    protected override UnorderedMultiMap<TKey, TValue>.Enumerator GetSourceEnumerator(UnorderedMultiMap<TKey, TValue> source)
-    {
-        return source.GetEnumerator();
-    }
-}
-
-public sealed class UnorderedMultiSetFormatter<T> : CollectionFormatterBase<T, UnorderedMultiSet<T>, UnorderedMultiMap<T, int>.KeyCollection.Enumerator, UnorderedMultiSet<T>>
-{
-    protected override int? GetCount(UnorderedMultiSet<T> sequence)
-    {
-        return sequence.Count;
-    }
-
-    protected override void Add(UnorderedMultiSet<T> collection, int index, T value, TinyhandSerializerOptions options)
-    {
-        collection.Add(value);
-    }
-
-    protected override UnorderedMultiSet<T> Complete(UnorderedMultiSet<T> intermediateCollection)
-    {
-        return intermediateCollection;
-    }
-
-    protected override UnorderedMultiSet<T> Create(int count, TinyhandSerializerOptions options)
-    {
-        return new UnorderedMultiSet<T>();
-    }
-
-    protected override UnorderedMultiMap<T, int>.KeyCollection.Enumerator GetSourceEnumerator(UnorderedMultiSet<T> source)
+    protected override UnorderedMap<T, byte>.KeyEnumerable.Enumerator GetSourceEnumerator(UnorderedSet<T> source)
     {
         return source.GetEnumerator();
     }

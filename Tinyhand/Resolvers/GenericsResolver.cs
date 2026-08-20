@@ -106,8 +106,6 @@ namespace Tinyhand.Internal
             { typeof(OrderedMultiSet<>), typeof(OrderedMultiSetFormatter<>) },
             { typeof(UnorderedMap<,>), typeof(UnorderedMapFormatter<,>) },
             { typeof(UnorderedSet<>), typeof(UnorderedSetFormatter<>) },
-            { typeof(UnorderedMultiMap<,>), typeof(UnorderedMultiMapFormatter<,>) },
-            { typeof(UnorderedMultiSet<>), typeof(UnorderedMultiSetFormatter<>) },
             { typeof(OrderedKeyValueList<,>), typeof(OrderedKeyValueListFormatter<,>) },
             { typeof(OrderedList<>), typeof(OrderedListFormatter<>) },
             { typeof(UnorderedList<>), typeof(UnorderedListFormatter<>) },

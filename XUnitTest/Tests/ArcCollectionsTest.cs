@@ -27,13 +27,13 @@ public partial class ArcCollectionsTestClass
     public UnorderedMap<int, string> Map3 { get; set; } = [];
 
     [Key(5)]
-    public UnorderedMultiMap<int, string> Map4 { get; set; } = [];
+    public UnorderedMap<int, string> Map4 { get; set; } = new UnorderedMap<int, string>(true);
 
     [Key(6)]
     public UnorderedSet<int> Set3 { get; set; } = [];
 
     [Key(7)]
-    public UnorderedMultiSet<int> Set4 { get; set; } = [];
+    public UnorderedSet<int> Set4 { get; set; } = new UnorderedSet<int>(true);
 
     [Key(8)]
     public OrderedList<int> List1 { get; set; } = [];
@@ -120,24 +120,6 @@ public class ArcCollectionsTest
         st = TinyhandSerializer.SerializeToString(unorderedSet);
         TinyhandSerializer.DeserializeFromString<UnorderedSet<int>>(st)!.SequenceEqual(unorderedSet).IsTrue();
 
-        var unorderedMultiMap = new UnorderedMultiMap<int, string>();
-        foreach (var x in list)
-        {
-            unorderedMultiMap.Add(x.Key, x.Value);
-        }
-
-        st = TinyhandSerializer.SerializeToString(unorderedMultiMap);
-        TinyhandSerializer.DeserializeFromString<UnorderedMultiMap<int, string>>(st)!.SequenceEqual(unorderedMultiMap).IsTrue();
-
-        var unorderedMultiSet = new UnorderedMultiSet<int>();
-        foreach (var x in list)
-        {
-            unorderedMultiSet.Add(x.Key);
-        }
-
-        st = TinyhandSerializer.SerializeToString(unorderedMultiSet);
-        TinyhandSerializer.DeserializeFromString<UnorderedMultiSet<int>>(st)!.SequenceEqual(unorderedMultiSet).IsTrue();
-
         var orderedList = new OrderedList<int>(list.Select(x => x.Key));
         st = TinyhandSerializer.SerializeToString(orderedList);
         TinyhandSerializer.DeserializeFromString<OrderedList<int>>(st)!.SequenceEqual(orderedList).IsTrue();
@@ -149,10 +131,6 @@ public class ArcCollectionsTest
         var unorderedLinkedList = new UnorderedLinkedList<int>(list.Select(x => x.Key));
         st = TinyhandSerializer.SerializeToString(unorderedLinkedList);
         TinyhandSerializer.DeserializeFromString<UnorderedLinkedList<int>>(st)!.SequenceEqual(unorderedLinkedList).IsTrue();
-
-        var orderedKeyValueList = new OrderedKeyValueList<int, string>(orderedMultiMap);
-        st = TinyhandSerializer.SerializeToString(orderedKeyValueList);
-        TinyhandSerializer.DeserializeFromString<OrderedKeyValueList<int, string>>(st)!.SequenceEqual(orderedKeyValueList).IsTrue();
     }
 
     [Fact]
