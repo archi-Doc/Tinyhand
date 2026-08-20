@@ -153,7 +153,9 @@ public class ArcCollectionsTest
 
             tc.Map3.Add(x.Key, x.Value);
             tc.Map4.Add(x.Key, x.Value);
+            tc.Map4.Add(x.Key, x.Value);
             tc.Set3.Add(x.Key);
+            tc.Set4.Add(x.Key);
             tc.Set4.Add(x.Key);
 
             tc.List1.Add(x.Key);

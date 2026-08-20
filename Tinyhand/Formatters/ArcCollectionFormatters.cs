@@ -1,5 +1,8 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Arc.Collections;
 using Tinyhand.IO;
 
@@ -7,157 +10,525 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class OrderedMapFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, OrderedMap<TKey, TValue>, OrderedMap<TKey, TValue>.Enumerator, OrderedMap<TKey, TValue>>
+public sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<OrderedMap<TKey, TValue>>
 {
-    protected override void Add(OrderedMap<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
+    public OrderedMapFormatter()
     {
-        collection.Add(key, value);
     }
 
-    protected override OrderedMap<TKey, TValue> Complete(OrderedMap<TKey, TValue> intermediateCollection)
+    public void Serialize(ref TinyhandWriter writer, OrderedMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
-        return intermediateCollection;
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+        writer.WriteMapHeader(value.Count);
+
+        var e = value.GetEnumerator();
+        try
+        {
+            while (e.MoveNext())
+            {
+                var pair = e.Current;
+                keyFormatter.Serialize(ref writer, pair.Key, options);
+                valueFormatter.Serialize(ref writer, pair.Value, options);
+            }
+        }
+        finally
+        {
+            e.Dispose();
+        }
     }
 
-    protected override OrderedMap<TKey, TValue> Create(OrderedMap<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref OrderedMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
-        return reuse ?? new OrderedMap<TKey, TValue>();
+        if (reader.TryReadNil())
+        {
+            return;
+        }
+
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+        var count = reader.ReadMapHeader2();
+        if (value is null)
+        {
+            value = new();
+        }
+        else
+        {
+            value.Clear();
+        }
+
+        options.Security.DepthStep(ref reader);
+        try
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var key = keyFormatter.Deserialize(ref reader, options);
+                var v = valueFormatter.Deserialize(ref reader, options);
+                value.Add(key!, v!);
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
     }
 
-    protected override OrderedMap<TKey, TValue>.Enumerator GetSourceEnumerator(OrderedMap<TKey, TValue> source)
+    public OrderedMap<TKey, TValue> Reconstruct(TinyhandSerializerOptions options)
     {
-        return source.GetEnumerator();
+        return new();
+    }
+
+    [return: NotNullIfNotNull(nameof(value))]
+    public OrderedMap<TKey, TValue>? Clone(OrderedMap<TKey, TValue>? value, TinyhandSerializerOptions options)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        return new(value, value.Comparer, value.Reverse);
     }
 }
 
-public sealed class OrderedSetFormatter<T> : CollectionFormatterBase<T, OrderedSet<T>, OrderedSet<T>.Enumerator, OrderedSet<T>>
+public sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
 {
-    protected override int? GetCount(OrderedSet<T> sequence)
+    public OrderedSetFormatter()
     {
-        return sequence.Count;
     }
 
-    protected override void Add(OrderedSet<T> collection, int index, T value, TinyhandSerializerOptions options)
+    public void Serialize(ref TinyhandWriter writer, OrderedSet<T>? value, TinyhandSerializerOptions options)
     {
-        collection.Add(value);
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        writer.WriteArrayHeader(value.Count);
+
+        var formatter = options.Resolver.GetFormatter<T>();
+        var e = value.GetEnumerator();
+        try
+        {
+            while (e.MoveNext())
+            {
+                formatter.Serialize(ref writer, e.Current, options);
+            }
+        }
+        finally
+        {
+            e.Dispose();
+        }
     }
 
-    protected override OrderedSet<T> Complete(OrderedSet<T> intermediateCollection)
+    public void Deserialize(ref TinyhandReader reader, ref OrderedSet<T>? value, TinyhandSerializerOptions options)
     {
-        return intermediateCollection;
+        if (reader.TryReadNil())
+        {
+            return;
+        }
+
+        var formatter = options.Resolver.GetFormatter<T>();
+
+        var count = reader.ReadArrayHeader();
+        if (value is null)
+        {
+            value = new();
+        }
+        else
+        {
+            value.Clear();
+        }
+
+        options.Security.DepthStep(ref reader);
+        try
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var v = formatter.Deserialize(ref reader, options);
+                value.Add(v!);
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
     }
 
-    protected override OrderedSet<T> Create(int count, TinyhandSerializerOptions options)
+    public OrderedSet<T> Reconstruct(TinyhandSerializerOptions options)
     {
-        return new OrderedSet<T>();
+        return new();
     }
 
-    protected override OrderedSet<T>.Enumerator GetSourceEnumerator(OrderedSet<T> source)
+    [return: NotNullIfNotNull(nameof(value))]
+    public OrderedSet<T>? Clone(OrderedSet<T>? value, TinyhandSerializerOptions options)
     {
-        return source.GetEnumerator();
+        if (value is null)
+        {
+            return null;
+        }
+
+        return new(value, value.Comparer, value.Reverse);
     }
 }
 
-public sealed class OrderedMultiMapFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, OrderedMultiMap<TKey, TValue>, OrderedMultiMap<TKey, TValue>.Enumerator, OrderedMultiMap<TKey, TValue>>
-    where TKey : notnull
+public sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatter<OrderedMultiMap<TKey, TValue>>
 {
-    protected override void Add(OrderedMultiMap<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
+    public OrderedMultiMapFormatter()
     {
-        collection.Add(key, value);
     }
 
-    protected override OrderedMultiMap<TKey, TValue> Complete(OrderedMultiMap<TKey, TValue> intermediateCollection)
+    public void Serialize(ref TinyhandWriter writer, OrderedMultiMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
-        return intermediateCollection;
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+        writer.WriteMapHeader(value.Count);
+
+        var e = value.GetEnumerator();
+        try
+        {
+            while (e.MoveNext())
+            {
+                var pair = e.Current;
+                keyFormatter.Serialize(ref writer, pair.Key, options);
+                valueFormatter.Serialize(ref writer, pair.Value, options);
+            }
+        }
+        finally
+        {
+            e.Dispose();
+        }
     }
 
-    protected override OrderedMultiMap<TKey, TValue> Create(OrderedMultiMap<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref OrderedMultiMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
-        return reuse ?? new OrderedMultiMap<TKey, TValue>();
+        if (reader.TryReadNil())
+        {
+            return;
+        }
+
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+        var count = reader.ReadMapHeader2();
+        if (value is null)
+        {
+            value = new();
+        }
+        else
+        {
+            value.Clear();
+        }
+
+        options.Security.DepthStep(ref reader);
+        try
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var key = keyFormatter.Deserialize(ref reader, options);
+                var v = valueFormatter.Deserialize(ref reader, options);
+                value.Add(key!, v!);
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
     }
 
-    protected override OrderedMultiMap<TKey, TValue>.Enumerator GetSourceEnumerator(OrderedMultiMap<TKey, TValue> source)
+    public OrderedMultiMap<TKey, TValue> Reconstruct(TinyhandSerializerOptions options)
     {
-        return source.GetEnumerator();
+        return new();
+    }
+
+    [return: NotNullIfNotNull(nameof(value))]
+    public OrderedMultiMap<TKey, TValue>? Clone(OrderedMultiMap<TKey, TValue>? value, TinyhandSerializerOptions options)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        var newValue = new OrderedMultiMap<TKey, TValue>(value.Comparer, value.Reverse);
+        foreach (var x in value)
+        {
+            newValue.Add(x.Key, x.Value);
+        }
+
+        return newValue;
     }
 }
 
-public sealed class OrderedMultiSetFormatter<T> : CollectionFormatterBase<T, OrderedMultiSet<T>, OrderedMultiSet<T>.Enumerator, OrderedMultiSet<T>>
+public sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMultiSet<T>>
 {
-    protected override int? GetCount(OrderedMultiSet<T> sequence)
+    public OrderedMultiSetFormatter()
     {
-        return sequence.Count;
     }
 
-    protected override void Add(OrderedMultiSet<T> collection, int index, T value, TinyhandSerializerOptions options)
+    public void Serialize(ref TinyhandWriter writer, OrderedMultiSet<T>? value, TinyhandSerializerOptions options)
     {
-        collection.Add(value);
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        writer.WriteArrayHeader(value.Count);
+
+        var formatter = options.Resolver.GetFormatter<T>();
+        var e = value.GetEnumerator();
+        try
+        {
+            while (e.MoveNext())
+            {
+                formatter.Serialize(ref writer, e.Current, options);
+            }
+        }
+        finally
+        {
+            e.Dispose();
+        }
     }
 
-    protected override OrderedMultiSet<T> Complete(OrderedMultiSet<T> intermediateCollection)
+    public void Deserialize(ref TinyhandReader reader, ref OrderedMultiSet<T>? value, TinyhandSerializerOptions options)
     {
-        return intermediateCollection;
+        if (reader.TryReadNil())
+        {
+            return;
+        }
+
+        var formatter = options.Resolver.GetFormatter<T>();
+
+        var count = reader.ReadArrayHeader();
+        if (value is null)
+        {
+            value = new();
+        }
+        else
+        {
+            value.Clear();
+        }
+
+        options.Security.DepthStep(ref reader);
+        try
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var v = formatter.Deserialize(ref reader, options);
+                value.Add(v!);
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
     }
 
-    protected override OrderedMultiSet<T> Create(int count, TinyhandSerializerOptions options)
+    public OrderedMultiSet<T> Reconstruct(TinyhandSerializerOptions options)
     {
-        return new OrderedMultiSet<T>();
+        return new();
     }
 
-    protected override OrderedMultiSet<T>.Enumerator GetSourceEnumerator(OrderedMultiSet<T> source)
+    [return: NotNullIfNotNull(nameof(value))]
+    public OrderedMultiSet<T>? Clone(OrderedMultiSet<T>? value, TinyhandSerializerOptions options)
     {
-        return source.GetEnumerator();
+        if (value is null)
+        {
+            return null;
+        }
+
+        return new(value, value.Comparer, value.Reverse);
     }
 }
 
-public sealed class UnorderedMapFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, UnorderedMap<TKey, TValue>, UnorderedMap<TKey, TValue>.Enumerator, UnorderedMap<TKey, TValue>>
+public sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<UnorderedMap<TKey, TValue>>
 {
-    protected override void Add(UnorderedMap<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
+    public UnorderedMapFormatter()
     {
-        collection.Add(key, value);
     }
 
-    protected override UnorderedMap<TKey, TValue> Complete(UnorderedMap<TKey, TValue> intermediateCollection)
+    public void Serialize(ref TinyhandWriter writer, UnorderedMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
-        return intermediateCollection;
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+        writer.WriteMapHeader(value.Count);
+
+        var e = value.GetEnumerator();
+        try
+        {
+            while (e.MoveNext())
+            {
+                var pair = e.Current;
+                keyFormatter.Serialize(ref writer, pair.Key, options);
+                valueFormatter.Serialize(ref writer, pair.Value, options);
+            }
+        }
+        finally
+        {
+            e.Dispose();
+        }
     }
 
-    protected override UnorderedMap<TKey, TValue> Create(UnorderedMap<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref UnorderedMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
-        return reuse ?? new UnorderedMap<TKey, TValue>();
+        if (reader.TryReadNil())
+        {
+            return;
+        }
+
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
+
+        var count = reader.ReadMapHeader2();
+        if (value is null)
+        {
+            value = new();
+        }
+        else
+        {
+            value.Clear();
+        }
+
+        options.Security.DepthStep(ref reader);
+        try
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var key = keyFormatter.Deserialize(ref reader, options);
+                var v = valueFormatter.Deserialize(ref reader, options);
+                value.Add(key!, v!);
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
     }
 
-    protected override UnorderedMap<TKey, TValue>.Enumerator GetSourceEnumerator(UnorderedMap<TKey, TValue> source)
+    public UnorderedMap<TKey, TValue> Reconstruct(TinyhandSerializerOptions options)
     {
-        return source.GetEnumerator();
+        return new();
+    }
+
+    [return: NotNullIfNotNull(nameof(value))]
+    public UnorderedMap<TKey, TValue>? Clone(UnorderedMap<TKey, TValue>? value, TinyhandSerializerOptions options)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        var newValue = new UnorderedMap<TKey, TValue>(value.Capacity, value.Comparer, value.AllowDuplicate);
+        foreach (var x in value)
+        {
+            newValue.Add(x.Key, x.Value);
+        }
+
+        return newValue;
     }
 }
 
-public sealed class UnorderedSetFormatter<T> : CollectionFormatterBase<T, UnorderedSet<T>, UnorderedMap<T, byte>.KeyEnumerable.Enumerator, UnorderedSet<T>>
+public sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet<T>>
 {
-    protected override int? GetCount(UnorderedSet<T> sequence)
+    public UnorderedSetFormatter()
     {
-        return sequence.Count;
     }
 
-    protected override void Add(UnorderedSet<T> collection, int index, T value, TinyhandSerializerOptions options)
+    public void Serialize(ref TinyhandWriter writer, UnorderedSet<T>? value, TinyhandSerializerOptions options)
     {
-        collection.Add(value);
+        if (value == null)
+        {
+            writer.WriteNil();
+            return;
+        }
+
+        writer.WriteArrayHeader(value.Count);
+
+        var formatter = options.Resolver.GetFormatter<T>();
+        var e = value.GetEnumerator();
+        try
+        {
+            while (e.MoveNext())
+            {
+                formatter.Serialize(ref writer, e.Current, options);
+            }
+        }
+        finally
+        {
+            e.Dispose();
+        }
     }
 
-    protected override UnorderedSet<T> Complete(UnorderedSet<T> intermediateCollection)
+    public void Deserialize(ref TinyhandReader reader, ref UnorderedSet<T>? value, TinyhandSerializerOptions options)
     {
-        return intermediateCollection;
+        if (reader.TryReadNil())
+        {
+            return;
+        }
+
+        var formatter = options.Resolver.GetFormatter<T>();
+
+        var count = reader.ReadArrayHeader();
+        if (value is null)
+        {
+            value = new();
+        }
+        else
+        {
+            value.Clear();
+        }
+
+        options.Security.DepthStep(ref reader);
+        try
+        {
+            for (var i = 0; i < count; i++)
+            {
+                var v = formatter.Deserialize(ref reader, options);
+                value.Add(v!);
+            }
+        }
+        finally
+        {
+            reader.Depth--;
+        }
     }
 
-    protected override UnorderedSet<T> Create(int count, TinyhandSerializerOptions options)
+    public UnorderedSet<T> Reconstruct(TinyhandSerializerOptions options)
     {
-        return new UnorderedSet<T>();
+        return new();
     }
 
-    protected override UnorderedMap<T, byte>.KeyEnumerable.Enumerator GetSourceEnumerator(UnorderedSet<T> source)
+    [return: NotNullIfNotNull(nameof(value))]
+    public UnorderedSet<T>? Clone(UnorderedSet<T>? value, TinyhandSerializerOptions options)
     {
-        return source.GetEnumerator();
+        if (value is null)
+        {
+            return null;
+        }
+
+        return new(value, value.Comparer, value.AllowDuplicate);
     }
 }
 

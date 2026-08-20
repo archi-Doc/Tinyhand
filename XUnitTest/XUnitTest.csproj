@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <PackageReference Include="Arc.Threading" Version="0.50.0" />
-    <PackageReference Include="ValueLink" Version="0.116.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0" PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
