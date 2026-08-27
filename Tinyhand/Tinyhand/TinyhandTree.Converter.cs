@@ -151,7 +151,26 @@ public static class TinyhandTreeConverter
                 writer.WriteUInt8((byte)'b');
                 writer.WriteUInt8(TinyhandConstants.Quote);
                 // writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
-                writer.WriteSpan(Arc.Crypto.Base64.Url.FromByteArrayToUtf8(reader.ReadBytesToArray()));
+
+                var byteArray = reader.ReadBytesToArray();
+                var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(byteArray.Length);
+                byte[]? pooled = null;
+                scoped Span<byte> buffer = encodedLength <= TinyhandConstants.StackallocThreshold ?
+                    stackalloc byte[encodedLength] :
+                    (pooled = ArrayPool<byte>.Shared.Rent(encodedLength)).AsSpan(0, encodedLength);
+                try
+                {
+                    Arc.Crypto.Base64Url.Encode(byteArray, buffer);
+                    writer.WriteSpan(buffer);
+                }
+                finally
+                {
+                    if (pooled is not null)
+                    {
+                        ArrayPool<byte>.Shared.Return(pooled);
+                    }
+                }
+
                 writer.WriteUInt8(TinyhandConstants.Quote);
 
                 return true;
