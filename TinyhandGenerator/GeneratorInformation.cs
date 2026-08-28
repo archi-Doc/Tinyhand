@@ -7,9 +7,16 @@ namespace Tinyhand.Generator;
 
 public class GeneratorInformation
 {
-    public const string BuiltinMethod = "global::Tinyhand.Formatters.Builtin";
+    public GeneratorInformation(string? assemblyName)
+    {
+        var assemblyId = string.IsNullOrEmpty(assemblyName) ? string.Empty : VisceralHelper.AssemblyNameToIdentifier("_" + assemblyName);
+        this.GeneratedMethodName = "Generated" + assemblyId;
+        this.GeneratedMethod = "global::Tinyhand.Formatters." + this.GeneratedMethodName;
+    }
 
-    public const string GeneratedMethod = "global::Tinyhand.Formatters.Generated";
+    public string GeneratedMethod { get; }
+
+    public string GeneratedMethodName { get; }
 
     public Queue<TinyhandObject> FormatterGeneration { get; } = new();
 

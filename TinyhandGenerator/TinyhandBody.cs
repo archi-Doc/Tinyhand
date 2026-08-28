@@ -316,7 +316,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public void Generate(IGeneratorInformation generator, CancellationToken cancellationToken)
     {
         ScopingStringBuilder ssb = new();
-        GeneratorInformation info = new();
+        GeneratorInformation info = new(generator.AssemblyName);
         List<TinyhandObject> rootObjects = new();
 
         // Namespace - Primary TinyhandObjects
@@ -431,7 +431,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
 
         using (var scopeFormatter = ssb.ScopeNamespace("Tinyhand.Formatters"))
         {
-            using (var methods = ssb.ScopeBrace("static class Generated"))
+            using (var methods = ssb.ScopeBrace("static class " + info.GeneratedMethodName))
             {
                 info.FinalizeBlock(ssb);
 
@@ -489,7 +489,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
             }
         }
 
-        info.ModuleInitializerClass.Add("Tinyhand.Formatters.Generated");
+        info.ModuleInitializerClass.Add(info.GeneratedMethod);
 
         ssb.AppendLine();
         using (var scopeTinyhand = ssb.ScopeNamespace(ns!))

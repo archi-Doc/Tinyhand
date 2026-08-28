@@ -30,7 +30,7 @@ internal class TinyhandGenerateMemberBody : VisceralBody<TinyhandGenerateMemberO
         }
 
         ScopingStringBuilder ssb = new();
-        GeneratorInformation info = new();
+        GeneratorInformation info = new(generator.AssemblyName);
 
         // Namespace - Objects
         foreach (var x in this.Namespaces)

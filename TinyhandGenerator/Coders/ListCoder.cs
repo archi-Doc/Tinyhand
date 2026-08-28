@@ -56,7 +56,7 @@ public class ListCoder : ITinyhandCoder
     {
         this.GenerateMethod(info);
 
-        ssb.AppendLine($"{GeneratorInformation.GeneratedMethod}.SerializeList_{this.block!.SerialNumber:0000}(ref writer, {ssb.FullObject}, options);");
+        ssb.AppendLine($"{info.GeneratedMethod}.SerializeList_{this.block!.SerialNumber:0000}(ref writer, {ssb.FullObject}, options);");
     }
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
@@ -104,12 +104,12 @@ public class ListCoder : ITinyhandCoder
 
         void CodeDeserializerNullable()
         {
-            ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options);");
+            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedMethod}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options);");
         }
 
         void CodeDeserializerNonNullable()
         {
-            ssb.AppendLine($"{ssb.FullObject} = {GeneratorInformation.GeneratedMethod}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options) ?? [];");
+            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedMethod}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options) ?? [];");
         }
     }
 
