@@ -529,8 +529,6 @@ public class Value_Binary : Value
     public override string ToString() => "Binary";
 
     public byte[] ValueBinary { get; set; }
-
-    public byte[] ValueBinaryToBase64 => Arc.Crypto.Base64.Url.FromByteArrayToUtf8(this.ValueBinary); // Base64.EncodeToBase64Utf8(this.ValueBinary);
 }
 
 /// <summary>

@@ -6,7 +6,10 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Arc;
+using Arc.Collections;
 using Arc.IO;
+using Microsoft.VisualBasic;
 using Tinyhand.IO;
 using Tinyhand.Tree;
 
@@ -151,7 +154,20 @@ public static class TinyhandTreeConverter
                 writer.WriteUInt8((byte)'b');
                 writer.WriteUInt8(TinyhandConstants.Quote);
                 // writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
-                writer.WriteSpan(Arc.Crypto.Base64.Url.FromByteArrayToUtf8(reader.ReadBytesToArray()));
+
+                var byteArray = reader.ReadBytesToArray();
+                var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(byteArray.Length);
+                var spanowner = new SpanOwner<byte>(stackalloc byte[BaseHelper.StackallocThreshold], encodedLength);
+                try
+                {
+                    Arc.Crypto.Base64Url.Encode(byteArray, spanowner.Span);
+                    writer.WriteSpan(spanowner.Span);
+                }
+                finally
+                {
+                    spanowner.Dispose();
+                }
+
                 writer.WriteUInt8(TinyhandConstants.Quote);
 
                 return true;

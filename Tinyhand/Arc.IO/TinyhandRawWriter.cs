@@ -54,7 +54,7 @@ public ref struct TinyhandRawWriter
     public void Ensure(int sizeHint)
         => this.writer.Ensure(sizeHint);
 
-    public void WriteSpan(ReadOnlySpan<byte> span)
+    public void WriteSpan(scoped ReadOnlySpan<byte> span)
         => this.writer.Write(span);
 
     public void WriteEscapedUtf8(ReadOnlySpan<byte> utf8)
