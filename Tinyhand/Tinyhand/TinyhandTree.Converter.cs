@@ -6,7 +6,10 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Arc;
+using Arc.Collections;
 using Arc.IO;
+using Microsoft.VisualBasic;
 using Tinyhand.IO;
 using Tinyhand.Tree;
 
@@ -154,21 +157,15 @@ public static class TinyhandTreeConverter
 
                 var byteArray = reader.ReadBytesToArray();
                 var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(byteArray.Length);
-                byte[]? pooled = null;
-                scoped Span<byte> buffer = encodedLength <= TinyhandConstants.StackallocThreshold ?
-                    stackalloc byte[encodedLength] :
-                    (pooled = ArrayPool<byte>.Shared.Rent(encodedLength)).AsSpan(0, encodedLength);
+                var spanowner = new SpanOwner<byte>(stackalloc byte[BaseHelper.StackallocThreshold], encodedLength);
                 try
                 {
-                    Arc.Crypto.Base64Url.Encode(byteArray, buffer);
-                    writer.WriteSpan(buffer);
+                    Arc.Crypto.Base64Url.Encode(byteArray, spanowner.Span);
+                    writer.WriteSpan(spanowner.Span);
                 }
                 finally
                 {
-                    if (pooled is not null)
-                    {
-                        ArrayPool<byte>.Shared.Return(pooled);
-                    }
+                    spanowner.Dispose();
                 }
 
                 writer.WriteUInt8(TinyhandConstants.Quote);

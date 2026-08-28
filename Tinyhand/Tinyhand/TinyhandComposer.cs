@@ -2,6 +2,8 @@
 
 using System;
 using System.Buffers;
+using Arc;
+using Arc.Collections;
 using Arc.IO;
 using Tinyhand.Tree;
 
@@ -210,7 +212,19 @@ public static class TinyhandComposer
                     var binary = (Value_Binary)element;
                     writer.WriteUInt8((byte)'b');
                     writer.WriteUInt8(TinyhandConstants.Quote);
-                    writer.WriteSpan(binary.ValueBinaryToBase64);
+
+                    var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(binary.ValueBinary.Length);
+                    var spanowner = new SpanOwner<byte>(stackalloc byte[BaseHelper.StackallocThreshold], encodedLength);
+                    try
+                    {
+                        Arc.Crypto.Base64Url.Encode(binary.ValueBinary, spanowner.Span);
+                        writer.WriteSpan(spanowner.Span);
+                    }
+                    finally
+                    {
+                        spanowner.Dispose();
+                    }
+
                     writer.WriteUInt8(TinyhandConstants.Quote);
                     break;
 
