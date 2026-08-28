@@ -770,6 +770,8 @@ Unexpected_Symbol:
             this.ThrowException("Cannot decode Base64 string.");
         }
 
+        this.ValueBinary = decoded;
+
         this.AddPosition(length + 1); // String + quote.
         this.AtomType = TinyhandAtomType.Value_Base64;
 
