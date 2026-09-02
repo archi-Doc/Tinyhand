@@ -8,12 +8,15 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Arc.Collections;
-using Tinyhand.Logging;
+using Arc.Unit;
+using Microsoft.Extensions.DependencyInjection;
 using Tinyhand.Tree;
 
 #pragma warning disable CS1998
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 #pragma warning disable SA1201 // Elements should appear in the correct order
+#pragma warning disable SA1202 // Elements should be ordered by access
+#pragma warning disable SA1204 // Static elements should appear before instance elements
 #pragma warning disable SA1513 // Closing brace should be followed by blank line
 
 namespace Tinyhand;
@@ -102,19 +105,46 @@ public class TinyhandProcessCore_None : IProcessCore
     }
 }
 
-public class ProcessEnvironment : IProcessEnvironment
+/// <summary>
+/// The file logger options of <see cref="IProcessEnvironment.Result"/>.<br/>
+/// A distinct options type is required so that the result file logger can use a path and a format
+/// of its own, independent of <see cref="FileLoggerOptions"/> used by <see cref="IProcessEnvironment.Log"/>.
+/// </summary>
+public record ResultFileLoggerOptions : FileLoggerOptions
+{
+}
+
+/// <summary>
+/// Writes to both the console and the result file (<see cref="ConsoleAndFileLogger"/> for <see cref="ResultFileLoggerOptions"/>).
+/// </summary>
+public class ConsoleAndResultFileLogger : ILogOutput
+{
+    private readonly ConsoleLogger consoleLogger;
+    private readonly FileLogger<ResultFileLoggerOptions> fileLogger;
+
+    public ConsoleAndResultFileLogger(ConsoleLogger consoleLogger, FileLogger<ResultFileLoggerOptions> fileLogger)
+    {
+        this.consoleLogger = consoleLogger;
+        this.fileLogger = fileLogger;
+    }
+
+    public void Output(LogEvent logEvent)
+    {
+        this.consoleLogger.Output(logEvent);
+        this.fileLogger.Output(logEvent);
+    }
+}
+
+public class ProcessEnvironment : IProcessEnvironment, IDisposable
 {
     public const string PluginFolder = "plugins";
 
-    public ProcessEnvironment(string? tinyhandFile)
+    public ProcessEnvironment(Group root, string? tinyhandFile)
     {
-        this.LogInstance = new ConsoleLogger(this);
-        this.ResultInstance = new NullLogger(this);
-        this.ResultInstance.SetLogFormat(LogFormat.Message);
         this.ProcessCore = new Dictionary<string, TinyhandProcessCoreInfo>(); // Process name to TinyhandProcessCoreInfo
         this.currentCore = default!;
-        this.TinyhandFile = tinyhandFile ?? string.Empty;
         this.Root = Group.Empty;
+        this.rootGroup = root;
         if (tinyhandFile != null)
         {
             this.TinyhandFile = tinyhandFile;
@@ -137,11 +167,27 @@ public class ProcessEnvironment : IProcessEnvironment
 
         // Add to identifierTable (identifier to Func<>).
         this.identifierTable.TryAdd(ProcessString, this.IdentifierTable_process);
-        this.identifierTable.TryAdd(Encoding.UTF8.GetBytes("root"), this.IdentifierTable_root);
-        this.identifierTable.TryAdd(Encoding.UTF8.GetBytes("source"), this.IdentifierTable_source);
-        this.identifierTable.TryAdd(Encoding.UTF8.GetBytes("destination"), this.IdentifierTable_destination);
-        this.identifierTable.TryAdd(Encoding.UTF8.GetBytes("log"), this.IdentifierTable_log);
-        this.identifierTable.TryAdd(Encoding.UTF8.GetBytes("result"), this.IdentifierTable_result);
+        this.identifierTable.TryAdd(RootIdentifier, this.IdentifierTable_root);
+        this.identifierTable.TryAdd(SourceIdentifier, this.IdentifierTable_source);
+        this.identifierTable.TryAdd(DestinationIdentifier, this.IdentifierTable_destination);
+        this.identifierTable.TryAdd(LogIdentifier, this.IdentifierTable_logger);
+        this.identifierTable.TryAdd(ResultIdentifier, this.IdentifierTable_logger);
+
+        // The log outputs of Arc.Unit are resolved when the unit is built, so the folder and the logger
+        // directives are read in advance. Messages produced while reading them are queued and
+        // written as soon as the loggers become available.
+        this.PreConfigure();
+
+        this.product = this.BuildUnit();
+        var logService = this.product.Context.ServiceProvider.GetRequiredService<ILogService>();
+        this.Log = logService.GetLogger<DefaultLog>();
+        this.Result = logService.GetLogger<ResultLog>();
+        foreach (var (level, element, message) in this.pendingMessages)
+        {
+            this.Log.GetWriter(level)?.Write(ProcessLoggerExtensions.AddPosition(element, message));
+        }
+
+        this.pendingMessages.Clear();
 
         this.LoadPlugin();
     }
@@ -150,17 +196,23 @@ public class ProcessEnvironment : IProcessEnvironment
 
     public static byte[] ProcessString { get; } = Encoding.UTF8.GetBytes("process");
 
+    private static byte[] RootIdentifier { get; } = Encoding.UTF8.GetBytes("root");
+
+    private static byte[] SourceIdentifier { get; } = Encoding.UTF8.GetBytes("source");
+
+    private static byte[] DestinationIdentifier { get; } = Encoding.UTF8.GetBytes("destination");
+
+    private static byte[] LogIdentifier { get; } = Encoding.UTF8.GetBytes("log");
+
+    private static byte[] ResultIdentifier { get; } = Encoding.UTF8.GetBytes("result");
+
     public bool IsProcessMode { get; private set; } = false;
 
     public Dictionary<string, TinyhandProcessCoreInfo> ProcessCore { get; }
 
-    public Logger LogInstance { get; private set; }
+    public ILogger Log { get; }
 
-    public Logger ResultInstance { get; private set; }
-
-    public ILogger Log => this.LogInstance;
-
-    public ILogger Result => this.ResultInstance;
+    public ILogger Result { get; }
 
     public Group Root { get; private set; }
 
@@ -176,6 +228,12 @@ public class ProcessEnvironment : IProcessEnvironment
 
     public void Fatal()
     {
+        this.FatalStatus = true;
+    }
+
+    public void Fatal(Element? element, string message)
+    {
+        this.Log.Fatal(element, message);
         this.FatalStatus = true;
     }
 
@@ -198,19 +256,14 @@ public class ProcessEnvironment : IProcessEnvironment
         return Path.Combine(this.GetPath(pathType), path);
     }
 
-    public async Task<bool> Process(Element element)
+    public async Task<bool> Process()
     {
-        var group = (Group)element;
-        if (group == null)
-        {
-            return false;
-        }
-
-        this.Root = group;
+        this.Root = this.rootGroup;
 
         this.FatalStatus = false;
+        this.IsProcessMode = false;
         this.currentCore = this.ProcessCore[TinyhandProcessCore_None.StaticName].GetInstance(null)!;
-        foreach (var x in group)
+        foreach (var x in this.rootGroup)
         {
             if (this.FatalStatus)
             {
@@ -263,15 +316,191 @@ public class ProcessEnvironment : IProcessEnvironment
         }
 
         // Clear
-        this.LogInstance.Dispose();
-        this.ResultInstance.Dispose();
         this.Root = Group.Empty;
+        await this.product.Context.ServiceProvider.GetRequiredService<LogUnit>().Flush().ConfigureAwait(false);
         return true;
     }
+
+    public void Dispose()
+    {
+        if (this.disposed)
+        {
+            return;
+        }
+
+        this.disposed = true;
+        (this.product.Context.ServiceProvider as IDisposable)?.Dispose();
+    }
+
+    private readonly Group rootGroup;
+    private readonly UnitProduct product;
+    private readonly List<(LogLevel Level, Element? Element, string Message)> pendingMessages = new();
+    private readonly LoggerSettings logSettings = new(ProcessLogOutput.Console, ProcessLogFormat.Log, ".log");
+    private readonly LoggerSettings resultSettings = new(ProcessLogOutput.None, ProcessLogFormat.Message, ".txt");
+    private bool disposed;
 
     private Utf8Hashtable<Action<Element>> identifierTable = new Utf8Hashtable<Action<Element>>();
 
     private IProcessCore currentCore;
+
+    private sealed class LoggerSettings
+    {
+        public LoggerSettings(ProcessLogOutput output, ProcessLogFormat format, string defaultExtension)
+        {
+            this.Output = output;
+            this.Format = format;
+            this.DefaultExtension = defaultExtension;
+        }
+
+        public ProcessLogOutput Output { get; set; }
+
+        public ProcessLogFormat Format { get; set; }
+
+        public string DefaultExtension { get; }
+
+        public string Path { get; set; } = string.Empty;
+    }
+
+    #region Configuration
+
+    /// <summary>
+    /// Reads the folder and the logger directives before the unit (and therefore the log outputs) is built.
+    /// </summary>
+    private void PreConfigure()
+    {
+        var isProcessMode = false;
+        foreach (var x in this.rootGroup)
+        {
+            if (!x.TryGetLeft_IdentifierUtf8(out var identifier))
+            {
+                continue;
+            }
+
+            if (identifier.SequenceEqual(ModeIdentifier))
+            {
+                isProcessMode = x.TryGetRight_Value_String(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString);
+                continue;
+            }
+
+            if (!isProcessMode)
+            {
+                continue;
+            }
+
+            if (identifier.SequenceEqual(RootIdentifier))
+            {
+                this.IdentifierTable_root(x);
+            }
+            else if (identifier.SequenceEqual(SourceIdentifier))
+            {
+                this.IdentifierTable_source(x);
+            }
+            else if (identifier.SequenceEqual(DestinationIdentifier))
+            {
+                this.IdentifierTable_destination(x);
+            }
+            else if (identifier.SequenceEqual(LogIdentifier))
+            {
+                this.ReadLoggerSettings(x, this.logSettings);
+            }
+            else if (identifier.SequenceEqual(ResultIdentifier))
+            {
+                this.ReadLoggerSettings(x, this.resultSettings);
+            }
+        }
+    }
+
+    private UnitProduct BuildUnit()
+    {
+        var builder = new UnitBuilder()
+            .PreConfigure(context =>
+            {
+                context.SetOptions(new FileLoggerOptions
+                {
+                    Path = this.logSettings.Path,
+                    ClearLogsAtStartup = true,
+                    FormatterOptions = CreateFormatterOptions(this.logSettings.Format, enableColor: false),
+                });
+
+                context.SetOptions(new ResultFileLoggerOptions
+                {
+                    Path = this.resultSettings.Path,
+                    ClearLogsAtStartup = true,
+                    FormatterOptions = CreateFormatterOptions(this.resultSettings.Format, enableColor: false),
+                });
+
+                context.SetOptions(new ConsoleLoggerOptions
+                {
+                    FormatterOptions = CreateFormatterOptions(this.logSettings.Format, enableColor: true),
+                });
+            })
+            .Configure(context =>
+            {
+                context.AddSingleton<FileLogger<ResultFileLoggerOptions>>();
+                context.AddSingleton<ConsoleAndResultFileLogger>();
+                context.AddLoggerResolver(x =>
+                {
+                    if (x.LogSourceType == typeof(ResultLog))
+                    {
+                        SetOutput(x, this.resultSettings.Output, result: true);
+                    }
+                    else
+                    {
+                        SetOutput(x, this.logSettings.Output, result: false);
+                    }
+                });
+            });
+
+        return builder.Build();
+    }
+
+    private static void SetOutput(LoggerResolverContext context, ProcessLogOutput output, bool result)
+    {
+        switch (output)
+        {
+            case ProcessLogOutput.Console:
+                context.SetOutput<ConsoleLogger>();
+                break;
+
+            case ProcessLogOutput.File:
+                if (result)
+                {
+                    context.SetOutput<FileLogger<ResultFileLoggerOptions>>();
+                }
+                else
+                {
+                    context.SetOutput<FileLogger<FileLoggerOptions>>();
+                }
+
+                break;
+
+            case ProcessLogOutput.ConsoleAndFile:
+                if (result)
+                {
+                    context.SetOutput<ConsoleAndResultFileLogger>();
+                }
+                else
+                {
+                    context.SetOutput<ConsoleAndFileLogger>();
+                }
+
+                break;
+
+            default:
+                context.SetOutput<EmptyLogger>();
+                break;
+        }
+    }
+
+    private static SimpleLogFormatterOptions CreateFormatterOptions(ProcessLogFormat format, bool enableColor)
+        => format == ProcessLogFormat.Message ?
+            new SimpleLogFormatterOptions(enableColor) { TimestampFormat = null, } : // Omit the timestamp.
+            new SimpleLogFormatterOptions(enableColor);
+
+    #endregion
+
+    private void QueueMessage(LogLevel level, Element? element, string message)
+        => this.pendingMessages.Add((level, element, message));
 
     private void IdentifierTable_process(Element element)
     { // "process"
@@ -289,7 +518,7 @@ public class ProcessEnvironment : IProcessEnvironment
             }
             else
             { // Cannot find matched ProcessCore.
-                this.Log.Fatal(valueString, $"Process name \"{valueString.Utf16}\" is unknown.");
+                this.Fatal(valueString, $"Process name \"{valueString.Utf16}\" is unknown.");
             }
         }
     }
@@ -304,7 +533,7 @@ public class ProcessEnvironment : IProcessEnvironment
             }
             else
             {
-                this.Log.Error(element, "root must be a rooted (absolute) path.");
+                this.QueueMessage(LogLevel.Error, element, "root must be a rooted (absolute) path.");
             }
         }
     }
@@ -339,51 +568,30 @@ public class ProcessEnvironment : IProcessEnvironment
         }
     }
 
-    private void IdentifierTable_log(Element element)
-    {// "log"
-        var logger = this.LogInstance;
-        this.IdentifierTable_set_logger(element, ref logger, ".log", LogFormat.Log);
-        if (this.LogInstance != logger)
-        {
-            Console.WriteLine($"Switched from {this.LogInstance.GetLoggerInformation()} to {logger.GetLoggerInformation()}");
-            this.LogInstance.Dispose();
-            this.LogInstance = logger;
-        }
+    private void IdentifierTable_logger(Element element)
+    {// "log" and "result": already applied by PreConfigure().
     }
 
-    private void IdentifierTable_result(Element element)
-    {// "result"
-        var logger = this.ResultInstance;
-        this.IdentifierTable_set_logger(element, ref logger, ".txt", LogFormat.Message);
-        if (this.ResultInstance != logger)
-        {
-            this.ResultInstance.Dispose();
-            this.ResultInstance = logger;
-        }
-    }
-
-    private void IdentifierTable_set_logger(Element element, ref Logger logger, string defaultExtension, LogFormat format)
-    { // Set logger.
+    private void ReadLoggerSettings(Element element, LoggerSettings settings)
+    { // Read the logger settings.
         Value_String? stringValue;
         if (!element.TryGetRightGroup_Value_String(null, out stringValue))
         {
             return;
         }
 
-        Logger? newlogger = null;
-
         if (stringValue.Utf16 == "console")
         { // Console logger
-            newlogger = new ConsoleLogger(this);
+            settings.Output = ProcessLogOutput.Console;
         }
         else if (stringValue.Utf16 == "file")
         { // File logger
             string path = string.Empty;
-            bool consoleFlag = false;
+            var consoleFlag = false;
 
-            if (element.TryGetRightGroup_Value_String("path", out stringValue))
+            if (element.TryGetRightGroup_Value_String("path", out var pathValue))
             {
-                path = stringValue.Utf16;
+                path = pathValue.Utf16;
                 if (!Path.IsPathRooted(path))
                 {
                     path = Path.Combine(this.GetPath(PathType.RootFolder), path);
@@ -391,7 +599,7 @@ public class ProcessEnvironment : IProcessEnvironment
 
                 if (!Path.HasExtension(path))
                 {
-                    path = path + defaultExtension;
+                    path = path + settings.DefaultExtension;
                 }
             }
 
@@ -403,53 +611,36 @@ public class ProcessEnvironment : IProcessEnvironment
             if (path == string.Empty)
             {
                 var tinyhandFile = this.GetPath(PathType.TinyhandFile);
-                if (tinyhandFile != null)
+                if (!string.IsNullOrEmpty(tinyhandFile))
                 {
-                    path = Path.ChangeExtension(tinyhandFile, defaultExtension);
+                    path = Path.ChangeExtension(tinyhandFile, settings.DefaultExtension);
                 }
             }
 
-            if (path == null || path == string.Empty)
+            if (string.IsNullOrEmpty(path))
             {
-                path = Path.Combine(this.GetPath(PathType.RootFolder), "process" + defaultExtension);
+                path = Path.Combine(this.GetPath(PathType.RootFolder), "process" + settings.DefaultExtension);
             }
 
-            if (path == null || path == string.Empty)
-            {
-                this.Log.Error(stringValue, "File logger could not get the file path.");
-                return;
-            }
-
-            try
-            {
-                newlogger = new FileLogger(this, path, console: consoleFlag);
-            }
-            catch
-            {
-                this.Log.Error(stringValue, $"File logger could not open the file ({path}).");
-            }
+            settings.Path = path;
+            settings.Output = consoleFlag ? ProcessLogOutput.ConsoleAndFile : ProcessLogOutput.File;
         }
         else if (stringValue.Utf16 == string.Empty)
-        { // Null logger.
-            newlogger = new NullLogger(this);
+        { // No output.
+            settings.Output = ProcessLogOutput.None;
         }
         else
         {
-            this.Log.Error(stringValue, $"Logger type \"{stringValue.Utf16}\" is not registered.");
+            this.QueueMessage(LogLevel.Error, stringValue, $"Logger type \"{stringValue.Utf16}\" is not registered.");
+            return;
         }
 
-        if (newlogger != null)
+        if (element.TryGetRightGroup_Value_String("format", out var formatValue))
         {
-            if (element.TryGetRightGroup_Value_String("format", out var formatValue))
+            if (Enum.TryParse<ProcessLogFormat>(formatValue.Utf16, out var f))
             {
-                if (Enum.TryParse<LogFormat>(formatValue.Utf16, out var f))
-                {
-                    format = f;
-                }
+                settings.Format = f;
             }
-
-            newlogger.SetLogFormat(format);
-            logger = newlogger;
         }
     }
 
@@ -500,14 +691,16 @@ public class ProcessEnvironment : IProcessEnvironment
     }
 }
 
-#pragma warning disable SA1204 // Static elements should appear before instance elements
 public static class TinyhandProcess
-#pragma warning restore SA1204 // Static elements should appear before instance elements
 {
     public static async Task<bool> Process(Element element, string? tinyhandFile)
     {
-        var environment = new ProcessEnvironment(tinyhandFile);
+        if (element is not Group group)
+        {
+            return false;
+        }
 
-        return await environment.Process(element);
+        using var environment = new ProcessEnvironment(group, tinyhandFile);
+        return await environment.Process();
     }
 }

@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Tinyhand\Tinyhand.csproj" />
+    <ProjectReference Include="..\TinyhandProcessor\TinyhandProcessor.csproj" />
   </ItemGroup>
 
 </Project>

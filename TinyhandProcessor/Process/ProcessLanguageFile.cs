@@ -38,7 +38,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
             }
             else
             {
-                this.Environment.Log.Fatal(value, "reference value is invalid.");
+                this.Environment.Fatal(value, "reference value is invalid.");
                 return false;
             }
         }
@@ -61,7 +61,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         var referencePath = Path.Combine(this.Environment.GetPath(PathType.SourceFolder), valueString.Utf16);
         if (!File.Exists(referencePath))
         {
-            this.Environment.Log.Fatal(valueString, $"Reference file ({referencePath}) does not exist.");
+            this.Environment.Fatal(valueString, $"Reference file ({referencePath}) does not exist.");
         }
 
         try
@@ -70,8 +70,8 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         }
         catch (Exception e)
         {
-            this.Environment.Log.Fatal(valueString, $"Could not parse the reference file ({referencePath}).");
-            this.Environment.Log.Fatal(null, e.Message);
+            this.Environment.Fatal(valueString, $"Could not parse the reference file ({referencePath}).");
+            this.Environment.Fatal(null, e.Message);
         }
 
         return true;
