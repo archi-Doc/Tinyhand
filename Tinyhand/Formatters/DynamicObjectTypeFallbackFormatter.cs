@@ -15,7 +15,7 @@ namespace Tinyhand.Formatters;
 /// for which another resolver can provide a formatter for the runtime type.
 /// Its deserialization is limited to forwarding all calls to the <see cref="PrimitiveObjectFormatter"/>.
 /// </summary>
-public sealed class DynamicObjectTypeFallbackFormatter : ITinyhandFormatter<object>
+internal sealed class DynamicObjectTypeFallbackFormatter : ITinyhandFormatter<object>
 {
     public static readonly ITinyhandFormatter<object> Instance = new DynamicObjectTypeFallbackFormatter();
 

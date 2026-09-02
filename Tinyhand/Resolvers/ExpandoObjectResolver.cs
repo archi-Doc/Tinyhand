@@ -14,7 +14,7 @@ namespace Tinyhand.Resolvers;
 /// such that strong-types can be instantiated.
 /// Instead, <see cref="ExpandoObject"/> is used wherever a MessagePack <em>map</em> is encountered.
 /// </summary>
-public static class ExpandoObjectResolver
+internal static class ExpandoObjectResolver
 {
     /// <summary>
     /// The resolver to use to deserialize into C#'s <c>dynamic</c> keyword.

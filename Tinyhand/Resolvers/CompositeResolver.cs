@@ -13,7 +13,7 @@ namespace Tinyhand.Resolvers;
 /// <remarks>
 /// This class is not thread-safe for mutations. It is thread-safe when not being written to.
 /// </remarks>
-public static class CompositeResolver
+internal static class CompositeResolver
 {
     private static readonly ReadOnlyDictionary<Type, ITinyhandFormatter> EmptyFormattersByType = new ReadOnlyDictionary<Type, ITinyhandFormatter>(new Dictionary<Type, ITinyhandFormatter>());
 

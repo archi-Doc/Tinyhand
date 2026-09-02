@@ -9,7 +9,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class GenericEnumFormatter<T> : ITinyhandFormatter<T>
+internal sealed class GenericEnumFormatter<T> : ITinyhandFormatter<T>
     where T : Enum
 {
     private delegate void EnumSerialize(ref TinyhandWriter writer, scoped ref T value);

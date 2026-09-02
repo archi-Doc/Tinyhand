@@ -8,7 +8,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public class ExpandoObjectFormatter : ITinyhandFormatter<ExpandoObject>
+internal class ExpandoObjectFormatter : ITinyhandFormatter<ExpandoObject>
 {
     public static readonly ITinyhandFormatter<ExpandoObject> Instance = new ExpandoObjectFormatter();
 

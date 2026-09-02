@@ -11,7 +11,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class TupleFormatter<T1> : ITinyhandFormatter<Tuple<T1>>
+internal sealed class TupleFormatter<T1> : ITinyhandFormatter<Tuple<T1>>
 {
     public void Serialize(ref TinyhandWriter writer, Tuple<T1>? value, TinyhandSerializerOptions options)
     {
@@ -71,7 +71,7 @@ public sealed class TupleFormatter<T1> : ITinyhandFormatter<Tuple<T1>>
     }
 }
 
-public sealed class TupleFormatter<T1, T2> : ITinyhandFormatter<Tuple<T1, T2>>
+internal sealed class TupleFormatter<T1, T2> : ITinyhandFormatter<Tuple<T1, T2>>
 {
     public void Serialize(ref TinyhandWriter writer, Tuple<T1, T2>? value, TinyhandSerializerOptions options)
     {
@@ -134,7 +134,7 @@ public sealed class TupleFormatter<T1, T2> : ITinyhandFormatter<Tuple<T1, T2>>
     }
 }
 
-public sealed class TupleFormatter<T1, T2, T3> : ITinyhandFormatter<Tuple<T1, T2, T3>>
+internal sealed class TupleFormatter<T1, T2, T3> : ITinyhandFormatter<Tuple<T1, T2, T3>>
 {
     public void Serialize(ref TinyhandWriter writer, Tuple<T1, T2, T3>? value, TinyhandSerializerOptions options)
     {
@@ -200,7 +200,7 @@ public sealed class TupleFormatter<T1, T2, T3> : ITinyhandFormatter<Tuple<T1, T2
     }
 }
 
-public sealed class TupleFormatter<T1, T2, T3, T4> : ITinyhandFormatter<Tuple<T1, T2, T3, T4>>
+internal sealed class TupleFormatter<T1, T2, T3, T4> : ITinyhandFormatter<Tuple<T1, T2, T3, T4>>
 {
     public void Serialize(ref TinyhandWriter writer, Tuple<T1, T2, T3, T4>? value, TinyhandSerializerOptions options)
     {
@@ -269,7 +269,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4> : ITinyhandFormatter<Tuple<T1
     }
 }
 
-public sealed class TupleFormatter<T1, T2, T3, T4, T5> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5>>
+internal sealed class TupleFormatter<T1, T2, T3, T4, T5> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5>>
 {
     public void Serialize(ref TinyhandWriter writer, Tuple<T1, T2, T3, T4, T5>? value, TinyhandSerializerOptions options)
     {
@@ -341,7 +341,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5> : ITinyhandFormatter<Tupl
     }
 }
 
-public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5, T6>>
+internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5, T6>>
 {
     public void Serialize(ref TinyhandWriter writer, Tuple<T1, T2, T3, T4, T5, T6>? value, TinyhandSerializerOptions options)
     {
@@ -416,7 +416,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : ITinyhandFormatter<
     }
 }
 
-public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5, T6, T7>>
+internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5, T6, T7>>
 {
     public void Serialize(ref TinyhandWriter writer, Tuple<T1, T2, T3, T4, T5, T6, T7>? value, TinyhandSerializerOptions options)
     {
@@ -494,7 +494,7 @@ public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : ITinyhandFormat
     }
 }
 
-public sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>>
+internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : ITinyhandFormatter<Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>>
     where TRest : notnull
 {
     public void Serialize(ref TinyhandWriter writer, Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? value, TinyhandSerializerOptions options)

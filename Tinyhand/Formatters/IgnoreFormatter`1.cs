@@ -6,7 +6,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class IgnoreFormatter<T> : ITinyhandFormatter<T>
+internal sealed class IgnoreFormatter<T> : ITinyhandFormatter<T>
 {
     public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
     {

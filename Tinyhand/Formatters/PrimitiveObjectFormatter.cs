@@ -10,7 +10,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
+internal class PrimitiveObjectFormatter : ITinyhandFormatter<object>
 {
     public static readonly ITinyhandFormatter<object> Instance = new PrimitiveObjectFormatter();
 

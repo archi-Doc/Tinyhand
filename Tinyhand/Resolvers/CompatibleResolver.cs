@@ -8,7 +8,7 @@ namespace Tinyhand.Resolvers;
 /// <summary>
 /// Compatible composited resolver.
 /// </summary>
-public sealed class CompatibleResolver : IFormatterResolver
+internal sealed class CompatibleResolver : IFormatterResolver
 {
     /// <summary>
     /// The singleton instance that can be used.

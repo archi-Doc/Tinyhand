@@ -9,7 +9,7 @@ namespace Tinyhand.Resolvers;
 /// <summary>
 /// Default composited resolver.
 /// </summary>
-public sealed class StandardResolver : IFormatterResolver
+internal sealed class StandardResolver : IFormatterResolver
 {
     /// <summary>
     /// The singleton instance that can be used.

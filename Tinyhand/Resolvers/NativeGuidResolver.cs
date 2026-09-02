@@ -5,7 +5,7 @@ using Tinyhand.Formatters;
 
 namespace Tinyhand.Resolvers;
 
-public sealed class NativeGuidResolver : IFormatterResolver
+internal sealed class NativeGuidResolver : IFormatterResolver
 {
     /// <summary>
     /// The singleton instance that can be used.

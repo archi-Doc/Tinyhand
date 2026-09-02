@@ -38,7 +38,7 @@ using Tinyhand.IO;
 namespace Tinyhand.Formatters;
 <# foreach(var t in allTypes) {  #>
 
-public sealed class <#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>>
+internal sealed class <#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>>
 {
     public static readonly <#= t.Name #>Formatter Instance = new ();
 
@@ -61,7 +61,7 @@ public sealed class <#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>>
     public <#= t.Simple #> Clone(<#= t.Simple #> value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class Nullable<#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>?>
+internal sealed class Nullable<#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #>?>
 {
     public static readonly Nullable<#= t.Name #>Formatter Instance = new ();
 
@@ -98,7 +98,7 @@ public sealed class Nullable<#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Si
 }
 <# if(t.Name != "UInt8") { #>
 
-public sealed class <#= t.Name #>ArrayFormatter : ITinyhandFormatter<<#= t.Simple #>[]>
+internal sealed class <#= t.Name #>ArrayFormatter : ITinyhandFormatter<<#= t.Simple #>[]>
 {
     public static readonly <#= t.Name #>ArrayFormatter Instance = new ();
 
@@ -127,7 +127,7 @@ public sealed class <#= t.Name #>ArrayFormatter : ITinyhandFormatter<<#= t.Simpl
     }
 }
 
-public sealed class <#= t.Name #>ListFormatter : ITinyhandFormatter<List<<#= t.Simple #>>>
+internal sealed class <#= t.Name #>ListFormatter : ITinyhandFormatter<List<<#= t.Simple #>>>
 {
     public static readonly <#= t.Name #>ListFormatter Instance = new ();
 

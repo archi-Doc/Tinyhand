@@ -4,7 +4,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class NullableFormatter<T> : ITinyhandFormatter<T?>
+internal sealed class NullableFormatter<T> : ITinyhandFormatter<T?>
     where T : struct
 {
     public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
@@ -39,7 +39,7 @@ public sealed class NullableFormatter<T> : ITinyhandFormatter<T?>
     public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : options.Resolver.GetFormatter<T>().Clone(value.Value, options);
 }
 
-public sealed class StaticNullableFormatter<T> : ITinyhandFormatter<T?>
+internal sealed class StaticNullableFormatter<T> : ITinyhandFormatter<T?>
     where T : struct
 {
     private readonly ITinyhandFormatter<T> underlyingFormatter;

@@ -9,7 +9,7 @@ namespace Tinyhand.Resolvers;
 /// <summary>
 /// Template code for resolver.
 /// </summary>
-public sealed class TemplateResolver : IFormatterResolver
+internal sealed class TemplateResolver : IFormatterResolver
 {
     /// <summary>
     /// The singleton instance that can be used.

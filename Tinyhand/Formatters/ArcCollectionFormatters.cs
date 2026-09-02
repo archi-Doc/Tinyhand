@@ -10,7 +10,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<OrderedMap<TKey, TValue>>
+internal sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<OrderedMap<TKey, TValue>>
 {
     public OrderedMapFormatter()
     {
@@ -98,7 +98,7 @@ public sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<Order
     }
 }
 
-public sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
+internal sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
 {
     public OrderedSetFormatter()
     {
@@ -180,7 +180,7 @@ public sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
     }
 }
 
-public sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatter<OrderedMultiMap<TKey, TValue>>
+internal sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatter<OrderedMultiMap<TKey, TValue>>
 {
     public OrderedMultiMapFormatter()
     {
@@ -274,7 +274,7 @@ public sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatter<
     }
 }
 
-public sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMultiSet<T>>
+internal sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMultiSet<T>>
 {
     public OrderedMultiSetFormatter()
     {
@@ -356,7 +356,7 @@ public sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMult
     }
 }
 
-public sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<UnorderedMap<TKey, TValue>>
+internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<UnorderedMap<TKey, TValue>>
 {
     public UnorderedMapFormatter()
     {
@@ -450,7 +450,7 @@ public sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<Uno
     }
 }
 
-public sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet<T>>
+internal sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet<T>>
 {
     public UnorderedSetFormatter()
     {
@@ -532,7 +532,7 @@ public sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet<T
     }
 }
 
-public sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T>>
+internal sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T>>
 {
     public void Serialize(ref TinyhandWriter writer, OrderedList<T>? value, TinyhandSerializerOptions options)
     {
@@ -606,7 +606,7 @@ public sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T>>
     }
 }
 
-public sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedList<T>>
+internal sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedList<T>>
 {
     public void Serialize(ref TinyhandWriter writer, UnorderedList<T>? value, TinyhandSerializerOptions options)
     {
@@ -680,7 +680,7 @@ public sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedList
     }
 }
 
-public sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<UnorderedLinkedList<T>>
+internal sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<UnorderedLinkedList<T>>
 {
     public void Serialize(ref TinyhandWriter writer, UnorderedLinkedList<T>? value, TinyhandSerializerOptions options)
     {
@@ -754,7 +754,7 @@ public sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unorder
     }
 }
 
-public sealed class OrderedKeyValueListFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, OrderedKeyValueList<TKey, TValue>, OrderedKeyValueList<TKey, TValue>.Enumerator, OrderedKeyValueList<TKey, TValue>>
+internal sealed class OrderedKeyValueListFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, OrderedKeyValueList<TKey, TValue>, OrderedKeyValueList<TKey, TValue>.Enumerator, OrderedKeyValueList<TKey, TValue>>
     where TKey : notnull
 {
     protected override void Add(OrderedKeyValueList<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)

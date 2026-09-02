@@ -8,7 +8,7 @@ namespace Tinyhand.Formatters;
 
 /* multi dimensional array serialize to [i, j, [seq]] */
 
-public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
+internal sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
 {
     private const int ArrayLength = 3;
 
@@ -125,7 +125,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
     }
 }
 
-public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]>
+internal sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]>
 {
     private const int ArrayLength = 4;
 
@@ -260,7 +260,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
     }
 }
 
-public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]>
+internal sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]>
 {
     private const int ArrayLength = 5;
 

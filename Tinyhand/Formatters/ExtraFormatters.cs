@@ -77,7 +77,7 @@ public sealed class Struct256Formatter : ITinyhandFormatter<Struct256>
 /// <summary>
 /// BytePool.RentMemory formatter.
 /// </summary>
-public sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemory>
+internal sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemory>
 {
     public static readonly RentMemoryFormatter Instance = new();
 
@@ -111,7 +111,7 @@ public sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemory
 /// <summary>
 /// BytePool.RentReadOnlyMemory formatter.
 /// </summary>
-public sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.RentReadOnlyMemory>
+internal sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.RentReadOnlyMemory>
 {
     public static readonly RentReadOnlyMemoryFormatter Instance = new();
 
@@ -145,7 +145,7 @@ public sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.Re
 /// <summary>
 /// Serialize IPAddress.
 /// </summary>
-public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
+internal sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
 {
     public static readonly IPAddressFormatter Instance = new IPAddressFormatter();
 
@@ -192,7 +192,7 @@ public sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
 /// <summary>
 /// Serialize IPEndPoint.
 /// </summary>
-public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
+internal sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
 {
     public static readonly IPEndPointFormatter Instance = new IPEndPointFormatter();
 

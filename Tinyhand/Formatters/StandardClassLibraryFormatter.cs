@@ -12,7 +12,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class DecimalFormatter : ITinyhandFormatter<decimal>
+internal sealed class DecimalFormatter : ITinyhandFormatter<decimal>
 {
     public static readonly DecimalFormatter Instance = new DecimalFormatter();
 
@@ -59,7 +59,7 @@ public sealed class DecimalFormatter : ITinyhandFormatter<decimal>
     public decimal Clone(decimal value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class TimeSpanFormatter : ITinyhandFormatter<TimeSpan>
+internal sealed class TimeSpanFormatter : ITinyhandFormatter<TimeSpan>
 {
     public static readonly ITinyhandFormatter<TimeSpan> Instance = new TimeSpanFormatter();
 
@@ -86,7 +86,7 @@ public sealed class TimeSpanFormatter : ITinyhandFormatter<TimeSpan>
     public TimeSpan Clone(TimeSpan value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffset>
+internal sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffset>
 {
     public static readonly ITinyhandFormatter<DateTimeOffset> Instance = new DateTimeOffsetFormatter();
 
@@ -124,7 +124,7 @@ public sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffset>
     public DateTimeOffset Clone(DateTimeOffset value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class GuidFormatter : ITinyhandFormatter<Guid>
+internal sealed class GuidFormatter : ITinyhandFormatter<Guid>
 {
     public static readonly ITinyhandFormatter<Guid> Instance = new GuidFormatter();
 
@@ -160,7 +160,7 @@ public sealed class GuidFormatter : ITinyhandFormatter<Guid>
     public Guid Clone(Guid value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class UriFormatter : ITinyhandFormatter<Uri>
+internal sealed class UriFormatter : ITinyhandFormatter<Uri>
 {
     public static readonly ITinyhandFormatter<Uri> Instance = new UriFormatter();
 
@@ -199,7 +199,7 @@ public sealed class UriFormatter : ITinyhandFormatter<Uri>
     public Uri? Clone(Uri? value, TinyhandSerializerOptions options) => value == null ? null : new Uri(value.OriginalString);
 }
 
-public sealed class VersionFormatter : ITinyhandFormatter<Version>
+internal sealed class VersionFormatter : ITinyhandFormatter<Version>
 {
     public static readonly ITinyhandFormatter<Version> Instance = new VersionFormatter();
 
@@ -238,7 +238,7 @@ public sealed class VersionFormatter : ITinyhandFormatter<Version>
     public Version? Clone(Version? value, TinyhandSerializerOptions options) => value == null ? null : new Version(value.ToString());
 }
 
-public sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<KeyValuePair<TKey, TValue>>
+internal sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<KeyValuePair<TKey, TValue>>
 {
     public void Serialize(ref TinyhandWriter writer, KeyValuePair<TKey, TValue> value, TinyhandSerializerOptions options)
     {
@@ -283,7 +283,7 @@ public sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<Key
     }
 }
 
-public sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<KeyValueList<TKey, TValue>>
+internal sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<KeyValueList<TKey, TValue>>
 {
     public void Serialize(ref TinyhandWriter writer, KeyValueList<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
@@ -364,7 +364,7 @@ public sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<Key
     }
 }
 
-public sealed class StringBuilderFormatter : ITinyhandFormatter<StringBuilder>
+internal sealed class StringBuilderFormatter : ITinyhandFormatter<StringBuilder>
 {
     public static readonly ITinyhandFormatter<StringBuilder> Instance = new StringBuilderFormatter();
 
@@ -400,7 +400,7 @@ public sealed class StringBuilderFormatter : ITinyhandFormatter<StringBuilder>
     public StringBuilder? Clone(StringBuilder? value, TinyhandSerializerOptions options) => value == null ? null : new StringBuilder(value.ToString());
 }
 
-public sealed class BitArrayFormatter : ITinyhandFormatter<BitArray>
+internal sealed class BitArrayFormatter : ITinyhandFormatter<BitArray>
 {
     public static readonly ITinyhandFormatter<BitArray> Instance = new BitArrayFormatter();
 
@@ -449,7 +449,7 @@ public sealed class BitArrayFormatter : ITinyhandFormatter<BitArray>
     public BitArray? Clone(BitArray? value, TinyhandSerializerOptions options) => value == null ? null : new BitArray(value);
 }
 
-public sealed class BigIntegerFormatter : ITinyhandFormatter<System.Numerics.BigInteger>
+internal sealed class BigIntegerFormatter : ITinyhandFormatter<System.Numerics.BigInteger>
 {
     public static readonly ITinyhandFormatter<System.Numerics.BigInteger> Instance = new BigIntegerFormatter();
 
@@ -477,7 +477,7 @@ public sealed class BigIntegerFormatter : ITinyhandFormatter<System.Numerics.Big
     public System.Numerics.BigInteger Clone(System.Numerics.BigInteger value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class ComplexFormatter : ITinyhandFormatter<System.Numerics.Complex>
+internal sealed class ComplexFormatter : ITinyhandFormatter<System.Numerics.Complex>
 {
     public static readonly ITinyhandFormatter<System.Numerics.Complex> Instance = new ComplexFormatter();
 
@@ -515,7 +515,7 @@ public sealed class ComplexFormatter : ITinyhandFormatter<System.Numerics.Comple
     public System.Numerics.Complex Clone(System.Numerics.Complex value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class LazyFormatter<T> : ITinyhandFormatter<Lazy<T>>
+internal sealed class LazyFormatter<T> : ITinyhandFormatter<Lazy<T>>
 {
     public void Serialize(ref TinyhandWriter writer, Lazy<T>? value, TinyhandSerializerOptions options)
     {
@@ -568,7 +568,7 @@ public sealed class LazyFormatter<T> : ITinyhandFormatter<Lazy<T>>
 /// Serializes any instance of <see cref="Type"/> by its <see cref="Type.AssemblyQualifiedName"/> value.
 /// </summary>
 /// <typeparam name="T">The <see cref="Type"/> class itself or a derived type.</typeparam>
-public sealed class TypeFormatter<T> : ITinyhandFormatter<T>
+internal sealed class TypeFormatter<T> : ITinyhandFormatter<T>
     where T : Type
 {
     public static readonly ITinyhandFormatter<T> Instance = new TypeFormatter<T>();

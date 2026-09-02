@@ -5,7 +5,7 @@ using Tinyhand.Formatters;
 
 namespace Tinyhand.Resolvers;
 
-public sealed class NativeDecimalResolver : IFormatterResolver
+internal sealed class NativeDecimalResolver : IFormatterResolver
 {
     /// <summary>
     /// The singleton instance that can be used.

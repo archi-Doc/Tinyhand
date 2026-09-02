@@ -136,7 +136,7 @@ public partial class CustomIntClass : ITinyhandSerializable<CustomIntClass>
         finally { reader.Depth--; }
     }
 
-    public static ulong GetTypeIdentifier() => FarmHash.Hash64(typeof(CustomIntClass).FullName ?? string.Empty);
+    public static ulong GetTypeIdentifier() => Arc.Crypto.FarmHash.Hash64(typeof(CustomIntClass).FullName ?? string.Empty);
 }
 
 [TinyhandObject(ImplicitMemberNameAsKey = true)]

@@ -14,7 +14,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hashtable<T>>
+internal sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hashtable<T>>
 {
     public void Serialize(ref TinyhandWriter writer, Utf16Hashtable<T>? value, TinyhandSerializerOptions options)
     {
@@ -87,7 +87,7 @@ public sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hashtab
     }
 }
 
-public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
+internal sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
 {
     public void Serialize(ref TinyhandWriter writer, T[]? value, TinyhandSerializerOptions options)
     {
@@ -161,7 +161,7 @@ public sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
     }
 }
 
-public sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
+internal sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
 {
     public static readonly ByteMemoryFormatter Instance = new();
 
@@ -188,7 +188,7 @@ public sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
         => new Memory<byte>(value.ToArray());
 }
 
-public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMemory<byte>>
+internal sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMemory<byte>>
 {
     public static readonly ByteReadOnlyMemoryFormatter Instance = new ByteReadOnlyMemoryFormatter();
 
@@ -215,7 +215,7 @@ public sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
         => new ReadOnlyMemory<byte>(value.ToArray());
 }
 
-public sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
+internal sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
 {
     public static readonly CharMemoryFormatter Instance = new();
 
@@ -262,7 +262,7 @@ public sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
         => new Memory<char>(value.ToArray());
 }
 
-public sealed class CharReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMemory<char>>
+internal sealed class CharReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMemory<char>>
 {
     public static readonly CharReadOnlyMemoryFormatter Instance = new();
 
@@ -309,7 +309,7 @@ public sealed class CharReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyMem
         => new ReadOnlyMemory<char>(value.ToArray());
 }
 
-public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlySequence<byte>>
+internal sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlySequence<byte>>
 {
     public static readonly ByteReadOnlySequenceFormatter Instance = new ByteReadOnlySequenceFormatter();
 
@@ -339,7 +339,7 @@ public sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnlyS
     public ReadOnlySequence<byte> Clone(ReadOnlySequence<byte> value, TinyhandSerializerOptions options) => new ReadOnlySequence<byte>(value.ToArray());
 }
 
-public sealed class ByteArraySegmentFormatter : ITinyhandFormatter<ArraySegment<byte>>
+internal sealed class ByteArraySegmentFormatter : ITinyhandFormatter<ArraySegment<byte>>
 {
     public static readonly ByteArraySegmentFormatter Instance = new ByteArraySegmentFormatter();
 
@@ -372,7 +372,7 @@ public sealed class ByteArraySegmentFormatter : ITinyhandFormatter<ArraySegment<
     public ArraySegment<byte> Clone(ArraySegment<byte> value, TinyhandSerializerOptions options) => new ArraySegment<byte>(value.ToArray());
 }
 
-public sealed class MemoryFormatter<T> : ITinyhandFormatter<Memory<T>>
+internal sealed class MemoryFormatter<T> : ITinyhandFormatter<Memory<T>>
 {
     public void Serialize(ref TinyhandWriter writer, Memory<T> value, TinyhandSerializerOptions options)
     {
@@ -393,7 +393,7 @@ public sealed class MemoryFormatter<T> : ITinyhandFormatter<Memory<T>>
     public Memory<T> Clone(Memory<T> value, TinyhandSerializerOptions options) => options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
 }
 
-public sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemory<T>>
+internal sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemory<T>>
 {
     public void Serialize(ref TinyhandWriter writer, ReadOnlyMemory<T> value, TinyhandSerializerOptions options)
     {
@@ -421,7 +421,7 @@ public sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemo
     public ReadOnlyMemory<T> Clone(ReadOnlyMemory<T> value, TinyhandSerializerOptions options) => options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
 }
 
-public sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnlySequence<T>>
+internal sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnlySequence<T>>
 {
     public void Serialize(ref TinyhandWriter writer, ReadOnlySequence<T> value, TinyhandSerializerOptions options)
     {
@@ -451,7 +451,7 @@ public sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnlySe
     public ReadOnlySequence<T> Clone(ReadOnlySequence<T> value, TinyhandSerializerOptions options) => new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options) ?? Array.Empty<T>());
 }
 
-public sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment<T>>
+internal sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment<T>>
 {
     public void Serialize(ref TinyhandWriter writer, ArraySegment<T> value, TinyhandSerializerOptions options)
     {
@@ -491,7 +491,7 @@ public sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment<T
 }
 
 // List<T> is popular format, should avoid abstraction.
-public sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
+internal sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
 {
     public void Serialize(ref TinyhandWriter writer, List<T>? value, TinyhandSerializerOptions options)
     {
@@ -566,7 +566,7 @@ public sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
     }
 }
 
-public abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerator, TCollection> : ITinyhandFormatter<TCollection>
+internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerator, TCollection> : ITinyhandFormatter<TCollection>
     where TCollection : IEnumerable<TElement>
     where TEnumerator : IEnumerator<TElement>
 {
@@ -753,7 +753,7 @@ public abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumerat
     protected abstract TCollection Complete(TIntermediate intermediateCollection);
 }
 
-public abstract class CollectionFormatterBase<TElement, TIntermediate, TCollection> : CollectionFormatterBase<TElement, TIntermediate, IEnumerator<TElement>, TCollection>
+internal abstract class CollectionFormatterBase<TElement, TIntermediate, TCollection> : CollectionFormatterBase<TElement, TIntermediate, IEnumerator<TElement>, TCollection>
     where TCollection : IEnumerable<TElement>
 {
     protected override IEnumerator<TElement> GetSourceEnumerator(TCollection source)
@@ -762,7 +762,7 @@ public abstract class CollectionFormatterBase<TElement, TIntermediate, TCollecti
     }
 }
 
-public abstract class CollectionFormatterBase<TElement, TCollection> : CollectionFormatterBase<TElement, TCollection, TCollection>
+internal abstract class CollectionFormatterBase<TElement, TCollection> : CollectionFormatterBase<TElement, TCollection, TCollection>
     where TCollection : IEnumerable<TElement>
 {
     protected sealed override TCollection Complete(TCollection intermediateCollection)
@@ -771,7 +771,7 @@ public abstract class CollectionFormatterBase<TElement, TCollection> : Collectio
     }
 }
 
-public sealed class GenericCollectionFormatter<TElement, TCollection> : CollectionFormatterBase<TElement, TCollection>
+internal sealed class GenericCollectionFormatter<TElement, TCollection> : CollectionFormatterBase<TElement, TCollection>
      where TCollection : ICollection<TElement>, new()
 {
     protected override TCollection Create(int count, TinyhandSerializerOptions options)
@@ -785,7 +785,7 @@ public sealed class GenericCollectionFormatter<TElement, TCollection> : Collecti
     }
 }
 
-public sealed class LinkedListFormatter<T> : CollectionFormatterBase<T, LinkedList<T>, LinkedList<T>.Enumerator, LinkedList<T>>
+internal sealed class LinkedListFormatter<T> : CollectionFormatterBase<T, LinkedList<T>, LinkedList<T>.Enumerator, LinkedList<T>>
 {
     protected override void Add(LinkedList<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -808,7 +808,7 @@ public sealed class LinkedListFormatter<T> : CollectionFormatterBase<T, LinkedLi
     }
 }
 
-public sealed class QueueFormatter<T> : CollectionFormatterBase<T, Queue<T>, Queue<T>.Enumerator, Queue<T>>
+internal sealed class QueueFormatter<T> : CollectionFormatterBase<T, Queue<T>, Queue<T>.Enumerator, Queue<T>>
 {
     protected override int? GetCount(Queue<T> sequence)
     {
@@ -837,7 +837,7 @@ public sealed class QueueFormatter<T> : CollectionFormatterBase<T, Queue<T>, Que
 }
 
 // should deserialize reverse order.
-public sealed class StackFormatter<T> : CollectionFormatterBase<T, T[], Stack<T>.Enumerator, Stack<T>>
+internal sealed class StackFormatter<T> : CollectionFormatterBase<T, T[], Stack<T>.Enumerator, Stack<T>>
 {
     protected override int? GetCount(Stack<T> sequence)
     {
@@ -866,7 +866,7 @@ public sealed class StackFormatter<T> : CollectionFormatterBase<T, T[], Stack<T>
     }
 }
 
-public sealed class HashSetFormatter<T> : CollectionFormatterBase<T, HashSet<T>, HashSet<T>.Enumerator, HashSet<T>>
+internal sealed class HashSetFormatter<T> : CollectionFormatterBase<T, HashSet<T>, HashSet<T>.Enumerator, HashSet<T>>
 {
     protected override int? GetCount(HashSet<T> sequence)
     {
@@ -894,7 +894,7 @@ public sealed class HashSetFormatter<T> : CollectionFormatterBase<T, HashSet<T>,
     }
 }
 
-public sealed class ReadOnlyCollectionFormatter<T> : CollectionFormatterBase<T, T[], ReadOnlyCollection<T>>
+internal sealed class ReadOnlyCollectionFormatter<T> : CollectionFormatterBase<T, T[], ReadOnlyCollection<T>>
 {
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -913,7 +913,7 @@ public sealed class ReadOnlyCollectionFormatter<T> : CollectionFormatterBase<T, 
 }
 
 [Obsolete("Use " + nameof(InterfaceListFormatter2<int>) + " instead.")]
-public sealed class InterfaceListFormatter<T> : CollectionFormatterBase<T, T[], IList<T>>
+internal sealed class InterfaceListFormatter<T> : CollectionFormatterBase<T, T[], IList<T>>
 {
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -932,7 +932,7 @@ public sealed class InterfaceListFormatter<T> : CollectionFormatterBase<T, T[], 
 }
 
 [Obsolete("Use " + nameof(InterfaceCollectionFormatter2<int>) + " instead.")]
-public sealed class InterfaceCollectionFormatter<T> : CollectionFormatterBase<T, T[], ICollection<T>>
+internal sealed class InterfaceCollectionFormatter<T> : CollectionFormatterBase<T, T[], ICollection<T>>
 {
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -950,7 +950,7 @@ public sealed class InterfaceCollectionFormatter<T> : CollectionFormatterBase<T,
     }
 }
 
-public sealed class InterfaceListFormatter2<T> : CollectionFormatterBase<T, List<T>, IList<T>>
+internal sealed class InterfaceListFormatter2<T> : CollectionFormatterBase<T, List<T>, IList<T>>
 {
     protected override void Add(List<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -968,7 +968,7 @@ public sealed class InterfaceListFormatter2<T> : CollectionFormatterBase<T, List
     }
 }
 
-public sealed class InterfaceCollectionFormatter2<T> : CollectionFormatterBase<T, List<T>, ICollection<T>>
+internal sealed class InterfaceCollectionFormatter2<T> : CollectionFormatterBase<T, List<T>, ICollection<T>>
 {
     protected override void Add(List<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -986,7 +986,7 @@ public sealed class InterfaceCollectionFormatter2<T> : CollectionFormatterBase<T
     }
 }
 
-public sealed class InterfaceEnumerableFormatter<T> : CollectionFormatterBase<T, T[], IEnumerable<T>>
+internal sealed class InterfaceEnumerableFormatter<T> : CollectionFormatterBase<T, T[], IEnumerable<T>>
 {
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -1005,7 +1005,7 @@ public sealed class InterfaceEnumerableFormatter<T> : CollectionFormatterBase<T,
 }
 
 // [Key, [Array]]
-public sealed class InterfaceGroupingFormatter<TKey, TElement> : ITinyhandFormatter<IGrouping<TKey, TElement>>
+internal sealed class InterfaceGroupingFormatter<TKey, TElement> : ITinyhandFormatter<IGrouping<TKey, TElement>>
 {
     public void Serialize(ref TinyhandWriter writer, IGrouping<TKey, TElement>? value, TinyhandSerializerOptions options)
     {
@@ -1067,7 +1067,7 @@ public sealed class InterfaceGroupingFormatter<TKey, TElement> : ITinyhandFormat
     }
 }
 
-public sealed class InterfaceLookupFormatter<TKey, TElement> : CollectionFormatterBase<IGrouping<TKey, TElement>, Dictionary<TKey, IGrouping<TKey, TElement>>, ILookup<TKey, TElement>>
+internal sealed class InterfaceLookupFormatter<TKey, TElement> : CollectionFormatterBase<IGrouping<TKey, TElement>, Dictionary<TKey, IGrouping<TKey, TElement>>, ILookup<TKey, TElement>>
     where TKey : notnull
 {
     protected override void Add(Dictionary<TKey, IGrouping<TKey, TElement>> collection, int index, IGrouping<TKey, TElement> value, TinyhandSerializerOptions options)
@@ -1161,7 +1161,7 @@ internal class Lookup<TKey, TElement> : ILookup<TKey, TElement>
 /* NonGenerics */
 
 #pragma warning disable SA1202 // Elements should be ordered by access
-public sealed class NonGenericListFormatter<T> : ITinyhandFormatter<T>
+internal sealed class NonGenericListFormatter<T> : ITinyhandFormatter<T>
 #pragma warning restore SA1202 // Elements should be ordered by access
     where T : class, IList, new()
 {
@@ -1232,7 +1232,7 @@ public sealed class NonGenericListFormatter<T> : ITinyhandFormatter<T>
     }
 }
 
-public sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<ICollection>
+internal sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<ICollection>
 {
     public static readonly ITinyhandFormatter<ICollection> Instance = new NonGenericInterfaceCollectionFormatter();
 
@@ -1316,7 +1316,7 @@ public sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<
     }
 }
 
-public sealed class NonGenericInterfaceEnumerableFormatter : ITinyhandFormatter<IEnumerable>
+internal sealed class NonGenericInterfaceEnumerableFormatter : ITinyhandFormatter<IEnumerable>
 {
     public static readonly ITinyhandFormatter<IEnumerable> Instance = new NonGenericInterfaceEnumerableFormatter();
 
@@ -1420,7 +1420,7 @@ public sealed class NonGenericInterfaceEnumerableFormatter : ITinyhandFormatter<
     }
 }
 
-public sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
+internal sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
 {
     public static readonly ITinyhandFormatter<IList> Instance = new NonGenericInterfaceListFormatter();
 
@@ -1504,7 +1504,7 @@ public sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<IList>
     }
 }
 
-public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
+internal sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
     where T : class, IDictionary, new()
 {
     public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
@@ -1580,7 +1580,7 @@ public sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
     }
 }
 
-public sealed class NonGenericInterfaceDictionaryFormatter : ITinyhandFormatter<IDictionary>
+internal sealed class NonGenericInterfaceDictionaryFormatter : ITinyhandFormatter<IDictionary>
 {
     public static readonly ITinyhandFormatter<IDictionary> Instance = new NonGenericInterfaceDictionaryFormatter();
 
@@ -1661,7 +1661,7 @@ public sealed class NonGenericInterfaceDictionaryFormatter : ITinyhandFormatter<
     }
 }
 
-public sealed class ObservableCollectionFormatter<T> : CollectionFormatterBase<T, ObservableCollection<T>>
+internal sealed class ObservableCollectionFormatter<T> : CollectionFormatterBase<T, ObservableCollection<T>>
 {
     protected override void Add(ObservableCollection<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -1674,7 +1674,7 @@ public sealed class ObservableCollectionFormatter<T> : CollectionFormatterBase<T
     }
 }
 
-public sealed class ReadOnlyObservableCollectionFormatter<T> : CollectionFormatterBase<T, ObservableCollection<T>, ReadOnlyObservableCollection<T>>
+internal sealed class ReadOnlyObservableCollectionFormatter<T> : CollectionFormatterBase<T, ObservableCollection<T>, ReadOnlyObservableCollection<T>>
 {
     protected override void Add(ObservableCollection<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -1692,7 +1692,7 @@ public sealed class ReadOnlyObservableCollectionFormatter<T> : CollectionFormatt
     }
 }
 
-public sealed class InterfaceReadOnlyListFormatter<T> : CollectionFormatterBase<T, T[], IReadOnlyList<T>>
+internal sealed class InterfaceReadOnlyListFormatter<T> : CollectionFormatterBase<T, T[], IReadOnlyList<T>>
 {
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -1710,7 +1710,7 @@ public sealed class InterfaceReadOnlyListFormatter<T> : CollectionFormatterBase<
     }
 }
 
-public sealed class InterfaceReadOnlyCollectionFormatter<T> : CollectionFormatterBase<T, T[], IReadOnlyCollection<T>>
+internal sealed class InterfaceReadOnlyCollectionFormatter<T> : CollectionFormatterBase<T, T[], IReadOnlyCollection<T>>
 {
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -1728,7 +1728,7 @@ public sealed class InterfaceReadOnlyCollectionFormatter<T> : CollectionFormatte
     }
 }
 
-public sealed class InterfaceSetFormatter<T> : CollectionFormatterBase<T, HashSet<T>, ISet<T>>
+internal sealed class InterfaceSetFormatter<T> : CollectionFormatterBase<T, HashSet<T>, ISet<T>>
 {
     protected override void Add(HashSet<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -1746,7 +1746,7 @@ public sealed class InterfaceSetFormatter<T> : CollectionFormatterBase<T, HashSe
     }
 }
 
-public sealed class ConcurrentBagFormatter<T> : CollectionFormatterBase<T, System.Collections.Concurrent.ConcurrentBag<T>>
+internal sealed class ConcurrentBagFormatter<T> : CollectionFormatterBase<T, System.Collections.Concurrent.ConcurrentBag<T>>
 {
     protected override int? GetCount(ConcurrentBag<T> sequence)
     {
@@ -1764,7 +1764,7 @@ public sealed class ConcurrentBagFormatter<T> : CollectionFormatterBase<T, Syste
     }
 }
 
-public sealed class ConcurrentQueueFormatter<T> : CollectionFormatterBase<T, System.Collections.Concurrent.ConcurrentQueue<T>>
+internal sealed class ConcurrentQueueFormatter<T> : CollectionFormatterBase<T, System.Collections.Concurrent.ConcurrentQueue<T>>
 {
     protected override int? GetCount(ConcurrentQueue<T> sequence)
     {
@@ -1782,7 +1782,7 @@ public sealed class ConcurrentQueueFormatter<T> : CollectionFormatterBase<T, Sys
     }
 }
 
-public sealed class ConcurrentStackFormatter<T> : CollectionFormatterBase<T, T[], ConcurrentStack<T>>
+internal sealed class ConcurrentStackFormatter<T> : CollectionFormatterBase<T, T[], ConcurrentStack<T>>
 {
     protected override int? GetCount(ConcurrentStack<T> sequence)
     {

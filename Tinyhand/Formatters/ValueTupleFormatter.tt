@@ -24,7 +24,7 @@ namespace Tinyhand.Formatters;
     var t = "ValueTuple<" + ts + ">"; 
 #>
 
-public sealed class ValueTupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>><#= (t.Contains("TRest") ? @"
+internal sealed class ValueTupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>><#= (t.Contains("TRest") ? @"
     where TRest : struct" : "") #>
 {
     public void Serialize(ref TinyhandWriter writer, <#= t #> value, TinyhandSerializerOptions options)
