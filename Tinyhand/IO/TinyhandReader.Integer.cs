@@ -1,573 +1,518 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-/* THIS (.cs) FILE IS GENERATED. DO NOT CHANGE IT.
- * CHANGE THE .tt FILE INSTEAD. */
-
 using System;
-using System.Buffers;
-using Arc.IO;
+using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
 
 namespace Tinyhand.IO;
 
 public ref partial struct TinyhandReader
 {
     /// <summary>
-    /// Reads an <see cref="byte"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
+    /// Reads a MessagePack integer as a <see cref="byte"/>.
     /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
+    /// <returns>The decoded value.</returns>
+    /// <exception cref="OverflowException">The value is outside the target type's range.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte ReadUInt8()
     {
-        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
-
-        switch (code)
+        var code = this.ReadUnsafe<byte>();
+        if (code <= MessagePackCode.MaxFixInt)
         {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                return checked((byte)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                return checked((byte)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                return checked((byte)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                return checked((byte)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                return checked((byte)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                return checked((byte)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                return checked((byte)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                return checked((byte)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((byte)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (byte)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
+            return code;
         }
+
+        return this.ReadUInt8Slow(code);
     }
 
     /// <summary>
-    /// Reads an <see cref="sbyte"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
+    /// Reads a MessagePack integer as a <see cref="sbyte"/>.
     /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
+    /// <returns>The decoded value.</returns>
+    /// <exception cref="OverflowException">The value is outside the target type's range.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public sbyte ReadInt8()
     {
-        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
-
-        switch (code)
+        var code = this.ReadUnsafe<byte>();
+        // A signed comparison recognizes both positive and negative fixints.
+        var fixint = unchecked((sbyte)code);
+        if (fixint >= MessagePackRange.MinFixNegativeInt)
         {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                return checked((sbyte)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                return checked((sbyte)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                return checked((sbyte)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                return checked((sbyte)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                return checked((sbyte)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                return checked((sbyte)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                return checked((sbyte)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                return checked((sbyte)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((sbyte)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (sbyte)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
+            return fixint;
         }
+
+        return this.ReadInt8Slow(code);
     }
 
     /// <summary>
-    /// Reads an <see cref="ushort"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
+    /// Reads a MessagePack integer as a <see cref="ushort"/>.
     /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
+    /// <returns>The decoded value.</returns>
+    /// <exception cref="OverflowException">The value is outside the target type's range.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ushort ReadUInt16()
     {
-        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
-
-        switch (code)
+        var code = this.ReadUnsafe<byte>();
+        if (code <= MessagePackCode.MaxFixInt)
         {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                return checked((ushort)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                return checked((ushort)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                return checked((ushort)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                return checked((ushort)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                return checked((ushort)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                return checked((ushort)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                return checked((ushort)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                return checked((ushort)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((ushort)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (ushort)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
+            return code;
         }
+
+        return this.ReadUInt16Slow(code);
     }
 
     /// <summary>
-    /// Reads an <see cref="short"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
+    /// Reads a MessagePack integer as a <see cref="short"/>.
     /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
+    /// <returns>The decoded value.</returns>
+    /// <exception cref="OverflowException">The value is outside the target type's range.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short ReadInt16()
     {
-        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
-
-        switch (code)
+        var code = this.ReadUnsafe<byte>();
+        // A signed comparison recognizes both positive and negative fixints.
+        var fixint = unchecked((sbyte)code);
+        if (fixint >= MessagePackRange.MinFixNegativeInt)
         {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                return checked((short)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                return checked((short)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                return checked((short)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                return checked((short)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                return checked((short)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                return checked((short)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                return checked((short)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                return checked((short)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((short)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (short)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
+            return fixint;
         }
+
+        return this.ReadInt16Slow(code);
     }
 
     /// <summary>
-    /// Reads an <see cref="uint"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
+    /// Reads a MessagePack integer as a <see cref="uint"/>.
     /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
+    /// <returns>The decoded value.</returns>
+    /// <exception cref="OverflowException">The value is outside the target type's range.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public uint ReadUInt32()
     {
-        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
-
-        switch (code)
+        var code = this.ReadUnsafe<byte>();
+        if (code <= MessagePackCode.MaxFixInt)
         {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                return checked((uint)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                return checked((uint)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                return checked((uint)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                return checked((uint)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                return checked((uint)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                return checked((uint)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                return checked((uint)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                return checked((uint)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((uint)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (uint)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
+            return code;
         }
+
+        return this.ReadUInt32Slow(code);
     }
 
     /// <summary>
-    /// Reads an <see cref="int"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
+    /// Reads a MessagePack integer as a <see cref="int"/>.
     /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
+    /// <returns>The decoded value.</returns>
+    /// <exception cref="OverflowException">The value is outside the target type's range.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int ReadInt32()
     {
-        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
-
-        switch (code)
+        var code = this.ReadUnsafe<byte>();
+        // A signed comparison recognizes both positive and negative fixints.
+        var fixint = unchecked((sbyte)code);
+        if (fixint >= MessagePackRange.MinFixNegativeInt)
         {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                return checked((int)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                return checked((int)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                return checked((int)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                return checked((int)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                return checked((int)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                return checked((int)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                return checked((int)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                return checked((int)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((int)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (int)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
+            return fixint;
         }
+
+        return this.ReadInt32Slow(code);
     }
 
     /// <summary>
-    /// Reads an <see cref="ulong"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
+    /// Reads a MessagePack integer as a <see cref="ulong"/>.
     /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
+    /// <returns>The decoded value.</returns>
+    /// <exception cref="OverflowException">The value is outside the target type's range.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ulong ReadUInt64()
     {
-        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
-
-        switch (code)
+        var code = this.ReadUnsafe<byte>();
+        if (code <= MessagePackCode.MaxFixInt)
         {
-            case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                return checked((ulong)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                return checked((ulong)sbyteResult);
-            case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                return checked((ulong)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                return checked((ulong)shortResult);
-            case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                return checked((ulong)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                return checked((ulong)intResult);
-            case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                return checked((ulong)ulongResult);
-            case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                return checked((ulong)longResult);
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    return checked((ulong)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (ulong)code;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Integer);
+            return code;
         }
+
+        return this.ReadUInt64Slow(code);
     }
 
     /// <summary>
-    /// Attempts to read an <see cref="ulong"/> value from the underlying buffer.
-    /// Supports all MessagePack integer types, including fixints, signed and unsigned values.
+    /// Reads a MessagePack integer as a <see cref="long"/>.
     /// </summary>
-    /// <param name="value">
-    /// When this method returns, contains the <see cref="ulong"/> value read from the buffer,
-    /// or <c>default</c> if the read was unsuccessful.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if a value was successfully read; otherwise, <c>false</c>.
-    /// </returns>
+    /// <returns>The decoded value.</returns>
+    /// <exception cref="OverflowException">The value is outside the target type's range.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public long ReadInt64()
+    {
+        var code = this.ReadUnsafe<byte>();
+        // A signed comparison recognizes both positive and negative fixints.
+        var fixint = unchecked((sbyte)code);
+        if (fixint >= MessagePackRange.MinFixNegativeInt)
+        {
+            return fixint;
+        }
+
+        return this.ReadInt64Slow(code);
+    }
+
+    /// <summary>
+    /// Tries to read an unsigned integer without advancing on failure.
+    /// </summary>
+    /// <param name="value">The value, or zero on failure.</param>
+    /// <returns>Whether a complete, nonnegative integer was read.</returns>
     public bool TryReadUInt64(out ulong value)
     {
+        var reader = this;
         value = default;
-        if (!this.TryRead(out byte code))
+        if (!reader.TryRead(out byte code))
         {
             return false;
         }
 
-        switch (code)
+        if (code <= MessagePackCode.MaxFixInt)
         {
-            case MessagePackCode.UInt8:
-                if (!this.TryRead(out byte byteResult))
-                {
-                    this.Reverse(1);
-                    return false;
-                }
-                else
-                {
-                    value = (ulong)byteResult;
-                    return true;
-                }
-
-            case MessagePackCode.Int8:
-                if (!this.TryRead(out sbyte sbyteResult))
-                {
-                    this.Reverse(1);
-                    return false;
-                }
-                else
-                {
-                    value = (ulong)sbyteResult;
-                    return true;
-                }
-
-            case MessagePackCode.UInt16:
-                if (!this.TryReadBigEndian(out ushort ushortResult))
-                {
-                    this.Reverse(1);
-                    return false;
-                }
-                else
-                {
-                    value = (ulong)ushortResult;
-                    return true;
-                }
-
-            case MessagePackCode.Int16:
-                if (!this.TryReadBigEndian(out short shortResult))
-                {
-                    this.Reverse(1);
-                    return false;
-                }
-                else
-                {
-                    value = (ulong)shortResult;
-                    return true;
-                }
-
-            case MessagePackCode.UInt32:
-                if (!this.TryReadBigEndian(out uint uintResult))
-                {
-                    this.Reverse(1);
-                    return false;
-                }
-                else
-                {
-                    value = (ulong)uintResult;
-                    return true;
-                }
-
-            case MessagePackCode.Int32:
-                if (!this.TryReadBigEndian(out int intResult))
-                {
-                    this.Reverse(1);
-                    return false;
-                }
-                else
-                {
-                    value = (ulong)intResult;
-                    return true;
-                }
-
-            case MessagePackCode.UInt64:
-                if (!this.TryReadBigEndian(out ulong ulongResult))
-                {
-                    this.Reverse(1);
-                    return false;
-                }
-                else
-                {
-                    value = (ulong)ulongResult;
-                    return true;
-                }
-
-            case MessagePackCode.Int64:
-                if (!this.TryReadBigEndian(out long longResult))
-                {
-                    this.Reverse(1);
-                    return false;
-                }
-                else
-                {
-                    value = (ulong)longResult;
-                    return true;
-                }
-
-            default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
-                {
-                    value = (ulong)unchecked((sbyte)code);
-                    return true;
-                }
-                else if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    value = (ulong)code;
-                    return true;
-                }
-                else
-                {
-                    this.Reverse(1);
-                    return false;
-                }
+            value = code;
         }
+        else
+        {
+            switch (code)
+            {
+                case MessagePackCode.UInt8:
+                    if (!reader.TryRead(out byte u8))
+                    {
+                        return false;
+                    }
+
+                    value = u8;
+                    break;
+                case MessagePackCode.UInt16:
+                    if (!reader.TryReadBigEndian(out ushort u16))
+                    {
+                        return false;
+                    }
+
+                    value = u16;
+                    break;
+                case MessagePackCode.UInt32:
+                    if (!reader.TryReadBigEndian(out uint u32))
+                    {
+                        return false;
+                    }
+
+                    value = u32;
+                    break;
+                case MessagePackCode.UInt64:
+                    if (!reader.TryReadBigEndian(out value))
+                    {
+                        return false;
+                    }
+
+                    break;
+                case MessagePackCode.Int8:
+                    if (!reader.TryRead(out sbyte i8) || i8 < 0)
+                    {
+                        return false;
+                    }
+
+                    value = (ulong)i8;
+                    break;
+                case MessagePackCode.Int16:
+                    if (!reader.TryReadBigEndian(out short i16) || i16 < 0)
+                    {
+                        return false;
+                    }
+
+                    value = (ulong)i16;
+                    break;
+                case MessagePackCode.Int32:
+                    if (!reader.TryReadBigEndian(out int i32) || i32 < 0)
+                    {
+                        return false;
+                    }
+
+                    value = (ulong)i32;
+                    break;
+                case MessagePackCode.Int64:
+                    if (!reader.TryReadBigEndian(out long i64) || i64 < 0)
+                    {
+                        return false;
+                    }
+
+                    value = (ulong)i64;
+                    break;
+                default:
+                    return false;
+            }
+        }
+
+        this = reader;
+        return true;
     }
 
-    /// <summary>
-    /// Reads an <see cref="long"/> value from:
-    /// Some value between <see cref="MessagePackCode.MinNegativeFixInt"/> and <see cref="MessagePackCode.MaxNegativeFixInt"/>,
-    /// Some value between <see cref="MessagePackCode.MinFixInt"/> and <see cref="MessagePackCode.MaxFixInt"/>,
-    /// or any of the other MsgPack integer types.
-    /// </summary>
-    /// <returns>The value.</returns>
-    /// <exception cref="OverflowException">Thrown when the value exceeds what can be stored in the returned type.</exception>
-    public long ReadInt64()
+    private byte ReadUInt8Slow(byte code)
     {
-        ThrowInsufficientBufferUnless(this.TryRead(out byte code));
-
+        // The eight consecutive integer codes form a dense jump table.
         switch (code)
         {
             case MessagePackCode.UInt8:
-                ThrowInsufficientBufferUnless(this.TryRead(out byte byteResult));
-                return checked((long)byteResult);
-            case MessagePackCode.Int8:
-                ThrowInsufficientBufferUnless(this.TryRead(out sbyte sbyteResult));
-                return checked((long)sbyteResult);
+                return checked((byte)this.ReadUnsafe<byte>());
             case MessagePackCode.UInt16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ushort ushortResult));
-                return checked((long)ushortResult);
-            case MessagePackCode.Int16:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out short shortResult));
-                return checked((long)shortResult);
+                return checked((byte)this.ReadIntegerUInt16());
             case MessagePackCode.UInt32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out uint uintResult));
-                return checked((long)uintResult);
-            case MessagePackCode.Int32:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out int intResult));
-                return checked((long)intResult);
+                return checked((byte)this.ReadIntegerUInt32());
             case MessagePackCode.UInt64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out ulong ulongResult));
-                return checked((long)ulongResult);
+                return checked((byte)this.ReadIntegerUInt64());
+            case MessagePackCode.Int8:
+                return checked((byte)this.ReadUnsafe<sbyte>());
+            case MessagePackCode.Int16:
+                return checked((byte)this.ReadIntegerInt16());
+            case MessagePackCode.Int32:
+                return checked((byte)this.ReadIntegerInt32());
             case MessagePackCode.Int64:
-                ThrowInsufficientBufferUnless(this.TryReadBigEndian(out long longResult));
-                return checked((long)longResult);
+                return checked((byte)this.ReadIntegerInt64());
             default:
-                if (code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt)
+                if (code >= MessagePackCode.MinNegativeFixInt)
                 {
-                    return checked((long)unchecked((sbyte)code));
-                }
-
-                if (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt)
-                {
-                    return (long)code;
+                    throw new OverflowException();
                 }
 
                 throw ThrowInvalidCode(code, MessagePackType.Integer);
         }
+    }
+
+    private sbyte ReadInt8Slow(byte code)
+    {
+        // The eight consecutive integer codes form a dense jump table.
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                return checked((sbyte)this.ReadUnsafe<byte>());
+            case MessagePackCode.UInt16:
+                return checked((sbyte)this.ReadIntegerUInt16());
+            case MessagePackCode.UInt32:
+                return checked((sbyte)this.ReadIntegerUInt32());
+            case MessagePackCode.UInt64:
+                return checked((sbyte)this.ReadIntegerUInt64());
+            case MessagePackCode.Int8:
+                return checked((sbyte)this.ReadUnsafe<sbyte>());
+            case MessagePackCode.Int16:
+                return checked((sbyte)this.ReadIntegerInt16());
+            case MessagePackCode.Int32:
+                return checked((sbyte)this.ReadIntegerInt32());
+            case MessagePackCode.Int64:
+                return checked((sbyte)this.ReadIntegerInt64());
+            default:
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
+
+    private ushort ReadUInt16Slow(byte code)
+    {
+        // The eight consecutive integer codes form a dense jump table.
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                return checked((ushort)this.ReadUnsafe<byte>());
+            case MessagePackCode.UInt16:
+                return checked((ushort)this.ReadIntegerUInt16());
+            case MessagePackCode.UInt32:
+                return checked((ushort)this.ReadIntegerUInt32());
+            case MessagePackCode.UInt64:
+                return checked((ushort)this.ReadIntegerUInt64());
+            case MessagePackCode.Int8:
+                return checked((ushort)this.ReadUnsafe<sbyte>());
+            case MessagePackCode.Int16:
+                return checked((ushort)this.ReadIntegerInt16());
+            case MessagePackCode.Int32:
+                return checked((ushort)this.ReadIntegerInt32());
+            case MessagePackCode.Int64:
+                return checked((ushort)this.ReadIntegerInt64());
+            default:
+                if (code >= MessagePackCode.MinNegativeFixInt)
+                {
+                    throw new OverflowException();
+                }
+
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
+
+    private short ReadInt16Slow(byte code)
+    {
+        // The eight consecutive integer codes form a dense jump table.
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                return checked((short)this.ReadUnsafe<byte>());
+            case MessagePackCode.UInt16:
+                return checked((short)this.ReadIntegerUInt16());
+            case MessagePackCode.UInt32:
+                return checked((short)this.ReadIntegerUInt32());
+            case MessagePackCode.UInt64:
+                return checked((short)this.ReadIntegerUInt64());
+            case MessagePackCode.Int8:
+                return checked((short)this.ReadUnsafe<sbyte>());
+            case MessagePackCode.Int16:
+                return checked((short)this.ReadIntegerInt16());
+            case MessagePackCode.Int32:
+                return checked((short)this.ReadIntegerInt32());
+            case MessagePackCode.Int64:
+                return checked((short)this.ReadIntegerInt64());
+            default:
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
+
+    private uint ReadUInt32Slow(byte code)
+    {
+        // The eight consecutive integer codes form a dense jump table.
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                return checked((uint)this.ReadUnsafe<byte>());
+            case MessagePackCode.UInt16:
+                return checked((uint)this.ReadIntegerUInt16());
+            case MessagePackCode.UInt32:
+                return checked((uint)this.ReadIntegerUInt32());
+            case MessagePackCode.UInt64:
+                return checked((uint)this.ReadIntegerUInt64());
+            case MessagePackCode.Int8:
+                return checked((uint)this.ReadUnsafe<sbyte>());
+            case MessagePackCode.Int16:
+                return checked((uint)this.ReadIntegerInt16());
+            case MessagePackCode.Int32:
+                return checked((uint)this.ReadIntegerInt32());
+            case MessagePackCode.Int64:
+                return checked((uint)this.ReadIntegerInt64());
+            default:
+                if (code >= MessagePackCode.MinNegativeFixInt)
+                {
+                    throw new OverflowException();
+                }
+
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
+
+    private int ReadInt32Slow(byte code)
+    {
+        // The eight consecutive integer codes form a dense jump table.
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                return checked((int)this.ReadUnsafe<byte>());
+            case MessagePackCode.UInt16:
+                return checked((int)this.ReadIntegerUInt16());
+            case MessagePackCode.UInt32:
+                return checked((int)this.ReadIntegerUInt32());
+            case MessagePackCode.UInt64:
+                return checked((int)this.ReadIntegerUInt64());
+            case MessagePackCode.Int8:
+                return checked((int)this.ReadUnsafe<sbyte>());
+            case MessagePackCode.Int16:
+                return checked((int)this.ReadIntegerInt16());
+            case MessagePackCode.Int32:
+                return checked((int)this.ReadIntegerInt32());
+            case MessagePackCode.Int64:
+                return checked((int)this.ReadIntegerInt64());
+            default:
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
+
+    private ulong ReadUInt64Slow(byte code)
+    {
+        // The eight consecutive integer codes form a dense jump table.
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                return checked((ulong)this.ReadUnsafe<byte>());
+            case MessagePackCode.UInt16:
+                return checked((ulong)this.ReadIntegerUInt16());
+            case MessagePackCode.UInt32:
+                return checked((ulong)this.ReadIntegerUInt32());
+            case MessagePackCode.UInt64:
+                return checked((ulong)this.ReadIntegerUInt64());
+            case MessagePackCode.Int8:
+                return checked((ulong)this.ReadUnsafe<sbyte>());
+            case MessagePackCode.Int16:
+                return checked((ulong)this.ReadIntegerInt16());
+            case MessagePackCode.Int32:
+                return checked((ulong)this.ReadIntegerInt32());
+            case MessagePackCode.Int64:
+                return checked((ulong)this.ReadIntegerInt64());
+            default:
+                if (code >= MessagePackCode.MinNegativeFixInt)
+                {
+                    throw new OverflowException();
+                }
+
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
+
+    private long ReadInt64Slow(byte code)
+    {
+        // The eight consecutive integer codes form a dense jump table.
+        switch (code)
+        {
+            case MessagePackCode.UInt8:
+                return checked((long)this.ReadUnsafe<byte>());
+            case MessagePackCode.UInt16:
+                return checked((long)this.ReadIntegerUInt16());
+            case MessagePackCode.UInt32:
+                return checked((long)this.ReadIntegerUInt32());
+            case MessagePackCode.UInt64:
+                return checked((long)this.ReadIntegerUInt64());
+            case MessagePackCode.Int8:
+                return checked((long)this.ReadUnsafe<sbyte>());
+            case MessagePackCode.Int16:
+                return checked((long)this.ReadIntegerInt16());
+            case MessagePackCode.Int32:
+                return checked((long)this.ReadIntegerInt32());
+            case MessagePackCode.Int64:
+                return checked((long)this.ReadIntegerInt64());
+            default:
+                throw ThrowInvalidCode(code, MessagePackType.Integer);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ushort ReadIntegerUInt16()
+    {
+        var value = this.ReadUnsafe<ushort>();
+        return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private short ReadIntegerInt16()
+    {
+        var value = this.ReadUnsafe<short>();
+        return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private uint ReadIntegerUInt32()
+    {
+        var value = this.ReadUnsafe<uint>();
+        return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private int ReadIntegerInt32()
+    {
+        var value = this.ReadUnsafe<int>();
+        return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ulong ReadIntegerUInt64()
+    {
+        var value = this.ReadUnsafe<ulong>();
+        return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private long ReadIntegerInt64()
+    {
+        var value = this.ReadUnsafe<long>();
+        return BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value;
     }
 }
