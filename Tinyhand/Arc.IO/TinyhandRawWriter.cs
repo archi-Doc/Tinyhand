@@ -42,6 +42,9 @@ public ref struct TinyhandRawWriter
     public BytePool.RentMemory FlushAndGetRentMemory()
         => this.writer.FlushAndGetRentMemory();
 
+    public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isInitialBuffer)
+        => this.writer.FlushAndGetReadOnlySpan(out span, out isInitialBuffer);
+
     public void Flush()
         => this.writer.Flush();
 

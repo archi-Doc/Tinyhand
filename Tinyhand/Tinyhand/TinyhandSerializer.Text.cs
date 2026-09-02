@@ -26,26 +26,25 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerializable<T>
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;
-        var binary = SerializeObject(value, options);
-        bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
-        if (options.Compose == TinyhandComposeOption.Strict)
-        {
-            omitTopLevelBracket = false;
-        }
-        else
-        {
-            omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
+        var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
+
+        if (options.HasLz4CompressFlag)
+        {// The compression uses the second thread-static buffer, so the binary goes through an array.
+            var binary = SerializeObject(value, options);
+            return BinaryToUtf8Array(binary, options, omitTopLevelBracket);
         }
 
-        var writer = new TinyhandRawWriter(GetThreadStaticBuffer());
+        // The binary is written to the second thread-static buffer and the text to the first one: no intermediate array.
+        var binaryWriter = new TinyhandWriter(GetThreadStaticBuffer2());
         try
         {
-            TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
-            return writer.FlushAndGetArray();
+            SerializeObject(ref binaryWriter, value, options);
+            binaryWriter.FlushAndGetReadOnlySpan(out var binary, out _);
+            return BinaryToUtf8Array(binary, options, omitTopLevelBracket);
         }
         finally
         {
-            writer.Dispose();
+            binaryWriter.Dispose();
         }
     }
 
@@ -61,15 +60,7 @@ public static partial class TinyhandSerializer
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;
         var rentMemory = SerializeObjectToRentMemory(value, options);
-        bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
-        if (options.Compose == TinyhandComposeOption.Strict)
-        {
-            omitTopLevelBracket = false;
-        }
-        else
-        {
-            omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
-        }
+        var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
 
         var writer = TinyhandRawWriter.CreateFromBytePool();
         try
@@ -96,22 +87,13 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerializable<T>
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;
-        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
+        var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
+
+        var buffer = TinyhandTreeConverter.BinaryBuffer.Acquire();
         try
         {
-            bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
-            if (options.Compose == TinyhandComposeOption.Strict)
-            {
-                omitTopLevelBracket = false;
-            }
-            else
-            {
-                omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
-            }
-
-            TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
-
-            var reader = new TinyhandReader(writer);
+            TinyhandTreeConverter.FromUtf8ToBinary(utf8, omitTopLevelBracket, ref buffer);
+            var reader = new TinyhandReader(buffer.Span);
 
             try
             {
@@ -119,22 +101,7 @@ public static partial class TinyhandSerializer
             }
             catch (TinyhandUnexpectedCodeException invalidCode)
             {// Invalid code
-                var position = reader.Consumed;
-                if (position > 0)
-                {
-                    position--;
-                }
-
-                // Get the Line/BytePosition from which the exception was thrown.
-                var e = TinyhandTreeConverter.GetTextPositionFromBinaryPosition(utf8, position);
-                TinyhandException? ex = invalidCode;
-
-                if (e.LineNumber != 0)
-                {
-                    ex = new TinyhandException($"Unexpected element type, expected: {invalidCode.ExpectedType.ToString()} actual: {invalidCode.ActualType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
-                }
-
-                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+                throw CreateUnexpectedCodeException<T>(utf8, reader.Consumed, omitTopLevelBracket, invalidCode);
             }
             catch (Exception ex)
             {
@@ -143,7 +110,7 @@ public static partial class TinyhandSerializer
         }
         finally
         {
-            writer.Dispose();
+            buffer.Release();
         }
     }
 
@@ -157,21 +124,47 @@ public static partial class TinyhandSerializer
     public static void SerializeToUtf8<T>(IBufferWriter<byte> bufferWriter, T value, TinyhandSerializerOptions? options = null)
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;
-        var binary = Serialize<T>(value, options);
 
         // Slow
         // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
         // TinyhandComposer.Compose(writer, element, options.Compose);
 
-        var writer = new TinyhandRawWriter(bufferWriter);
+        if (options.HasLz4CompressFlag)
+        {
+            var binary = Serialize<T>(value, options);
+            var writer = new TinyhandRawWriter(bufferWriter);
+            try
+            {
+                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options);
+                writer.Flush(); // Commit the last segment to the buffer writer.
+            }
+            finally
+            {
+                writer.Dispose();
+            }
+
+            return;
+        }
+
+        var binaryWriter = new TinyhandWriter(GetThreadStaticBuffer2());
         try
         {
-            TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options);
-            return;
+            Serialize(ref binaryWriter, value, options);
+            binaryWriter.FlushAndGetReadOnlySpan(out var binary, out _);
+            var writer = new TinyhandRawWriter(bufferWriter);
+            try
+            {
+                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options);
+                writer.Flush(); // Commit the last segment to the buffer writer.
+            }
+            finally
+            {
+                writer.Dispose();
+            }
         }
         finally
         {
-            writer.Dispose();
+            binaryWriter.Dispose();
         }
     }
 
@@ -185,30 +178,29 @@ public static partial class TinyhandSerializer
     public static byte[] SerializeToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;
-        var binary = Serialize<T>(value, options);
-        bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
-        if (options.Compose == TinyhandComposeOption.Strict)
-        {
-            omitTopLevelBracket = false;
-        }
-        else
-        {
-            omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
-        }
+        var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
 
         // Slow
         // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
         // return TinyhandComposer.Compose(element, options.Compose);
 
-        var writer = new TinyhandRawWriter(GetThreadStaticBuffer());
+        if (options.HasLz4CompressFlag)
+        {// The compression uses the second thread-static buffer, so the binary goes through an array.
+            var binary = Serialize<T>(value, options);
+            return BinaryToUtf8Array(binary, options, omitTopLevelBracket);
+        }
+
+        // The binary is written to the second thread-static buffer and the text to the first one: no intermediate array.
+        var binaryWriter = new TinyhandWriter(GetThreadStaticBuffer2());
         try
         {
-            TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
-            return writer.FlushAndGetArray();
+            Serialize(ref binaryWriter, value, options);
+            binaryWriter.FlushAndGetReadOnlySpan(out var binary, out _);
+            return BinaryToUtf8Array(binary, options, omitTopLevelBracket);
         }
         finally
         {
-            writer.Dispose();
+            binaryWriter.Dispose();
         }
     }
 
@@ -235,27 +227,17 @@ public static partial class TinyhandSerializer
     public static T? DeserializeFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null)
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;
+        var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
 
         // Slow
         // var element = TinyhandParser.Parse(utf8, TinyhandParserOptions.TextSerialization);
         // return DeserializeFromElement<T>(element, options, cancellationToken);
 
-        var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
+        var buffer = TinyhandTreeConverter.BinaryBuffer.Acquire();
         try
         {
-            bool omitTopLevelBracket; // = OmitTopLevelBracket<T>(options);
-            if (options.Compose == TinyhandComposeOption.Strict)
-            {
-                omitTopLevelBracket = false;
-            }
-            else
-            {
-                omitTopLevelBracket = OmitTopLevelBracketCache<T>.CanOmit;
-            }
-
-            TinyhandTreeConverter.FromUtf8ToBinary(utf8, ref writer, omitTopLevelBracket);
-
-            var reader = new TinyhandReader(writer);
+            TinyhandTreeConverter.FromUtf8ToBinary(utf8, omitTopLevelBracket, ref buffer);
+            var reader = new TinyhandReader(buffer.Span);
 
             try
             {
@@ -263,22 +245,7 @@ public static partial class TinyhandSerializer
             }
             catch (TinyhandUnexpectedCodeException invalidCode)
             {// Invalid code
-                var position = reader.Consumed;
-                if (position > 0)
-                {
-                    position--;
-                }
-
-                // Get the Line/BytePosition from which the exception was thrown.
-                var e = TinyhandTreeConverter.GetTextPositionFromBinaryPosition(utf8, position);
-                TinyhandException? ex = invalidCode;
-
-                if (e.LineNumber != 0)
-                {
-                    ex = new TinyhandException($"Unexpected element type, expected: {invalidCode.ExpectedType.ToString()} actual: {invalidCode.ActualType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
-                }
-
-                throw new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+                throw CreateUnexpectedCodeException<T>(utf8, reader.Consumed, omitTopLevelBracket, invalidCode);
             }
             catch (Exception ex)
             {
@@ -287,7 +254,7 @@ public static partial class TinyhandSerializer
         }
         finally
         {
-            writer.Dispose();
+            buffer.Release();
         }
     }
 
@@ -416,6 +383,50 @@ public static partial class TinyhandSerializer
             }
         }
     }
+
+    /// <summary>
+    /// Converts a binary to UTF-8 text using the first thread-static buffer and returns the text as a new array.
+    /// </summary>
+    private static byte[] BinaryToUtf8Array(ReadOnlySpan<byte> binary, TinyhandSerializerOptions options, bool omitTopLevelBracket)
+    {
+        var writer = new TinyhandRawWriter(GetThreadStaticBuffer());
+        try
+        {
+            TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
+            return writer.FlushAndGetArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Creates the exception for a <see cref="TinyhandUnexpectedCodeException"/>, with the line and byte position of the offending text when available.
+    /// </summary>
+    private static TinyhandException CreateUnexpectedCodeException<T>(ReadOnlySpan<byte> utf8, int consumed, bool omitTopLevelBracket, TinyhandUnexpectedCodeException invalidCode)
+    {
+        // The reader has consumed the unexpected code, so the code starts one byte before.
+        var position = consumed;
+        if (position > 0)
+        {
+            position--;
+        }
+
+        // Get the Line/BytePosition from which the exception was thrown.
+        var e = TinyhandTreeConverter.GetTextPositionFromBinaryPosition(utf8, position, omitTopLevelBracket);
+        TinyhandException? ex = invalidCode;
+
+        if (e.LineNumber != 0)
+        {
+            ex = new TinyhandException($"Unexpected element type, expected: {invalidCode.ExpectedType.ToString()} actual: {invalidCode.ActualType.ToString()} (Line:{e.LineNumber} BytePosition:{e.BytePositionInLine})");
+        }
+
+        return new TinyhandException($"Failed to deserialize {typeof(T).FullName} value.", ex);
+    }
+
+    private static bool OmitTopLevelBracket<T>(TinyhandSerializerOptions options)
+        => options.Compose != TinyhandComposeOption.Strict && OmitTopLevelBracketCache<T>.CanOmit;
 
     private static class OmitTopLevelBracketCache<T>
     {

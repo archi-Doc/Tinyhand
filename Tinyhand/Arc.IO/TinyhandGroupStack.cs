@@ -28,7 +28,7 @@ internal struct TinyhandGroupStack
     [FieldOffset(0)]
     private ulong stack16;
 
-    // public byte Depth => this.depth;
+    public byte Depth => this.depth;
 
     public bool IsCurrentIndented => (this.stack16 & this.CurrentStackMask) == 0;
 

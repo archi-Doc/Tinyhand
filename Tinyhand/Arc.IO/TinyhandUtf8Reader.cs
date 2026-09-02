@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Buffers.Binary;
 using System.Buffers.Text;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -105,7 +106,30 @@ public ref struct TinyhandUtf8Reader
 
     public double ValueDouble { get; private set; }
 
-    public byte[]? ValueBinary { get; private set; }
+    /// <summary>
+    /// Gets the decoded binary of a <see cref="TinyhandAtomType.Value_Base64"/> atom.<br/>
+    /// The Base64 text is decoded on the first access so that a consumer that decodes <see cref="ValueSpan"/> itself does not allocate.
+    /// </summary>
+    public byte[]? ValueBinary
+    {
+        get
+        {
+            if (this.valueBinary is null && this.AtomType == TinyhandAtomType.Value_Base64)
+            {
+                var decoded = new byte[Arc.Crypto.Base64Url.GetDecodedLength(this.ValueSpan)];
+                if (!Arc.Crypto.Base64Url.TryDecode(this.ValueSpan, decoded, out _))
+                {
+                    this.ThrowBase64Exception();
+                }
+
+                this.valueBinary = decoded;
+            }
+
+            return this.valueBinary;
+        }
+    }
+
+    private byte[]? valueBinary;
 
     public int LineNumber => this.lineNumber;
 
@@ -113,10 +137,22 @@ public ref struct TinyhandUtf8Reader
 
     private ReadOnlySpan<byte> buffer;
     private bool readContextualInformation;
+    private bool ignoreSeparators;
     private int lineNumber;
     private int bytePositionInLine;
 
     public TinyhandUtf8Reader(ReadOnlySpan<byte> utf8Data, bool readContextualInformation = false)
+        : this(utf8Data, readContextualInformation, false)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TinyhandUtf8Reader"/> struct.
+    /// </summary>
+    /// <param name="utf8Data">The UTF-8 text.</param>
+    /// <param name="readContextualInformation"><see langword="true"/> to return separators, line feeds and comments as atoms.</param>
+    /// <param name="ignoreSeparators"><see langword="true"/> to treat separators (',' and ';') as white space, so that no <see cref="TinyhandAtomType.Separator"/> atom is produced.</param>
+    internal TinyhandUtf8Reader(ReadOnlySpan<byte> utf8Data, bool readContextualInformation, bool ignoreSeparators)
     {
         this.buffer = utf8Data;
         if (this.buffer.StartsWith(TinyhandConstants.Utf8Bom))
@@ -124,6 +160,7 @@ public ref struct TinyhandUtf8Reader
             this.buffer = this.buffer.Slice(TinyhandConstants.Utf8Bom.Length);
         }
         this.readContextualInformation = readContextualInformation;
+        this.ignoreSeparators = ignoreSeparators;
 
         this.lineNumber = InitialLinePosition;
         this.bytePositionInLine = InitialLinePosition;
@@ -135,7 +172,7 @@ public ref struct TinyhandUtf8Reader
         this.ValueModifierType = TinyhandModifierType.None;
         this.ValueLong = 0;
         this.ValueDouble = 0;
-        this.ValueBinary = null;
+        this.valueBinary = null;
     }
 
     private TinyhandGroupStack groupStack;
@@ -170,6 +207,14 @@ public ref struct TinyhandUtf8Reader
         throw new TinyhandException(this.ExceptionMessage(message), innerException);
     }
 
+    /// <summary>
+    /// Throws the Base64 decoding exception, positioned at the start of the Base64 content (2 bytes after the atom: b").
+    /// </summary>
+    internal void ThrowBase64Exception()
+    {
+        throw new TinyhandException($"Line: {this.AtomLineNumber}, Byte Position: {this.AtomBytePositionInLine + 2}, Cannot decode Base64 string.");
+    }
+
     internal void ThrowUnexpectedCharacterException(byte b)
     {
         this.ThrowException($"Unexpected character \"{(char)b}\".");
@@ -180,12 +225,13 @@ public ref struct TinyhandUtf8Reader
         this.ThrowException($"Tinyhand Reader reached the end of the data before the data is complete.");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void InitializeValue()
     {
         this.ValueSpan = ReadOnlySpan<byte>.Empty;
         this.ValueLong = 0;
         this.ValueDouble = 0;
-        this.ValueBinary = null;
+        this.valueBinary = null;
     }
 
     private bool SkipWhiteSpace()
@@ -197,9 +243,13 @@ public ref struct TinyhandUtf8Reader
         while (this._position < localBuffer.Length)
         {
             // Derived from the position so that it can never get out of step with it.
-            var remaining = localBuffer.Length - this._position;
             var val = localBuffer[this._position];
+            if (val > TinyhandConstants.Space && val < 0xC2 && val != TinyhandConstants.Separator && val != TinyhandConstants.Separator2)
+            { // Neither white space nor a separator: the common case.
+                break;
+            }
 
+            var remaining = localBuffer.Length - this._position;
             if ((val <= 0x0D && val >= 0x09) || val == 0x20)
             { // U+0009 to U+000D, U+0020
                 this.AddPosition(1);
@@ -219,6 +269,11 @@ public ref struct TinyhandUtf8Reader
             else if (val == TinyhandConstants.Separator || val == TinyhandConstants.Separator2)
             { // Separator
                 this.AddPosition(1);
+
+                if (this.ignoreSeparators)
+                {
+                    continue;
+                }
 
                 if (this.readContextualInformation)
                 { // Separator
@@ -293,25 +348,42 @@ public ref struct TinyhandUtf8Reader
 
         this.InitializeValue();
 
+        // Local copies avoid reloading the fields of this ref struct and skip the bounds checks.
+        ReadOnlySpan<byte> localBuffer = this.buffer;
+        var position = this._position;
+        byte b;
+        if ((uint)position < (uint)localBuffer.Length)
+        {
+            b = localBuffer[position];
+            if (b > TinyhandConstants.Space && b < 0xC2 && b != TinyhandConstants.Separator && b != TinyhandConstants.Separator2)
+            { // The token starts right here (no white space, separator or multi-byte white space): the common case.
+                goto Token;
+            }
+        }
+
         if (this.SkipWhiteSpace())
         { // Separator, (Comment, LineFeed)
             return true;
         }
 
-        if (this.Position >= this.Length)
+        position = this._position;
+        if (position >= localBuffer.Length)
         { // No data left.
             this.groupStack.TerminateIndent();
             this.AtomType = this.groupStack.GetGroup();
             return this.AtomType != TinyhandAtomType.None;
         }
 
+        b = localBuffer[position];
+
+Token:
         if ((this.bytePositionInLine & LineFeedFlag) == 0 &&
-            this.Current != TinyhandConstants.Slash &&
-            this.Current != TinyhandConstants.Sharp)
+            b != TinyhandConstants.Slash &&
+            b != TinyhandConstants.Sharp)
         {
             if (this.groupStack.TrySetIndent(this.bytePositionInLine - 1) is { } ex)
             {
-                if (this.Current != TinyhandConstants.CloseBrace)
+                if (b != TinyhandConstants.CloseBrace)
                 {
                     this.ThrowException(ex);
                 }
@@ -326,22 +398,21 @@ public ref struct TinyhandUtf8Reader
             }
         }
 
-        var b = this.Current;
-        this.AtomLineNumber = this.LineNumber;
-        this.AtomBytePositionInLine = this.BytePositionInLine;
+        this.AtomLineNumber = this.lineNumber;
+        this.AtomBytePositionInLine = this.bytePositionInLine & BytePositionMask;
         switch (b)
         {
             case TinyhandConstants.OpenBrace: // {
                 this.groupStack.AddOpenBracket();
                 this.AtomType = this.groupStack.GetGroup();
-                this.ValueSpan = this.buffer.Slice(this.Position, 1);
+                this.ValueSpan = localBuffer.Slice(position, 1);
                 this.AddPosition(1);
                 return true;
 
             case TinyhandConstants.CloseBrace: // }
                 this.groupStack.AddCloseBracket();
                 this.AtomType = this.groupStack.GetGroup();
-                this.ValueSpan = this.buffer.Slice(this.Position, 1);
+                this.ValueSpan = localBuffer.Slice(position, 1);
                 this.AddPosition(1);
                 return true;
 
@@ -353,7 +424,7 @@ public ref struct TinyhandUtf8Reader
 
             case TinyhandConstants.EqualsSign: // =
                 this.AtomType = TinyhandAtomType.Assignment;
-                this.ValueSpan = this.buffer.Slice(this.Position, 1);
+                this.ValueSpan = localBuffer.Slice(position, 1);
                 this.AddPosition(1);
                 return true;
 
@@ -368,11 +439,12 @@ public ref struct TinyhandUtf8Reader
                 return true;
 
             default: // Number, Binary, Modifier/Value, Identifier/Limited identifier
-                if (b == (byte)'+' && this.Remaining >= 2 && this.buffer[this.Position + 1] == ' ')
+                var remaining = localBuffer.Length - position;
+                if (b == (byte)'+' && remaining >= 2 && localBuffer[position + 1] == ' ')
                 {// "+ "
                     this.groupStack.AddIndent();
                     this.AtomType = this.groupStack.GetGroup();
-                    this.ValueSpan = this.buffer.Slice(this.Position, 2);
+                    this.ValueSpan = localBuffer.Slice(position, 2);
                     this.AddPosition(2);
                     return true;
                 }
@@ -384,27 +456,28 @@ public ref struct TinyhandUtf8Reader
                     }
                 }
 
-                if (b == (byte)'b' && this.Remaining >= 2 &&
-                    (this.buffer[this.Position + 1] == TinyhandConstants.Quote || this.buffer[this.Position + 1] == TinyhandConstants.Quote2))
+                if (b == (byte)'b' && remaining >= 2 &&
+                    (localBuffer[position + 1] == TinyhandConstants.Quote || localBuffer[position + 1] == TinyhandConstants.Quote2))
                 { // Binary: b"Base64" or b'Base64'
-                    return this.ReadBinary(this.buffer[this.Position + 1]);
+                    return this.ReadBinary(localBuffer[position + 1]);
                 }
 
-                this.ReadRawString();
-                if (this.ValueSpan.Length == 0)
+                var raw = ReadRawString(localBuffer.Slice(position));
+                if (raw.Length == 0)
                 {
                     goto Unexpected_Symbol;
                 }
 
-                if (this.ProcessValue())
+                if (this.ProcessValue(raw))
                 {
-                    this.AddPosition(this.ValueSpan.Length);
+                    this.ValueSpan = raw;
+                    this.AddPosition(raw.Length);
                     return true;
                 }
 
-                if (this.ValueSpan[0] == TinyhandConstants.ModifierPrefix)
+                if (raw[0] == TinyhandConstants.ModifierPrefix)
                 {// Modifier
-                    this.ValueSpan = this.ValueSpan.Slice(1);
+                    this.ValueSpan = raw.Slice(1);
                     this.AddPosition(1);
                     if (this.ProcessModifier())
                     {
@@ -414,6 +487,7 @@ public ref struct TinyhandUtf8Reader
                 }
                 else
                 {// Other
+                    this.ValueSpan = raw;
                     if (this.ProcessIdentifier())
                     {
                         this.AddPosition(this.ValueSpan.Length);
@@ -429,6 +503,7 @@ Unexpected_Symbol:
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool ProcessIdentifier()
     {
         var type = TinyhandAtomType.Identifier;
@@ -456,50 +531,63 @@ Unexpected_Symbol:
         return true;
     }
 
-    private bool ProcessValue()
+    /// <summary>
+    /// Recognizes null, true, false, double.NaN and double.(Positive|Negative)Infinity.
+    /// </summary>
+    /// <param name="raw">The raw token.</param>
+    /// <returns><see langword="true"/> if the token is one of the values (AtomType is set).</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool ProcessValue(ReadOnlySpan<byte> raw)
     { // null, true, false
-        if (this.ValueSpan.Length == 4)
+        if (raw.Length == 4)
         {
-            if (this.ValueSpan[0] == (byte)'n' && this.ValueSpan[1] == (byte)'u' && this.ValueSpan[2] == (byte)'l' && this.ValueSpan[3] == (byte)'l')
-            { // null
+            var v = BinaryPrimitives.ReadUInt32LittleEndian(raw);
+            if (v == 0x6C6C756E)
+            { // "null"
                 this.AtomType = TinyhandAtomType.Value_Null;
                 return true;
             }
-            else if (this.ValueSpan[0] == (byte)'t' && this.ValueSpan[1] == (byte)'r' && this.ValueSpan[2] == (byte)'u' && this.ValueSpan[3] == (byte)'e')
-            { // true
+            else if (v == 0x65757274)
+            { // "true"
                 this.AtomType = TinyhandAtomType.Value_True;
                 return true;
             }
         }
-        else if (this.ValueSpan.Length == 5)
+        else if (raw.Length == 5)
         {
-            if (this.ValueSpan[0] == (byte)'f' && this.ValueSpan[1] == (byte)'a' && this.ValueSpan[2] == (byte)'l' && this.ValueSpan[3] == (byte)'s' && this.ValueSpan[4] == (byte)'e')
-            { // false
+            if (BinaryPrimitives.ReadUInt32LittleEndian(raw) == 0x736C6166 && raw[4] == (byte)'e')
+            { // "false"
                 this.AtomType = TinyhandAtomType.Value_False;
                 return true;
             }
         }
-        else if (this.ValueSpan.Length == TinyhandConstants.DoubleNaNSpan.Length &&
-            this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNaNSpan))
+        else if (raw.Length >= TinyhandConstants.DoubleNaNSpan.Length && raw[0] == (byte)'d')
+        {
+            return this.ProcessDoubleValue(raw);
+        }
+
+        return false;
+    }
+
+    private bool ProcessDoubleValue(ReadOnlySpan<byte> raw)
+    {
+        if (raw.SequenceEqual(TinyhandConstants.DoubleNaNSpan))
         {// double.NaN
             this.AtomType = TinyhandAtomType.Value_Double;
             this.ValueDouble = double.NaN;
             return true;
         }
-        else if (this.ValueSpan.Length == TinyhandConstants.DoublePositiveInfinitySpan.Length)
-        {
-            if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoublePositiveInfinitySpan))
-            {// double.PositiveInfinity
-                this.AtomType = TinyhandAtomType.Value_Double;
-                this.ValueDouble = double.PositiveInfinity;
-                return true;
-            }
-            else if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNegativeInfinitySpan))
-            {// double.NegativeInfinity
-                this.AtomType = TinyhandAtomType.Value_Double;
-                this.ValueDouble = double.NegativeInfinity;
-                return true;
-            }
+        else if (raw.SequenceEqual(TinyhandConstants.DoublePositiveInfinitySpan))
+        {// double.PositiveInfinity
+            this.AtomType = TinyhandAtomType.Value_Double;
+            this.ValueDouble = double.PositiveInfinity;
+            return true;
+        }
+        else if (raw.SequenceEqual(TinyhandConstants.DoubleNegativeInfinitySpan))
+        {// double.NegativeInfinity
+            this.AtomType = TinyhandAtomType.Value_Double;
+            this.ValueDouble = double.NegativeInfinity;
+            return true;
         }
 
         return false;
@@ -681,9 +769,12 @@ Unexpected_Symbol:
         }
     }
 
-    private void ReadRawString()
+    /// <summary>
+    /// Returns the token that starts at the beginning of <paramref name="localBuffer"/> and ends at the first white space or delimiter.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static ReadOnlySpan<byte> ReadRawString(ReadOnlySpan<byte> localBuffer)
     {
-        ReadOnlySpan<byte> localBuffer = this.buffer.Slice(this.Position);
         ReadOnlySpan<byte> table = TinyhandConstants.FirstByteTable;
         int position = 0;
 
@@ -695,7 +786,7 @@ Unexpected_Symbol:
             }
         }
 
-        this.ValueSpan = localBuffer.Slice(0, position);
+        return localBuffer.Slice(0, position);
     }
 
     /// <param name="hasEscape">Receives whether the string contains an escape sequence.
@@ -814,15 +905,7 @@ Unexpected_Symbol:
         var length = this.GetQuotedStringLength(stringSpan, q, out _);
         this.ValueSpan = stringSpan.Slice(0, length);
 
-        // this.ValueBinary = Arc.Crypto.Base64.Url.FromUtf8ToByteArray(this.ValueSpan);
-        var decoded = new byte[Arc.Crypto.Base64Url.GetDecodedLength(this.ValueSpan)];
-        if (!Arc.Crypto.Base64Url.TryDecode(this.ValueSpan, decoded, out _))
-        {
-            this.ThrowException("Cannot decode Base64 string.");
-        }
-
-        this.ValueBinary = decoded;
-
+        // The Base64 text is decoded lazily by ValueBinary.
         this.AddPosition(length + 1); // String + quote.
         this.AtomType = TinyhandAtomType.Value_Base64;
 
@@ -901,6 +984,52 @@ Unexpected_Symbol:
     }
 
     /// <summary>
+    /// Parses "[+|-]digits" with at most 18 digits, which always fits in a <see cref="long"/>.
+    /// Anything else (more digits, other characters) is left to <see cref="Utf8Parser"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryParseInt64Fast(ReadOnlySpan<byte> span, out long result)
+    {
+        var i = 0;
+        var negative = false;
+        if (span.Length > 0)
+        {
+            if (span[0] == (byte)'-')
+            {
+                negative = true;
+                i = 1;
+            }
+            else if (span[0] == (byte)'+')
+            {
+                i = 1;
+            }
+        }
+
+        var digits = span.Length - i;
+        if ((uint)(digits - 1) >= 18)
+        {// No digits, or too many for the fast path.
+            result = 0;
+            return false;
+        }
+
+        ulong value = 0;
+        for (; i < span.Length; i++)
+        {
+            var d = (uint)(span[i] - '0');
+            if (d > 9)
+            {
+                result = 0;
+                return false;
+            }
+
+            value = (value * 10) + d;
+        }
+
+        result = negative ? -(long)value : (long)value;
+        return true;
+    }
+
+    /// <summary>
     /// Reads a number. The token always starts with a digit, '+' or '-', so it can only be a number;
     /// a token that cannot be parsed as one is an error.
     /// </summary>
@@ -916,12 +1045,17 @@ Unexpected_Symbol:
 
         for (var remaining = localBuffer.Length; remaining > 0; remaining--, position++)
         {
+            var val = localBuffer[position];
+            if (TinyhandHelper.IsDigit(val))
+            {// Most of the bytes are digits.
+                continue;
+            }
+
             if (IsDelimiter(table, localBuffer, position, remaining))
             {
                 break;
             }
 
-            var val = localBuffer[position];
             if (val == '.' || val == 'e' || val == 'E')
             {
                 isDouble = true;
@@ -929,7 +1063,7 @@ Unexpected_Symbol:
             else if (val == '+' || val == '-')
             {
             }
-            else if (!TinyhandHelper.IsDigit(val))
+            else
             {// Not a number.
                 return false;
             }
@@ -951,6 +1085,15 @@ Unexpected_Symbol:
         }
         else
         {
+            if (TryParseInt64Fast(span, out var fastResult))
+            {// long (up to 18 digits)
+                this.AtomType = TinyhandAtomType.Value_Long;
+                this.ValueLong = fastResult;
+                this.ValueSpan = span;
+                this.AddPosition(position);
+                return true;
+            }
+
             if (Utf8Parser.TryParse(span, out long longResult, out var bytesConsumed) && bytesConsumed == span.Length)
             {// long
                 this.AtomType = TinyhandAtomType.Value_Long;

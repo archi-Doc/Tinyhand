@@ -96,9 +96,9 @@ public static class TinyhandConstants
     public const int BitShiftBy10 = 0x400;
 
     /// <summary>
-    /// UTF-8 first byte table. 0:other, 1:may be white space, 2:white space, 3:delimiters.
+    /// Gets uTF-8 first byte table. 0:other, 1:may be white space, 2:white space, 3:delimiters.
     /// </summary>
-    public static readonly byte[] FirstByteTable =
+    public static ReadOnlySpan<byte> FirstByteTable =>
     [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
