@@ -817,7 +817,7 @@ Unexpected_Symbol:
         return false;
     }
 
-    public static bool HasDelimiter(byte[] utf8)
+    public static bool HasDelimiter(scoped ReadOnlySpan<byte> utf8)
     {
         for (var n = 0; n < utf8.Length; n++)
         {

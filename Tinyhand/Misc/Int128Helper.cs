@@ -12,13 +12,14 @@ public static class Int128Helper
     public static double ToDouble(this Int128 value)
     {
         var ripper = Unsafe.As<Int128, Int128Ripper>(ref value);
+        var lower = unchecked((long)ripper.Lower);
         if (ripper.Upper == 0)
         {
             return (double)ripper.Lower;
         }
-        else if (~ripper.Upper == 0)
-        {
-            return (double)(long)ripper.Lower;
+        else if (~ripper.Upper == 0 && lower < 0)
+        {// The upper half is the sign extension of the lower half.
+            return (double)lower;
         }
         else
         {

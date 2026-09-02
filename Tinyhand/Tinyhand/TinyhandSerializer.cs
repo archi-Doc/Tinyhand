@@ -321,7 +321,7 @@ public static partial class TinyhandSerializer
         options = options ?? DefaultOptions;
         try
         {
-            T.Deserialize(ref reader, ref value, DefaultOptions);
+            T.Deserialize(ref reader, ref value, options);
             return value is not null;
         }
         catch
@@ -938,7 +938,10 @@ public static partial class TinyhandSerializer
                     for (int i = 0; i < sequenceCount; i++)
                     {
                         var uncompressedLength = uncompressedLengths[i];
-                        reader.TryReadBytes(out var span);
+                        if (!reader.TryReadBytes(out var span))
+                        {
+                            throw new TinyhandException("Invalid LZ4 block.");
+                        }
 
                         var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
                         var actualUncompressedLength = LZ4Codec.Decode(span, uncompressedSpan);

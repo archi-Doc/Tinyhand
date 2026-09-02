@@ -8,7 +8,6 @@ using Arc.Collections;
 using Arc.IO;
 using Tinyhand.IO;
 using Tinyhand.Tree;
-using static FastExpressionCompiler.ImTools.SmallMap;
 
 #pragma warning disable SA1618 // Generic type parameters should be documented
 

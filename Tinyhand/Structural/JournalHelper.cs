@@ -44,7 +44,11 @@ public static class JournalHelper
             finally
             {
                 reader = fork;
-                reader.Advance(length);
+            }
+
+            if (!reader.TryAdvance(length))
+            {// The journal is truncated.
+                return false;
             }
         }
 
@@ -54,22 +58,19 @@ public static class JournalHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool TryReadJournal(this ref TinyhandReader reader, out int length, out JournalType journalType)
     {
-        try
-        {
-            reader.TryRead(out byte b0);
-            reader.TryRead(out byte b1);
-            reader.TryRead(out byte b2);
-            reader.TryRead(out byte code);
-            length = b0 << 16 | b1 << 8 | b2;
-            journalType = (JournalType)code;
-        }
-        catch
+        if (reader.Remaining < 4)
         {
             length = 0;
             journalType = default;
             return false;
         }
 
+        reader.TryRead(out byte b0);
+        reader.TryRead(out byte b1);
+        reader.TryRead(out byte b2);
+        reader.TryRead(out byte code);
+        length = (b0 << 16) | (b1 << 8) | b2;
+        journalType = (JournalType)code;
         return true;
     }
 

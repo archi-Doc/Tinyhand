@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Tinyhand.Formatters;
 
 #pragma warning disable SA1401 // Fields should be private
@@ -28,12 +29,68 @@ public sealed class GeneratedResolver : IFormatterResolver
 
         public Func<Type, Type[], ITinyhandFormatter> Generator { get; set; }
 
-        public Dictionary<Type[], ITinyhandFormatter> FormatterCache { get; } = new();
+        // Type[] has reference equality by default, and GetGenericArguments() returns a fresh array
+        // on every call, so a structural comparer is required for the cache to ever hit.
+        private readonly Dictionary<Type[], ITinyhandFormatter> formatterCache = new(TypeArrayComparer.Instance);
+        private readonly Lock lockObject = new();
 
         public FormatterGeneratorInfo(Type genericType, Func<Type, Type[], ITinyhandFormatter> generator)
         {
             this.GenericType = genericType;
             this.Generator = generator;
+        }
+
+        public ITinyhandFormatter GetOrCreate(Type type, Type[] genericArguments)
+        {
+            using (this.lockObject.EnterScope())
+            {
+                if (!this.formatterCache.TryGetValue(genericArguments, out var formatter))
+                {
+                    formatter = this.Generator(type, genericArguments);
+                    this.formatterCache[genericArguments] = formatter;
+                }
+
+                return formatter;
+            }
+        }
+    }
+
+    private sealed class TypeArrayComparer : IEqualityComparer<Type[]>
+    {
+        public static readonly TypeArrayComparer Instance = new();
+
+        public bool Equals(Type[]? x, Type[]? y)
+        {
+            if (ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            if (x is null || y is null || x.Length != y.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < x.Length; i++)
+            {
+                if (x[i] != y[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public int GetHashCode(Type[] obj)
+        {
+            var hash = default(HashCode);
+            foreach (var x in obj)
+            {
+                hash.Add(x);
+            }
+
+            return hash.ToHashCode();
         }
     }
 
@@ -54,15 +111,10 @@ public sealed class GeneratedResolver : IFormatterResolver
         {
             if (this.formatterGenerator.TryGetValue(targetType, out var info))
             {
-                var key = Array.Empty<Type>();
-                if (!info.FormatterCache.TryGetValue(key, out var f))
-                {
-                    f = info.Generator(targetType, key);
-                    info.FormatterCache[key] = f;
-                }
-
-                return (ITinyhandFormatter<T>)f;
+                return (ITinyhandFormatter<T>)info.GetOrCreate(targetType, Array.Empty<Type>());
             }
+
+            return null;
         }
 
         try
@@ -70,14 +122,7 @@ public sealed class GeneratedResolver : IFormatterResolver
             var genericType = targetType.GetGenericTypeDefinition();
             if (this.formatterGenerator.TryGetValue(genericType, out var info))
             {
-                var genericArguments = targetType.GetGenericArguments();
-                if (!info.FormatterCache.TryGetValue(genericArguments, out var f))
-                {
-                    f = info.Generator(genericType, genericArguments);
-                    info.FormatterCache[genericArguments] = f;
-                }
-
-                return (ITinyhandFormatter<T>)f;
+                return (ITinyhandFormatter<T>)info.GetOrCreate(genericType, targetType.GetGenericArguments());
             }
         }
         catch

@@ -36,7 +36,7 @@ public static class TinyhandHelper
             var name = Enum.GetName(typeof(TinyhandModifierType), x);
             if (name != null)
             {
-                var s = Encoding.UTF8.GetBytes(name.ToLower());
+                var s = Encoding.UTF8.GetBytes(name.ToLowerInvariant());
                 ModifierTable.TryAdd(s, x);
                 ReservedTable.TryAdd(s, 2);
             }
@@ -97,11 +97,12 @@ public static class TinyhandHelper
             else if (b == TinyhandConstants.BackSlash)
             { // Escape.
                 i++;
-                b = source[i];
                 if (i >= source.Length)
                 {
                     return;
                 }
+
+                b = source[i];
 
                 switch (b)
                 {
@@ -159,7 +160,8 @@ public static class TinyhandHelper
         source = source.Slice(2);
         consumed += 2;
 
-        bool result = Utf8Parser.TryParse(source, out int scalar, out var bytesConsumed, 'x');
+        // A \uXXXX escape is exactly four hex digits; without the slice the parser would also consume any hex digits that follow.
+        bool result = Utf8Parser.TryParse(source.Slice(0, 4), out int scalar, out var bytesConsumed, 'x') && bytesConsumed == 4;
         if (result != true)
         {
             throw new TinyhandException("Invalid UTF-8 text");
@@ -184,7 +186,7 @@ public static class TinyhandHelper
             source = source.Slice(2);
             consumed += 2;
 
-            result = Utf8Parser.TryParse(source, out int lowSurrogate, out bytesConsumed, 'x');
+            result = Utf8Parser.TryParse(source.Slice(0, 4), out int lowSurrogate, out bytesConsumed, 'x') && bytesConsumed == 4;
             if (result != true)
             {
                 throw new TinyhandException("Invalid UTF-8 text");

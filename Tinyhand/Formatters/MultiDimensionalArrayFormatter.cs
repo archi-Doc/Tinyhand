@@ -55,6 +55,10 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
             var iLength = reader.ReadInt32();
             var jLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            if ((long)iLength * jLength != maxLen)
+            {
+                throw new TinyhandException("Invalid T[,] format");
+            }
 
             value = new T[iLength, jLength];
 
@@ -171,6 +175,10 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
             var jLength = reader.ReadInt32();
             var kLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            if ((long)iLength * jLength * kLength != maxLen)
+            {
+                throw new TinyhandException("Invalid T[,,] format");
+            }
 
             value = new T[iLength, jLength, kLength];
 
@@ -305,6 +313,11 @@ public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]
             var kLength = reader.ReadInt32();
             var lLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            if ((long)iLength * jLength * kLength * lLength != maxLen)
+            {
+                throw new TinyhandException("Invalid T[,,,] format");
+            }
+
             value = new T[iLength, jLength, kLength, lLength];
 
             var i = 0;

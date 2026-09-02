@@ -9,7 +9,6 @@ using System.Text;
 using Arc;
 using Arc.Collections;
 using Arc.IO;
-using Microsoft.VisualBasic;
 using Tinyhand.IO;
 using Tinyhand.Tree;
 
@@ -134,16 +133,14 @@ public static class TinyhandTreeConverter
             case MessagePackType.String:
                 groupWriter.Flush(ref writer);
                 var span = reader.ReadStringSpan();
-                var utf8 = span.ToArray();
-
-                if (convertToIdentifier && IsValidIdentifier(utf8))
+                if (convertToIdentifier && IsValidIdentifier(span))
                 {
-                    writer.WriteSpan(utf8);
+                    writer.WriteSpan(span);
                 }
                 else
                 {
                     writer.WriteUInt8(TinyhandConstants.Quote);
-                    writer.WriteEscapedUtf8(utf8);
+                    writer.WriteEscapedUtf8(span);
                     writer.WriteUInt8(TinyhandConstants.Quote);
                 }
 
@@ -155,12 +152,12 @@ public static class TinyhandTreeConverter
                 writer.WriteUInt8(TinyhandConstants.Quote);
                 // writer.WriteSpan(Base64.EncodeToBase64Utf8(bytes.Value.ToArray()));
 
-                var byteArray = reader.ReadBytesToArray();
-                var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(byteArray.Length);
+                reader.TryReadBytes(out var binarySpan);
+                var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(binarySpan.Length);
                 var spanowner = new SpanOwner<byte>(stackalloc byte[BaseHelper.StackallocThreshold], encodedLength);
                 try
                 {
-                    Arc.Crypto.Base64Url.Encode(byteArray, spanowner.Span);
+                    Arc.Crypto.Base64Url.Encode(binarySpan, spanowner.Span);
                     writer.WriteSpan(spanowner.Span);
                 }
                 finally
@@ -754,7 +751,7 @@ public static class TinyhandTreeConverter
         }
     }
 
-    private static bool IsValidIdentifier(byte[] s)
+    private static bool IsValidIdentifier(ReadOnlySpan<byte> s)
     {
         if (s.Length == 0)
         {// Empty

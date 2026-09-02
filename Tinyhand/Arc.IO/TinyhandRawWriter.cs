@@ -167,7 +167,8 @@ public ref struct TinyhandRawWriter
         Span<byte> span = this.writer.GetSpan(20);
         if (Utf8Formatter.TryFormat(value, span, out var written))
         {
-            this.WriteSpan(span.Slice(0, written));
+            // TryFormat wrote directly into the writer buffer, so just commit it.
+            this.writer.Advance(written);
             return true;
         }
 
@@ -179,7 +180,8 @@ public ref struct TinyhandRawWriter
         Span<byte> span = this.writer.GetSpan(20);
         if (Utf8Formatter.TryFormat(value, span, out var written))
         {
-            this.WriteSpan(span.Slice(0, written));
+            // TryFormat wrote directly into the writer buffer, so just commit it.
+            this.writer.Advance(written);
             return true;
         }
 
@@ -207,7 +209,8 @@ public ref struct TinyhandRawWriter
         Span<byte> span = this.writer.GetSpan(32);
         if (Utf8Formatter.TryFormat(value, span, out var written))
         {
-            this.WriteSpan(span.Slice(0, written));
+            // TryFormat wrote directly into the writer buffer, so just commit it.
+            this.writer.Advance(written);
             return true;
         }
 
@@ -235,7 +238,8 @@ public ref struct TinyhandRawWriter
         Span<byte> span = this.writer.GetSpan(32);
         if (Utf8Formatter.TryFormat(value, span, out var written))
         {
-            this.WriteSpan(span.Slice(0, written));
+            // TryFormat wrote directly into the writer buffer, so just commit it.
+            this.writer.Advance(written);
             return true;
         }
 
@@ -266,15 +270,6 @@ public ref struct TinyhandRawWriter
         }
     }
 
-    private static unsafe void WriteBigEndian(ushort value, byte* span)
-    {
-        unchecked
-        {
-            span[0] = (byte)(value >> 8);
-            span[1] = (byte)value;
-        }
-    }
-
     private static void WriteBigEndian(uint value, Span<byte> span)
     {
         unchecked
@@ -284,17 +279,6 @@ public ref struct TinyhandRawWriter
             span[2] = (byte)(value >> 8);
             span[1] = (byte)(value >> 16);
             span[0] = (byte)(value >> 24);
-        }
-    }
-
-    private static unsafe void WriteBigEndian(uint value, byte* span)
-    {
-        unchecked
-        {
-            span[0] = (byte)(value >> 24);
-            span[1] = (byte)(value >> 16);
-            span[2] = (byte)(value >> 8);
-            span[3] = (byte)value;
         }
     }
 
@@ -313,8 +297,4 @@ public ref struct TinyhandRawWriter
             span[0] = (byte)(value >> 56);
         }
     }
-
-    private static unsafe void WriteBigEndian(float value, Span<byte> span) => WriteBigEndian(*(int*)&value, span);
-
-    private static unsafe void WriteBigEndian(double value, Span<byte> span) => WriteBigEndian(*(long*)&value, span);
 }

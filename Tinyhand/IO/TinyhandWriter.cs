@@ -708,9 +708,12 @@ public ref struct TinyhandWriter
     public void Write(Int128 value)
     {
         var ripper = Unsafe.As<Int128, Int128Ripper>(ref value);
-        if (ripper.Upper == 0 || ~ripper.Upper == 0)
+        var lower = unchecked((long)ripper.Lower);
+
+        // The value fits in a long only when the upper half is the sign extension of the lower half.
+        if (ripper.Upper == unchecked((ulong)(lower >> 63)))
         {
-            this.Write((long)ripper.Lower);
+            this.Write(lower);
         }
         else
         {
@@ -1210,10 +1213,10 @@ public ref struct TinyhandWriter
         var maxByteCount = (source.Length + 1) * 3;
 
         Span<byte> span = this.writer.GetSpan(maxByteCount + 6);
-        var status = Utf8.FromUtf16(source, span.Slice(6), out var _, out var bytesWritten, replaceInvalidSequences: false);
-        if (status != OperationStatus.Done)
-        {
-        }
+
+        // Invalid sequences are replaced (as Encoding.UTF8 does in Write(string)) rather than
+        // silently truncating the identifier at the first one.
+        Utf8.FromUtf16(source, span.Slice(6), out var _, out var bytesWritten, replaceInvalidSequences: true);
 
         span[0] = MessagePackCode.Ext32;
         WriteBigEndian((uint)bytesWritten, span.Slice(1));
@@ -1246,18 +1249,23 @@ public ref struct TinyhandWriter
 
         char[]? pooledName = default;
         var destination = length <= TinyhandConstants.StackallocThreshold ? stackalloc char[length] : (pooledName = ArrayPool<char>.Shared.Rent(length));
-        if (obj.TryFormat(destination, out var written))
+        try
         {
-            this.Write(destination.Slice(0, written));
+            if (obj.TryFormat(destination, out var written))
+            {
+                this.Write(destination.Slice(0, written));
+            }
+            else
+            {
+                this.Write(ReadOnlySpan<char>.Empty);
+            }
         }
-        else
+        finally
         {
-            this.Write(ReadOnlySpan<char>.Empty);
-        }
-
-        if (pooledName != null)
-        {
-            ArrayPool<char>.Shared.Return(pooledName);
+            if (pooledName != null)
+            {
+                ArrayPool<char>.Shared.Return(pooledName);
+            }
         }
     }
 

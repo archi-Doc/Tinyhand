@@ -191,6 +191,7 @@ public static class HashedString
             if (!cultureTable.TryGetValue(cultureName, out table))
             {
                 table = new();
+                cultureTable.TryAdd(cultureName, table); // Register it so that ChangeCulture()/Load() see the same table.
             }
 
             Volatile.Write(ref defaultCultureTable, table);

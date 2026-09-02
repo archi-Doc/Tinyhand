@@ -105,7 +105,8 @@ public ref partial struct TinyhandReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryAdvance(int count)
     {
-        if (this.remaining >= count)
+        // The unsigned comparison also rejects a negative count (e.g. a corrupted length read from the data).
+        if ((uint)count <= (uint)this.remaining)
         {
             this.remaining -= count;
             this.b = ref Unsafe.Add(ref this.b, count);
@@ -120,7 +121,7 @@ public ref partial struct TinyhandReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Advance(int count)
     {
-        ThrowInsufficientBufferUnless(this.remaining >= count);
+        ThrowInsufficientBufferUnless((uint)count <= (uint)this.remaining);
         this.remaining -= count;
         this.b = ref Unsafe.Add(ref this.b, count);
     }
@@ -128,7 +129,7 @@ public ref partial struct TinyhandReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Reverse(int count)
     {
-        ThrowInsufficientBufferUnless(this.Consumed >= count);
+        ThrowInsufficientBufferUnless((uint)count <= (uint)this.Consumed);
         this.remaining += count;
         this.b = ref Unsafe.Subtract(ref this.b, count);
     }
@@ -201,7 +202,9 @@ public ref partial struct TinyhandReader
             case MessagePackCode.Ext8:
             case MessagePackCode.Ext16:
             case MessagePackCode.Ext32:
-                return this.TryReadExtensionFormatHeader(out ExtensionHeader header) && this.TryAdvance((int)header.Length);
+                return this.TryReadExtensionFormatHeader(out ExtensionHeader header) &&
+                    header.Length <= int.MaxValue &&
+                    this.TryAdvance((int)header.Length);
             default:
                 if ((code >= MessagePackCode.MinNegativeFixInt && code <= MessagePackCode.MaxNegativeFixInt) ||
                     (code >= MessagePackCode.MinFixInt && code <= MessagePackCode.MaxFixInt))
@@ -267,7 +270,7 @@ public ref partial struct TinyhandReader
     /// <returns>The sequence of bytes read.</returns>
     public ReadOnlySpan<byte> ReadRaw(int length)
     {
-        if (this.remaining < length)
+        if ((uint)length > (uint)this.remaining)
         {
             throw ThrowNotEnoughBytesException();
         }
@@ -310,7 +313,7 @@ public ref partial struct TinyhandReader
         // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
         // We allow for each primitive to be the minimal 1 byte in size.
         // Formatters that know each element is larger can optionally add a stronger check.
-        ThrowInsufficientBufferUnless(this.Remaining >= count);
+        ThrowInsufficientBufferUnless((uint)count <= (uint)this.Remaining);
 
         return count;
     }
@@ -388,7 +391,7 @@ public ref partial struct TinyhandReader
         // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
         // We allow for each primitive to be the minimal 1 byte in size, and we have a key=value map, so that's 2 bytes.
         // Formatters that know each element is larger can optionally add a stronger check.
-        ThrowInsufficientBufferUnless(this.Remaining >= count * 2);
+        ThrowInsufficientBufferUnless(count >= 0 && (long)count * 2 <= this.Remaining);
 
         return count;
     }
@@ -413,7 +416,7 @@ public ref partial struct TinyhandReader
         // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
         // We allow for each primitive to be the minimal 1 byte in size, and we have a key=value map, so that's 2 bytes.
         // Formatters that know each element is larger can optionally add a stronger check.
-        ThrowInsufficientBufferUnless(this.Remaining >= count * 2);
+        ThrowInsufficientBufferUnless(count >= 0 && (long)count * 2 <= this.Remaining);
 
         return count;
     }
@@ -1333,11 +1336,16 @@ public ref partial struct TinyhandReader
 
     private bool TrySkipNextArray() => this.TryReadArrayHeader(out int count) && this.TrySkip(count);
 
-    private bool TrySkipNextMap() => this.TryReadMapHeader(out int count) && this.TrySkip(count * 2);
+    private bool TrySkipNextMap() => this.TryReadMapHeader(out int count) && count >= 0 && this.TrySkip((long)count * 2);
 
-    private bool TrySkip(int count)
+    private bool TrySkip(long count)
     {
-        for (int i = 0; i < count; i++)
+        if (count < 0)
+        {
+            return false;
+        }
+
+        for (long i = 0; i < count; i++)
         {
             if (!this.TrySkip())
             {
