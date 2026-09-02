@@ -34,12 +34,10 @@ public static class TinyhandParser
         {
             Element? currentElement = null;
             Element? previousElement = null;
-            ReadOnlySpan<byte> previousSpan;
             var contextualElement = this.Root.forwardContextual; // {
 
             while (true)
             {
-                previousSpan = reader.ValueSpan;
                 currentElement = this.ReadElement(ref reader, this.Options.ParseContextualInformation);
                 if (this.Options.ParseContextualInformation)
                 { // Parse Comment/LineFeed.

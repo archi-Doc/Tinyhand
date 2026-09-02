@@ -95,33 +95,26 @@ public static class TinyhandConstants
     public const int LowSurrogateEndValue = 0xDFFF;
     public const int BitShiftBy10 = 0x400;
 
-    public static byte[] FirstByteTable = new byte[256];
-
-    static TinyhandConstants()
-    {
-        // UTF-8 first byte table. 0:other, 1:may be white space, 2:white space, 3:delimiters
-        FirstByteTable[0x09] = 2;
-        FirstByteTable[0x0A] = 2;
-        FirstByteTable[0x0B] = 2;
-        FirstByteTable[0x0C] = 2;
-        FirstByteTable[0x0D] = 2;
-        FirstByteTable[TinyhandConstants.Space] = 2;
-        FirstByteTable[0xC2] = 1;
-        FirstByteTable[0xE2] = 1;
-        FirstByteTable[0xE3] = 1;
-
-        // Delimiters
-        FirstByteTable[TinyhandConstants.Quote] = 3;
-        FirstByteTable[TinyhandConstants.LeftParenthesis] = 3;
-        FirstByteTable[TinyhandConstants.RightParenthesis] = 3;
-        FirstByteTable[TinyhandConstants.Separator] = 3;
-        FirstByteTable[TinyhandConstants.Separator2] = 3;
-        // FirstByteTable[TinyhandConstants.OpenBracket] = 3;
-        // FirstByteTable[TinyhandConstants.CloseBracket] = 3;
-        FirstByteTable[TinyhandConstants.OpenBrace] = 3;
-        FirstByteTable[TinyhandConstants.CloseBrace] = 3;
-        FirstByteTable[TinyhandConstants.EqualsSign] = 3;
-        FirstByteTable[TinyhandConstants.Slash] = 3;
-        FirstByteTable[TinyhandConstants.Sharp] = 3;
-    }
+    /// <summary>
+    /// UTF-8 first byte table. 0:other, 1:may be white space, 2:white space, 3:delimiters.
+    /// </summary>
+    public static readonly byte[] FirstByteTable =
+    [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        2, 0, 3, 3, 0, 0, 0, 0, 3, 3, 0, 0, 3, 0, 0, 3,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
 }

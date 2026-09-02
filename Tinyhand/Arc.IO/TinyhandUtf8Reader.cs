@@ -7,6 +7,7 @@ using System.Text;
 
 #pragma warning disable SA1201 // Elements should appear in the correct order
 #pragma warning disable SA1202 // Elements should be ordered by access
+#pragma warning disable SA1204 // Static elements should appear before instance elements
 #pragma warning disable SA1309
 #pragma warning disable SA1513 // Closing brace should be followed by blank line
 #pragma warning disable SA1602 // Enumeration items should be documented
@@ -64,6 +65,7 @@ public ref struct TinyhandUtf8Reader
     private const int InitialLinePosition = 1;
     private const int LineFeedFlag = 1 << 30; // 0x4000_0000
     private const int BytePositionMask = ~LineFeedFlag;
+    private const int MinimumUnescapeBufferLength = 64;
 
     public bool End => this.Position >= this.Length;
 
@@ -79,9 +81,21 @@ public ref struct TinyhandUtf8Reader
 
     public int AtomBytePositionInLine { get; private set; }
 
+    /// <summary>
+    /// Gets the value of the current atom.<br/>
+    /// The span is only valid until the next call to <see cref="Read"/>: it either points into the
+    /// source buffer, or, for a string containing escape sequences, into a buffer reused by the reader.
+    /// Copy it if it has to outlive the current atom.
+    /// </summary>
     public ReadOnlySpan<byte> ValueSpan { get; private set; }
 
     public TinyhandModifierType ValueModifierType { get; private set; }
+
+    /// <summary>
+    /// A buffer reused for unescaping. Escape sequences never grow the text, so a buffer
+    /// as large as the escaped string is always enough.
+    /// </summary>
+    private byte[]? unescapeBuffer;
 
     public string ValueSpanToString => Encoding.UTF8.GetString(this.ValueSpan);
 
@@ -180,14 +194,15 @@ public ref struct TinyhandUtf8Reader
 
         // Create local copy to avoid bounds checks.
         ReadOnlySpan<byte> localBuffer = this.buffer;
-        for (var remaining = localBuffer.Length - this.Position; remaining > 0;)
+        while (this._position < localBuffer.Length)
         {
-            var val = localBuffer[this.Position];
+            // Derived from the position so that it can never get out of step with it.
+            var remaining = localBuffer.Length - this._position;
+            var val = localBuffer[this._position];
 
             if ((val <= 0x0D && val >= 0x09) || val == 0x20)
             { // U+0009 to U+000D, U+0020
                 this.AddPosition(1);
-                remaining--;
 
                 if (val == TinyhandConstants.LineFeed)
                 {
@@ -204,34 +219,32 @@ public ref struct TinyhandUtf8Reader
             else if (val == TinyhandConstants.Separator || val == TinyhandConstants.Separator2)
             { // Separator
                 this.AddPosition(1);
-                remaining--;
 
                 if (this.readContextualInformation)
                 { // Separator
                     this.AtomType = TinyhandAtomType.Separator;
                     return true;
                 }
-                else
-                { // Flag
-                    separatorFlag = true;
-                }
+
+                // Flag: leave the loop so that one separator produces one atom.
+                separatorFlag = true;
+                break;
             }
 
-            if (val == 0xC2 && remaining >= 2 && localBuffer[this.Position + 1] == 0xA0)
+            if (val == 0xC2 && remaining >= 2 && localBuffer[this._position + 1] == 0xA0)
             { // U+00A0 (C2 A0)
                 this.AddPosition(2);
-                remaining -= 2;
                 continue;
             }
 
-            if (val == 0xE2 && remaining >= 3 && localBuffer[this.Position + 1] == 0x80)
+            if (val == 0xE2 && remaining >= 3 && localBuffer[this._position + 1] == 0x80)
             {
-                if (localBuffer[this.Position + 2] >= 0x80 && localBuffer[this.Position + 2] <= 0x8A)
+                if (localBuffer[this._position + 2] >= 0x80 && localBuffer[this._position + 2] <= 0x8A)
                 {// U+2000 to U+200A, E2 80 80 to E2 80 8A
                     this.AddPosition(3);
                     continue;
                 }
-                else if (localBuffer[this.Position + 2] == 0xA8 || localBuffer[this.Position + 2] == 0xA9)
+                else if (localBuffer[this._position + 2] == 0xA8 || localBuffer[this._position + 2] == 0xA9)
                 {// U+2028- U+2029, E2 80 A8 to E2 80 A9
                     this.AddPosition(3);
                     this.IncrementLineNumber();
@@ -240,13 +253,14 @@ public ref struct TinyhandUtf8Reader
                         this.AtomType = TinyhandAtomType.LineFeed;
                         return true;
                     }
+
+                    continue;
                 }
             }
 
-            if (val == 0xE3 && remaining >= 3 && localBuffer[this.Position + 1] == 0x80 && localBuffer[this.Position + 2] == 0x80)
+            if (val == 0xE3 && remaining >= 3 && localBuffer[this._position + 1] == 0x80 && localBuffer[this._position + 2] == 0x80)
             { // U+3000, E3 80 80
                 this.AddPosition(3);
-                remaining -= 3;
                 continue;
             }
 
@@ -558,6 +572,9 @@ Unexpected_Symbol:
                 remaining--;
                 this.AddPosition(1);
             }
+
+            // The comment is terminated by the end of the data.
+            this.ValueSpan = localBuffer.Slice(startPosition, this.Position - startPosition);
         }
         else if (localBuffer[this.Position] == TinyhandConstants.Asterisk)
         { // Multi line comment.
@@ -565,7 +582,7 @@ Unexpected_Symbol:
             {
                 var val = localBuffer[this.Position];
 
-                if (val == 0x0D)
+                if (val == TinyhandConstants.LineFeed)
                 { // \n
                     remaining--;
                     this.AddPosition(1);
@@ -595,6 +612,9 @@ Unexpected_Symbol:
                 remaining--;
                 this.AddPosition(1);
             }
+
+            // The comment is terminated by the end of the data.
+            this.ValueSpan = localBuffer.Slice(startPosition, this.Position - startPosition);
         }
         else
         { // Unexpected character.
@@ -655,17 +675,21 @@ Unexpected_Symbol:
                 remaining--;
                 this.AddPosition(1);
             }
+
+            // The comment is terminated by the end of the data.
+            this.ValueSpan = localBuffer.Slice(startPosition, this.Position - startPosition);
         }
     }
 
     private void ReadRawString()
     {
         ReadOnlySpan<byte> localBuffer = this.buffer.Slice(this.Position);
+        ReadOnlySpan<byte> table = TinyhandConstants.FirstByteTable;
         int position = 0;
 
         for (var remaining = localBuffer.Length; remaining > 0; remaining--, position++)
         {
-            if (this.IsDelimiter(localBuffer, position, remaining))
+            if (IsDelimiter(table, localBuffer, position, remaining))
             {
                 break;
             }
@@ -674,9 +698,12 @@ Unexpected_Symbol:
         this.ValueSpan = localBuffer.Slice(0, position);
     }
 
-    private int GetQuotedStringLength(ReadOnlySpan<byte> utf8, byte q)
+    /// <param name="hasEscape">Receives whether the string contains an escape sequence.
+    /// When it does not, the string is a verbatim slice of the source and needs no unescaping.</param>
+    private int GetQuotedStringLength(ReadOnlySpan<byte> utf8, byte q, out bool hasEscape)
     {
         int count;
+        hasEscape = false;
 
         for (count = 0; count < utf8.Length; count++)
         {
@@ -690,6 +717,7 @@ Unexpected_Symbol:
             }
             else if (utf8[count] == TinyhandConstants.BackSlash)
             {
+                hasEscape = true;
                 if (count + 1 < utf8.Length)
                 { // Skip \?
                     count++;
@@ -745,13 +773,36 @@ Unexpected_Symbol:
         else
         { // "single line string" or 'string'
             var stringSpan = this.buffer.Slice(this.Position);
-            var length = this.GetQuotedStringLength(stringSpan, q);
-            this.ValueSpan = TinyhandHelper.GetUnescapedSpan(stringSpan.Slice(0, length));
+            var length = this.GetQuotedStringLength(stringSpan, q, out var hasEscape);
+
+            // Without an escape sequence the string is a verbatim slice of the source,
+            // so unescaping can be skipped entirely.
+            this.ValueSpan = hasEscape ?
+                this.Unescape(stringSpan.Slice(0, length)) :
+                stringSpan.Slice(0, length);
 
             this.AddPosition(length + 1); // String + quote.
             this.AtomType = TinyhandAtomType.Value_String;
         }
         return true;
+    }
+
+    /// <summary>
+    /// Unescapes a string into <see cref="unescapeBuffer"/>, which is grown as needed and reused
+    /// by every subsequent string, so a document allocates at most one buffer.
+    /// </summary>
+    /// <param name="source">The escaped string.</param>
+    /// <returns>The unescaped string.</returns>
+    private ReadOnlySpan<byte> Unescape(ReadOnlySpan<byte> source)
+    {
+        // Unescaping never grows the text, so a buffer as large as the source is always enough.
+        if (this.unescapeBuffer is null || this.unescapeBuffer.Length < source.Length)
+        {
+            this.unescapeBuffer = new byte[Math.Max(source.Length, MinimumUnescapeBufferLength)];
+        }
+
+        TinyhandHelper.Unescape(source, this.unescapeBuffer, out var written);
+        return this.unescapeBuffer.AsSpan(0, written);
     }
 
     private bool ReadBinary(byte q)
@@ -760,7 +811,7 @@ Unexpected_Symbol:
 
         // "single line string" or 'string'
         var stringSpan = this.buffer.Slice(this.Position);
-        var length = this.GetQuotedStringLength(stringSpan, q);
+        var length = this.GetQuotedStringLength(stringSpan, q, out _);
         this.ValueSpan = stringSpan.Slice(0, length);
 
         // this.ValueBinary = Arc.Crypto.Base64.Url.FromUtf8ToByteArray(this.ValueSpan);
@@ -778,10 +829,20 @@ Unexpected_Symbol:
         return true;
     }
 
-    private bool IsDelimiter(ReadOnlySpan<byte> localBuffer, int position, int remaining)
+    /// <summary>
+    /// Determines whether the byte at <paramref name="position"/> terminates a token.
+    /// </summary>
+    /// <param name="table">A local copy of <see cref="TinyhandConstants.FirstByteTable"/>, hoisted out of the caller's loop.</param>
+    /// <param name="localBuffer">The buffer.</param>
+    /// <param name="position">The position in the buffer.</param>
+    /// <param name="remaining">The number of bytes left from <paramref name="position"/>.</param>
+    /// <returns><see langword="true"/>; the byte is a white space or a delimiter.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool IsDelimiter(ReadOnlySpan<byte> table, ReadOnlySpan<byte> localBuffer, int position, int remaining)
     {
+        // UTF-8 first byte table. 0:other, 1:may be white space, 2:white space, 3:delimiters
         var val = localBuffer[position];
-        var tv = TinyhandConstants.FirstByteTable[val]; // UTF-8 first byte table. 0:other, 1:may be white space, 2:white space, 3:delimiters
+        var tv = table[val];
 
         if (tv >= 2)
         { // White space or delimiters
@@ -791,6 +852,14 @@ Unexpected_Symbol:
         { // Other characters.
             return false;
         }
+
+        return IsMultiByteWhiteSpace(localBuffer, position, remaining);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool IsMultiByteWhiteSpace(ReadOnlySpan<byte> localBuffer, int position, int remaining)
+    {
+        var val = localBuffer[position];
 
         if (val == 0xC2 && remaining >= 2 && localBuffer[position + 1] == 0xA0)
         { // U+00A0 (C2 A0)
@@ -819,39 +888,11 @@ Unexpected_Symbol:
 
     public static bool HasDelimiter(scoped ReadOnlySpan<byte> utf8)
     {
+        ReadOnlySpan<byte> table = TinyhandConstants.FirstByteTable;
         for (var n = 0; n < utf8.Length; n++)
         {
-            var val = utf8[n];
-            var tv = TinyhandConstants.FirstByteTable[val]; // UTF-8 first byte table. 0:other, 1:may be white space, 2:white space, 3:delimiters
-
-            if (tv >= 2)
-            { // White space or delimiters
-                return true;
-            }
-            else if (tv == 0)
-            { // Other characters.
-                continue;
-            }
-
-            if (val == 0xC2 && (utf8.Length - n) >= 2 && utf8[n + 1] == 0xA0)
-            { // U+00A0 (C2 A0)
-                return true;
-            }
-
-            if (val == 0xE2 && (utf8.Length - n) >= 3 && utf8[n + 1] == 0x80)
-            { // U+2000 to U+200A, E2 80 80 to E2 80 8A  U+2028- U+2029, E2 80 A8 to E2 80 A9
-                if (utf8[n + 2] >= 0x80 && utf8[n + 2] <= 0x8A)
-                {
-                    return true;
-                }
-                else if (utf8[n + 2] == 0xA8 || utf8[n + 2] == 0xA9)
-                {
-                    return true;
-                }
-            }
-
-            if (val == 0xE3 && (utf8.Length - n) >= 3 && utf8[n + 1] == 0x80 && utf8[n + 2] == 0x80)
-            { // U+3000, E3 80 80
+            if (IsDelimiter(table, utf8, n, utf8.Length - n))
+            {
                 return true;
             }
         }
@@ -859,9 +900,15 @@ Unexpected_Symbol:
         return false;
     }
 
+    /// <summary>
+    /// Reads a number. The token always starts with a digit, '+' or '-', so it can only be a number;
+    /// a token that cannot be parsed as one is an error.
+    /// </summary>
+    /// <returns><see langword="true"/>; the number was read.</returns>
     private bool ReadNumber()
     {
         ReadOnlySpan<byte> localBuffer = this.buffer.Slice(this.Position);
+        ReadOnlySpan<byte> table = TinyhandConstants.FirstByteTable;
         int position = 0;
         var isDouble = false;
 
@@ -869,7 +916,7 @@ Unexpected_Symbol:
 
         for (var remaining = localBuffer.Length; remaining > 0; remaining--, position++)
         {
-            if (this.IsDelimiter(localBuffer, position, remaining))
+            if (IsDelimiter(table, localBuffer, position, remaining))
             {
                 break;
             }
@@ -888,40 +935,42 @@ Unexpected_Symbol:
             }
         }
 
-        this.ValueSpan = localBuffer.Slice(0, position);
-        this.AddPosition(position);
+        var span = localBuffer.Slice(0, position);
 
-        if (this.ValueSpan.Length > 0)
-        {
-            var last = this.ValueSpan[this.ValueSpan.Length - 1];
-            if (last == 'f' || last == 'F' || last == 'd' || last == 'D')
-            {
-                isDouble = true;
-            }
-        }
-
+        // The whole token must be consumed; otherwise a value like "1.2.3" would silently become 1.2.
         if (isDouble)
         {
-            this.AtomType = TinyhandAtomType.Value_Double;
-            var ret = Utf8Parser.TryParse(this.ValueSpan, out double result, out int bytesConsumed);
-            this.ValueDouble = result;
-            return ret;
+            if (Utf8Parser.TryParse(span, out double result, out var bytesConsumed) && bytesConsumed == span.Length)
+            {
+                this.AtomType = TinyhandAtomType.Value_Double;
+                this.ValueDouble = result;
+                this.ValueSpan = span;
+                this.AddPosition(position);
+                return true;
+            }
         }
         else
-        {// long
-            this.AtomType = TinyhandAtomType.Value_Long;
-            var ret = Utf8Parser.TryParse(this.ValueSpan, out long result, out int bytesConsumed);
-            if (ret)
-            {
-                this.ValueLong = result;
-                return ret;
+        {
+            if (Utf8Parser.TryParse(span, out long longResult, out var bytesConsumed) && bytesConsumed == span.Length)
+            {// long
+                this.AtomType = TinyhandAtomType.Value_Long;
+                this.ValueLong = longResult;
+                this.ValueSpan = span;
+                this.AddPosition(position);
+                return true;
             }
 
-            // Maybe ulong...
-            this.AtomType = TinyhandAtomType.Value_ULong;
-            ret = Utf8Parser.TryParse(this.ValueSpan, out ulong result2, out bytesConsumed);
-            this.ValueULong = result2;
-            return ret;
+            if (Utf8Parser.TryParse(span, out ulong ulongResult, out bytesConsumed) && bytesConsumed == span.Length)
+            {// Maybe ulong...
+                this.AtomType = TinyhandAtomType.Value_ULong;
+                this.ValueULong = ulongResult;
+                this.ValueSpan = span;
+                this.AddPosition(position);
+                return true;
+            }
         }
+
+        this.ThrowException($"\"{Encoding.UTF8.GetString(span)}\" is not a valid number.");
+        return false;
     }
 }
