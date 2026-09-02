@@ -60,6 +60,7 @@ public class Program
             typeof(Union2.UnionBenchmark2),
             typeof(UnionBenchmark),
             typeof(SerializeIdentifierTest),
+            typeof(Utf8ReaderBenchmark),
             typeof(DualWriter.DualWriterBenchmark),
             typeof(TypeSwitch.SwitchBenchmark),
             typeof(Clone.CloneBenchmark),
