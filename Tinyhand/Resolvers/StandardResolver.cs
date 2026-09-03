@@ -13,9 +13,7 @@ internal sealed class StandardResolver : IFormatterResolver
     public static readonly StandardResolver Instance = new();
 
     private static readonly IFormatterResolver[] Resolvers = new IFormatterResolver[]
-    {// NativeResolver + CompatibleResolver
-        NativeGuidResolver.Instance,
-        NativeDecimalResolver.Instance,
+    {
         BuiltinResolver.Instance,
         GenericsResolver.Instance,
         GeneratedResolver.Instance,

@@ -2526,10 +2526,6 @@ ModuleInitializerClass_Added:
         ssb.AppendLine($"private static bool {initializeFlag} = {initializeMethod}();");
         using (var scopeMethod = ssb.ScopeBrace($"private static bool {initializeMethod}()"))
         {
-            /*ssb.AppendLine($"var type = typeof({this.LocalName});");
-            ssb.AppendLine("var expType = Expression.Parameter(type);");
-            ssb.AppendLine("ParameterExpression exp;");
-            ssb.AppendLine("ParameterExpression exp2;");*/
             foreach (var x in array)
             {
                 if (x.Kind == VisceralObjectKind.Property)
@@ -2550,33 +2546,6 @@ ModuleInitializerClass_Added:
 
                     continue;
                 }
-
-                /*if (x.SetterDelegate is not null)
-                {
-                    ssb.AppendLine($"exp2 = Expression.Parameter(typeof({x.TypeObject!.FullName}));");
-                    if (this.Kind == VisceralObjectKind.Struct)
-                    {// Struct
-                        ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}).MakeByRefType());");
-                        ssb.AppendLine($"{x.SetterDelegate} = Expression.Lambda<ByRefAction<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
-                    }
-                    else
-                    {// Class
-                        ssb.AppendLine($"exp = Expression.Parameter(typeof({x.ContainingObject!.FullName}));");
-                        ssb.AppendLine($"{x.SetterDelegate} = Expression.Lambda<Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>>(Expression.Assign(Expression.PropertyOrField(exp, \"{x.SimpleName}\"), exp2), exp, exp2).CompileFast();");
-                    }
-                }
-
-                if (x.GetterDelegate is not null)
-                {
-                    if (this == x.ContainingObject)
-                    {
-                        ssb.AppendLine($"{x.GetterDelegate} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(expType, \"{x.SimpleName}\"), expType).CompileFast();");
-                    }
-                    else
-                    {
-                        ssb.AppendLine($"{x.GetterDelegate} = Expression.Lambda<Func<{this.LocalName}, {x.TypeObject!.FullName}>>(Expression.PropertyOrField(Expression.Convert(expType, typeof({x.ContainingObject!.FullName})), \"{x.SimpleName}\"), expType).CompileFast();");
-                    }
-                }*/
             }
 
             ssb.AppendLine("return true;");

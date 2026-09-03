@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Tinyhand.IO;
 using Tinyhand.Resolvers;
 using Xunit;
 
@@ -21,12 +22,10 @@ public class FormatterResolverTest
         Assert.Null(resolver.TryGetFormatter<Action>());
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void ObjectDoesNotDispatchToRuntimeTypeFormatter(bool compatible)
+    [Fact]
+    public void ObjectDoesNotDispatchToRuntimeTypeFormatter()
     {
-        var options = compatible ? TinyhandSerializerOptions.Compatible : TinyhandSerializerOptions.Standard;
+        var options = TinyhandSerializerOptions.Standard;
         var value = new Uri("https://example.com/");
 
         var bytes = TinyhandSerializer.Serialize(value, options);
@@ -34,23 +33,19 @@ public class FormatterResolverTest
         Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize<object>(value, options));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void DefaultResolversDoNotSupportExpandoObject(bool compatible)
+    [Fact]
+    public void StandardResolverDoesNotSupportExpandoObject()
     {
-        var options = compatible ? TinyhandSerializerOptions.Compatible : TinyhandSerializerOptions.Standard;
+        var options = TinyhandSerializerOptions.Standard;
 
         Assert.Null(options.Resolver.TryGetFormatter<System.Dynamic.ExpandoObject>());
         Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(new System.Dynamic.ExpandoObject(), options));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void DefaultResolversDoNotSupportNonGenericCollections(bool compatible)
+    [Fact]
+    public void StandardResolverDoesNotSupportNonGenericCollections()
     {
-        var options = compatible ? TinyhandSerializerOptions.Compatible : TinyhandSerializerOptions.Standard;
+        var options = TinyhandSerializerOptions.Standard;
 
         Assert.Null(options.Resolver.TryGetFormatter<ArrayList>());
         Assert.Null(options.Resolver.TryGetFormatter<Hashtable>());
@@ -59,16 +54,54 @@ public class FormatterResolverTest
 
         var list = new object[] { 1, "value" };
         var listBytes = TinyhandSerializer.Serialize(list, options);
-        AssertUnsupportedCollection<IEnumerable>(list, listBytes, options);
-        AssertUnsupportedCollection<ICollection>(list, listBytes, options);
-        AssertUnsupportedCollection<IList>(list, listBytes, options);
+        AssertUnsupportedType<IEnumerable>(list, listBytes, options);
+        AssertUnsupportedType<ICollection>(list, listBytes, options);
+        AssertUnsupportedType<IList>(list, listBytes, options);
 
         var dictionary = new Dictionary<string, int> { ["key"] = 1 };
         var dictionaryBytes = TinyhandSerializer.Serialize(dictionary, options);
-        AssertUnsupportedCollection<IDictionary>(dictionary, dictionaryBytes, options);
+        AssertUnsupportedType<IDictionary>(dictionary, dictionaryBytes, options);
     }
 
-    private static void AssertUnsupportedCollection<T>(T value, byte[] bytes, TinyhandSerializerOptions options)
+    [Fact]
+    public void StandardResolverDoesNotSupportSystemType()
+    {
+        var options = TinyhandSerializerOptions.Standard;
+
+        AssertUnsupportedType<Type>(typeof(string), TinyhandSerializer.Serialize("System.String", options), options);
+        AssertUnsupportedType<Type?>(null, TinyhandSerializer.Serialize<string?>(null, options), options);
+    }
+
+    [Fact]
+    public void StandardResolverPreservesGuidAndDecimalBinaryFormat()
+    {
+        AssertNativeRoundtrip(Guid.Parse("00112233-4455-6677-8899-aabbccddeeff"));
+        AssertNativeRoundtrip(new decimal(1341, 53156, 61, true, 3));
+    }
+
+    [Fact]
+    public void OptionsRejectNullResolverWhenCopied()
+    {
+        Assert.Throws<ArgumentNullException>(() => TinyhandSerializerOptions.Standard with { Resolver = null! });
+    }
+
+    private static void AssertNativeRoundtrip<T>(T value)
+        where T : struct
+    {
+        var options = TinyhandSerializerOptions.Standard;
+        var bytes = TinyhandSerializer.Serialize(value, options);
+        Assert.Equal(18, bytes.Length);
+        Assert.Equal(MessagePackCode.Bin8, bytes[0]);
+        Assert.Equal(16, bytes[1]);
+        Assert.Equal(value, TinyhandSerializer.Deserialize<T>(bytes, options));
+        Assert.Equal(bytes, TinyhandSerializer.Serialize<T?>(value, options));
+        Assert.Equal((T?)value, TinyhandSerializer.Deserialize<T?>(bytes, options));
+        Assert.Null(TinyhandSerializer.Deserialize<T?>(TinyhandSerializer.Serialize<T?>(null, options), options));
+        Assert.True(TinyhandTypeIdentifier.IsRegistered<T>());
+        Assert.True(TinyhandTypeIdentifier.IsRegistered<T?>());
+    }
+
+    private static void AssertUnsupportedType<T>(T value, byte[] bytes, TinyhandSerializerOptions options)
     {
         Assert.Null(options.Resolver.TryGetFormatter<T>());
         Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(value, options));

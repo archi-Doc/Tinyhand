@@ -2,18 +2,16 @@
 
 using Xunit;
 
-#pragma warning disable SA1009
-
 namespace Tinyhand.Tests;
 
 public static class TestHelper
 {
     public static T? Convert<T>(T obj) => TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj));
 
-    public static T? TestWithoutMessagePack<T>(T obj, bool testClone = true)
+    public static T? TestRoundtrip<T>(T obj, bool testClone = true)
     {
-        var b = TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Compatible);
-        var t = TinyhandSerializer.Deserialize<T>(b, TinyhandSerializerOptions.Compatible);
+        var b = TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Standard);
+        var t = TinyhandSerializer.Deserialize<T>(b, TinyhandSerializerOptions.Standard);
         obj.IsStructuralEqual(t);
 
         t = TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj, TinyhandSerializerOptions.Lz4), TinyhandSerializerOptions.Lz4);

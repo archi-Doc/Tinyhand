@@ -34,13 +34,9 @@ public class NativeFormatterBenchmark
 
     public Guid Guid { get; private set; }
 
-    public byte[] GuidByte { get; private set; } = default!;
-
     public byte[] NativeGuidByte { get; private set; } = default!;
 
     public Decimal Decimal { get; private set; }
-
-    public byte[] DecimalByte { get; private set; } = default!;
 
     public byte[] NativeDecimalByte { get; private set; } = default!;
 
@@ -52,28 +48,28 @@ public class NativeFormatterBenchmark
     public void Setup()
     {
         this.DateTime = DateTime.UtcNow;
-        var w = new TinyhandWriter();
-        DateTimeFormatter.Instance.Serialize(ref w, this.DateTime, TinyhandSerializerOptions.Standard);
-        this.DateTimeByte = w.FlushAndGetArray();
-        w = new TinyhandWriter();
-        NativeDateTimeFormatter.Instance.Serialize(ref w, this.DateTime, TinyhandSerializerOptions.Standard);
-        this.NativeDateTimeByte = w.FlushAndGetArray();
+        this.DateTimeByte = Serialize(this.DateTime, DateTimeFormatter.Instance);
+        this.NativeDateTimeByte = Serialize(this.DateTime, NativeDateTimeFormatter.Instance);
 
         this.Guid = Guid.NewGuid();
-        w = new TinyhandWriter();
-        GuidFormatter.Instance.Serialize(ref w, this.Guid, TinyhandSerializerOptions.Standard);
-        this.GuidByte = w.FlushAndGetArray();
-        w = new TinyhandWriter();
-        NativeGuidFormatter.Instance.Serialize(ref w, this.Guid, TinyhandSerializerOptions.Standard);
-        this.NativeGuidByte = w.FlushAndGetArray();
+        this.NativeGuidByte = Serialize(this.Guid, NativeGuidFormatter.Instance);
 
         this.Decimal = new Decimal(1341, 53156, 61, true, 3);
-        w = new TinyhandWriter();
-        DecimalFormatter.Instance.Serialize(ref w, this.Decimal, TinyhandSerializerOptions.Standard);
-        this.DecimalByte = w.FlushAndGetArray();
-        w = new TinyhandWriter();
-        NativeDecimalFormatter.Instance.Serialize(ref w, this.Decimal, TinyhandSerializerOptions.Standard);
-        this.NativeDecimalByte = w.FlushAndGetArray();
+        this.NativeDecimalByte = Serialize(this.Decimal, NativeDecimalFormatter.Instance);
+    }
+
+    private static byte[] Serialize<T>(T value, ITinyhandFormatter<T> formatter)
+    {
+        var writer = new TinyhandWriter();
+        try
+        {
+            formatter.Serialize(ref writer, value, TinyhandSerializerOptions.Standard);
+            return writer.FlushAndGetArray();
+        }
+        finally
+        {
+            writer.Dispose();
+        }
     }
 
     [Benchmark]
@@ -121,21 +117,6 @@ public class NativeFormatterBenchmark
     }
 
     [Benchmark]
-    public ReadOnlySequence<byte> SerializeGuid()
-    {
-        var w = new TinyhandWriter(this.ByteBuffer);
-        try
-        {
-            GuidFormatter.Instance.Serialize(ref w, this.Guid, TinyhandSerializerOptions.Standard);
-            return w.FlushAndGetReadOnlySequence();
-        }
-        finally
-        {
-            w.Dispose();
-        }
-    }
-
-    [Benchmark]
     public ReadOnlySequence<byte> SerializeNativeGuid()
     {
         var w = new TinyhandWriter(this.ByteBuffer);
@@ -154,13 +135,6 @@ public class NativeFormatterBenchmark
     public byte[] SerializeGuid_TinyhandSerializer() => TinyhandSerializer.Serialize(this.Guid);
 
     [Benchmark]
-    public Guid DeserializeGuid()
-    {
-        var r = new TinyhandReader(this.GuidByte);
-        return GuidFormatter.Instance.Deserialize(ref r, null!);
-    }
-
-    [Benchmark]
     public Guid DeserializeNativeGuid()
     {
         var r = new TinyhandReader(this.NativeGuidByte);
@@ -169,21 +143,6 @@ public class NativeFormatterBenchmark
 
     [Benchmark]
     public Guid DeserializeGuid_TinyhandSerializer() => TinyhandSerializer.Deserialize<Guid>(this.NativeGuidByte);
-
-    [Benchmark]
-    public ReadOnlySequence<byte> SerializeDecimal()
-    {
-        var w = new TinyhandWriter(this.ByteBuffer);
-        try
-        {
-            DecimalFormatter.Instance.Serialize(ref w, this.Decimal, TinyhandSerializerOptions.Standard);
-            return w.FlushAndGetReadOnlySequence();
-        }
-        finally
-        {
-            w.Dispose();
-        }
-    }
 
     [Benchmark]
     public ReadOnlySequence<byte> SerializeNativeDecimal()
@@ -202,13 +161,6 @@ public class NativeFormatterBenchmark
 
     [Benchmark]
     public byte[] SerializeDecimal_TinyhandSerializer() => TinyhandSerializer.Serialize(this.Decimal);
-
-    [Benchmark]
-    public Decimal DeserializeDecimal()
-    {
-        var r = new TinyhandReader(this.DecimalByte);
-        return DecimalFormatter.Instance.Deserialize(ref r, null!);
-    }
 
     [Benchmark]
     public Decimal DeserializeNativeDecimal()

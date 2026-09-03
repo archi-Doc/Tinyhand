@@ -3,61 +3,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
-using Tinyhand.Internal;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
 
 namespace Tinyhand.Formatters;
-
-internal sealed class DecimalFormatter : ITinyhandFormatter<decimal>
-{
-    public static readonly DecimalFormatter Instance = new DecimalFormatter();
-
-    private DecimalFormatter()
-    {
-    }
-
-    public void Serialize(ref TinyhandWriter writer, decimal value, TinyhandSerializerOptions options)
-    {
-        var dest = writer.GetSpan(MessagePackRange.MaxFixStringLength);
-        if (System.Buffers.Text.Utf8Formatter.TryFormat(value, dest.Slice(1), out var written))
-        {
-            // write header
-            dest[0] = (byte)(MessagePackCode.MinFixStr | written);
-            writer.Advance(written + 1);
-        }
-        else
-        {
-            // reset writer's span previously acquired that does not use
-            writer.Advance(0);
-            writer.Write(value.ToString(CultureInfo.InvariantCulture));
-        }
-    }
-
-    public void Deserialize(ref TinyhandReader reader, ref decimal value, TinyhandSerializerOptions options)
-    {
-        var span = reader.ReadStringSpan();
-        if (!System.Buffers.Text.Utf8Parser.TryParse(span, out value, out var bytesConsumed))
-        {
-            throw new TinyhandException("Can't parse to decimal, input string was not in a correct format.");
-        }
-
-        if (span.Length != bytesConsumed)
-        {
-            throw new TinyhandException("Unexpected length of string.");
-        }
-    }
-
-    public decimal Reconstruct(TinyhandSerializerOptions options)
-    {
-        return default;
-    }
-
-    public decimal Clone(decimal value, TinyhandSerializerOptions options) => value;
-}
 
 internal sealed class TimeSpanFormatter : ITinyhandFormatter<TimeSpan>
 {
@@ -122,42 +73,6 @@ internal sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffse
     }
 
     public DateTimeOffset Clone(DateTimeOffset value, TinyhandSerializerOptions options) => value;
-}
-
-internal sealed class GuidFormatter : ITinyhandFormatter<Guid>
-{
-    public static readonly ITinyhandFormatter<Guid> Instance = new GuidFormatter();
-
-    private GuidFormatter()
-    {
-    }
-
-    public unsafe void Serialize(ref TinyhandWriter writer, Guid value, TinyhandSerializerOptions options)
-    {
-        byte* pBytes = stackalloc byte[36];
-        Span<byte> bytes = new Span<byte>(pBytes, 36);
-        new GuidBits(ref value).Write(bytes);
-        writer.WriteString(bytes);
-    }
-
-    public void Deserialize(ref TinyhandReader reader, ref Guid value, TinyhandSerializerOptions options)
-    {
-        var span = reader.ReadStringSpan();
-        if (span.Length != 36)
-        {
-            throw new TinyhandException("Unexpected length of string.");
-        }
-
-        var result = new GuidBits(span);
-        value = result.Value;
-    }
-
-    public Guid Reconstruct(TinyhandSerializerOptions options)
-    {
-        return default;
-    }
-
-    public Guid Clone(Guid value, TinyhandSerializerOptions options) => value;
 }
 
 internal sealed class UriFormatter : ITinyhandFormatter<Uri>
@@ -562,45 +477,4 @@ internal sealed class LazyFormatter<T> : ITinyhandFormatter<Lazy<T>>
     }
 
     public Lazy<T>? Clone(Lazy<T>? value, TinyhandSerializerOptions options) => value == null ? null : new Lazy<T>(() => options.Resolver.GetFormatter<T>().Clone(value.Value, options)!);
-}
-
-/// <summary>
-/// Serializes any instance of <see cref="Type"/> by its <see cref="Type.AssemblyQualifiedName"/> value.
-/// </summary>
-/// <typeparam name="T">The <see cref="Type"/> class itself or a derived type.</typeparam>
-internal sealed class TypeFormatter<T> : ITinyhandFormatter<T>
-    where T : Type
-{
-    public static readonly ITinyhandFormatter<T> Instance = new TypeFormatter<T>();
-
-    private TypeFormatter()
-    {
-    }
-
-    public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
-    {
-        if (value is null)
-        {
-            writer.WriteNil();
-        }
-        else
-        {
-            writer.Write(value.AssemblyQualifiedName);
-        }
-    }
-
-    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
-    {
-        if (!reader.TryReadNil())
-        {
-            value = (T?)Type.GetType(reader.ReadString() ?? string.Empty, throwOnError: true);
-        }
-    }
-
-    public T Reconstruct(TinyhandSerializerOptions options)
-    {
-        return (T)typeof(object);
-    }
-
-    public T? Clone(T? value, TinyhandSerializerOptions options) => value == null ? null : (T?)Type.GetType(value.AssemblyQualifiedName ?? string.Empty, throwOnError: true);
 }

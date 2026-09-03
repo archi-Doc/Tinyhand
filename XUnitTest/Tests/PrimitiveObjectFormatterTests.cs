@@ -47,12 +47,10 @@ public class PrimitiveObjectFormatterTests
         Assert.Equal(SomeEnum.SomeValue, result);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void DefaultResolversRoundtripPrimitiveCollections(bool compatible)
+    [Fact]
+    public void StandardResolverRoundtripsPrimitiveCollections()
     {
-        var options = compatible ? TinyhandSerializerOptions.Compatible : TinyhandSerializerOptions.Standard;
+        var options = TinyhandSerializerOptions.Standard;
         object value = new object?[]
         {
             1,

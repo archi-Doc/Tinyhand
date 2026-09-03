@@ -686,13 +686,15 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 ### Built-in supported types
 
-`Standard` と `Compatible` では、`object` 型の値をプリミティブ用 formatter で処理します。`null`、対応するプリミティブ値、列挙型、および対応する値を格納した `System.Collections.ICollection` / `System.Collections.IDictionary` を扱えます。任意の実行時型に応じた formatter の自動選択は行いません。カスタム型は具体的な型または定義済みの Union を使ってシリアライズしてください。
+`Standard` では、`object` 型の値をプリミティブ用 formatter で処理します。`null`、対応するプリミティブ値、列挙型、および対応する値を格納した `System.Collections.ICollection` / `System.Collections.IDictionary` を扱えます。任意の実行時型に応じた formatter の自動選択は行いません。カスタム型は具体的な型または定義済みの Union を使ってシリアライズしてください。
 
 `object` 経由でシリアライズするコレクションは、内部の値にもプリミティブのエンコードを使用します。内部の整数は整数型を保持するため、従来の実行時 formatter 選択と出力バイト列が変わる場合があります。データから復元される整数型は、引き続きエンコードされたバイト列で決まります。
 
 `Security = TinyhandSecurity.UntrustedData`（または `HashCollisionResistant` が有効）の場合、標準のセキュリティ設定ではハッシュコレクションの `object` キーを拒否します。`Dictionary<object, ...>`、`HashSet<object>`、`ILookup<object, ...>`、および `object` 経由で復元するマップが対象です。実際のキーが文字列でも拒否されるため、`Dictionary<string, ...>` など対応する具体的なキー型を指定してください。`object` に格納したスカラー値や、マップを含まない配列は引き続き扱えます。`TrustedData` の動作は変わりません。
 
 非ジェネリックのコレクション型（`IEnumerable`、`ICollection`、`IList`、`IDictionary`、`ArrayList`、`Hashtable`）はシリアライズ対象の型として指定できません。`IEnumerable<T>`、`ICollection<T>`、`IList<T>`、`IDictionary<TKey, TValue>` などのジェネリックインターフェイス、または対応するジェネリックコレクションの具体型を使用してください。
+
+`System.Type` の値を扱う組み込みformatterはなく、標準のシリアライザー設定では非対応です。
 
 サポートしている型の一覧：
 

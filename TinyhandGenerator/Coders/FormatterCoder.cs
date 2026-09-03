@@ -32,7 +32,6 @@ public sealed class FormatterResolver : ICoderResolver
         this.AddFormatter(typeof(System.Collections.BitArray));
         this.AddFormatter(typeof(System.Numerics.BigInteger));
         this.AddFormatter(typeof(System.Numerics.Complex));
-        this.AddFormatter(typeof(Type));
 
         this.AddFormatter("MessagePack.Nil");
         this.AddFormatter("MessagePack.Nil?");

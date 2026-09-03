@@ -859,13 +859,15 @@ public static class DeepCopyTest
 
 ### Built-in supported types
 
-With `Standard` and `Compatible` options, `object`-typed values use the primitive object formatter. It supports null, supported primitive values, enums, and `System.Collections.ICollection` / `System.Collections.IDictionary` values containing supported values. It does not automatically select a formatter for an arbitrary runtime type. Serialize custom types using their concrete type or a declared union.
+With `Standard` options, `object`-typed values use the primitive object formatter. It supports null, supported primitive values, enums, and `System.Collections.ICollection` / `System.Collections.IDictionary` values containing supported values. It does not automatically select a formatter for an arbitrary runtime type. Serialize custom types using their concrete type or a declared union.
 
 Collections serialized through `object` now use primitive encoding recursively. Nested integers retain their integer type, so their bytes can differ from the previous runtime formatter dispatch. When reading data, integer types continue to be determined by the encoded bytes.
 
 With `Security = TinyhandSecurity.UntrustedData` (or `HashCollisionResistant` enabled), the built-in security policy rejects `object` keys in hash-based collections. This includes `Dictionary<object, ...>`, `HashSet<object>`, `ILookup<object, ...>`, and maps deserialized through `object`, even when their keys are strings. Use a concrete supported key type, such as `Dictionary<string, ...>`. Scalar `object` values and arrays without nested maps remain supported. `TrustedData` retains its existing behavior.
 
 Non-generic collection types (`IEnumerable`, `ICollection`, `IList`, `IDictionary`, `ArrayList`, and `Hashtable`) are not supported as the serialization type. Use generic interfaces such as `IEnumerable<T>`, `ICollection<T>`, `IList<T>`, and `IDictionary<TKey, TValue>`, or supported concrete generic collections.
+
+`System.Type` values do not have a built-in formatter and are not supported by the default serializer options.
 
 These types can serialize by default:
 
