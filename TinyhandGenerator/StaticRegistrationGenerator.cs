@@ -195,11 +195,13 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
 
         private static string Name(ITypeSymbol type) => type.WithNullableAnnotation(NullableAnnotation.None).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+        // Other generators' output is not visible here. Error symbols can become valid types
+        // later, and anonymous types cannot be named in registration source.
         private static bool IsClosed(ITypeSymbol type) => type switch
         {
             ITypeParameterSymbol => false,
             IArrayTypeSymbol array => IsClosed(array.ElementType),
-            INamedTypeSymbol named => !named.IsUnboundGenericType && (named.ContainingType is null || IsClosed(named.ContainingType)) && named.TypeArguments.All(IsClosed),
+            INamedTypeSymbol named => named.TypeKind != TypeKind.Error && !named.IsAnonymousType && !named.IsUnboundGenericType && (named.ContainingType is null || IsClosed(named.ContainingType)) && named.TypeArguments.All(IsClosed),
             _ => type.TypeKind is not (TypeKind.Error or TypeKind.Pointer or TypeKind.FunctionPointer or TypeKind.Dynamic),
         };
 
@@ -342,7 +344,8 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
                 return this.compilation.CreateArrayTypeSymbol(this.Substitute(array.ElementType, substitutions)!, array.Rank);
             }
 
-            if (type is INamedTypeSymbol named && named.IsGenericType && !named.IsUnboundGenericType)
+            // A nested type supplied by another generator has no declaration to substitute yet.
+            if (type is INamedTypeSymbol named && named.TypeKind != TypeKind.Error && named.IsGenericType && !named.IsUnboundGenericType)
             {
                 var definition = named.OriginalDefinition;
                 if (named.ContainingType is { } containing)

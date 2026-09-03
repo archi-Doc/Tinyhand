@@ -52,6 +52,7 @@ public class Program
         var switcher = new BenchmarkSwitcher(new[]
         {
             typeof(Utf8Benchmark),
+            typeof(GeneratedCodeBenchmark),
             typeof(Utf8ConverterBenchmark),
             typeof(PrimitiveValueBenchmark),
             typeof(CharBufferBenchmark),

@@ -198,7 +198,7 @@ public sealed class Int8ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt8Array(ref reader) ?? new sbyte[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt8Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -407,7 +407,7 @@ public sealed class UInt16ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt16Array(ref reader) ?? new ushort[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt16Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -616,7 +616,7 @@ public sealed class Int16ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt16Array(ref reader) ?? new short[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt16Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -825,7 +825,7 @@ public sealed class UInt32ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt32Array(ref reader) ?? new uint[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt32Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1034,7 +1034,7 @@ public sealed class Int32ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader) ?? new int[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1243,7 +1243,7 @@ public sealed class UInt64ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt64Array(ref reader) ?? new ulong[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt64Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1452,7 +1452,7 @@ public sealed class Int64ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt64Array(ref reader) ?? new long[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt64Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1661,7 +1661,7 @@ public sealed class SingleArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeSingleArray(ref reader) ?? new float[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeSingleArray(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -1870,7 +1870,7 @@ public sealed class DoubleArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeDoubleArray(ref reader) ?? new double[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeDoubleArray(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -2079,7 +2079,7 @@ public sealed class BooleanArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeBooleanArray(ref reader) ?? new bool[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeBooleanArray(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -2288,7 +2288,7 @@ public sealed class CharArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeCharArray(ref reader) ?? new char[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeCharArray(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -2497,7 +2497,7 @@ public sealed class DateTimeArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeDateTimeArray(ref reader) ?? new DateTime[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeDateTimeArray(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -2706,7 +2706,7 @@ public sealed class Int128ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt128Array(ref reader) ?? new Int128[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeInt128Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
@@ -2915,7 +2915,7 @@ public sealed class UInt128ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt128Array(ref reader) ?? new UInt128[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeUInt128Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)

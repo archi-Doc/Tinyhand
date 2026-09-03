@@ -3,7 +3,7 @@
 namespace Tinyhand;
 
 /// <summary>
-/// The extension type codes that this library defines for just this library.
+/// Defines the MessagePack extension codes used by Tinyhand.
 /// </summary>
 public static class MessagePackExtensionCodes
 {

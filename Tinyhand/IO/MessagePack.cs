@@ -207,7 +207,7 @@ public enum MessagePackType : byte
 }
 
 /// <summary>
-/// The core type codes as defined by msgpack.
+/// Defines MessagePack format codes and their type classifications.
 /// </summary>
 /// <seealso href="https://github.com/msgpack/msgpack/blob/master/spec.md#overview" />
 public static class MessagePackCode

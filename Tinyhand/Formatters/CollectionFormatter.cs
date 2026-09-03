@@ -118,7 +118,7 @@ internal sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            value = new T[len];
+            value = len == 0 ? Array.Empty<T>() : new T[len];
             options.Security.DepthStep(ref reader);
             try
             {
@@ -150,7 +150,7 @@ internal sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = value.Length;
-            var array = new T[len];
+            var array = len == 0 ? Array.Empty<T>() : new T[len];
             for (int i = 0; i < array.Length; i++)
             {
                 array[i] = formatter.Clone(value[i], options)!;

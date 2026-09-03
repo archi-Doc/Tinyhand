@@ -8,7 +8,7 @@ using System.Text;
 namespace Tinyhand;
 
 /// <summary>
-///  An experimental structure for representing a utf8 string in a type distinct from a byte sequence.
+/// Represents UTF-8 bytes as a distinct string value with bytewise equality.
 /// </summary>
 public readonly struct Utf8String : IEquatable<Utf8String>
 {

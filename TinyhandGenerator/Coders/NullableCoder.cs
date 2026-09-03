@@ -50,7 +50,7 @@ public class NullableCoder : ITinyhandCoder
     {
         ssb.AppendLine($"if (!{ssb.FullObject}.HasValue) writer.WriteNil();");
         using (var scopeElse = ssb.ScopeBrace("else"))
-        using (var v = ssb.ScopeObject("Value"))
+        using (var v = ssb.ScopeObject("!.Value", false))
         {
             if (this.elementCoder == null)
             {// use option.Resolver.GetFormatter<T>()

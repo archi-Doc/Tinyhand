@@ -5,6 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Converts between 128-bit integers and double-precision floating-point values.
+/// </summary>
 public static class Int128Helper
 {
     private const double DoubleToIntThreshold = 1_000_000_000_000_000_000d;

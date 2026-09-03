@@ -20,6 +20,9 @@ public enum TinyhandComposeOption
     Strict,
 }
 
+/// <summary>
+/// Converts a Tinyhand syntax tree to UTF-8 bytes or a UTF-16 string.
+/// </summary>
 public static class TinyhandComposer
 {
     private const int InitialBufferLength = 32 * 1024;
@@ -81,6 +84,7 @@ public static class TinyhandComposer
         private int indent;
         private bool firstElement;
         private bool requireIndentation;
+        private bool atLineStart = true;
         // private bool requireDelimiter;
 
         public ComposerCore(TinyhandComposeOption option)
@@ -122,6 +126,8 @@ public static class TinyhandComposer
                     if (this.useContextualInformation)
                     {
                         writer.WriteLF();
+                        this.atLineStart = true;
+                        this.requireIndentation = true;
                         // this.requireDelimiter = false;
                     }
                     break;
@@ -129,10 +135,11 @@ public static class TinyhandComposer
                 case ElementType.Comment:
                     if (this.useContextualInformation)
                     {
-                        if (contextualIndex == 1 && !this.firstElement)
+                        if (contextualIndex == 1 && !this.firstElement && !this.atLineStart)
                         {
                             writer.WriteUInt8(TinyhandConstants.Space);
                         }
+                        this.ComposeIndent(ref writer);
                         writer.WriteSpan(((Comment)element).CommentUtf8);
                         if (element.contextualChain?.Type != ElementType.LineFeed)
                         {
@@ -179,6 +186,7 @@ public static class TinyhandComposer
 
         private void ComposeIndent(ref TinyhandRawWriter writer)
         {
+            this.atLineStart = false;
             if (this.requireIndentation)
             {
                 this.requireIndentation = false;
@@ -301,6 +309,12 @@ public static class TinyhandComposer
 
         private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
         {
+            if (this.useContextualInformation)
+            {
+                this.ComposeContextualGroup(ref writer, element);
+                return;
+            }
+
             var newLine = true;
             var brace = false;
             if (element.Parent == null)
@@ -368,6 +382,35 @@ public static class TinyhandComposer
 
             if (brace)
             {
+                writer.WriteUInt8(TinyhandConstants.CloseBrace);
+            }
+        }
+
+        private void ComposeContextualGroup(ref TinyhandRawWriter writer, Group element)
+        {
+            // Original line feeds are optional; explicit braces preserve nesting in either case.
+            var brace = element.Parent != null || element.ElementList.Count == 0;
+            if (brace)
+            {
+                this.ComposeIndent(ref writer);
+                writer.WriteUInt8(TinyhandConstants.OpenBrace);
+                this.indent++;
+            }
+
+            this.ComposeContextualInformation(ref writer, element.forwardContextual.contextualChain);
+            for (var i = 0; i < element.ElementList.Count; i++)
+            {
+                this.Compose(ref writer, element.ElementList[i]);
+                if (i < element.ElementList.Count - 1 && !this.atLineStart)
+                {
+                    writer.WriteUInt16(0x2C20); // ", "
+                }
+            }
+
+            if (brace)
+            {
+                this.indent--;
+                this.ComposeIndent(ref writer);
                 writer.WriteUInt8(TinyhandConstants.CloseBrace);
             }
         }

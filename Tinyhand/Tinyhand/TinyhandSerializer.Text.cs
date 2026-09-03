@@ -13,13 +13,16 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Provides UTF-8 and UTF-16 text serialization and syntax-tree deserialization.
+/// </summary>
 public static partial class TinyhandSerializer
 {
     /// <summary>
-    /// Serializes a given value with the specified buffer writer.
+    /// Serializes a value as UTF-8 Tinyhand text.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>A byte array with the serialized value (UTF-8).</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeObjectToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
@@ -49,11 +52,11 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
-    /// Serializes a given value with the specified buffer writer.
+    /// Serializes a Tinyhand object as UTF-8 text in pooled memory.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <returns>A byte array with the serialized value (UTF-8).</returns>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
+    /// <returns>The UTF-8 text. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static BytePool.RentMemory SerializeObjectToUtf8RentMemory<T>(T value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>
@@ -115,11 +118,11 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
-    /// Serializes a given value with the specified buffer writer.
+    /// Serializes a value as UTF-8 Tinyhand text.
     /// </summary>
     /// <param name="bufferWriter">The buffer writer to serialize with.</param>
     /// <param name="value">The value to serialize.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static void SerializeToUtf8<T>(IBufferWriter<byte> bufferWriter, T value, TinyhandSerializerOptions? options = null)
     {
@@ -172,10 +175,10 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
-    /// Serializes a given value with the specified buffer writer.
+    /// Serializes a value as UTF-8 Tinyhand text.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>A byte array with the serialized value (UTF-8).</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static byte[] SerializeToUtf8<T>(T value, TinyhandSerializerOptions? options = null)
@@ -208,11 +211,11 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
-    /// Serializes a given value with the specified buffer writer.
+    /// Serializes a value as a UTF-16 Tinyhand string.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <returns>A byte array with the serialized value (UTF-8).</returns>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
+    /// <returns>The serialized UTF-16 string.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static string SerializeToString<T>(T value, TinyhandSerializerOptions? options = null)
     {
@@ -224,7 +227,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="utf8">The buffer to deserialize from.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromUtf8<T>(ReadOnlySpan<byte> utf8, TinyhandSerializerOptions? options = null)
@@ -297,7 +300,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="utf8">The buffer to deserialize from.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromUtf8<T>(byte[] utf8, TinyhandSerializerOptions? options = null) => DeserializeFromUtf8<T>(utf8.AsSpan(), options);
@@ -307,7 +310,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="utf8">The buffer to deserialize from.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromUtf8<T>(ReadOnlyMemory<byte> utf8, TinyhandSerializerOptions? options = null) => DeserializeFromUtf8<T>(utf8.Span, options);
@@ -317,7 +320,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="utf16">The string (UTF-16) to deserialize from.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>The deserialized value, or the default value of <typeparamref name="T"/> if deserialization fails.</returns>
     public static T? TryDeserializeFromString<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
     {
@@ -366,7 +369,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="utf16">The string (UTF-16) to deserialize from.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? DeserializeFromString<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)

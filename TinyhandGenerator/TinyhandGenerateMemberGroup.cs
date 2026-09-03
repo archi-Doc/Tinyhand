@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Tinyhand.Tree;
 
 #pragma warning disable SA1108
@@ -113,7 +115,7 @@ internal class TinyhandGenerateMemberGroup
                     {
                         if (y.Type == "string")
                         {
-                            ssb.AppendLine($"public static {y.Type} {x.Identifier} => \"{this.GetValueSafeString(y.Value)}\";");
+                            ssb.AppendLine($"public static {y.Type} {x.Identifier} => {SymbolDisplay.FormatLiteral(y.Value, quote: true)};");
                         }
                         else
                         {
@@ -198,7 +200,7 @@ internal class TinyhandGenerateMemberGroup
 
         if (!change)
         {// No change
-            return source;
+            return source.Substring(0, length);
         }
 
         // Get safe string
@@ -262,96 +264,8 @@ internal class TinyhandGenerateMemberGroup
         }
 
         chars[count++] = (char)0;
-        var dest = new string(chars);
+        var dest = new string(chars, 0, count - 1);
         return dest;
-    }
-
-    private unsafe string GetValueSafeString(string source)
-    {
-        var span = source.AsSpan();
-
-        // Count
-        var count = 0;
-        var change = false;
-        foreach (var x in span)
-        {
-            switch (x)
-            {
-                case '\\':
-                case '\"':
-                case '\b':
-                case '\f':
-                case '\n':
-                case '\r':
-                case '\t':
-                    change = true;
-                    count += 2;
-                    continue;
-
-                default:
-                    count++;
-                    continue;
-            }
-        }
-
-        if (!change)
-        {// No change
-            return source;
-        }
-
-        // Get safe string
-        Span<char> buffer = count <= 1024 ? stackalloc char[count] : new char[count];
-        fixed (char* chars = buffer)
-        {
-            count = 0;
-            foreach (var x in span)
-            {
-                switch (x)
-                {
-                    case '\\':
-                        chars[count++] = '\\';
-                        chars[count++] = '\\';
-                        continue;
-
-                    case '\"':
-                        chars[count++] = '\\';
-                        chars[count++] = '\"';
-                        continue;
-
-                    case '\b':
-                        chars[count++] = '\\';
-                        chars[count++] = 'b';
-                        continue;
-
-                    case '\f':
-                        chars[count++] = '\\';
-                        chars[count++] = 'f';
-                        continue;
-
-                    case '\n':
-                        chars[count++] = '\\';
-                        chars[count++] = 'n';
-                        continue;
-
-                    case '\r':
-                        chars[count++] = '\\';
-                        chars[count++] = 'r';
-                        continue;
-
-                    case '\t':
-                        chars[count++] = '\\';
-                        chars[count++] = 't';
-                        continue;
-
-                    default:
-                        chars[count++] = x;
-                        continue;
-                }
-            }
-
-            var dest = new string(chars);
-            return dest;
-        }
     }
 
     private (string? Type, string? Value) ElementToTypeValue(Element? element)
@@ -367,11 +281,15 @@ internal class TinyhandGenerateMemberGroup
         else if (element is Value_Long valueLong)
         {// long
             // return ("long", "0x" + valueLong.ValueLong.ToString("x"));
-            return ("long", valueLong.ValueLong.ToString());
+            return ("long", valueLong.ValueLong.ToString(CultureInfo.InvariantCulture));
         }
         else if (element is Value_Double valueDouble)
         {// long
-            return ("double", valueDouble.ValueDouble.ToString() + "d");
+            var value = valueDouble.ValueDouble;
+            return ("double", double.IsNaN(value) ? "double.NaN" :
+                double.IsPositiveInfinity(value) ? "double.PositiveInfinity" :
+                double.IsNegativeInfinity(value) ? "double.NegativeInfinity" :
+                value.ToString("R", CultureInfo.InvariantCulture) + "d");
         }
 
         return (null, null);

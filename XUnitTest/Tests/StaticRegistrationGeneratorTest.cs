@@ -20,6 +20,122 @@ public class StaticRegistrationGeneratorTest
         .Select(x => (MetadataReference)MetadataReference.CreateFromFile(x)).ToImmutableArray();
 
     [Fact]
+    public void AnonymousCollectionsAreNotRegistered()
+    {
+        var result = Generate("""
+            using System.Collections.Generic;
+            public static class Consumer
+            {
+                public static object Run()
+                {
+                    var values = new[] { new { Number = 1 } };
+                    return values;
+                }
+                public static List<int> Known() => new();
+            }
+            """, out var output);
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(TestContext.Current.CancellationToken), x => x.Severity == DiagnosticSeverity.Error);
+        var generated = string.Join("\n", result.GeneratedTrees.Select(x => x.ToString()));
+        Assert.Contains("RegisterListFormatter<int>()", generated);
+        Assert.DoesNotContain("RegisterArray<", generated);
+    }
+
+    [Theory]
+    [InlineData("Missing")]
+    [InlineData("Missing<int>")]
+    [InlineData("Owner<int>.GoshujinClass")]
+    [InlineData("Missing[]")]
+    public void UnresolvedCollectionElementsAreNotRegistered(string element)
+    {
+        var result = Generate($$"""
+            using System.Collections.Generic;
+            public partial class Owner<T> { }
+            public static class Consumer
+            {
+                public static List<{{element}}> Pending() => new();
+                public static List<int> Known() => new();
+            }
+            """);
+        Assert.Empty(result.Diagnostics);
+        var generated = string.Join("\n", result.GeneratedTrees.Select(x => x.ToString()));
+        Assert.Contains("RegisterListFormatter<int>()", generated);
+        Assert.DoesNotContain("Missing", generated);
+        Assert.DoesNotContain("GoshujinClass", generated);
+    }
+
+    [Fact]
+    public void UnresolvedNestedTypesInGenericHelpersDoNotCrashSubstitution()
+    {
+        var result = Generate("""
+            using System.Collections.Generic;
+            public partial class Owner<T> { }
+            public static class Consumer
+            {
+                public static void Run() => Helper<int>();
+                public static void Helper<T>()
+                {
+                    var owner = new Owner<T>.GoshujinClass();
+                    var owners = new List<Owner<T>.GoshujinClass>();
+                    var known = new List<T>();
+                }
+            }
+            """);
+        Assert.Empty(result.Diagnostics);
+        var generated = string.Join("\n", result.GeneratedTrees.Select(x => x.ToString()));
+        Assert.Contains("RegisterListFormatter<int>()", generated);
+        Assert.DoesNotContain("GoshujinClass", generated);
+    }
+
+    [Fact]
+    public void AnonymousTypesInGenericHelpersDoNotCrashSubstitution()
+    {
+        var result = Generate("""
+            using System.Collections.Generic;
+            public static class Consumer
+            {
+                public static object Run() => Helper<int>();
+                public static object Helper<T>()
+                {
+                    var value = new { Item = default(T) };
+                    var values = new[] { value };
+                    var known = new List<T>();
+                    return values;
+                }
+            }
+            """, out var output);
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(TestContext.Current.CancellationToken), x => x.Severity == DiagnosticSeverity.Error);
+        var generated = string.Join("\n", result.GeneratedTrees.Select(x => x.ToString()));
+        Assert.Contains("RegisterListFormatter<int>()", generated);
+        Assert.DoesNotContain("RegisterArray<", generated);
+    }
+
+    [Fact]
+    public void AnotherGeneratorCanSupplyUnresolvedNestedOwner()
+    {
+        var result = Generate("""
+            using System.Collections.Generic;
+            public partial class Owner<T> { }
+            public static class Consumer
+            {
+                public static object Run() => Helper<int>();
+                public static object Helper<T>()
+                {
+                    var owner = new Owner<T>.GoshujinClass();
+                    var known = new List<T>();
+                    return owner;
+                }
+            }
+            """, out var output, new OwnerDeclarationGenerator().AsSourceGenerator());
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(TestContext.Current.CancellationToken), x => x.Severity == DiagnosticSeverity.Error);
+        var registration = result.GeneratedTrees.Single(x => x.FilePath.EndsWith("Tinyhand.StaticRegistration.g.cs", StringComparison.Ordinal)).ToString();
+        Assert.Contains("RegisterListFormatter<int>()", registration);
+        Assert.DoesNotContain("GoshujinClass", registration);
+    }
+
+    [Fact]
     public void RejectsOpenRegistrationRoot()
     {
         var result = Generate("""
@@ -133,12 +249,21 @@ public class StaticRegistrationGeneratorTest
 
     private static GeneratorDriverRunResult Generate(string source) => Generate(source, out _);
 
-    private static GeneratorDriverRunResult Generate(string source, out Compilation output)
+    private static GeneratorDriverRunResult Generate(string source, out Compilation output, params ISourceGenerator[] additionalGenerators)
     {
         var parseOptions = new CSharpParseOptions(LanguageVersion.Preview);
         var compilation = CSharpCompilation.Create("GeneratorTests", new[] { CSharpSyntaxTree.ParseText(source, parseOptions) }, References,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
-        return CSharpGeneratorDriver.Create(new[] { new StaticRegistrationGenerator().AsSourceGenerator() }, parseOptions: parseOptions)
+        return CSharpGeneratorDriver.Create(new[] { new StaticRegistrationGenerator().AsSourceGenerator() }.Concat(additionalGenerators), parseOptions: parseOptions)
             .RunGeneratorsAndUpdateCompilation(compilation, out output, out _).GetRunResult();
+    }
+
+    private sealed class OwnerDeclarationGenerator : IIncrementalGenerator
+    {
+        public void Initialize(IncrementalGeneratorInitializationContext context)
+        {
+            context.RegisterSourceOutput(context.CompilationProvider, static (ctx, _) =>
+                ctx.AddSource("Owner.g.cs", "public partial class Owner<T> { public sealed class GoshujinClass { } }"));
+        }
     }
 }

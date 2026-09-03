@@ -5,13 +5,16 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Queries assignments, identifiers, and values in Tinyhand syntax trees.
+/// </summary>
 public static class TinyhandTreeHelper
 {
     /// <summary>
-    /// Returns true if the element is assigned (the element's parent is TinyhandAssignment).
+    /// Determines whether the element belongs to an assignment.
     /// </summary>
     /// <param name="element">Tinyhand element.</param>
-    /// <returns>True if the element is assigned (the element's parent is TinyhandAssignment).</returns>
+    /// <returns><see langword="true"/> if the parent is an <see cref="Assignment"/>; otherwise, <see langword="false"/>.</returns>
     public static bool IsAssigned(this Element element)
     {
         return element.Parent?.Type == ElementType.Assignment;

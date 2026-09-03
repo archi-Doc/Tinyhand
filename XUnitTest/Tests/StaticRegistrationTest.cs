@@ -114,13 +114,21 @@ public class StaticRegistrationTest
             action();
         }
 
-        var start = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 1000; i++)
+        // Runtime bookkeeping can add a one-off allocation to either measurement.
+        // The minimum of repeated batches still exposes allocations on every invocation.
+        var minimum = long.MaxValue;
+        for (var batch = 0; batch < 3; batch++)
         {
-            action();
+            var start = GC.GetAllocatedBytesForCurrentThread();
+            for (var i = 0; i < 1000; i++)
+            {
+                action();
+            }
+
+            minimum = Math.Min(minimum, GC.GetAllocatedBytesForCurrentThread() - start);
         }
 
-        return GC.GetAllocatedBytesForCurrentThread() - start;
+        return minimum;
     }
 
     private static void CheckLength(long expected, long actual)

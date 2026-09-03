@@ -19,6 +19,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Serializes, deserializes, reconstructs, and clones values using Tinyhand binary and text formats.
+/// </summary>
 public static partial class TinyhandSerializer
 {
     #region Base
@@ -92,7 +95,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <typeparam name="T">The type of the value.</typeparam>
     /// <param name="value">The value to calculate the hash for.</param>
-    /// <returns>The XXHash3 hash value.</returns>
+    /// <returns>The XXHash3 hash of the serialized bytes, or zero if serialization fails.</returns>
     public static ulong GetXxHash3<T>(in T? value)
         where T : ITinyhandSerializable<T>
     {
@@ -341,7 +344,7 @@ public static partial class TinyhandSerializer
         => T.GetTypeIdentifier(); // GetTypeIdentifierCode */
 
     /// <summary>
-    /// Creates a new object and sets valid values to the object members.
+    /// Reconstructs a Tinyhand object through its static reconstruction method.
     /// </summary>
     /// <param name="obj">The object to reconstruct.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
@@ -366,8 +369,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <param name="obj">The object to clone.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
-    /// <returns>The new object.</returns>
-    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    /// <returns>The cloned value, or null if the input is null.</returns>
     [return: NotNullIfNotNull(nameof(obj))]
     public static T? CloneObject<T>(in T? obj, TinyhandSerializerOptions? options = null)
         where T : ITinyhandCloneable<T>
@@ -396,12 +398,11 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
-    /// Create a new instance of the given type.
+    /// Reconstructs a value through its registered formatter.
     /// </summary>
     /// <typeparam name="T">The type of value to reconstruct.</typeparam>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The created instance.</returns>
-    /// <exception cref="TinyhandException">Thrown when any error occurs during reconstruction.</exception>
     public static T Reconstruct<T>(TinyhandSerializerOptions? options = null)
     {
         options = options ?? DefaultOptions;
@@ -413,8 +414,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <param name="obj">The object to clone.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
-    /// <returns>The new object.</returns>
-    /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
+    /// <returns>The cloned value, or null if the input is null.</returns>
     [return: NotNullIfNotNull(nameof(obj))]
     public static T? Clone<T>(T? obj, TinyhandSerializerOptions? options = null)
     {
@@ -501,7 +501,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
-    /// <returns>A byte array with the serialized value.</returns>
+    /// <returns>The serialized bytes. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static BytePool.RentMemory SerializeToRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
     {
@@ -927,12 +927,23 @@ public static partial class TinyhandSerializer
 
                 // Read from [Ext(98:int,int...), bin,bin,bin...]
                 var sequenceCount = arrayLength - 1;
+                if (sequenceCount > header.Length)
+                {
+                    throw new TinyhandException("Invalid LZ4 block length metadata.");
+                }
+
+                var lengthReader = reader.Clone(reader.ReadRaw(checked((int)header.Length)));
                 var uncompressedLengths = ArrayPool<int>.Shared.Rent(sequenceCount);
                 try
                 {
                     for (int i = 0; i < sequenceCount; i++)
                     {
-                        uncompressedLengths[i] = reader.ReadInt32();
+                        uncompressedLengths[i] = lengthReader.ReadInt32();
+                    }
+
+                    if (!lengthReader.End)
+                    {
+                        throw new TinyhandException("Invalid LZ4 block length metadata.");
                     }
 
                     for (int i = 0; i < sequenceCount; i++)

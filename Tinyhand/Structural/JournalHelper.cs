@@ -6,6 +6,9 @@ using System.Runtime.CompilerServices;
 
 namespace Tinyhand.IO;
 
+/// <summary>
+/// Reads and writes journal headers, record markers, and structural updates.
+/// </summary>
 public static class JournalHelper
 {
     public static bool ReadJournal(IStructuralObject journalObject, ReadOnlyMemory<byte> data)
@@ -20,35 +23,25 @@ public static class JournalHelper
                 return false;
             }
 
-            var fork = reader.Fork();
+            if (length > reader.Remaining)
+            {// The journal is truncated. Do not apply a partial record.
+                return false;
+            }
+
+            var recordReader = reader.Clone(reader.ReadRaw(length));
             try
             {
                 if (journalType == JournalType.Record)
                 {
-                    if (journalObject.ProcessJournalRecord(ref reader))
-                    {// Success
-                    }
-                    else
+                    if (!journalObject.ProcessJournalRecord(ref recordReader))
                     {// Failure
                         success = false;
                     }
-                }
-                else
-                {
                 }
             }
             catch
             {
                 success = false;
-            }
-            finally
-            {
-                reader = fork;
-            }
-
-            if (!reader.TryAdvance(length))
-            {// The journal is truncated.
-                return false;
             }
         }
 

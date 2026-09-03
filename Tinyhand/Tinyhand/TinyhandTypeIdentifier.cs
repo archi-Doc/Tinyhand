@@ -13,6 +13,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Registers closed types and dispatches serialization operations by their 32-bit type identifiers.
+/// </summary>
 public static class TinyhandTypeIdentifier
 {
     private static readonly ConcurrentDictionary<uint, MethodClass> Methods = new();
@@ -361,11 +364,11 @@ public static class TinyhandTypeIdentifier
     }
 
     /// <summary>
-    /// Create a new instance of the given type.
+    /// Attempts to reconstruct a value for a registered type identifier.
     /// </summary>
     /// <param name="typeIdentifier">The type identifier associated with the target type.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
-    /// <returns>The created instance.</returns>
+    /// <returns>The reconstructed value, or null if the type is unregistered or reconstruction fails.</returns>
     public static object? TryReconstruct(uint typeIdentifier, TinyhandSerializerOptions? options = null)
     {
         if (!Methods.TryGetValue(typeIdentifier, out var methodClass))

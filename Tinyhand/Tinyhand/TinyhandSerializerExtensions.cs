@@ -7,13 +7,16 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Adds binary serialization, signature generation, and hashing to Tinyhand object instances.
+/// </summary>
 public static partial class TinyhandSerializerExtensions
 {
     /// <summary>
     /// Calculates the XXHash3 hash value for the specified value.
     /// </summary>
     /// <param name="value">The value to calculate the hash for.</param>
-    /// <returns>The XXHash3 hash value.</returns>
+    /// <returns>The XXHash3 hash of the serialized bytes, or zero if serialization fails.</returns>
     public static ulong GetXxHash3(this ITinyhandSerializable value)
     {
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
@@ -34,7 +37,7 @@ public static partial class TinyhandSerializerExtensions
     }
 
     /// <summary>
-    /// Serializes the specified value using the provided TinyhandWriter and options.
+    /// Serializes the Tinyhand object to a byte array.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The serialization options. If null, default options will be used.</param>
@@ -55,11 +58,11 @@ public static partial class TinyhandSerializerExtensions
     }
 
     /// <summary>
-    /// Serializes the specified value using the provided TinyhandWriter and options.
+    /// Serializes the Tinyhand object to pooled memory.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The serialization options. If null, default options will be used.</param>
-    /// <returns>A <see cref="BytePool.RentMemory"/> containing the serialized value.</returns>
+    /// <returns>The serialized bytes. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
     public static BytePool.RentMemory SerializeToRentMemory(this ITinyhandSerializable value, TinyhandSerializerOptions? options = null)
     {
@@ -102,7 +105,7 @@ public static partial class TinyhandSerializerExtensions
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
-    /// <returns>A byte array with the serialized value.</returns>
+    /// <returns>The signature bytes. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
     public static BytePool.RentMemory SerializeSignatureToRentMemory(this ITinyhandSerializable value, int level)
     {

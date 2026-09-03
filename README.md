@@ -1,77 +1,75 @@
-## Tinyhand
-![Nuget](https://img.shields.io/nuget/v/Tinyhand) ![Build and Test](https://github.com/archi-Doc/Tinyhand/workflows/Build%20and%20Test/badge.svg)
+﻿# Tinyhand
 
-Tinyhand is a tiny and simple data format/serializer largely based on [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) by neuecc, AArnott.
+![NuGet](https://img.shields.io/nuget/v/Tinyhand) ![Build and Test](https://github.com/archi-Doc/Tinyhand/workflows/Build%20and%20Test/badge.svg)
 
-This document may be inaccurate. It would be greatly appreciated if anyone could make additions and corrections.
+Tinyhand is a data format and C# serializer based on [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp). It combines compact binary serialization, readable text, and compile-time code generation, including support for .NET NativeAOT.
 
-日本語ドキュメントは[こちら](/doc/README.jp.md)
-
-
+[Japanese documentation](doc/README.jp.md)
 
 ## Table of Contents
 
-- [Requirements](#requirements)
-- [NativeAOT](#nativeaot)
-- [Quick Start](#quick-start)
-- [Performance](#performance)
-- [Serialization Target](#serialization-target)
-  - [Readonly and Getter-only](#readonly-and-getter-only)
-  - [Init-only property and Record type](#init-only-property-and-record-type)
-  - [Include private members](#include-private-members)
-  - [Explicit key only](#explicit-key-only)
-- [Features](#features)
-  - [Handling nullable reference types](#handling-nullable-reference-types)
-  - [Default value](#default-value)
-  - [Reconstruct](#reconstruct)
-  - [Reuse Instance](#reuse-instance)
-  - [Use Service Provider](#use-service-provider)
-  - [Union](#union)
-  - [Text Serialization](#text-serialization)
-  - [Max length](#max-length)
-  - [Versioning](#versioning)
-  - [Lock object](#lock-object)
-  - [Serialization Callback](#serialization-callback)
-  - [Deep copy](#deep-copy)
-  - [Built-in supported types](#built-in-supported-types)
-  - [LZ4 Compression](#lz4-Compression)
-- [Original formatter](#original-formatter)
+- [Requirements and installation](#requirements-and-installation)
+- [Quick start](#quick-start)
+- [Serialization targets](#serialization-targets)
+  - [Keys and member selection](#keys-and-member-selection)
+  - [Readonly fields, init-only properties, and records](#readonly-fields-init-only-properties-and-records)
+  - [Generated properties and length limits](#generated-properties-and-length-limits)
+- [Object lifecycle](#object-lifecycle)
+  - [Default values and reconstruction](#default-values-and-reconstruction)
+  - [Instance reuse](#instance-reuse)
+  - [Constructors and service providers](#constructors-and-service-providers)
+  - [Callbacks and locking](#callbacks-and-locking)
+  - [Cloning and read-only wrappers](#cloning-and-read-only-wrappers)
+- [Schema and serialization options](#schema-and-serialization-options)
+  - [Versioning and reserved keys](#versioning-and-reserved-keys)
+  - [Unions](#unions)
+  - [Alternate keys and enum names](#alternate-keys-and-enum-names)
+  - [Exclusion and signatures](#exclusion-and-signatures)
+- [Text serialization and syntax trees](#text-serialization-and-syntax-trees)
+- [Buffers, streams, and compression](#buffers-streams-and-compression)
+- [Supported types](#supported-types)
+- [Deserialization security](#deserialization-security)
+- [Custom serialization and formatters](#custom-serialization-and-formatters)
+- [NativeAOT and type registration](#nativeaot-and-type-registration)
+- [Generated members and localized strings](#generated-members-and-localized-strings)
+- [Structural objects and journaling](#structural-objects-and-journaling)
+- [Tinyhand Processor](#tinyhand-processor)
+- [Building, testing, and benchmarks](#building-testing-and-benchmarks)
 
+## Requirements and installation
 
+Use .NET 10 or later and C# 14 or later. Visual Studio users need Visual Studio 2026 or later for the incremental source generator. The repository also builds with the .NET CLI.
 
-## Requirements
-
-**Visual Studio 2026** or later for Source Generator V2.
-
-**C# 14** or later for generated codes.
-
-**.NET 10** or later target framework.
-
-
-
-
-## Quick Start
-
-Install Tinyhand using Package Manager Console.
-
-```
-Install-Package Tinyhand
+```sh
+dotnet add package Tinyhand
 ```
 
-This is a small sample code to use Tinyhand.
+The NuGet package includes the source generator. When referencing this repository directly, reference both the library and the generator:
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="../Tinyhand/Tinyhand.csproj" />
+  <ProjectReference Include="../TinyhandGenerator/TinyhandGenerator.csproj"
+                    OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+</ItemGroup>
+```
+
+## Quick start
+
+Annotate a partial type with `[TinyhandObject]` and assign a stable key to each serialized member. Formatters are registered automatically.
 
 ```csharp
-using System;
-using System.Collections.Generic;
 using Tinyhand;
 
-namespace QuickStart;
+var person = new Person { Age = 30, FirstName = "Ada", LastName = "Lovelace" };
+byte[] bytes = TinyhandSerializer.Serialize(person);
+Person? restored = TinyhandSerializer.Deserialize<Person>(bytes);
+string text = TinyhandSerializer.SerializeToString(person);
+Person? fromText = TinyhandSerializer.DeserializeFromString<Person>(text);
 
-[TinyhandObject] // Annote a [TinyhandObject] attribute.
-public partial record MyClass // partial class is required for source generator.
+[TinyhandObject]
+public partial class Person
 {
-    // Key attributes take a serialization index (or string name)
-    // The values must be unique and versioning has to be considered as well.
     [Key(0)]
     public int Age { get; set; }
 
@@ -79,898 +77,439 @@ public partial record MyClass // partial class is required for source generator.
     public string FirstName { get; set; } = string.Empty;
 
     [Key(2)]
-    public string LastName { get; set; } = "Doe"; // Initial value is used when creating a new instance or deserializing if the value is missing.
-
-    // All fields or properties that should not be serialized must be annotated with [IgnoreMember] attibute.
-    [IgnoreMember]
-    public string FullName { get { return FirstName + LastName; } }
-
-    [Key(3)]
-    public List<string> Friends { get; set; } = [];
-
-    [Key(4)]
-    public int[]? Ids { get; set; }
-
-    public MyClass()
-    {
-    }
-}
-
-[TinyhandObject]
-public partial class EmptyClass
-{
-}
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        // Formatters are registered automatically, including on .NET NativeAOT.
-
-        var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
-        var b = TinyhandSerializer.Serialize(myClass);
-        var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b);
-        Console.WriteLine($"myClass2:");
-        Console.WriteLine(myClass2?.ToString());
-        Console.WriteLine();
-
-        b = TinyhandSerializer.Serialize(new EmptyClass()); // Empty data
-        var myClass3 = TinyhandSerializer.Deserialize<MyClass>(b); // Create an instance and set non-null values of the members.
-
-        var myClassRecon = TinyhandSerializer.Reconstruct<MyClass>(); // Create a new instance whose members have default values.
-        Console.WriteLine($"myClassRecon:");
-        Console.WriteLine(myClassRecon?.ToString());
-        Console.WriteLine();
-
-        NullableTest.Test();
-    }
-}
-```
-
-
-
-## Performance
-
-Simple benchmark with [protobuf-net](https://github.com/protobuf-net/protobuf-net), [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) and [MemoryPack](https://github.com/Cysharp/MemoryPack).
-
-Tinyhand is quite fast and since it is based on Source Generator, it does not take time for dynamic code generation.
-
-|                       Method |        Mean |    Error |   StdDev |      Median |   Gen0 | Allocated |
-|----------------------------- |------------:|---------:|---------:|------------:|-------:|----------:|
-|            SerializeProtoBuf |   401.90 ns | 1.847 ns | 9.089 ns |   397.35 ns | 0.0973 |     408 B |
-|         SerializeMessagePack |   170.99 ns | 0.365 ns | 1.865 ns |   171.32 ns | 0.0134 |      56 B |
-|          SerializeMemoryPack |   112.48 ns | 0.996 ns | 5.054 ns |   110.51 ns | 0.0229 |      96 B |
-|            SerializeTinyhand |    80.51 ns | 0.104 ns | 0.524 ns |    80.72 ns | 0.0134 |      56 B |
-|          DeserializeProtoBuf |   689.49 ns | 1.435 ns | 7.297 ns |   686.76 ns | 0.0763 |     320 B |
-|       DeserializeMessagePack |   288.63 ns | 0.306 ns | 1.556 ns |   288.71 ns | 0.0668 |     280 B |
-|        DeserializeMemoryPack |   124.30 ns | 0.367 ns | 1.895 ns |   123.35 ns | 0.0668 |     280 B |
-|          DeserializeTinyhand |   145.02 ns | 1.230 ns | 6.186 ns |   149.17 ns | 0.0668 |     280 B |
-|   SerializeMessagePackString |   178.74 ns | 0.286 ns | 1.446 ns |   178.45 ns | 0.0153 |      64 B |
-|      SerializeTinyhandString |   128.12 ns | 0.196 ns | 0.986 ns |   127.69 ns | 0.0153 |      64 B |
-|        SerializeTinyhandUtf8 |   650.83 ns | 0.720 ns | 3.589 ns |   650.99 ns | 0.0916 |     384 B |
-|            SerializeJsonUtf8 |   495.27 ns | 1.119 ns | 5.672 ns |   495.46 ns | 0.0954 |     400 B |
-| DeserializeMessagePackString |   286.31 ns | 1.621 ns | 8.287 ns |   281.30 ns | 0.0668 |     280 B |
-|    DeserializeTinyhandString |   175.70 ns | 0.531 ns | 2.624 ns |   175.77 ns | 0.0744 |     312 B |
-|      DeserializeTinyhandUtf8 | 1,319.04 ns | 1.088 ns | 5.512 ns | 1,321.51 ns | 0.1526 |     640 B |
-|          DeserializeJsonUtf8 | 1,045.53 ns | 1.286 ns | 6.574 ns | 1,047.47 ns | 0.2232 |     936 B |
-
-
-
-## NativeAOT
-
-Tinyhand generates registrations for closed model, enum, and collection types at compile time. Enable `<PublishAot>true</PublishAot>` in your .NET 10 application and publish for the target RID. Module initializers run automatically on .NET NativeAOT.
-
-Use `[assembly: TinyhandRegister(typeof(MyClosedType))]` for types used only inside another assembly's generic helpers. Dynamic generic formatter factories have been removed. Type identifier registration now uses `TinyhandTypeIdentifier.Register<T>()`, and Processor plugins must be linked and registered with `TinyhandProcess.RegisterPlugin<T>(name)`.
-
-See [NativeAOT setup, migration notes, and verification](doc/NativeAOT.md) for details, including the remaining upstream Arc.Unit trimming warnings in Processor.
-
-
-
-## Serialization Target
-
-All public members are serialization targets by default. You need to add `Key` attributes to public members unless `ImplicitMemberNameAsKey` is set to true.
-
-```csharp
-[TinyhandObject]
-public partial class DefaultBehaviourClass
-{
-    [Key(0)]
-    public int X; // Key required
-
-    public int Y { get; private set; } // Not required since it's private setter.
-
-    [Key(1)]
-    private int Z; // By adding the Key attribute, You can add a private member to the serialization target.
-}
-
-[TinyhandObject(ImplicitMemberNameAsKey = true)]
-public partial class MemberNameAsKeyClass
-{
-    public int X; // Serialized with the key "X"
-
-    public int Y { get; private set; } // Not a serialization target (due to the private setter)
-
-    [Key("Z")]
-    private int Z; // Serialized with the key "Z"
-    
-    [MemberNameAsKey]
-    public int A; // Use the member name as the key "A".
-}
-```
-
-
-
-### Readonly and Getter-only
-
-Readonly fields is not serialization target by default.
-
-By explicitly adding a `Key` attribute, you can make it a serialization target.
-
-**`unsafe` compiler option is required to serialize readonly fields.**
-
-```csharp
-[TinyhandObject]
-public partial class ReadonlyGetteronlyClass
-{
-    [Key(0)]
-    public readonly int X; // `unsafe` required.
-
-    [Key(1)]
-    public int Y { get; } = 0; // Error!
-}
-```
-
-Getter-only property is not supported.
-
-
-
-### Init-only property and Record type
-
-Init-only property and ```record``` type are supported.
-
-```csharp
-[TinyhandObject]
-public partial record RecordClass // Partial record required.
-{// Default constructor is not required for record types.
-    [Key(0)]
-    public int X { get; init; }
-
-    [Key(1)]
-    public string A { get; init; } = default!;
-}
-
-[TinyhandObject(ImplicitMemberNameAsKey = true)] // Short version, but string key is a bit slower than integer key.
-public partial record RecordClass2(int X, string A);
-```
-
-
-
-### Include private members
-
-By setting `IncludePrivateMembers` to true, you can add private and protected members to the serialization target.
-
-```csharp
-[TinyhandObject(IncludePrivateMembers = true)]
-public partial class IncludePrivateClass
-{
-    [Key(0)]
-    public int X; // Key required
-
-    [Key(1)]
-    public int Y { get; private set; } // Key required
+    public string LastName { get; set; } = string.Empty;
 
     [IgnoreMember]
-    private int Z; // Add the IgnoreMember attribute to exclude from serialization targets.
+    public string FullName => $"{FirstName} {LastName}";
 }
 ```
 
+`Deserialize<T>` can return null for a reference type. `TryDeserialize<T>` reports failure without throwing. `Reconstruct<T>()` invokes the type's reconstruction operation, and `Clone(value)` copies supported members without a binary round trip.
 
+See [QuickStart](QuickStart) for additional examples.
 
-### Explicit key only
+## Serialization targets
 
-By setting `ExplicitKeysOnly` to true, only members with the Key attribute will be serialized.
+### Keys and member selection
+
+By default, writable public instance fields and properties are serialization targets and require `[Key]`. Properties with non-public setters and readonly fields require explicit inclusion. Static members and indexers are not targets.
+
+| Setting or attribute | Behavior |
+| --- | --- |
+| `[Key(0)]` | Uses an integer array index; start at zero and avoid large gaps. |
+| `[Key("name")]` | Uses a string map key. |
+| `[MemberNameAsKey]` | Uses the member name as a string key. |
+| `ImplicitMemberNameAsKey = true` | Uses names for eligible members without explicit keys. |
+| `IncludePrivateMembers = true` | Includes eligible private and protected members. |
+| `ExplicitKeysOnly = true` | Includes only explicitly keyed members. |
+| `[IgnoreMember]` | Excludes a member from serialization. |
+
+An explicit key can include a private member or a property with a private setter. Integer and string keys cannot be mixed in a normal layout. `ImplicitMemberNameAsKey` and `ExplicitKeysOnly` cannot be enabled together. Keys must be unique across a type and its base types.
 
 ```csharp
 [TinyhandObject(ExplicitKeysOnly = true)]
-public partial class ExplicitKeyClass
-{
-    public int X; // Not serialized (no error message).
-
-    [Key(0)]
-    public int Y; // Serialized
-}
-```
-
-
-
-## Features
-
-### Handling nullable reference types
-
-Tinyhand tries to handle nullable/non-nullable reference types properly.
-
-```csharp
-[TinyhandObject(ImplicitMemberNameAsKey = true)]
-public partial class NullableTestClass
-{
-    public int Int { get; set; } = default!; // 0
-
-    public int? NullableInt { get; set; } = default!; // null
-
-    public string String { get; set; } = default!;
-    // If this value is null, Tinyhand will automatically change the value to string.Empty.
-
-    public string? NullableString { get; set; } = default!;
-    // This is nullable type, so the value remains null.
-
-    public NullableSimpleClass SimpleClass { get; set; } = default!; // new SimpleClass()
-
-    public NullableSimpleClass? NullableSimpleClass { get; set; } = default!; // null
-
-    public NullableSimpleClass[] Array { get; set; } = default!; // new NullableSimpleClass[0]
-
-    public NullableSimpleClass[]? NullableArray { get; set; } = default!; // null
-
-    public NullableSimpleClass[] Array2 { get; set; } = new NullableSimpleClass[] { new NullableSimpleClass(), null! };
-    // null! will be change to a new instance.
-
-    public Queue<NullableSimpleClass> Queue { get; set; } = new(new NullableSimpleClass[] { null!, null!, });
-    // null! remains null because it loses information whether it is nullable or non-nullable in C# generic methods.
-}
-
-[TinyhandObject]
-public partial class NullableSimpleClass
+public partial class Settings
 {
     [Key(0)]
-    public double Double { get; set; }
-}
-
-public class NullableTest
-{
-    public void Test()
-    {
-        var t = new NullableTestClass();
-        var t2 = TinyhandSerializer.Deserialize<NullableTestClass>(TinyhandSerializer.Serialize(t));
-    }
-}
-```
-
-
-
-### Default value
-
-The default values of class members are usually set through initializers.
-
- When serializing, Tinyhand outputs **Nil** if a member has its default value; otherwise, it outputs the actual value.
-
- During deserialization, if a valid value is present, it is assigned to the member; if the value is **Nil** or the corresponding data is missing, the member remains unchanged (retaining its default value).
-
-Primitive types (`bool`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `decimal`, `string`, `char`, `enum`) are supported.
-
-```csharp
-[TinyhandObject(ImplicitMemberNameAsKey = true)]
-public partial class DefaultTestClass
-{
-    public int Int { get; set; } = 77;
-
-    public string String { get; set; } = "test";
-}
-
-[TinyhandObject(ImplicitMemberNameAsKey = true)]
-public partial class StringEmptyClass
-{
-}
-
-public class DefaultTest
-{
-    public void Test()
-    {
-        var t = new StringEmptyClass();
-        var t2 = TinyhandSerializer.Deserialize<DefaultTestClass>(TinyhandSerializer.Serialize(t));
-    }
-}
-```
-
-You can skip serializing values if the value is identical to the default value, by using `[TinyhandObject(SkipDefaultValues = true)]`.
-
-
-
-### Reconstruct
-
-Tinyhand creates an instance of a member variable even if there is no matching data. By adding `[Reconstruct(false)]` or `[Reconstruct(true)]` to member attributes, you can change the behavior of whether an instance is created or not. 
-
-```csharp
-[TinyhandObject(ImplicitMemberNameAsKey = true)]
-public partial class ReconstructTestClass
-{
-    [DefaultValue(12)]
-    public int Int { get; set; } // 12
-
-    public EmptyClass EmptyClass { get; set; } = default!; // new()
-
-    [Reconstruct(false)]
-    public EmptyClass EmptyClassOff { get; set; } = default!; // null
-
-    public EmptyClass? EmptyClass2 { get; set; } // null
-
-    [Reconstruct(true)]
-    public EmptyClass? EmptyClassOn { get; set; } // new()
-
-    /* Error. A class to be reconstructed must have a default constructor.
-    [IgnoreMember]
-    [Reconstruct(true)]
-    public ClassWithoutDefaultConstructor WithoutClass { get; set; }*/
-
-    [IgnoreMember]
-    [Reconstruct(true)]
-    public ClassWithDefaultConstructor WithClass { get; set; } = default!;
-}
-
-public class ClassWithoutDefaultConstructor
-{
-    public string Name = string.Empty;
-
-    public ClassWithoutDefaultConstructor(string name)
-    {
-        this.Name = name;
-    }
-}
-
-public class ClassWithDefaultConstructor
-{
-    public string Name = string.Empty;
-
-    public ClassWithDefaultConstructor(string name)
-    {
-        this.Name = name;
-    }
-
-    public ClassWithDefaultConstructor()
-        : this(string.Empty)
-    {
-    }
-}
-```
-
-If you don't want to create an instance with default behavior, set `ReconstructMembers` of `TinyhandObject` to false ` [TinyhandObject(ReconstructMembers = false)]`.
-
-
-
-### Reuse Instance
-
-Tinyhand will reuse an instance if its members have valid values. The type of the instance to be reused must have a `TinyhandObject` attribute.
-
-By adding `[Reuse(true)]` or `[Reuse(false)]` to member attributes, you can change the behavior of whether an instance is reused or not.
-
-```csharp
-[TinyhandObject(ReuseMembers = true)]
-public partial class ReuseTestClass
-{
-    [Key(0)]
-    [Reuse(false)]
-    public ReuseObject ObjectToCreate { get; set; } = new("create");
+    public int Timeout { get; private set; } = 30;
 
     [Key(1)]
-    public ReuseObject ObjectToReuse { get; set; } = new("reuse");
+    private string endpoint = "localhost";
 
-    [IgnoreMember]
-    public bool Flag { get; set; } = false;
-}
-
-[TinyhandObject(ImplicitMemberNameAsKey = true)]
-public partial class ReuseObject
-{
-    public ReuseObject()
-        : this(string.Empty)
-    {
-    }
-
-    public ReuseObject(string name)
-    {
-        this.Name = name;
-        this.Length = name.Length;
-    }
-
-    [IgnoreMember]
-    public string Name { get; set; } // Not a serialization target
-
-    public int Length { get; set; }
-}
-
-public class ReuseTest
-{
-    public void Test()
-    {
-        var t = new ReuseTestClass();
-        t.Flag = true;
-        // t2.Flag == true
-        // t2.ObjectToCreate.Name == "create", t2.ObjectToCreate.Length == 6
-        // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
-
-        var t2 = TinyhandSerializer.Deserialize<ReuseTestClass>(TinyhandSerializer.Serialize(t)); // Reuse member
-        // t2.Flag == false
-        // t2.ObjectToCreate.Name == "", t2.ObjectToCreate.Length == 6 // Note that Name is not a serialization target.
-        // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
-
-        t2 = TinyhandSerializer.DeserializeWith<ReuseTestClass>(t, TinyhandSerializer.Serialize(t)); // Reuse ReuseTestClass
-        // t2.Flag == true
-        // t2.ObjectToCreate.Name == "", t2.ObjectToCreate.Length == 6
-        // t2.ObjectToReuse.Name == "reuse", t2.ObjectToReuse.Length == 5
-        
-        var reader = new Tinyhand.IO.TinyhandReader(TinyhandSerializer.Serialize(t));
-        t.Deserialize(ref reader, TinyhandSerializerOptions.Standard); ; // Same as above
-    }
+    public int TemporaryCount { get; set; } // Not serialized.
 }
 ```
 
-If you don't want to reuse an instance with default behavior, set `ReuseMembers` of `TinyhandObject` to false ` [TinyhandObject(ReuseMembers = false)]`.
+### Readonly fields, init-only properties, and records
 
+Readonly fields can be explicitly keyed; enable `<AllowUnsafeBlocks>true</AllowUnsafeBlocks>` for the generated access code. Getter-only properties are not supported as serialization targets. Init-only properties, required members, record classes, and record structs are supported.
 
+```csharp
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
+public partial record Point(int X, int Y);
+```
 
-### Use Service Provider
+Generated types and their containing types must be `partial` where the generator needs to add code.
 
-By default, Tinyhand requires default constructor for deserialization.
+### Generated properties and length limits
+
+`Key.AddProperty` generates a property over a field. `Key.PropertyAccessibility` selects a public setter, protected setter, or getter-only wrapper. Tinyhand also implements keyed partial properties.
+
+`[MaxLength]` truncates strings, arrays, and lists during deserialization and in generated setters. Its second argument limits supported child strings or arrays; a negative limit leaves that dimension unrestricted. Direct writes to backing fields or ordinary setters do not apply this check.
 
 ```csharp
 [TinyhandObject]
-public partial class SomeClass
+public partial class LimitedValues
 {
-    public SomeClass(ISomeService service)
-    {
-    }
+    [Key(0, AddProperty = "Name")]
+    [MaxLength(20)]
+    private string name = string.Empty;
+
+    [Key(1)]
+    [MaxLength(3, 10)]
+    public partial string[] Tags { get; set; } = [];
 }
 ```
 
-Above code causes an exception during source code generation since Tinyhand doesn't know how to create an instance.
+## Object lifecycle
 
-By setting `TinyhandSerializer.ServiceProvider`and  `UseServiceProvider` to true, Tinyhand can create an instance without default constructor.
+### Default values and reconstruction
+
+Use field and property initializers for defaults. The generator recognizes supported constant initializers and some empty or null values. `SkipDefaultValues` is true by default: recognized defaults can be represented by nil or omitted entries, depending on the layout. Set it to false to write those values explicitly. Implement `ITinyhandDefault.CanSkipSerialization()` when a custom object needs to define its default state.
+
+During deserialization, missing data retains initialized values where applicable. Non-nullable reference members are initialized when needed: strings become empty strings, arrays become empty arrays, and supported object members are created. Nullable members normally remain null. This does not make every collection element non-null; generic collections do not retain element nullability information.
+
+```csharp
+[TinyhandObject(ImplicitMemberNameAsKey = true)]
+public partial class Defaults
+{
+    public int Count { get; set; } = 12;
+    public string Name { get; set; } = "Guest";
+
+    [Reconstruct(true)]
+    public Person? Owner { get; set; }
+
+    public Person? OptionalOwner { get; set; }
+}
+```
+
+`ReconstructMembers` and `[Reconstruct(true/false)]` control member reconstruction eligibility. For example, the missing nullable `Owner` above is reconstructed during deserialization. These settings do not guarantee that missing non-nullable map members remain null; use nullable members when absence should be preserved. Ignored members should be initialized explicitly.
+
+For classes, generated `Reconstruct<T>()` creates the instance if needed and runs its reconstruction callback; member values come from constructors and initializers. It does not fill every null member. Struct reconstruction also initializes eligible members. Use initializers rather than `System.ComponentModel.DefaultValueAttribute` to express defaults in current generated code.
+
+### Instance reuse
+
+`ReuseMembers` is true by default. Existing members of Tinyhand object types can be deserialized in place, preserving state that is not serialized. Override individual members with `[Reuse(false)]` or `[Reuse(true)]`.
+
+To deserialize into an existing root object, use the static object API:
+
+```csharp
+Person? existing = new Person();
+TinyhandSerializer.DeserializeObject(bytes, ref existing);
+```
+
+This overload calls the type's static deserializer directly. Use the regular `Deserialize<T>` APIs when compression handling is required.
+
+### Constructors and service providers
+
+The generator uses a public parameterless constructor when available, supports primary constructors, and can generate a construction path for other partial models. A public parameterless constructor is therefore not always required. Constructor arguments may receive defaults; use a service provider when construction requires application services.
 
 ```csharp
 [TinyhandObject(UseServiceProvider = true)]
-public partial class SomeClass
+public partial class ServiceBackedModel
 {
-    public SomeClass(ISomeService service)
+    public ServiceBackedModel(IServiceProvider services)
     {
+        Services = services;
     }
-}
-```
 
- ```csharp
- TinyhandSerializer.ServiceProvider = someContainer;
- var c = TinyhandSerializer.Deserialize<SomeClass>(b);
- ```
+    [IgnoreMember]
+    public IServiceProvider Services { get; }
 
-
-
-### Union
-
-Tinyhand supports serializing interface-typed and abstract class-typed objects. It behaves like `XmlInclude` or `ProtoInclude`. In Tinyhand these are called `Union`. Only interfaces and abstracts classes are allowed to be annotated with `TinyhandUnion` attributes. Unique union keys (`int`) are required.
-
-```csharp
-// Annotate inheritance types
-[TinyhandUnion(0, typeof(UnionTestClassA))]
-[TinyhandUnion(1, typeof(UnionTestClassB))]
-public interface IUnionTestInterface
-{
-    void Print();
-}
-
-[TinyhandObject]
-public partial class UnionTestClassA : IUnionTestInterface
-{
     [Key(0)]
-    public int X { get; set; }
-
-    public void Print() => Console.WriteLine($"A: {this.X.ToString()}");
+    public int Value { get; set; }
 }
+```
 
-[TinyhandObject]
-public partial class UnionTestClassB : IUnionTestInterface
+Set `TinyhandSerializer.ServiceProvider` before deserialization or reconstruction. The provider must return an instance of the requested model type.
+
+### Callbacks and locking
+
+Annotate parameterless instance methods with `TinyhandOnSerializing`, `TinyhandOnSerialized`, `TinyhandOnDeserializing`, `TinyhandOnDeserialized`, or `TinyhandOnReconstructed`. Callbacks are not inherited by derived classes.
+
+Set `LockObject` to the name of a lock member to synchronize serialization and deserialization. Their callbacks execute while that lock is held.
+
+```csharp
+[TinyhandObject(LockObject = nameof(syncObject))]
+public partial class Counter
 {
+    private readonly object syncObject = new();
+
     [Key(0)]
-    public string Name { get; set; } = default!;
-
-    public virtual void Print() => Console.WriteLine($"B: {this.Name}");
-}
-
-public static class UnionTest
-{
-    public static void Test()
-    {
-        var classA = new UnionTestClassA() { X = 10, };
-        var classB = new UnionTestClassB() { Name = "test", };
-
-        var b = TinyhandSerializer.Serialize((IUnionTestInterface)classA);
-        var i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
-        i?.Print(); // A: 10
-
-        b = TinyhandSerializer.Serialize((IUnionTestInterface)classB);
-        i = TinyhandSerializer.Deserialize<IUnionTestInterface>(b);
-        i?.Print(); // B: test
-    }
-}
-```
-
-Please be mindful that you cannot reuse the same keys in derived types that are already present in the parent type, as internally a single flat array or map will be used and thus cannot have duplicate indexes/keys.
-
-
-
-### Text Serialization
-
-Tinyhand can serialize an object to Tinyhand text format .
-
-```csharp
-// Serialize an object to string (UTF-16 text) and deserialize from it.
-var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
-var st = TinyhandSerializer.SerializeToString(myClass);
-var myClass2 = TinyhandSerializer.DeserializeFromString<MyClass>(st);
-```
-
-The result is
-
-```
-{
-  10, "hoge", "huga", null, null
-}
-```
-
-UTF-8 version is available.
-
-```csharp
-var utf8 = TinyhandSerializer.SerializeToUtf8(myClass);
-var myClass3 = TinyhandSerializer.DeserializeFromUtf8<MyClass>(utf8);
-```
-
-Text Serialization is optional because it is 5 to 8 times slower than binary serialization.
-
-### Max length
-
-You can set the maximum length of members by adding `MaxLength` attribute and setting `AddProperty` of `Key` attribute.
-
-```csharp
-[TinyhandObject]
-public partial record MaxLengthClass
-{
-    [Key(0, AddProperty = "Name")] // "Name" property will be created.
-    [MaxLength(3)] // The maximum length of Name property.
-    private string name = default!;
-
-    [Key(1, AddProperty = "Ids")]
-    [MaxLength(2)]
-    private int[] id = default!;
-
-    [Key(2, AddProperty = "Tags")]
-    [MaxLength(2, 3)] // The maximum length of an array and length of a string.
-    private string[] tags = default!;
-
-    public override string ToString()
-        => $"""
-        Name: {this.Name}
-        Ids: {string.Join(',', this.Ids)}
-        Tags: {string.Join(',', this.Tags)}
-        """;
-}
-
-public static class MaxLengthTest
-{
-    public static void Test()
-    {
-        var c = new MaxLengthClass();
-        c.Name = "ABCD"; // "ABC"
-        c.Ids = new int[] { 0, 1, 2, 3 }; // 0, 1,
-        c.Tags = new string[] { "aaa", "bbbb", "cccc" }; // "aaa", "bbb",
-
-        Console.WriteLine(c.ToString());
-        Console.WriteLine();
-
-        var st = TinyhandSerializer.SerializeToString(c);
-        st = """ "ABCD", {0, 1, 2, 3}, {"aaa", "bbbb", "cccc"} """;
-        var c2 = TinyhandSerializer.DeserializeFromString<MaxLengthClass>(st);
-
-        Console.WriteLine(c2!.ToString());
-        Console.WriteLine();
-    }
-}
-```
-
-
-
-### Versioning
-
-Tinyhand serializer is version tolerant. If you serialize a version 1 object and deserialize it as version 2, the new members will be set to their default values. In the opposite direction, if you serialize a version 2 object and deserialize it as version 1, the new members will just be ignored.
-
-```csharp
-[TinyhandObject]
-public partial class VersioningClass1
-{
-    [Key(0)]
-    public int Id { get; set; }
-
-    public override string ToString() => $"  Version 1, ID: {this.Id}";
-}
-
-[TinyhandObject]
-public partial class VersioningClass2
-{
-    [Key(0)]
-    public int Id { get; set; }
-
-    [Key(1)]
-    [DefaultValue("John")]
-    public string Name { get; set; } = default!;
-
-    public override string ToString() => $"  Version 2, ID: {this.Id} Name: {this.Name}";
-}
-
-public static class VersioningTest
-{
-    public static void Test()
-    {
-        var v1 = new VersioningClass1() { Id = 1, };
-        Console.WriteLine("Original Version 1:");
-        Console.WriteLine(v1.ToString());// Version 1, ID: 1
-
-        var v12 = TinyhandSerializer.Deserialize<VersioningClass2>(TinyhandSerializer.Serialize(v1))!;
-        Console.WriteLine("Serialize v1 and deserialize as v2:");
-        Console.WriteLine(v12.ToString());// Version 2, ID: 1 Name: John (Default value is set)
-
-        Console.WriteLine();
-
-        var v2 = new VersioningClass2() { Id = 2, Name = "Fuga", };
-        Console.WriteLine("Original Version 2:");
-        Console.WriteLine(v2.ToString());// Version 2, ID: 2 Name: Fuga
-
-        var v21 = TinyhandSerializer.Deserialize<VersioningClass1>(TinyhandSerializer.Serialize(v2))!;
-        Console.WriteLine("Serialize v2 and deserialize as v1:");
-        Console.WriteLine(v21.ToString());// Version 1, ID: 2 (Name ignored)
-    }
-}
-```
-
-
-
-### Lock object
-
-To acquire a mutual-exclusion lock during serialization and deserialization, add a `LockObject` property.
-
-```csharp
-[TinyhandObject(LockObject = "syncObject")]
-public partial class LockObjectClass
-{
-    [Key(0)]
-    public int X { get; set; }
-
-    private object syncObject = new();
-}
-```
-
-Generated code is
-
-```csharp
-static void ITinyhandSerialize<LockObjectClass>.Serialize(ref TinyhandWriter writer, scoped ref LockObjectClass? v, TinyhandSerializerOptions options)
-{
-    if (v == null)
-    {
-        writer.WriteNil();
-        return;
-    }
-
-    lock (v.syncObject)
-    {
-        if (!options.IsSignatureMode) writer.WriteArrayHeader(1);
-        writer.Write(v.X);
-    }
-}
-```
-
-
-
-### Serialization Callback
-
-```csharp
-[TinyhandObject]
-public partial class SampleCallback
-{
-    [Key(0)]
-    public int Key { get; set; }
-
-    [TinyhandOnSerializing]
-    public void OnSerializing()
-    {
-        Console.WriteLine("OnSerializing");
-    }
+    public int Value { get; set; }
 
     [TinyhandOnDeserialized]
-    public void OnDeserialized()
-    {
-        Console.WriteLine("OnDeserialized");
-    }
-
-    [TinyhandOnReconstructed]
-    public void OnReconstructed()
-    {
-        Console.WriteLine("OnReconstructed");
-    }
+    private void OnDeserialized() => Value = Math.Max(0, Value);
 }
 ```
 
+### Cloning and read-only wrappers
 
+`TinyhandSerializer.Clone(value)` uses generated cloning code or a formatter. Supported members can be cloned even when they are not serialization targets, so cloning is not identical to a serialize/deserialize round trip. Unsupported member types are not automatically deep-cloned. Custom types can implement `ITinyhandCloneable<T>`.
 
-### Deep copy
+For classes, `AddImmutable = true` generates a nested `Immutable` wrapper with getter-only access, plus `ToImmutable()` and `CloneAndToImmutable()`. `ToImmutable()` wraps the original instance; changes to that instance remain visible. `CloneAndToImmutable()` wraps a clone. Neither method makes mutable objects returned by getters intrinsically immutable.
 
-You can easily create a deep copy of the object by simply writing this code `TinyhandSerializer.Clone(obj)`.
+## Schema and serialization options
+
+Create options with a record `with` expression. Binary APIs normally use `TinyhandSerializer.DefaultOptions`, initially `TinyhandSerializerOptions.Standard`. Text APIs default to `TinyhandSerializerOptions.ConvertToString`. Pass options explicitly when different callers need different settings.
+
+### Versioning and reserved keys
+
+Unknown members are skipped, and missing members use their initialized or reconstructed values. Keep existing keys and their value types compatible. Do not renumber integer keys or reuse a removed key for a different meaning.
+
+`ReservedKeyCount` reserves integer keys from zero through `ReservedKeyCount - 1` for a base type. Derived members should use keys above that range. `Key.IgnoreKeyReservation` suppresses reservation diagnostics when explicitly required.
+
+### Unions
+
+Declare known subtypes on a partial interface or abstract class with `[TinyhandUnion]`. Keys may be integers or strings, but a union must use one key kind and unique keys. Annotate the union root and concrete models with `[TinyhandObject]`.
 
 ```csharp
-[TinyhandObject(ExplicitKeysOnly = true)]
-public partial class DeepCopyClass
+[TinyhandObject]
+[TinyhandUnion(0, typeof(Circle))]
+[TinyhandUnion(1, typeof(Rectangle))]
+public partial interface IShape;
+
+[TinyhandObject]
+public partial class Circle : IShape
 {
-    public int Id { get; set; }
-
-    public string[] Name { get; set; } = new string[] { "A", "B", };
-
-    public UnknownClass? UnknownClass { get; set; }
-
-    public KnownClass? KnownClass { get; set; }
-}
-
-public class UnknownClass
-{
+    [Key(0)] public double Radius { get; set; }
 }
 
 [TinyhandObject]
-public partial class KnownClass
+public partial class Rectangle : IShape
+{
+    [Key(0)] public double Width { get; set; }
+    [Key(1)] public double Height { get; set; }
+}
+```
+
+Serialize with the declared union type, for example `TinyhandSerializer.Serialize<IShape>(new Circle { Radius = 2 })`, and deserialize with `Deserialize<IShape>`.
+
+### Alternate keys and enum names
+
+`AddAlternateKey = true` keeps integer keys for ordinary binary serialization and adds string keys for text serialization. Names default to member names; `Key.Alternate` supplies a stable alternative.
+
+```csharp
+[TinyhandObject(AddAlternateKey = true)]
+public partial class NamedValue
+{
+    [Key(0, Alternate = "value")]
+    public int Value { get; set; }
+}
+```
+
+Set `EnumAsString = true` on a model to serialize its enum values by name. Renaming enum members then changes their serialized representation.
+
+### Exclusion and signatures
+
+`[Key(0, Exclude = true)]` omits a member when using `TinyhandSerializerOptions.Exclude`. Ordinary serialization still includes it.
+
+`SerializeSignature(value, level)` uses signature mode. `Key.Level` controls inclusion, array headers are omitted, and `AddSignatureId` controls the generated type signature identifier. Signature bytes are intended for hashing or signing and are not ordinary round-trip serialized data. `GetXxHash3` hashes serialized bytes and returns zero if serialization fails; it is not a cryptographic signature.
+
+`TinyhandSerializerOptions.Special` lets custom serialization code select application-specific behavior.
+
+## Text serialization and syntax trees
+
+Tinyhand text supports values, groups (`{ ... }`), assignments (`name = value`), comments, and binary literals. It is a separate format from JSON.
+
+```csharp
+byte[] utf8 = TinyhandSerializer.SerializeToUtf8(person);
+Person? copy = TinyhandSerializer.DeserializeFromUtf8<Person>(utf8);
+
+var strict = TinyhandSerializerOptions.ConvertToStrictString;
+string strictText = TinyhandSerializer.SerializeToString(person, strict);
+Person? strictCopy = TinyhandSerializer.DeserializeFromString<Person>(strictText, strict);
+```
+
+`Standard` composition indents groups, `Simple` uses a compact layout, and `Strict` retains explicit outer group delimiters. Use matching composition settings when reading text whose top-level delimiters were omitted. Text options with `ConvertToString` use `Arc.IStringConvertible<T>` where supported.
+
+For document editing, parse a syntax tree and compose it again:
+
+```csharp
+var tree = TinyhandParser.Parse(
+    "name = \"Ada\" // Display name"u8,
+    TinyhandParserOptions.ContextualInformation);
+string document = TinyhandComposer.ComposeToString(
+    tree, TinyhandComposeOption.UseContextualInformation);
+```
+
+`TinyhandParserOptions.ContextualInformation` retains comments and line breaks. `Tinyhand.Tree` exposes groups, assignments, identifiers, and scalar nodes; `TinyhandTreeHelper` provides queries. `TinyhandTreeConverter` converts between text, trees, and binary data, and `TinyhandSerializer.DeserializeFromElement<T>` deserializes a tree.
+
+## Buffers, streams, and compression
+
+Binary serialization accepts `IBufferWriter<byte>`, `Stream`, and `ref TinyhandWriter`. Deserialization accepts byte spans, streams, and `ref TinyhandReader`; an overload reports consumed bytes. `SerializeAsync` and `DeserializeAsync` support streams.
+
+Stream deserialization reads to the end and returns the first value. Seekable streams are repositioned after that value; non-seekable streams need application-level framing if multiple messages share a stream.
+
+`SerializeToRentMemory` returns pooled bytes. Return the memory after use:
+
+```csharp
+var rented = TinyhandSerializer.SerializeToRentMemory(person);
+try
+{
+    Person? copy = TinyhandSerializer.Deserialize<Person>(rented.Span);
+}
+finally
+{
+    rented.Return();
+}
+```
+
+Dispose manually created writers to release their owned buffers. Spans and sequences that refer to writer storage must not outlive its reuse or disposal.
+
+Enable LZ4 on both sides:
+
+```csharp
+byte[] compressed = TinyhandSerializer.Serialize(person, TinyhandSerializerOptions.Lz4);
+Person? copy = TinyhandSerializer.Deserialize<Person>(compressed, TinyhandSerializerOptions.Lz4);
+```
+
+LZ4 options can also read uncompressed data. Small payloads may be emitted without compression. To combine settings, use `with`, such as `TinyhandSerializerOptions.Lz4 with { Security = TinyhandSecurity.UntrustedData }`.
+
+## Supported types
+
+The standard resolver supports these families when the required closed generic types are registered:
+
+| Family | Types |
+| --- | --- |
+| Values | Primitive numeric types, `Int128`, `UInt128`, `bool`, `char`, `string`, enums, nullable values, `Nil` |
+| Time and identifiers | `DateTime`, `DateTimeOffset`, `TimeSpan`, `Guid` |
+| Other values | `decimal`, `BigInteger`, `Complex`, `Uri`, `Version`, `StringBuilder`, `IPAddress`, `IPEndPoint` |
+| Buffers and arrays | Arrays of rank 1–4, `ArraySegment<T>`, `Memory<T>`, `ReadOnlyMemory<T>`, `ReadOnlySequence<T>`, `BitArray` |
+| Tuples | `KeyValuePair<TKey, TValue>`, `Tuple<...>`, `ValueTuple<...>` |
+| Collections | Lists, linked lists, queues, stacks, sets, sorted collections, dictionaries, read-only wrappers, observable collections, concurrent collections, and supported generic interfaces |
+| Collection interfaces | `IEnumerable<T>`, `ICollection<T>`, `IList<T>`, `IReadOnlyCollection<T>`, `IReadOnlyList<T>`, `ISet<T>`, `IDictionary<TKey, TValue>`, `IReadOnlyDictionary<TKey, TValue>`, `ILookup<TKey, TElement>`, `IGrouping<TKey, TElement>` |
+| Immutable collections | Immutable arrays, lists, dictionaries, sets, queues, stacks, and their supported interfaces |
+| Additional types | `Lazy<T>`, `Utf8String`, `KeyValueList<TKey, TValue>`, `Arc.Crypto.Struct128` / `Struct256`, pooled byte memory, and supported Arc.Collections types |
+
+Arc.Collections support includes ordered and unordered maps, sets, and lists, ordered multimaps and multisets, unordered linked lists, and `Utf16Hashtable<T>`.
+
+Custom `ICollection<T>` and `IDictionary<TKey, TValue>` implementations can use generated factories. A dictionary's public `(int capacity, IEqualityComparer<TKey> comparer)` constructor is preferred; otherwise, a public parameterless constructor is used. Collection factories require a public parameterless constructor.
+
+With standard options, `object` uses primitive encoding for supported scalar values, enums, and `System.Collections.ICollection` / `System.Collections.IDictionary` instances containing supported values. It does not automatically dispatch to an arbitrary runtime model's formatter. Use the concrete model type or a declared union. When reading primitive objects, integer types are determined by the encoded bytes.
+
+Non-generic collection types such as `IEnumerable`, `IList`, `IDictionary`, `ArrayList`, and `Hashtable` are not supported as declared serialization types. Use generic collections. `System.Type` and `ExpandoObject` do not have built-in formatters.
+
+## Deserialization security
+
+The default security policy is `TrustedData`. For untrusted input, select `UntrustedData`, which enables collision-resistant collection comparers and limits object-graph depth to 500:
+
+```csharp
+var options = TinyhandSerializerOptions.Standard with
+{
+    Security = TinyhandSecurity.UntrustedData,
+};
+Person? copy = TinyhandSerializer.Deserialize<Person>(bytes, options);
+```
+
+This policy rejects hash-based collections with `object` keys, including `Dictionary<object, ...>`, `HashSet<object>`, `ILookup<object, ...>`, and maps read through `object`, even when their keys happen to be strings. Use supported concrete keys such as `string` or `int`. Object scalars and arrays without nested maps remain supported.
+
+Custom formatters that read nested values should call `options.Security.DepthStep(ref reader)` and decrement `reader.Depth` in a `finally` block. Depth and comparer policies do not impose a total input-size limit; bound input sizes in the calling application.
+
+## Custom serialization and formatters
+
+For an annotated model, implement the static methods of `ITinyhandSerializable<T>` to customize serialization. `ITinyhandReconstructable<T>` and `ITinyhandCloneable<T>` customize reconstruction and cloning. The generator supplies operations that are not implemented manually.
+
+For a separate formatter, implement `ITinyhandFormatter<T>` and register it before use with `Tinyhand.Resolvers.GeneratedResolver.Instance.SetFormatter<T>()`. A formatter must encode exactly one value: wrap multiple values in an array or map and handle nil consistently.
+
+```csharp
+using System.Diagnostics.CodeAnalysis;
+using Tinyhand;
+using Tinyhand.IO;
+using Tinyhand.Resolvers;
+
+GeneratedResolver.Instance.SetFormatter<Label>(new LabelFormatter());
+byte[] data = TinyhandSerializer.Serialize(new Label { Value = "example" });
+Label? label = TinyhandSerializer.Deserialize<Label>(data);
+
+[TinyhandObject(UseResolver = true)]
+public partial class Label
 {
     [Key(0)]
-    public float?[] Single { get; init; } = new float?[] { 0, 1, null, };
+    public string Value { get; set; } = string.Empty;
 }
 
-public static class DeepCopyTest
+public sealed class LabelFormatter : ITinyhandFormatter<Label>
 {
-    public static void Test()
+    public void Serialize(ref TinyhandWriter writer, Label? value, TinyhandSerializerOptions options)
     {
-        var c = new DeepCopyClass();
-        c.UnknownClass = new();
-        c.KnownClass = new();
-
-        var d = TinyhandSerializer.Clone(c);
-        c.Name[1] = "C";
-        Debug.Assert(c.Name[1] != d.Name[1]); // c.Name and d.Name are different since d is a deep copy.
-        Debug.Assert(d.UnknownClass == null); // UnknownClass is ignored since Tinyhand doesn't know how to create a deep copy of UnknownClass.
-        Debug.Assert(d.KnownClass != null); // Tinyhand can handle a class with TinyhandObjectAttribute.
-        
-        var e = TinyhandSerializer.Deserialize<DeepCopyClass>(TinyhandSerializer.Serialize(c)); // Almost the same as above, but Clone() is much faster.
-    }
-}
-```
-
- `TinyhandSerializer.Clone(obj)` is almost the same as `TinyhandSerializer.Deserialize<Class>(TinyhandSerializer.Serialize(obj))`, but `Clone()` is much faster.
-
-| Method                     |      Mean |    Error |   StdDev |    Median |  Gen 0 | Gen 1 | Gen 2 | Allocated |
-| -------------------------- | --------: | -------: | -------: | --------: | -----: | ----: | ----: | --------: |
-| Clone_Raw                  |  38.74 ns | 0.312 ns | 0.448 ns |  38.66 ns | 0.0421 |     - |     - |     176 B |
-| Clone_SerializeDeserialize | 282.87 ns | 3.473 ns | 4.636 ns | 278.95 ns | 0.0534 |     - |     - |     224 B |
-| Clone_Clone                |  48.72 ns | 1.020 ns | 1.397 ns |  48.86 ns | 0.0421 |     - |     - |     176 B |
-
-
-
-### Built-in supported types
-
-With `Standard` options, `object`-typed values use the primitive object formatter. It supports null, supported primitive values, enums, and `System.Collections.ICollection` / `System.Collections.IDictionary` values containing supported values. It does not automatically select a formatter for an arbitrary runtime type. Serialize custom types using their concrete type or a declared union.
-
-Collections serialized through `object` now use primitive encoding recursively. Nested integers retain their integer type, so their bytes can differ from the previous runtime formatter dispatch. When reading data, integer types continue to be determined by the encoded bytes.
-
-With `Security = TinyhandSecurity.UntrustedData` (or `HashCollisionResistant` enabled), the built-in security policy rejects `object` keys in hash-based collections. This includes `Dictionary<object, ...>`, `HashSet<object>`, `ILookup<object, ...>`, and maps deserialized through `object`, even when their keys are strings. Use a concrete supported key type, such as `Dictionary<string, ...>`. Scalar `object` values and arrays without nested maps remain supported. `TrustedData` retains its existing behavior.
-
-Non-generic collection types (`IEnumerable`, `ICollection`, `IList`, `IDictionary`, `ArrayList`, and `Hashtable`) are not supported as the serialization type. Use generic interfaces such as `IEnumerable<T>`, `ICollection<T>`, `IList<T>`, and `IDictionary<TKey, TValue>`, or supported concrete generic collections.
-
-`System.Type` values do not have a built-in formatter and are not supported by the default serializer options.
-
-These types can serialize by default:
-
-* Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
-
-* `TimeSpan`,  `DateTime`, `DateTimeOffset`
-
-* `Guid`, `Uri`, `Version`, `StringBuilder`
-
-* `BigInteger`, `Complex`
-
-* `Array[]`, `Array[,]`, `Array[,,]`, `Array[,,,]`, `ArraySegment<>`, `BitArray`
-
-* `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
-
-* `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
-
-* `IList<>`, `ICollection<>`, `IEnumerable<>`, `IReadOnlyCollection<>`, `IReadOnlyList<>`
-
-* `Dictionary<,>`, `IDictionary<,>`, `SortedDictionary<,>`, `ILookup<,>`, `IGrouping<,>`, `ReadOnlyDictionary<,>`, `IReadOnlyDictionary<,>`
-
-* `ObservableCollection<>`, `ReadOnlyObservableCollection<>`
-
-* `ISet<>`,
-
-* `ConcurrentBag<>`, `ConcurrentQueue<>`, `ConcurrentStack<>`, `ConcurrentDictionary<,>`
-
-* Immutable collections (`ImmutableList<>`, etc)
-
-* Custom implementations of `ICollection<>` or `IDictionary<,>` with a parameterless constructor
-
-
-
-### LZ4 Compression
-
-Tinyhand has LZ4 compression support.
-
-```csharp
-var b = TinyhandSerializer.Serialize(myClass, TinyhandSerializerOptions.Lz4);
-var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b, TinyhandSerializerOptions.Standard.WithCompression(TinyhandCompression.Lz4)); // Same as TinyhandSerializerOptions.Lz4
-```
-
-
-
-
-## Custom formatter
-
-To create an custom formatter:
-1. Create a formatter and register it with **BuiltinResolver**.
-
-2. Source generator needs to be informed that the formatter exists. Register it with **FormatterResolver**.
-
-
-
-Principles for creating a custom formatter:
-
-- To improve performance, consider encapsulating everything within a single element (such as Binary).
-- If splitting into multiple elements, use **Array** or **Map**. Simply listing elements can lead to data structure corruption when Arrays or Maps are used at a higher level.
-
-
-
-```csharp
-public sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
-{
-    public static readonly IPEndPointFormatter Instance = new IPEndPointFormatter();
-
-    public void Serialize(ref TinyhandWriter writer, IPEndPoint? value, TinyhandSerializerOptions options)
-    {// Nil or Bin8(Address, Port(4))
-        if (value == null)
-        {
+        if (value is null)
             writer.WriteNil();
-            return;
-        }
-
-        var span = writer.GetSpan(32);
-        if (value.Address.TryWriteBytes(span.Slice(2), out var written))
-        {
-            span[0] = MessagePackCode.Bin8;
-            span[1] = (byte)(written + 4); // Address + Port(4)
-            BitConverter.TryWriteBytes(span.Slice(2 + written), value.Port);
-            writer.Advance(2 + written + 4);
-        }
         else
+            writer.Write(value.Value);
+    }
+
+    public void Deserialize(ref TinyhandReader reader, ref Label? value, TinyhandSerializerOptions options)
+    {
+        if (reader.TryReadNil())
         {
-            writer.WriteNil();
+            value = null;
             return;
         }
+
+        value ??= new Label();
+        value.Value = reader.ReadString() ?? string.Empty;
     }
 
-    public IPEndPoint? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
-    {
-        if (!reader.TryReadBytes(out var span) ||
-            span.Length < 4)
-        {
-            return null;
-        }
+    public Label Reconstruct(TinyhandSerializerOptions options) => new();
 
-        var port = BitConverter.ToInt32(span.Slice(span.Length - 4));
-        return new IPEndPoint(new IPAddress(span.Slice(0, span.Length - 4)), port);
-    }
-
-    public IPEndPoint Reconstruct(TinyhandSerializerOptions options)
-    {
-        return new IPEndPoint(IPAddress.None, 0);
-    }
-
-    public IPEndPoint? Clone(IPEndPoint? value, TinyhandSerializerOptions options) => value == null ? null : new IPEndPoint(new IPAddress(value.Address.GetAddressBytes()), value.Port);
+    [return: NotNullIfNotNull(nameof(value))]
+    public Label? Clone(Label? value, TinyhandSerializerOptions options)
+        => value is null ? null : new Label { Value = value.Value };
 }
 ```
+
+`UseResolver = true` makes generated callers resolve the annotated type through a formatter. Registration alone does not teach the generator how to handle an otherwise unsupported member type; use an annotated wrapper or a custom containing serializer.
+
+Built-in formatters take precedence over `GeneratedResolver`. To override a built-in type, implement `IFormatterResolver`, return your formatter first, and delegate other requests to `TinyhandSerializerOptions.Standard.Resolver`. Set it with `Standard with { Resolver = yourResolver }`. Built-in resolver classes are internal.
+
+The `SerializeObject`, `DeserializeObject`, `ReconstructObject`, and `CloneObject` APIs call static type operations directly. They are useful for generated models but do not substitute for resolver-based custom formatter dispatch.
+
+## NativeAOT and type registration
+
+Enable `<PublishAot>true</PublishAot>` in a .NET 10 application and publish for its runtime identifier. Generated module initializers register models, enums, and supported closed collection types automatically.
+
+Use assembly-level registration for closed types that cannot be discovered from the caller's source, such as types used only inside another assembly's generic helpers:
+
+```csharp
+[assembly: TinyhandRegister(typeof(Dictionary<string, Person>))]
+```
+
+Place assembly attributes after `using` directives and before type declarations or top-level statements. Open generic types such as `Dictionary<,>` cannot be registered. There is no runtime factory for arbitrary closed generic types.
+
+`TinyhandTypeIdentifier` dispatches operations for registered types by a 32-bit identifier. Generated and built-in types register automatically; manual registrations use `Register<T>()`. Use `RegisterStringConvertible<T>()` for manually registered types needing their static string parser. Identifiers derive from type names, so renaming a type affects identifier-based persistence.
+
+See [NativeAOT setup and migration notes](doc/NativeAOT.md) for diagnostics, publishing commands, and verification details.
+
+## Generated members and localized strings
+
+`[TinyhandGenerateMember("data.tinyhand")]` generates initialized members and nested classes from a text file. `[TinyhandGenerateHash("strings.tinyhand")]` generates identifier hash constants. Apply these attributes to partial types; relative paths are resolved from the declaring source file.
+
+`HashedString` loads localized strings from files, streams, or embedded resources and retrieves them by identifier or hash. Use `SetDefaultCulture` and `ChangeCulture` to select tables; lookups fall back to the default culture. `GetOrEmpty` and `GetOrAlternative` control missing-string behavior.
+
+## Structural objects and journaling
+
+`[TinyhandObject(Structural = true)]` generates `IStructuralObject` support for parent-child links and journal operations. Generated setters can record changes through an attached `IStructuralRoot`; direct backing-field writes bypass those setters.
+
+The host supplies journal storage and save scheduling through `IStructuralRoot`. `ITinyhandCustomJournal` handles custom records, `JournalHelper.ReadJournal` replays records, and `JournalTester` provides an in-memory root for tests. See [journal examples](XUnitTest/Tests/JournalTest.cs).
+
+## Tinyhand Processor
+
+The separate `TinyhandProcessor` project executes Tinyhand process scripts. Built-in cores include text-line conversion, language-file updates, an example logger, and executable startup measurements.
+
+```sh
+dotnet run --project TinyhandProcessor/TinyhandProcessor.csproj -- script.tinyhand
+```
+
+Plugins implement `IProcessCore`. Reference the plugin assembly and call `TinyhandProcess.RegisterPlugin<MyProcessCore>("my process")` before processing. Plugins are registered statically; runtime DLL discovery is not supported. See [TestPlugin](TestPlugin) and the [NativeAOT notes](doc/NativeAOT.md) for hosting details.
+
+## Building, testing, and benchmarks
+
+```sh
+dotnet build Tinyhand.slnx
+dotnet test --project XUnitTest/XUnitTest.csproj
+dotnet run --project QuickStart/QuickStart.csproj
+```
+
+NativeAOT smoke tests must be published and run as native executables; see the [NativeAOT guide](doc/NativeAOT.md).
+
+Collect line and branch coverage with the Microsoft Testing Platform coverage extension:
+
+```sh
+dotnet test --project XUnitTest/XUnitTest.csproj --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+```
+
+The report is written to `TestResults`. Generator coverage measures generator calls made inside tests; source generation performed during the build is outside this measurement.
+
+The [Benchmark project](Benchmark) compares binary serialization, text conversion, and cloning. [Saved benchmark reports](Benchmark/ChampionData) are historical measurements, not results for every current runtime or version. Run Release benchmarks on the target hardware before drawing performance conclusions.
 

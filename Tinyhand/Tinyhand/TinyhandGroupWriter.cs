@@ -12,14 +12,12 @@ using Arc.IO;
 namespace Tinyhand;
 
 /// <summary>
-/// Decides how group brackets are laid out when a binary is converted to text.<br/>
-/// In the indented modes (<see cref="TinyhandComposeOption.Standard"/> and <see cref="TinyhandComposeOption.UseContextualInformation"/>)
-/// the brackets are not written immediately: a run of closing brackets followed by a run of opening brackets is
-/// accumulated and rendered as a line feed, an indent and "+ " markers when the next value is written.<br/>
-/// A run of opening brackets can never be followed by a closing bracket without a value in between
-/// (an empty group is written as "{}" directly), so the pending state is fully described by
-/// the number of pending closes, the number of pending opens that follow them, and a pending line feed.
+/// Writes group delimiters, indentation, and line breaks when converting binary data to Tinyhand text.
 /// </summary>
+/// <remarks>
+/// Indented modes defer closing and opening delimiters until the next value, then emit line breaks and "+ " markers.
+/// Empty groups are written immediately, so the pending state consists of closing delimiters followed by opening delimiters.
+/// </remarks>
 public ref struct TinyhandGroupWriter
 {
     /// <summary>
