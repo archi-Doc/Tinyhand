@@ -863,6 +863,8 @@ With `Standard` and `Compatible` options, `object`-typed values use the primitiv
 
 Collections serialized through `object` now use primitive encoding recursively. Nested integers retain their integer type, so their bytes can differ from the previous runtime formatter dispatch. When reading data, integer types continue to be determined by the encoded bytes.
 
+With `Security = TinyhandSecurity.UntrustedData` (or `HashCollisionResistant` enabled), the built-in security policy rejects `object` keys in hash-based collections. This includes `Dictionary<object, ...>`, `HashSet<object>`, non-generic dictionaries, and maps deserialized through `object`, even when their keys are strings. Use a concrete supported key type, such as `Dictionary<string, ...>`. Scalar `object` values and arrays without nested maps remain supported. `TrustedData` retains its existing behavior.
+
 These types can serialize by default:
 
 * Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
