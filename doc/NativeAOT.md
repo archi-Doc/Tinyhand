@@ -52,7 +52,12 @@ private な型を登録するために、その型を参照できる包含型へ
 
 ## API の変更
 
+ValueLink など別の Source Generator と併用する場合、各ジェネレーターは相手の生成結果を参照できません。そのため、生成予定の `Owner<T>.GoshujinClass` が一時的に未解決型になることがあります。静的登録ジェネレーターは、この未解決型と、生成ソースから名前で参照できない匿名型を登録対象から除外します。未解決の入れ子ジェネリック型も、型引数の置換中に組み立て直しません。
+
+公開済み Tinyhand 0.144.0 のこの判定には不具合があり、通常のビルドでも不正な登録コードやジェネレーター例外が発生する場合がありました。現在のソースには除外処理が反映されています。未解決型・匿名型・ジェネリック補助メソッド・別ジェネレーターとの同時実行について回帰テストを追加しています。ソースの修正は公開済みパッケージには反映されないため、配布時は修正版パッケージへの依存更新が必要です。
+
 - `GenericsResolver` と動的 formatter ファクトリーを削除しました。
+- `SetFormatterGenerator` を利用していたローダーは、閉じた型を使う静的登録へ移行してください。この API の削除は上記の型判定の不具合とは別の変更です。
 - `TinyhandTypeIdentifier.Register(Type)` / `Register(ReadOnlySpan<Type>)` の代わりに `Register<T>()` を使用します。生成された formatter と組み込み型は自動登録されます。
 - 独自の `IStringConvertible<T>` パーサーを使う手動登録型は、制約を満たす閉じた型で `TinyhandTypeIdentifier.RegisterStringConvertible<T>()` を呼びます。
 - カスタム辞書には、コンパイル時に選択したコンストラクターを呼ぶ static ファクトリーを渡します。公開された `(int capacity, IEqualityComparer<TKey> comparer)` があれば優先し、なければ公開された引数なしコンストラクターを使用します。後者では、その辞書型自身が比較子を決定します。

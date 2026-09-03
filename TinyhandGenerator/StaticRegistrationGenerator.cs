@@ -195,6 +195,8 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
 
         private static string Name(ITypeSymbol type) => type.WithNullableAnnotation(NullableAnnotation.None).ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+        // Other generators' output is not visible here. Error symbols can become valid types
+        // later, and anonymous types cannot be named in registration source.
         private static bool IsClosed(ITypeSymbol type) => type switch
         {
             ITypeParameterSymbol => false,
@@ -342,6 +344,7 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
                 return this.compilation.CreateArrayTypeSymbol(this.Substitute(array.ElementType, substitutions)!, array.Rank);
             }
 
+            // A nested type supplied by another generator has no declaration to substitute yet.
             if (type is INamedTypeSymbol named && named.TypeKind != TypeKind.Error && named.IsGenericType && !named.IsUnboundGenericType)
             {
                 var definition = named.OriginalDefinition;
