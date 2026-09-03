@@ -57,6 +57,7 @@ public static class TinyhandComposer
         try
         {
             Compose(ref writer, element, option);
+            writer.Flush(); // Commit the written bytes to the buffer writer.
             return;
         }
         finally
@@ -301,11 +302,17 @@ public static class TinyhandComposer
         private void ComposeGroup(ref TinyhandRawWriter writer, Group element)
         {
             var newLine = true;
-            if (element.Parent == null ||
-                this.option == TinyhandComposeOption.Simple ||
-                this.option == TinyhandComposeOption.Strict)
-            {
+            var brace = false;
+            if (element.Parent == null)
+            {// The top level group is the document itself, so it is never braced.
                 newLine = false;
+            }
+            else if (this.option == TinyhandComposeOption.Simple ||
+                this.option == TinyhandComposeOption.Strict)
+            {// These options compose a single line, which has no indentation to express nesting,
+             // so a nested group is surrounded by braces instead.
+                newLine = false;
+                brace = element.ElementList.Count > 0;
             }
 
             if (element.ElementList.Count == 0)
@@ -316,6 +323,11 @@ public static class TinyhandComposer
             }
 
             this.ComposeContextualInformation(ref writer, element.forwardContextual?.contextualChain);
+
+            if (brace)
+            {
+                writer.WriteUInt8(TinyhandConstants.OpenBrace);
+            }
 
             if (newLine)
             {
@@ -352,6 +364,11 @@ public static class TinyhandComposer
             if (newLine)
             {
                 this.NewLine(ref writer, -1);
+            }
+
+            if (brace)
+            {
+                writer.WriteUInt8(TinyhandConstants.CloseBrace);
             }
         }
 

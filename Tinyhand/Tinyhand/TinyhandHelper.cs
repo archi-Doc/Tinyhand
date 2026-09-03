@@ -5,8 +5,6 @@ using System.Buffers;
 using System.Buffers.Text;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Arc.Collections;
@@ -26,17 +24,17 @@ public static class TinyhandHelper
         ReservedTable.TryAdd(TinyhandConstants.TrueSpan, 1);
         ReservedTable.TryAdd(TinyhandConstants.FalseSpan, 1);
 
-        foreach (var x in Enum.GetValues(typeof(TinyhandModifierType)).Cast<TinyhandModifierType>())
+        foreach (var x in Enum.GetValues<TinyhandModifierType>())
         {
             if (x == TinyhandModifierType.None)
             {
                 continue;
             }
 
-            var name = Enum.GetName(typeof(TinyhandModifierType), x);
+            var name = Enum.GetName(x);
             if (name != null)
             {
-                var s = Encoding.UTF8.GetBytes(name.ToLower());
+                var s = Encoding.UTF8.GetBytes(name.ToLowerInvariant());
                 ModifierTable.TryAdd(s, x);
                 ReservedTable.TryAdd(s, 2);
             }
@@ -97,11 +95,12 @@ public static class TinyhandHelper
             else if (b == TinyhandConstants.BackSlash)
             { // Escape.
                 i++;
-                b = source[i];
                 if (i >= source.Length)
                 {
                     return;
                 }
+
+                b = source[i];
 
                 switch (b)
                 {
@@ -159,7 +158,8 @@ public static class TinyhandHelper
         source = source.Slice(2);
         consumed += 2;
 
-        bool result = Utf8Parser.TryParse(source, out int scalar, out var bytesConsumed, 'x');
+        // A \uXXXX escape is exactly four hex digits; without the slice the parser would also consume any hex digits that follow.
+        bool result = Utf8Parser.TryParse(source.Slice(0, 4), out int scalar, out var bytesConsumed, 'x') && bytesConsumed == 4;
         if (result != true)
         {
             throw new TinyhandException("Invalid UTF-8 text");
@@ -184,7 +184,7 @@ public static class TinyhandHelper
             source = source.Slice(2);
             consumed += 2;
 
-            result = Utf8Parser.TryParse(source, out int lowSurrogate, out bytesConsumed, 'x');
+            result = Utf8Parser.TryParse(source.Slice(0, 4), out int lowSurrogate, out bytesConsumed, 'x') && bytesConsumed == 4;
             if (result != true)
             {
                 throw new TinyhandException("Invalid UTF-8 text");
@@ -406,37 +406,4 @@ public static class TinyhandHelper
             Id = GetFullNameId(typeof(T));
         }
     }*/
-
-    internal static MethodInfo GetSerializerMethod(string methodName, Type type, Type?[] parameters)
-    {
-        return typeof(TinyhandSerializer).GetRuntimeMethods().Single(x =>
-        {
-            if (methodName != x.Name)
-            {
-                return false;
-            }
-
-            var ps = x.GetParameters();
-            if (ps.Length != parameters.Length)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < ps.Length; i++)
-            {
-                if (parameters[i] == null && ps[i].ParameterType.IsGenericParameter)
-                {
-                    continue;
-                }
-
-                if (ps[i].ParameterType != parameters[i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        })
-        .MakeGenericMethod(type);
-    }
 }

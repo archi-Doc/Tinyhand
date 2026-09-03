@@ -80,7 +80,6 @@ public partial class FormatterResolverClass
     public System.Collections.BitArray BitArray = new(new bool[] { true, false, true });
     public System.Numerics.BigInteger BigInteger = new(456d);
     public System.Numerics.Complex Complex = new(11d, 44d);
-    public Type Type = typeof(string);
 
     public object[] ObjectArray { get; set; } = { 1, 2, "Test", 1.4d };
     public List<object> ObjectList { get; set; } = new() { 1, 2, "Test", 1.4d };

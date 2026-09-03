@@ -42,7 +42,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        // TinyhandModule_ConsoleApp1.Initialize(); // Initialize() method is required on some platforms (e.g Xamarin, Native AOT) which does not support ModuleInitializer attribute.
+        // Formatters are registered automatically, including on .NET NativeAOT.
 
         var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
         var b = TinyhandSerializer.Serialize(myClass);

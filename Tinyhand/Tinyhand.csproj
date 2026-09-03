@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <IsAotCompatible>true</IsAotCompatible>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
@@ -34,9 +35,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Arc.Collections" Version="1.44.0" />
-    <PackageReference Include="Arc.Crypto" Version="1.49.0" />
-    <PackageReference Include="FastExpressionCompiler" Version="5.4.1" />
+    <!-- Formatters and resolvers are internal; the in-repo test and benchmark projects use them directly. -->
+    <InternalsVisibleTo Include="XUnitTest" />
+    <InternalsVisibleTo Include="Benchmark" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Arc.Collections" Version="1.45.0" />
+    <PackageReference Include="Arc.Crypto" Version="1.50.1" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -60,14 +66,6 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ValueTupleFormatter.cs</LastGenOutput>
     </None>
-    <None Update="IO\TinyhandReader.Integer.tt">
-      <LastGenOutput>TinyhandReaderB.Integer.cs</LastGenOutput>
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="IO\TinyhandReader.Integer.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>TinyhandReader.Integer.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -90,11 +88,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>ValueTupleFormatter.tt</DependentUpon>
-    </Compile>
-    <Compile Update="IO\TinyhandReader.Integer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TinyhandReader.Integer.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

@@ -75,8 +75,5 @@ public class NullabilityTest
         {
             x.IsNot(null);
         }
-
-        var t3 = (NullableTestClass)TestHelper.ConvertNonGeneric(t.GetType(), (object)t);
-        t3.IsStructuralEqual(t2);
     }
 }

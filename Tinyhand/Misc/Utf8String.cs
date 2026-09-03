@@ -1,7 +1,8 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Tinyhand;
@@ -23,8 +24,7 @@ public readonly struct Utf8String : IEquatable<Utf8String>
 
     public Utf8String(Utf8String utf8)
     {
-        this.Value = new byte[utf8.Value.Length];
-        Array.Copy(utf8.Value, this.Value, utf8.Value.Length);
+        this.Value = utf8.Span.ToArray();
     }
 
     public Utf8String(ReadOnlySpan<byte> utf8)
@@ -34,40 +34,51 @@ public readonly struct Utf8String : IEquatable<Utf8String>
 
     public readonly byte[] Value;
 
-    public bool Equals(Utf8String other)
-        => this.Value.SequenceEqual(other.Value);
+    /// <summary>
+    /// Gets the utf8 sequence. A <see langword="default"/> instance is treated as an empty sequence.
+    /// </summary>
+    public ReadOnlySpan<byte> Span => this.Value; // A null array becomes an empty span.
 
-    public unsafe override int GetHashCode()
+    public static bool operator ==(Utf8String left, Utf8String right) => left.Equals(right);
+
+    public static bool operator !=(Utf8String left, Utf8String right) => !left.Equals(right);
+
+    public bool Equals(Utf8String other)
+        => this.Span.SequenceEqual(other.Span);
+
+    public override bool Equals(object? obj)
+        => obj is Utf8String other && this.Equals(other);
+
+    public override int GetHashCode()
     {// (int)FarmHash.Hash64(this.Value);
-        var length = this.Value.Length;
+        var span = this.Span;
+        var length = span.Length;
         if (length == 0)
         {
             return HashCode.Combine(length);
         }
         else if (length == 1)
         {
-            int i = this.Value[0];
+            int i = span[0];
             return HashCode.Combine(length, i);
         }
         else if (length == 2)
         {
-            int i = (this.Value[1] << 8) | this.Value[0];
+            int i = (span[1] << 8) | span[0];
             return HashCode.Combine(length, i);
         }
         else if (length == 3)
         {
-            int i = (this.Value[2] << 16) | (this.Value[1] << 8) | this.Value[0];
+            int i = (span[2] << 16) | (span[1] << 8) | span[0];
             return HashCode.Combine(length, i);
         }
         else
         {
-            fixed (byte* b = this.Value)
-            {
-                int* first = (int*)b;
-                int* last = (int*)(b + length - 4);
+            ref var b = ref MemoryMarshal.GetReference(span);
+            var first = Unsafe.ReadUnaligned<int>(ref b);
+            var last = Unsafe.ReadUnaligned<int>(ref Unsafe.Add(ref b, length - 4));
 
-                return HashCode.Combine(length, first[0], last[0]);
-            }
+            return HashCode.Combine(length, first, last);
         }
     }
 
@@ -75,7 +86,7 @@ public readonly struct Utf8String : IEquatable<Utf8String>
     {
         try
         {
-            return Encoding.UTF8.GetString(this.Value);
+            return Encoding.UTF8.GetString(this.Span);
         }
         catch
         {

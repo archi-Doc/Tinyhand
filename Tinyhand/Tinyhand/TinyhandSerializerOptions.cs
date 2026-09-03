@@ -85,8 +85,6 @@ public record TinyhandSerializerOptions
 
     public static TinyhandSerializerOptions Standard { get; } = new TinyhandSerializerOptions(StandardResolver.Instance);
 
-    public static TinyhandSerializerOptions Compatible { get; } = new TinyhandSerializerOptions(CompatibleResolver.Instance);
-
     public static TinyhandSerializerOptions Lz4 { get; } = Standard with { Flags = SerializationFlag.Lz4Compress, };
 
     public static TinyhandSerializerOptions Exclude { get; } = Standard with { SerializationMode = Mode.Exclude, };
@@ -115,7 +113,7 @@ public record TinyhandSerializerOptions
     /// </summary>
     /// <value>An instance of <see cref="IFormatterResolver"/>. Never <c>null</c>.</value>
     /// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <c>null</c>.</exception>
-    public IFormatterResolver Resolver { get; init; }
+    public IFormatterResolver Resolver { get; init => field = value ?? throw new ArgumentNullException(nameof(value)); }
 
     /// <summary>
     /// Gets the serialization flags.

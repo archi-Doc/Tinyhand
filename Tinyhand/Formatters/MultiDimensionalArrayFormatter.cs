@@ -8,7 +8,7 @@ namespace Tinyhand.Formatters;
 
 /* multi dimensional array serialize to [i, j, [seq]] */
 
-public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
+internal sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
 {
     private const int ArrayLength = 3;
 
@@ -55,6 +55,10 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
             var iLength = reader.ReadInt32();
             var jLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            if ((long)iLength * jLength != maxLen)
+            {
+                throw new TinyhandException("Invalid T[,] format");
+            }
 
             value = new T[iLength, jLength];
 
@@ -121,7 +125,7 @@ public sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
     }
 }
 
-public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]>
+internal sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]>
 {
     private const int ArrayLength = 4;
 
@@ -171,6 +175,10 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
             var jLength = reader.ReadInt32();
             var kLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            if ((long)iLength * jLength * kLength != maxLen)
+            {
+                throw new TinyhandException("Invalid T[,,] format");
+            }
 
             value = new T[iLength, jLength, kLength];
 
@@ -252,7 +260,7 @@ public sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,]
     }
 }
 
-public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]>
+internal sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]>
 {
     private const int ArrayLength = 5;
 
@@ -305,6 +313,11 @@ public sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,,]
             var kLength = reader.ReadInt32();
             var lLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            if ((long)iLength * jLength * kLength * lLength != maxLen)
+            {
+                throw new TinyhandException("Invalid T[,,,] format");
+            }
+
             value = new T[iLength, jLength, kLength, lLength];
 
             var i = 0;

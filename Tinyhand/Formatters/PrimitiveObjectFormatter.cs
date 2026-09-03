@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
@@ -10,7 +9,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
+internal sealed class PrimitiveObjectFormatter : ITinyhandFormatter<object>
 {
     public static readonly ITinyhandFormatter<object> Instance = new PrimitiveObjectFormatter();
 
@@ -34,38 +33,8 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
         { typeof(byte[]), 14 },
     };
 
-    protected PrimitiveObjectFormatter()
+    private PrimitiveObjectFormatter()
     {
-    }
-
-    public static bool IsSupportedType(Type type, TypeInfo typeInfo, object value)
-    {
-        if (value == null)
-        {
-            return true;
-        }
-
-        if (TypeToJumpCode.ContainsKey(type))
-        {
-            return true;
-        }
-
-        if (typeInfo.IsEnum)
-        {
-            return true;
-        }
-
-        if (value is System.Collections.IDictionary)
-        {
-            return true;
-        }
-
-        if (value is System.Collections.ICollection)
-        {
-            return true;
-        }
-
-        return false;
     }
 
     public void Serialize(ref TinyhandWriter writer, object? value, TinyhandSerializerOptions options)
@@ -134,11 +103,7 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
         }
         else
         {
-#if UNITY_2018_3_OR_NEWER && !NETFX_CORE
             if (t.IsEnum)
-#else
-            if (t.GetTypeInfo().IsEnum)
-#endif
             {
                 Type underlyingType = Enum.GetUnderlyingType(t);
                 var code2 = TypeToJumpCode[underlyingType];
@@ -305,6 +270,7 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                     if (length == 0)
                     {
                         value = Array.Empty<object>();
+                        return;
                     }
 
                     ITinyhandFormatter<object> objectFormatter = resolver.GetFormatter<object>();
@@ -333,7 +299,7 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                     options.Security.DepthStep(ref reader);
                     try
                     {
-                        value = this.DeserializeMap(ref reader, length, options);
+                        value = DeserializeMap(ref reader, length, options);
                         return;
                     }
                     finally
@@ -343,7 +309,8 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                 }
 
             case MessagePackType.Nil:
-                value = reader.ReadNil();
+                reader.ReadNil();
+                value = null;
                 return;
 
             default:
@@ -379,11 +346,7 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                 return value;
             }
         }
-#if UNITY_2018_3_OR_NEWER && !NETFX_CORE
         else if (t.IsEnum)
-#else
-        else if (t.GetTypeInfo().IsEnum)
-#endif
         {
             return value;
         }
@@ -417,7 +380,7 @@ public class PrimitiveObjectFormatter : ITinyhandFormatter<object>
         throw new TinyhandException("Not supported primitive object resolver. type:" + t.Name);
     }
 
-    protected virtual object DeserializeMap(ref TinyhandReader reader, int length, TinyhandSerializerOptions options)
+    private static object DeserializeMap(ref TinyhandReader reader, int length, TinyhandSerializerOptions options)
     {
         ITinyhandFormatter<object> objectFormatter = options.Resolver.GetFormatter<object>();
         var dictionary = new Dictionary<object, object>(length, options.Security.GetEqualityComparer<object>());

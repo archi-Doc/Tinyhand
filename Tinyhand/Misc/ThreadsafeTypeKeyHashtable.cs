@@ -60,7 +60,10 @@ public class ThreadsafeTypeKeyHashtable<TValue>
                     while (e != null)
                     {
                         var newEntry = new Entry(e.Key, e.Value, e.Hash);
-                        this.AddToBuckets(nextBucket, key, newEntry, null!, out resultingValue);
+
+                        // Pass the entry's own key: using the key being added would make an existing
+                        // entry with that key abort the insertion and drop this entry.
+                        this.AddToBuckets(nextBucket, newEntry.Key, newEntry, null!, out resultingValue);
                         e = e.Next;
                     }
                 }

@@ -13,6 +13,17 @@ namespace XUnitTest.Tests;
 
 public class TypeIdentifierTest
 {// GetTypeIdentifierCode
+    [Theory]
+    [InlineData(typeof(int))]
+    [InlineData(typeof(int?))]
+    [InlineData(typeof(string))]
+    [InlineData(typeof(byte[]))]
+    public void BuiltinTypesAreRegistered(Type type)
+    {
+        Assert.True(TinyhandTypeIdentifier.IsRegistered(type));
+        Assert.True(TinyhandTypeIdentifier.IsRegistered(TinyhandTypeIdentifier.GetTypeIdentifier(type)));
+    }
+
     [Fact]
     public void Test()
     {

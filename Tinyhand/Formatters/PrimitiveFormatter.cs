@@ -11,7 +11,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class UInt8Formatter : ITinyhandFormatter<byte>
+internal sealed class UInt8Formatter : ITinyhandFormatter<byte>
 {
     public static readonly UInt8Formatter Instance = new ();
 
@@ -34,7 +34,7 @@ public sealed class UInt8Formatter : ITinyhandFormatter<byte>
     public byte Clone(byte value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableUInt8Formatter : ITinyhandFormatter<byte?>
+internal sealed class NullableUInt8Formatter : ITinyhandFormatter<byte?>
 {
     public static readonly NullableUInt8Formatter Instance = new ();
 
@@ -70,7 +70,7 @@ public sealed class NullableUInt8Formatter : ITinyhandFormatter<byte?>
     public byte? Clone(byte? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class Int8Formatter : ITinyhandFormatter<sbyte>
+internal sealed class Int8Formatter : ITinyhandFormatter<sbyte>
 {
     public static readonly Int8Formatter Instance = new ();
 
@@ -93,7 +93,7 @@ public sealed class Int8Formatter : ITinyhandFormatter<sbyte>
     public sbyte Clone(sbyte value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableInt8Formatter : ITinyhandFormatter<sbyte?>
+internal sealed class NullableInt8Formatter : ITinyhandFormatter<sbyte?>
 {
     public static readonly NullableInt8Formatter Instance = new ();
 
@@ -129,7 +129,7 @@ public sealed class NullableInt8Formatter : ITinyhandFormatter<sbyte?>
     public sbyte? Clone(sbyte? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class Int8ArrayFormatter : ITinyhandFormatter<sbyte[]>
+internal sealed class Int8ArrayFormatter : ITinyhandFormatter<sbyte[]>
 {
     public static readonly Int8ArrayFormatter Instance = new ();
 
@@ -158,7 +158,7 @@ public sealed class Int8ArrayFormatter : ITinyhandFormatter<sbyte[]>
     }
 }
 
-public sealed class Int8ListFormatter : ITinyhandFormatter<List<sbyte>>
+internal sealed class Int8ListFormatter : ITinyhandFormatter<List<sbyte>>
 {
     public static readonly Int8ListFormatter Instance = new ();
 
@@ -175,7 +175,7 @@ public sealed class Int8ListFormatter : ITinyhandFormatter<List<sbyte>>
     public List<sbyte>? Clone(List<sbyte>? value, TinyhandSerializerOptions options) => value == null ? null : new List<sbyte>(value);
 }
 
-public sealed class UInt16Formatter : ITinyhandFormatter<ushort>
+internal sealed class UInt16Formatter : ITinyhandFormatter<ushort>
 {
     public static readonly UInt16Formatter Instance = new ();
 
@@ -198,7 +198,7 @@ public sealed class UInt16Formatter : ITinyhandFormatter<ushort>
     public ushort Clone(ushort value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableUInt16Formatter : ITinyhandFormatter<ushort?>
+internal sealed class NullableUInt16Formatter : ITinyhandFormatter<ushort?>
 {
     public static readonly NullableUInt16Formatter Instance = new ();
 
@@ -234,7 +234,7 @@ public sealed class NullableUInt16Formatter : ITinyhandFormatter<ushort?>
     public ushort? Clone(ushort? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class UInt16ArrayFormatter : ITinyhandFormatter<ushort[]>
+internal sealed class UInt16ArrayFormatter : ITinyhandFormatter<ushort[]>
 {
     public static readonly UInt16ArrayFormatter Instance = new ();
 
@@ -263,7 +263,7 @@ public sealed class UInt16ArrayFormatter : ITinyhandFormatter<ushort[]>
     }
 }
 
-public sealed class UInt16ListFormatter : ITinyhandFormatter<List<ushort>>
+internal sealed class UInt16ListFormatter : ITinyhandFormatter<List<ushort>>
 {
     public static readonly UInt16ListFormatter Instance = new ();
 
@@ -280,7 +280,7 @@ public sealed class UInt16ListFormatter : ITinyhandFormatter<List<ushort>>
     public List<ushort>? Clone(List<ushort>? value, TinyhandSerializerOptions options) => value == null ? null : new List<ushort>(value);
 }
 
-public sealed class Int16Formatter : ITinyhandFormatter<short>
+internal sealed class Int16Formatter : ITinyhandFormatter<short>
 {
     public static readonly Int16Formatter Instance = new ();
 
@@ -303,7 +303,7 @@ public sealed class Int16Formatter : ITinyhandFormatter<short>
     public short Clone(short value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableInt16Formatter : ITinyhandFormatter<short?>
+internal sealed class NullableInt16Formatter : ITinyhandFormatter<short?>
 {
     public static readonly NullableInt16Formatter Instance = new ();
 
@@ -339,7 +339,7 @@ public sealed class NullableInt16Formatter : ITinyhandFormatter<short?>
     public short? Clone(short? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class Int16ArrayFormatter : ITinyhandFormatter<short[]>
+internal sealed class Int16ArrayFormatter : ITinyhandFormatter<short[]>
 {
     public static readonly Int16ArrayFormatter Instance = new ();
 
@@ -368,7 +368,7 @@ public sealed class Int16ArrayFormatter : ITinyhandFormatter<short[]>
     }
 }
 
-public sealed class Int16ListFormatter : ITinyhandFormatter<List<short>>
+internal sealed class Int16ListFormatter : ITinyhandFormatter<List<short>>
 {
     public static readonly Int16ListFormatter Instance = new ();
 
@@ -385,7 +385,7 @@ public sealed class Int16ListFormatter : ITinyhandFormatter<List<short>>
     public List<short>? Clone(List<short>? value, TinyhandSerializerOptions options) => value == null ? null : new List<short>(value);
 }
 
-public sealed class UInt32Formatter : ITinyhandFormatter<uint>
+internal sealed class UInt32Formatter : ITinyhandFormatter<uint>
 {
     public static readonly UInt32Formatter Instance = new ();
 
@@ -408,7 +408,7 @@ public sealed class UInt32Formatter : ITinyhandFormatter<uint>
     public uint Clone(uint value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableUInt32Formatter : ITinyhandFormatter<uint?>
+internal sealed class NullableUInt32Formatter : ITinyhandFormatter<uint?>
 {
     public static readonly NullableUInt32Formatter Instance = new ();
 
@@ -444,7 +444,7 @@ public sealed class NullableUInt32Formatter : ITinyhandFormatter<uint?>
     public uint? Clone(uint? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class UInt32ArrayFormatter : ITinyhandFormatter<uint[]>
+internal sealed class UInt32ArrayFormatter : ITinyhandFormatter<uint[]>
 {
     public static readonly UInt32ArrayFormatter Instance = new ();
 
@@ -473,7 +473,7 @@ public sealed class UInt32ArrayFormatter : ITinyhandFormatter<uint[]>
     }
 }
 
-public sealed class UInt32ListFormatter : ITinyhandFormatter<List<uint>>
+internal sealed class UInt32ListFormatter : ITinyhandFormatter<List<uint>>
 {
     public static readonly UInt32ListFormatter Instance = new ();
 
@@ -490,7 +490,7 @@ public sealed class UInt32ListFormatter : ITinyhandFormatter<List<uint>>
     public List<uint>? Clone(List<uint>? value, TinyhandSerializerOptions options) => value == null ? null : new List<uint>(value);
 }
 
-public sealed class Int32Formatter : ITinyhandFormatter<int>
+internal sealed class Int32Formatter : ITinyhandFormatter<int>
 {
     public static readonly Int32Formatter Instance = new ();
 
@@ -513,7 +513,7 @@ public sealed class Int32Formatter : ITinyhandFormatter<int>
     public int Clone(int value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableInt32Formatter : ITinyhandFormatter<int?>
+internal sealed class NullableInt32Formatter : ITinyhandFormatter<int?>
 {
     public static readonly NullableInt32Formatter Instance = new ();
 
@@ -549,7 +549,7 @@ public sealed class NullableInt32Formatter : ITinyhandFormatter<int?>
     public int? Clone(int? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class Int32ArrayFormatter : ITinyhandFormatter<int[]>
+internal sealed class Int32ArrayFormatter : ITinyhandFormatter<int[]>
 {
     public static readonly Int32ArrayFormatter Instance = new ();
 
@@ -578,7 +578,7 @@ public sealed class Int32ArrayFormatter : ITinyhandFormatter<int[]>
     }
 }
 
-public sealed class Int32ListFormatter : ITinyhandFormatter<List<int>>
+internal sealed class Int32ListFormatter : ITinyhandFormatter<List<int>>
 {
     public static readonly Int32ListFormatter Instance = new ();
 
@@ -595,7 +595,7 @@ public sealed class Int32ListFormatter : ITinyhandFormatter<List<int>>
     public List<int>? Clone(List<int>? value, TinyhandSerializerOptions options) => value == null ? null : new List<int>(value);
 }
 
-public sealed class UInt64Formatter : ITinyhandFormatter<ulong>
+internal sealed class UInt64Formatter : ITinyhandFormatter<ulong>
 {
     public static readonly UInt64Formatter Instance = new ();
 
@@ -618,7 +618,7 @@ public sealed class UInt64Formatter : ITinyhandFormatter<ulong>
     public ulong Clone(ulong value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableUInt64Formatter : ITinyhandFormatter<ulong?>
+internal sealed class NullableUInt64Formatter : ITinyhandFormatter<ulong?>
 {
     public static readonly NullableUInt64Formatter Instance = new ();
 
@@ -654,7 +654,7 @@ public sealed class NullableUInt64Formatter : ITinyhandFormatter<ulong?>
     public ulong? Clone(ulong? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class UInt64ArrayFormatter : ITinyhandFormatter<ulong[]>
+internal sealed class UInt64ArrayFormatter : ITinyhandFormatter<ulong[]>
 {
     public static readonly UInt64ArrayFormatter Instance = new ();
 
@@ -683,7 +683,7 @@ public sealed class UInt64ArrayFormatter : ITinyhandFormatter<ulong[]>
     }
 }
 
-public sealed class UInt64ListFormatter : ITinyhandFormatter<List<ulong>>
+internal sealed class UInt64ListFormatter : ITinyhandFormatter<List<ulong>>
 {
     public static readonly UInt64ListFormatter Instance = new ();
 
@@ -700,7 +700,7 @@ public sealed class UInt64ListFormatter : ITinyhandFormatter<List<ulong>>
     public List<ulong>? Clone(List<ulong>? value, TinyhandSerializerOptions options) => value == null ? null : new List<ulong>(value);
 }
 
-public sealed class Int64Formatter : ITinyhandFormatter<long>
+internal sealed class Int64Formatter : ITinyhandFormatter<long>
 {
     public static readonly Int64Formatter Instance = new ();
 
@@ -723,7 +723,7 @@ public sealed class Int64Formatter : ITinyhandFormatter<long>
     public long Clone(long value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableInt64Formatter : ITinyhandFormatter<long?>
+internal sealed class NullableInt64Formatter : ITinyhandFormatter<long?>
 {
     public static readonly NullableInt64Formatter Instance = new ();
 
@@ -759,7 +759,7 @@ public sealed class NullableInt64Formatter : ITinyhandFormatter<long?>
     public long? Clone(long? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class Int64ArrayFormatter : ITinyhandFormatter<long[]>
+internal sealed class Int64ArrayFormatter : ITinyhandFormatter<long[]>
 {
     public static readonly Int64ArrayFormatter Instance = new ();
 
@@ -788,7 +788,7 @@ public sealed class Int64ArrayFormatter : ITinyhandFormatter<long[]>
     }
 }
 
-public sealed class Int64ListFormatter : ITinyhandFormatter<List<long>>
+internal sealed class Int64ListFormatter : ITinyhandFormatter<List<long>>
 {
     public static readonly Int64ListFormatter Instance = new ();
 
@@ -805,7 +805,7 @@ public sealed class Int64ListFormatter : ITinyhandFormatter<List<long>>
     public List<long>? Clone(List<long>? value, TinyhandSerializerOptions options) => value == null ? null : new List<long>(value);
 }
 
-public sealed class SingleFormatter : ITinyhandFormatter<float>
+internal sealed class SingleFormatter : ITinyhandFormatter<float>
 {
     public static readonly SingleFormatter Instance = new ();
 
@@ -828,7 +828,7 @@ public sealed class SingleFormatter : ITinyhandFormatter<float>
     public float Clone(float value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableSingleFormatter : ITinyhandFormatter<float?>
+internal sealed class NullableSingleFormatter : ITinyhandFormatter<float?>
 {
     public static readonly NullableSingleFormatter Instance = new ();
 
@@ -864,7 +864,7 @@ public sealed class NullableSingleFormatter : ITinyhandFormatter<float?>
     public float? Clone(float? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class SingleArrayFormatter : ITinyhandFormatter<float[]>
+internal sealed class SingleArrayFormatter : ITinyhandFormatter<float[]>
 {
     public static readonly SingleArrayFormatter Instance = new ();
 
@@ -893,7 +893,7 @@ public sealed class SingleArrayFormatter : ITinyhandFormatter<float[]>
     }
 }
 
-public sealed class SingleListFormatter : ITinyhandFormatter<List<float>>
+internal sealed class SingleListFormatter : ITinyhandFormatter<List<float>>
 {
     public static readonly SingleListFormatter Instance = new ();
 
@@ -910,7 +910,7 @@ public sealed class SingleListFormatter : ITinyhandFormatter<List<float>>
     public List<float>? Clone(List<float>? value, TinyhandSerializerOptions options) => value == null ? null : new List<float>(value);
 }
 
-public sealed class DoubleFormatter : ITinyhandFormatter<double>
+internal sealed class DoubleFormatter : ITinyhandFormatter<double>
 {
     public static readonly DoubleFormatter Instance = new ();
 
@@ -933,7 +933,7 @@ public sealed class DoubleFormatter : ITinyhandFormatter<double>
     public double Clone(double value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableDoubleFormatter : ITinyhandFormatter<double?>
+internal sealed class NullableDoubleFormatter : ITinyhandFormatter<double?>
 {
     public static readonly NullableDoubleFormatter Instance = new ();
 
@@ -969,7 +969,7 @@ public sealed class NullableDoubleFormatter : ITinyhandFormatter<double?>
     public double? Clone(double? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class DoubleArrayFormatter : ITinyhandFormatter<double[]>
+internal sealed class DoubleArrayFormatter : ITinyhandFormatter<double[]>
 {
     public static readonly DoubleArrayFormatter Instance = new ();
 
@@ -998,7 +998,7 @@ public sealed class DoubleArrayFormatter : ITinyhandFormatter<double[]>
     }
 }
 
-public sealed class DoubleListFormatter : ITinyhandFormatter<List<double>>
+internal sealed class DoubleListFormatter : ITinyhandFormatter<List<double>>
 {
     public static readonly DoubleListFormatter Instance = new ();
 
@@ -1015,7 +1015,7 @@ public sealed class DoubleListFormatter : ITinyhandFormatter<List<double>>
     public List<double>? Clone(List<double>? value, TinyhandSerializerOptions options) => value == null ? null : new List<double>(value);
 }
 
-public sealed class BooleanFormatter : ITinyhandFormatter<bool>
+internal sealed class BooleanFormatter : ITinyhandFormatter<bool>
 {
     public static readonly BooleanFormatter Instance = new ();
 
@@ -1038,7 +1038,7 @@ public sealed class BooleanFormatter : ITinyhandFormatter<bool>
     public bool Clone(bool value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableBooleanFormatter : ITinyhandFormatter<bool?>
+internal sealed class NullableBooleanFormatter : ITinyhandFormatter<bool?>
 {
     public static readonly NullableBooleanFormatter Instance = new ();
 
@@ -1074,7 +1074,7 @@ public sealed class NullableBooleanFormatter : ITinyhandFormatter<bool?>
     public bool? Clone(bool? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class BooleanArrayFormatter : ITinyhandFormatter<bool[]>
+internal sealed class BooleanArrayFormatter : ITinyhandFormatter<bool[]>
 {
     public static readonly BooleanArrayFormatter Instance = new ();
 
@@ -1103,7 +1103,7 @@ public sealed class BooleanArrayFormatter : ITinyhandFormatter<bool[]>
     }
 }
 
-public sealed class BooleanListFormatter : ITinyhandFormatter<List<bool>>
+internal sealed class BooleanListFormatter : ITinyhandFormatter<List<bool>>
 {
     public static readonly BooleanListFormatter Instance = new ();
 
@@ -1120,7 +1120,7 @@ public sealed class BooleanListFormatter : ITinyhandFormatter<List<bool>>
     public List<bool>? Clone(List<bool>? value, TinyhandSerializerOptions options) => value == null ? null : new List<bool>(value);
 }
 
-public sealed class CharFormatter : ITinyhandFormatter<char>
+internal sealed class CharFormatter : ITinyhandFormatter<char>
 {
     public static readonly CharFormatter Instance = new ();
 
@@ -1143,7 +1143,7 @@ public sealed class CharFormatter : ITinyhandFormatter<char>
     public char Clone(char value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableCharFormatter : ITinyhandFormatter<char?>
+internal sealed class NullableCharFormatter : ITinyhandFormatter<char?>
 {
     public static readonly NullableCharFormatter Instance = new ();
 
@@ -1179,7 +1179,7 @@ public sealed class NullableCharFormatter : ITinyhandFormatter<char?>
     public char? Clone(char? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class CharArrayFormatter : ITinyhandFormatter<char[]>
+internal sealed class CharArrayFormatter : ITinyhandFormatter<char[]>
 {
     public static readonly CharArrayFormatter Instance = new ();
 
@@ -1208,7 +1208,7 @@ public sealed class CharArrayFormatter : ITinyhandFormatter<char[]>
     }
 }
 
-public sealed class CharListFormatter : ITinyhandFormatter<List<char>>
+internal sealed class CharListFormatter : ITinyhandFormatter<List<char>>
 {
     public static readonly CharListFormatter Instance = new ();
 
@@ -1225,7 +1225,7 @@ public sealed class CharListFormatter : ITinyhandFormatter<List<char>>
     public List<char>? Clone(List<char>? value, TinyhandSerializerOptions options) => value == null ? null : new List<char>(value);
 }
 
-public sealed class DateTimeFormatter : ITinyhandFormatter<DateTime>
+internal sealed class DateTimeFormatter : ITinyhandFormatter<DateTime>
 {
     public static readonly DateTimeFormatter Instance = new ();
 
@@ -1248,7 +1248,7 @@ public sealed class DateTimeFormatter : ITinyhandFormatter<DateTime>
     public DateTime Clone(DateTime value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableDateTimeFormatter : ITinyhandFormatter<DateTime?>
+internal sealed class NullableDateTimeFormatter : ITinyhandFormatter<DateTime?>
 {
     public static readonly NullableDateTimeFormatter Instance = new ();
 
@@ -1284,7 +1284,7 @@ public sealed class NullableDateTimeFormatter : ITinyhandFormatter<DateTime?>
     public DateTime? Clone(DateTime? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class DateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
+internal sealed class DateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
 {
     public static readonly DateTimeArrayFormatter Instance = new ();
 
@@ -1313,7 +1313,7 @@ public sealed class DateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
     }
 }
 
-public sealed class DateTimeListFormatter : ITinyhandFormatter<List<DateTime>>
+internal sealed class DateTimeListFormatter : ITinyhandFormatter<List<DateTime>>
 {
     public static readonly DateTimeListFormatter Instance = new ();
 
@@ -1330,7 +1330,7 @@ public sealed class DateTimeListFormatter : ITinyhandFormatter<List<DateTime>>
     public List<DateTime>? Clone(List<DateTime>? value, TinyhandSerializerOptions options) => value == null ? null : new List<DateTime>(value);
 }
 
-public sealed class Int128Formatter : ITinyhandFormatter<Int128>
+internal sealed class Int128Formatter : ITinyhandFormatter<Int128>
 {
     public static readonly Int128Formatter Instance = new ();
 
@@ -1353,7 +1353,7 @@ public sealed class Int128Formatter : ITinyhandFormatter<Int128>
     public Int128 Clone(Int128 value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableInt128Formatter : ITinyhandFormatter<Int128?>
+internal sealed class NullableInt128Formatter : ITinyhandFormatter<Int128?>
 {
     public static readonly NullableInt128Formatter Instance = new ();
 
@@ -1389,7 +1389,7 @@ public sealed class NullableInt128Formatter : ITinyhandFormatter<Int128?>
     public Int128? Clone(Int128? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class Int128ArrayFormatter : ITinyhandFormatter<Int128[]>
+internal sealed class Int128ArrayFormatter : ITinyhandFormatter<Int128[]>
 {
     public static readonly Int128ArrayFormatter Instance = new ();
 
@@ -1418,7 +1418,7 @@ public sealed class Int128ArrayFormatter : ITinyhandFormatter<Int128[]>
     }
 }
 
-public sealed class Int128ListFormatter : ITinyhandFormatter<List<Int128>>
+internal sealed class Int128ListFormatter : ITinyhandFormatter<List<Int128>>
 {
     public static readonly Int128ListFormatter Instance = new ();
 
@@ -1435,7 +1435,7 @@ public sealed class Int128ListFormatter : ITinyhandFormatter<List<Int128>>
     public List<Int128>? Clone(List<Int128>? value, TinyhandSerializerOptions options) => value == null ? null : new List<Int128>(value);
 }
 
-public sealed class UInt128Formatter : ITinyhandFormatter<UInt128>
+internal sealed class UInt128Formatter : ITinyhandFormatter<UInt128>
 {
     public static readonly UInt128Formatter Instance = new ();
 
@@ -1458,7 +1458,7 @@ public sealed class UInt128Formatter : ITinyhandFormatter<UInt128>
     public UInt128 Clone(UInt128 value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NullableUInt128Formatter : ITinyhandFormatter<UInt128?>
+internal sealed class NullableUInt128Formatter : ITinyhandFormatter<UInt128?>
 {
     public static readonly NullableUInt128Formatter Instance = new ();
 
@@ -1494,7 +1494,7 @@ public sealed class NullableUInt128Formatter : ITinyhandFormatter<UInt128?>
     public UInt128? Clone(UInt128? value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class UInt128ArrayFormatter : ITinyhandFormatter<UInt128[]>
+internal sealed class UInt128ArrayFormatter : ITinyhandFormatter<UInt128[]>
 {
     public static readonly UInt128ArrayFormatter Instance = new ();
 
@@ -1523,7 +1523,7 @@ public sealed class UInt128ArrayFormatter : ITinyhandFormatter<UInt128[]>
     }
 }
 
-public sealed class UInt128ListFormatter : ITinyhandFormatter<List<UInt128>>
+internal sealed class UInt128ListFormatter : ITinyhandFormatter<List<UInt128>>
 {
     public static readonly UInt128ListFormatter Instance = new ();
 

@@ -8,25 +8,25 @@ namespace Tinyhand.Coders;
 
 public sealed class CoderResolver : ICoderResolver
 {
-    /// <summary>
-    /// The singleton instance that can be used.
-    /// </summary>
-    public static readonly CoderResolver Instance = new CoderResolver();
+    private readonly ICoderResolver[] resolvers;
 
-    private static readonly ICoderResolver[] Resolvers = new ICoderResolver[]
+    public CoderResolver()
     {
-        BuiltinCoder.Instance,
-        NullableResolver.Instance,
-        ArrayResolver.Instance,
-        ListResolver.Instance,
-        EnumResolver.Instance,
-        ObjectResolver.Instance,
-        FormatterResolver.Instance,
-    };
-
-    private CoderResolver()
-    {
+        this.resolvers = new ICoderResolver[]
+        {
+            BuiltinCoder.Instance,
+            NullableResolver.Instance,
+            ArrayResolver.Instance,
+            ListResolver.Instance,
+            EnumResolver.Instance,
+            this.ObjectResolver,
+            this.FormatterResolver,
+        };
     }
+
+    public ObjectResolver ObjectResolver { get; } = new();
+
+    public FormatterResolver FormatterResolver { get; } = new();
 
     public bool IsCoderOrFormatterAvailable(WithNullable<TinyhandObject> withNullable)
     {
@@ -46,12 +46,12 @@ public sealed class CoderResolver : ICoderResolver
             return true;
         }
 
-        if (ObjectResolver.Instance.IsCoderOrFormatterAvailable(withNullable))
+        if (this.ObjectResolver.IsCoderOrFormatterAvailable(withNullable))
         {
             return true;
         }
 
-        if (FormatterResolver.Instance.IsCoderOrFormatterAvailable(withNullable))
+        if (this.FormatterResolver.IsCoderOrFormatterAvailable(withNullable))
         {
             return true;
         }
@@ -113,7 +113,7 @@ public sealed class CoderResolver : ICoderResolver
             return coder;
         }
 
-        foreach (var x in Resolvers)
+        foreach (var x in this.resolvers)
         {
             var c = x.TryGetCoder(withNullable);
             if (c != null)
@@ -127,5 +127,5 @@ public sealed class CoderResolver : ICoderResolver
         return coder;
     }
 
-    private Dictionary<WithNullable<TinyhandObject>, ITinyhandCoder> objectToCoder = new();
+    private readonly Dictionary<WithNullable<TinyhandObject>, ITinyhandCoder> objectToCoder = new();
 }

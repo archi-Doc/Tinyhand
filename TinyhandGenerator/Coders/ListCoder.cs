@@ -31,7 +31,7 @@ public sealed class ListResolver : ICoderResolver
                         return null;
                     }
 
-                    var elementCoder = CoderResolver.Instance.TryGetCoder(arguments[0]);
+                    var elementCoder = withNullable.Object.Body.CoderResolver.TryGetCoder(arguments[0]);
                     return new ListCoder(arguments[0], elementCoder, withNullable.Nullable);
                 }
             }

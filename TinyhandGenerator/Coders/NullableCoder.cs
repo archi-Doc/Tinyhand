@@ -26,7 +26,7 @@ public sealed class NullableResolver : ICoderResolver
             {
                 if (arguments.Length == 1)
                 {
-                    var elementCoder = CoderResolver.Instance.TryGetCoder(arguments[0]);
+                    var elementCoder = withNullable.Object.Body.CoderResolver.TryGetCoder(arguments[0]);
                     return new NullableCoder(arguments[0], elementCoder);
                 }
             }

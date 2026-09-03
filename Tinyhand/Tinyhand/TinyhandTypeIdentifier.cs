@@ -2,243 +2,83 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Arc;
 using Arc.Collections;
-using FastExpressionCompiler;
 using Tinyhand.IO;
+
+#pragma warning disable SA1401 // Generic caches are shared by the containing type.
+#pragma warning disable SA1204 // Group the per-type cache with its adapter.
 
 namespace Tinyhand;
 
 public static class TinyhandTypeIdentifier
 {
-    private static readonly ConcurrentDictionary<uint, Type> TypeIdentifierToType = new();
-    private static readonly UInt32Hashtable<MethodClass> TypeIdentifierToMethodClass = new();
+    private static readonly ConcurrentDictionary<uint, MethodClass> Methods = new();
     private static readonly ThreadsafeTypeKeyHashtable<uint> TypeToTypeIdentifier = new();
-    private static readonly ThreadsafeTypeKeyHashtable<MethodClass> TypeToMethodClass = new();
 
-    private class MethodClass
+    static TinyhandTypeIdentifier()
     {
-        internal delegate void SerializeWriterDelegate(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options);
+        Resolvers.BuiltinResolver.Instance.RegisterInstantiableTypes();
+    }
 
-        internal delegate object? DeserializeReaderDelegate(ref TinyhandReader reader, TinyhandSerializerOptions? options);
+    // One statically compiled adapter per registered type replaces nine compiled
+    // expression delegates. Generic calls bypass this adapter to avoid boxing.
+    private abstract class MethodClass
+    {
+        public abstract Type Type { get; }
 
-        public uint TypeIdentifier { get; }
+        public abstract byte[] Serialize(object value, TinyhandSerializerOptions? options);
 
-        private Type? type;
+        public abstract BytePool.RentMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options);
 
-        private Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>? serializeRentMemory;
+        public abstract void SerializeWriter(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options);
 
-        public Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>? SerializeRentMemory => this.serializeRentMemory ??= this.CreateSerializeRentMemory();
+        public abstract object? Deserialize(ReadOnlySpan<byte> source, TinyhandSerializerOptions? options);
 
-        public Func<object, TinyhandSerializerOptions?, string>? SerializeToString => field ??= this.CreateSerializeToString();
+        public abstract object? DeserializeReader(ref TinyhandReader reader, TinyhandSerializerOptions? options);
 
-        public Func<object, TinyhandSerializerOptions?, byte[]>? Serialize => field ??= this.CreateSerialize();
+        public abstract object? TryDeserializeFromString(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options);
 
-        public SerializeWriterDelegate? SerializeWriter => field ??= this.CreateSerializeWriter();
+        public abstract object? TryParseOrDeserializeFromString(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options);
 
-        public Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? TryDeserializeFromString => field ??= this.CreateTryDeserializeFromString();
+        public abstract object? Reconstruct(TinyhandSerializerOptions? options);
+    }
 
-        public Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? TryParseOrDeserializeFromString => field ??= this.CreateTryParseOrDeserializeFromString();
+    private sealed class MethodClass<T> : MethodClass
+    {
+        internal static readonly MethodClass<T> Instance = new();
 
-        public Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? Deserialize => field ??= this.CreateDeserialize();
+        internal Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, T?>? Parser;
 
-        public DeserializeReaderDelegate? DeserializeReader => field ??= this.CreateDeserializeReader();
+        public override Type Type => typeof(T);
 
-        public Func<TinyhandSerializerOptions?, object?>? Reconstruct => field ??= this.CreateReconstruct();
+        public override byte[] Serialize(object value, TinyhandSerializerOptions? options) => TinyhandSerializer.Serialize((T)value, options);
 
-        public MethodClass(Type type)
+        public override BytePool.RentMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options) => TinyhandSerializer.SerializeToRentMemory((T)value, options);
+
+        public override void SerializeWriter(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options) => TinyhandSerializer.Serialize(ref writer, (T)value, options);
+
+        public override object? Deserialize(ReadOnlySpan<byte> source, TinyhandSerializerOptions? options) => TinyhandSerializer.Deserialize<T>(source, options);
+
+        public override object? DeserializeReader(ref TinyhandReader reader, TinyhandSerializerOptions? options) => TinyhandSerializer.Deserialize<T>(ref reader, options);
+
+        public override object? TryDeserializeFromString(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options) => TinyhandSerializer.TryDeserializeFromString<T>(utf16, options);
+
+        public override object? TryParseOrDeserializeFromString(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options)
         {
-            this.TypeIdentifier = GetTypeIdentifier(type);
+            var parser = Volatile.Read(ref this.Parser);
+            return parser is null ? TinyhandSerializer.TryDeserializeFromString<T>(utf16, options) : parser(utf16, options);
         }
 
-        public MethodClass(uint typeIdentifier)
-        {
-            this.TypeIdentifier = typeIdentifier;
-        }
+        public override object? Reconstruct(TinyhandSerializerOptions? options) => TinyhandSerializer.Reconstruct<T>(options);
+    }
 
-        [MemberNotNullWhen(true, nameof(type))]
-        private bool EnsureType()
-        {
-            if (this.type is not null)
-            {
-                return true;
-            }
-
-            if (TypeIdentifierToType.TryGetValue(this.TypeIdentifier, out var type))
-            {
-                this.type = type;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private Func<object, TinyhandSerializerOptions?, byte[]>? CreateSerialize()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("Serialize", this.type, [null, typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(object), "value");
-            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-
-            var body = Expression.Call(
-                null,
-                method,
-                typeInfo.IsValueType ? Expression.Unbox(param1, this.type) : Expression.Convert(param1, this.type),
-                param2);
-            return Expression.Lambda<Func<object, TinyhandSerializerOptions?, byte[]>>(body, param1, param2).CompileFast();
-        }
-
-        private Func<object, TinyhandSerializerOptions?, string>? CreateSerializeToString()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("SerializeToString", this.type, [null, typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(object), "value");
-            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-
-            var body = Expression.Call(
-                null,
-                method,
-                typeInfo.IsValueType ? Expression.Unbox(param1, this.type) : Expression.Convert(param1, this.type),
-                param2);
-            return Expression.Lambda<Func<object, TinyhandSerializerOptions?, string>>(body, param1, param2).CompileFast();
-        }
-
-        private SerializeWriterDelegate? CreateSerializeWriter()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("Serialize", this.type, [typeof(TinyhandWriter).MakeByRefType(), null, typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(TinyhandWriter).MakeByRefType(), "writer");
-            var param2 = Expression.Parameter(typeof(object), "value");
-            var param3 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-
-            var body = Expression.Call(
-                null,
-                method,
-                param1,
-                typeInfo.IsValueType ? Expression.Unbox(param2, this.type) : Expression.Convert(param2, this.type),
-                param3);
-            return Expression.Lambda<SerializeWriterDelegate>(body, param1, param2, param3).CompileFast();
-        }
-
-        private Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>? CreateSerializeRentMemory()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("SerializeToRentMemory", this.type, [null, typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(object), "value");
-            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-
-            var body = Expression.Call(
-                null,
-                method,
-                typeInfo.IsValueType ? Expression.Unbox(param1, this.type) : Expression.Convert(param1, this.type),
-                param2);
-            return Expression.Lambda<Func<object, TinyhandSerializerOptions?, BytePool.RentMemory>>(body, param1, param2).CompileFast();
-        }
-
-        private Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? CreateTryDeserializeFromString()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("TryDeserializeFromString", this.type, [typeof(ReadOnlySpan<char>), typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(ReadOnlySpan<char>), "utf16");
-            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-            var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
-            return Expression.Lambda<Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>>(body, param1, param2).CompileFast();
-        }
-
-        private Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>? CreateTryParseOrDeserializeFromString()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            if (!BaseHelper.ImplementsIStringConvertible(this.type))
-            {
-                return this.TryDeserializeFromString;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("TryParseOrDeserializeFromString", this.type, [typeof(ReadOnlySpan<char>), typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(ReadOnlySpan<char>), "utf16");
-            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-            var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
-            return Expression.Lambda<Func<ReadOnlySpan<char>, TinyhandSerializerOptions?, object?>>(body, param1, param2).CompileFast();
-        }
-
-        private Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>? CreateDeserialize()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("Deserialize", this.type, [typeof(ReadOnlySpan<byte>), typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(ReadOnlySpan<byte>), "buffer");
-            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-            var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
-            return Expression.Lambda<Func<ReadOnlySpan<byte>, TinyhandSerializerOptions?, object?>>(body, param1, param2).CompileFast();
-        }
-
-        private DeserializeReaderDelegate? CreateDeserializeReader()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("Deserialize", this.type, [typeof(TinyhandReader).MakeByRefType(), typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(TinyhandReader).MakeByRefType(), "reader");
-            var param2 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-            var body = Expression.Convert(Expression.Call(null, method, param1, param2), typeof(object));
-            return Expression.Lambda<DeserializeReaderDelegate>(body, param1, param2).CompileFast();
-        }
-
-        private Func<TinyhandSerializerOptions?, object?>? CreateReconstruct()
-        {
-            if (!this.EnsureType())
-            {
-                return default;
-            }
-
-            var typeInfo = this.type.GetTypeInfo();
-            var method = TinyhandHelper.GetSerializerMethod("Reconstruct", this.type, [typeof(TinyhandSerializerOptions)]);
-            var param1 = Expression.Parameter(typeof(TinyhandSerializerOptions), "options");
-            var body = Expression.Convert(Expression.Call(null, method, param1), typeof(object));
-            return Expression.Lambda<Func<TinyhandSerializerOptions?, object?>>(body, param1).CompileFast();
-        }
+    private static class TypeCache<T>
+    {
+        internal static readonly uint Identifier = GetTypeIdentifier(typeof(T));
+        internal static bool Registered;
     }
 
     /// <summary>
@@ -250,7 +90,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static bool IsRegistered<T>()
     {
-        return TypeIdentifierToType.ContainsKey(GetTypeIdentifier<T>());
+        return Volatile.Read(ref TypeCache<T>.Registered);
     }
 
     /// <summary>
@@ -262,7 +102,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static bool IsRegistered(Type type)
     {
-        return TypeIdentifierToType.ContainsKey(GetTypeIdentifier(type));
+        return Methods.TryGetValue(GetTypeIdentifier(type), out var methods) && methods.Type == type;
     }
 
     /// <summary>
@@ -274,7 +114,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static bool IsRegistered(uint typeIdentifier)
     {
-        return TypeIdentifierToType.ContainsKey(typeIdentifier);
+        return Methods.ContainsKey(typeIdentifier);
     }
 
     /// <summary>
@@ -288,15 +128,14 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static (uint TypeIdentifier, string? Utf16) TrySerializeToString<T>(T value, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeToMethodClass.GetOrAdd(typeof(T), type => new(type));
-        if (methodClass.SerializeToString is null)
+        if (!IsRegistered<T>())
         {
             return default;
         }
 
         try
         {
-            return (methodClass.TypeIdentifier, methodClass.SerializeToString(value!, options));
+            return (GetTypeIdentifier<T>(), TinyhandSerializer.SerializeToString(value, options));
         }
         catch
         {
@@ -315,16 +154,15 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static (uint TypeIdentifier, byte[]? ByteArray) TrySerialize<T>(T value, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeToMethodClass.GetOrAdd(typeof(T), type => new(type));
-        if (methodClass.Serialize is null)
+        if (!IsRegistered<T>())
         {
             return default;
         }
 
         try
         {
-            var byteArray = methodClass.Serialize(value!, options);
-            return (methodClass.TypeIdentifier, byteArray);
+            var byteArray = TinyhandSerializer.Serialize(value, options);
+            return (GetTypeIdentifier<T>(), byteArray);
         }
         catch
         {
@@ -343,8 +181,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static (uint TypeIdentifier, byte[]? ByteArray) TrySerialize(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.Serialize is null)
+        if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
             return default;
         }
@@ -352,7 +189,7 @@ public static class TinyhandTypeIdentifier
         try
         {
             var byteArray = methodClass.Serialize(value!, options);
-            return (methodClass.TypeIdentifier, byteArray);
+            return (typeIdentifier, byteArray);
         }
         catch
         {
@@ -371,16 +208,15 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static (uint TypeIdentifier, BytePool.RentMemory RentMemory) TrySerializeRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeToMethodClass.GetOrAdd(typeof(T), type => new(type));
-        if (methodClass.SerializeRentMemory is null)
+        if (!IsRegistered<T>())
         {
             return default;
         }
 
         try
         {
-            var rentMemory = methodClass.SerializeRentMemory(value!, options);
-            return (methodClass.TypeIdentifier, rentMemory);
+            var rentMemory = TinyhandSerializer.SerializeToRentMemory(value, options);
+            return (GetTypeIdentifier<T>(), rentMemory);
         }
         catch
         {
@@ -399,8 +235,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static (uint TypeIdentifier, BytePool.RentMemory RentMemory) TrySerializeRentMemory(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.SerializeRentMemory is null)
+        if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
             return default;
         }
@@ -408,7 +243,7 @@ public static class TinyhandTypeIdentifier
         try
         {
             var rentMemory = methodClass.SerializeRentMemory(value!, options);
-            return (methodClass.TypeIdentifier, rentMemory);
+            return (typeIdentifier, rentMemory);
         }
         catch
         {
@@ -428,8 +263,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static bool TrySerializeWriter(ref TinyhandWriter writer, uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.SerializeWriter is null)
+        if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
             return false;
         }
@@ -456,8 +290,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static object? TryDeserializeFromString(uint typeIdentifier, ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.TryDeserializeFromString is null)
+        if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
             return default;
         }
@@ -467,8 +300,7 @@ public static class TinyhandTypeIdentifier
 
     public static object? TryParseOrDeserializeFromString(uint typeIdentifier, ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.TryParseOrDeserializeFromString is null)
+        if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
             return default;
         }
@@ -487,8 +319,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static object? TryDeserialize(uint typeIdentifier, ReadOnlySpan<byte> source, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.Deserialize is null)
+        if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
             return default;
         }
@@ -514,8 +345,7 @@ public static class TinyhandTypeIdentifier
     /// </returns>
     public static object? TryDeserializeReader(uint typeIdentifier, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.DeserializeReader is null)
+        if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
             return default;
         }
@@ -538,8 +368,7 @@ public static class TinyhandTypeIdentifier
     /// <returns>The created instance.</returns>
     public static object? TryReconstruct(uint typeIdentifier, TinyhandSerializerOptions? options = null)
     {
-        var methodClass = TypeIdentifierToMethodClass.GetOrAdd(typeIdentifier, typeIdentifier => new(typeIdentifier));
-        if (methodClass.Reconstruct is null)
+        if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
             return default;
         }
@@ -559,7 +388,29 @@ public static class TinyhandTypeIdentifier
     /// </summary>
     /// <typeparam name="T">The type to register for type identifier mapping.</typeparam>
     public static void Register<T>()
-        => Register(typeof(T));
+    {
+        if (Volatile.Read(ref TypeCache<T>.Registered))
+        {
+            return;
+        }
+
+        var methods = MethodClass<T>.Instance;
+        if (!Methods.TryAdd(TypeCache<T>.Identifier, methods) && Methods[TypeCache<T>.Identifier].Type != typeof(T))
+        {
+            throw new InvalidOperationException($"Type identifier collision: {typeof(T)}.");
+        }
+
+        Volatile.Write(ref TypeCache<T>.Registered, true);
+    }
+
+    /// <summary>Registers a statically compiled parser for a string-convertible type.</summary>
+    /// <typeparam name="T">The serializable type providing a static parser.</typeparam>
+    public static void RegisterStringConvertible<T>()
+        where T : ITinyhandSerializable<T>, IStringConvertible<T>
+    {
+        Register<T>();
+        Volatile.Write(ref MethodClass<T>.Instance.Parser, TinyhandSerializer.TryParseOrDeserializeFromString<T>);
+    }
 
     /// <summary>
     /// Gets the type identifier of the specified type <typeparamref name="T"/>.
@@ -567,7 +418,7 @@ public static class TinyhandTypeIdentifier
     /// <typeparam name="T">The type for which to get the identifier.</typeparam>
     /// <returns>The type identifier as a <see cref="uint"/>.</returns>
     public static uint GetTypeIdentifier<T>()
-        => GetTypeIdentifier(typeof(T));
+        => TypeCache<T>.Identifier;
 
     /// <summary>
     /// Gets the type identifier for the specified <see cref="Type"/>.
@@ -577,45 +428,4 @@ public static class TinyhandTypeIdentifier
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint GetTypeIdentifier(Type type)
         => TypeToTypeIdentifier.GetOrAdd(type, x => (uint)FarmHash.Hash64(x.FullName ?? string.Empty));
-
-    /// <summary>
-    /// Registers the specified <see cref="Type"/> for type identifier mapping.
-    /// </summary>
-    /// <param name="type">The type to register.</param>
-    /// <returns><c>true</c> if the type was successfully registered; otherwise, <c>false</c>.</returns>
-    public static bool Register(Type type)
-    {
-        if (type.IsAbstract || type.IsInterface)
-        {
-            if (type == typeof(Type))
-            {
-                return false;
-            }
-        }
-        else if (type.IsGenericTypeDefinition || type.IsPointer || type == typeof(void))
-        {// Not instantiable type (type.IsArray?).
-            return false;
-        }
-
-        if (TypeIdentifierToType.TryAdd(GetTypeIdentifier(type), type))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Registers a collection of types for type identifier mapping.
-    /// </summary>
-    /// <param name="types">A span of types to register.</param>
-    public static void Register(ReadOnlySpan<Type> types)
-    {
-        foreach (var type in types)
-        {
-            Register(type);
-        }
-    }
 }

@@ -10,7 +10,7 @@ using Tinyhand.IO;
 namespace Tinyhand.Formatters;
 
 // Immutablearray<T>.Enumerator is 'not' IEnumerator<T>, can't use abstraction layer.
-public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
+internal class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
 {
     public void Serialize(ref TinyhandWriter writer, ImmutableArray<T> value, TinyhandSerializerOptions options)
     {
@@ -92,7 +92,7 @@ public class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>>
     }
 }
 
-public class ImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, ImmutableList<T>.Enumerator, ImmutableList<T>>
+internal class ImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, ImmutableList<T>.Enumerator, ImmutableList<T>>
 {
     protected override void Add(ImmutableList<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -115,7 +115,7 @@ public class ImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableLis
     }
 }
 
-public class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableDictionary<TKey, TValue>.Builder, ImmutableDictionary<TKey, TValue>.Enumerator, ImmutableDictionary<TKey, TValue>>
+internal class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableDictionary<TKey, TValue>.Builder, ImmutableDictionary<TKey, TValue>.Enumerator, ImmutableDictionary<TKey, TValue>>
     where TKey : notnull
 {
     protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
@@ -145,7 +145,7 @@ public class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBas
     }
 }
 
-public class ImmutableHashSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, ImmutableHashSet<T>.Enumerator, ImmutableHashSet<T>>
+internal class ImmutableHashSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, ImmutableHashSet<T>.Enumerator, ImmutableHashSet<T>>
 {
     protected override void Add(ImmutableHashSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -168,7 +168,7 @@ public class ImmutableHashSetFormatter<T> : CollectionFormatterBase<T, Immutable
     }
 }
 
-public class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableSortedDictionary<TKey, TValue>.Builder, ImmutableSortedDictionary<TKey, TValue>.Enumerator, ImmutableSortedDictionary<TKey, TValue>>
+internal class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableSortedDictionary<TKey, TValue>.Builder, ImmutableSortedDictionary<TKey, TValue>.Enumerator, ImmutableSortedDictionary<TKey, TValue>>
     where TKey : notnull
 {
     protected override void Add(ImmutableSortedDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
@@ -198,7 +198,7 @@ public class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryFormat
     }
 }
 
-public class ImmutableSortedSetFormatter<T> : CollectionFormatterBase<T, ImmutableSortedSet<T>.Builder, ImmutableSortedSet<T>.Enumerator, ImmutableSortedSet<T>>
+internal class ImmutableSortedSetFormatter<T> : CollectionFormatterBase<T, ImmutableSortedSet<T>.Builder, ImmutableSortedSet<T>.Enumerator, ImmutableSortedSet<T>>
 {
     protected override void Add(ImmutableSortedSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -222,7 +222,7 @@ public class ImmutableSortedSetFormatter<T> : CollectionFormatterBase<T, Immutab
 }
 
 // not best for performance(does not use ImmutableQueue<T>.Enumerator)
-public class ImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQueueBuilder<T>, ImmutableQueue<T>>
+internal class ImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQueueBuilder<T>, ImmutableQueue<T>>
 {
     protected override void Add(ImmutableQueueBuilder<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -241,7 +241,7 @@ public class ImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQu
 }
 
 // not best for performance(does not use ImmutableQueue<T>.Enumerator)
-public class ImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], ImmutableStack<T>>
+internal class ImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], ImmutableStack<T>>
 {
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -259,7 +259,7 @@ public class ImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], Immuta
     }
 }
 
-public class InterfaceImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, IImmutableList<T>>
+internal class InterfaceImmutableListFormatter<T> : CollectionFormatterBase<T, ImmutableList<T>.Builder, IImmutableList<T>>
 {
     protected override void Add(ImmutableList<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -277,7 +277,7 @@ public class InterfaceImmutableListFormatter<T> : CollectionFormatterBase<T, Imm
     }
 }
 
-public class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableDictionary<TKey, TValue>.Builder, IImmutableDictionary<TKey, TValue>>
+internal class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, ImmutableDictionary<TKey, TValue>.Builder, IImmutableDictionary<TKey, TValue>>
     where TKey : notnull
 {
     protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
@@ -302,7 +302,7 @@ public class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryFor
     }
 }
 
-public class InterfaceImmutableSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, IImmutableSet<T>>
+internal class InterfaceImmutableSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, IImmutableSet<T>>
 {
     protected override void Add(ImmutableHashSet<T>.Builder collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -320,7 +320,7 @@ public class InterfaceImmutableSetFormatter<T> : CollectionFormatterBase<T, Immu
     }
 }
 
-public class InterfaceImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQueueBuilder<T>, IImmutableQueue<T>>
+internal class InterfaceImmutableQueueFormatter<T> : CollectionFormatterBase<T, ImmutableQueueBuilder<T>, IImmutableQueue<T>>
 {
     protected override void Add(ImmutableQueueBuilder<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -338,7 +338,7 @@ public class InterfaceImmutableQueueFormatter<T> : CollectionFormatterBase<T, Im
     }
 }
 
-public class InterfaceImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], IImmutableStack<T>>
+internal class InterfaceImmutableStackFormatter<T> : CollectionFormatterBase<T, T[], IImmutableStack<T>>
 {
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -357,7 +357,7 @@ public class InterfaceImmutableStackFormatter<T> : CollectionFormatterBase<T, T[
 }
 
 // pseudo builders
-public class ImmutableQueueBuilder<T>
+internal class ImmutableQueueBuilder<T>
 {
     public ImmutableQueue<T> Q { get; set; } = ImmutableQueue<T>.Empty;
 

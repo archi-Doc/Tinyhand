@@ -2,6 +2,7 @@
 
 using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -15,9 +16,19 @@ using Arc.IO;
 
 namespace Tinyhand.IO;
 
+/// <summary>
+/// Writes Tinyhand values to a reusable or pooled byte buffer.
+/// </summary>
 public ref struct TinyhandWriter
 {
+    /// <summary>
+    /// The default serialization level.
+    /// </summary>
     public const int DefaultLevel = 0x0100_0000;
+
+    /// <summary>
+    /// The default signature serialization level.
+    /// </summary>
     public const int DefaultSignatureLevel = 0x0000_1000;
 
     /// <summary>
@@ -37,21 +48,36 @@ public ref struct TinyhandWriter
     public static TinyhandWriter CreateFromThreadStaticBuffer()
         => new(TinyhandSerializer.GetThreadStaticBuffer());
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct over an external writer.
+    /// </summary>
+    /// <param name="writer">The destination for encoded bytes.</param>
     public TinyhandWriter(IBufferWriter<byte> writer)
     {
         this.writer = new ByteBufferWriter(writer);
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct with a reusable buffer.
+    /// </summary>
+    /// <param name="initialBuffer">The initial buffer.</param>
     public TinyhandWriter(byte[] initialBuffer)
     {
         this.writer = new ByteBufferWriter(initialBuffer);
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct with a rented buffer.
+    /// </summary>
+    /// <param name="array">The rented buffer managed by this writer.</param>
     public TinyhandWriter(BytePool.RentArray array)
     {
         this.writer = new ByteBufferWriter(array);
     }
 
+    /// <summary>
+    /// Releases buffers owned by this writer.
+    /// </summary>
     public void Dispose()
     {
         this.writer.Dispose();
@@ -105,30 +131,79 @@ public ref struct TinyhandWriter
         Level = this.Level,
     };
 
+    /// <summary>
+    /// Flushes and copies the written bytes into an array.
+    /// </summary>
+    /// <returns>An array containing the encoded data.</returns>
     public byte[] FlushAndGetArray() => this.writer.FlushAndGetArray();
 
+    /// <summary>
+    /// Flushes and exposes the written bytes as a sequence.
+    /// </summary>
+    /// <returns>The buffered data; consume it before reusing or disposing the writer.</returns>
     public ReadOnlySequence<byte> FlushAndGetReadOnlySequence() => this.writer.FlushAndGetReadOnlySequence();
 
+    /// <summary>
+    /// Flushes and exposes the buffered array.
+    /// </summary>
+    /// <param name="array">The array containing the encoded data.</param>
+    /// <param name="written">The number of valid bytes.</param>
+    /// <param name="isInitialBuffer">Whether the array is the initial buffer.</param>
     public void FlushAndGetArray(out byte[] array, out int written, out bool isInitialBuffer)
         => this.writer.FlushAndGetArray(out array, out written, out isInitialBuffer);
 
+    /// <summary>
+    /// Flushes and exposes the written memory.
+    /// </summary>
+    /// <param name="memory">The encoded data, valid until the buffer is reused or returned.</param>
+    /// <param name="isInitialBuffer">Whether the memory uses the initial buffer.</param>
     public void FlushAndGetMemory(out Memory<byte> memory, out bool isInitialBuffer)
         => this.writer.FlushAndGetMemory(out memory, out isInitialBuffer);
 
+    /// <summary>
+    /// Flushes and exposes the written span.
+    /// </summary>
+    /// <param name="span">The encoded data, valid until the buffer is reused or returned.</param>
+    /// <param name="isInitialBuffer">Whether the span uses the initial buffer.</param>
     public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isInitialBuffer)
         => this.writer.FlushAndGetReadOnlySpan(out span, out isInitialBuffer);
 
+    /// <summary>
+    /// Flushes and obtains the written data as rented memory.
+    /// </summary>
+    /// <returns>The memory, which the caller must return.</returns>
     public BytePool.RentMemory FlushAndGetRentMemory()
         => this.writer.FlushAndGetRentMemory();
 
+    /// <summary>
+    /// Commits buffered bytes to the destination.
+    /// </summary>
     public void Flush() => this.writer.Flush();
 
+    /// <summary>
+    /// Gets writable space without advancing the writer.
+    /// </summary>
+    /// <param name="length">The minimum required byte count.</param>
+    /// <returns>The writable buffer; call Advance after writing.</returns>
     public Span<byte> GetSpan(int length) => this.writer.GetSpan(length);
 
+    /// <summary>
+    /// Commits bytes written to the current buffer.
+    /// </summary>
+    /// <param name="count">The number of bytes written.</param>
     public void Advance(int count) => this.writer.Advance(count);
 
+    /// <summary>
+    /// Ensures sufficient writable space.
+    /// </summary>
+    /// <param name="sizeHint">The minimum required byte count.</param>
     public void Ensure(int sizeHint) => this.writer.Ensure(sizeHint);
 
+    /// <summary>
+    /// Writes an unmanaged value in native byte order without a format header.
+    /// </summary>
+    /// <typeparam name="T">The unmanaged value type.</typeparam>
+    /// <param name="value">The raw value.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe void WriteUnsafe<T>(T value)
         where T : unmanaged
@@ -156,6 +231,10 @@ public ref struct TinyhandWriter
         }
     }
 
+    /// <summary>
+    /// Writes a raw byte without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawInt8(sbyte value)
     {
         Span<byte> span = this.writer.GetSpan(1);
@@ -163,6 +242,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(1);
     }
 
+    /// <summary>
+    /// Writes a raw byte without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawUInt8(byte value)
     {
         Span<byte> span = this.writer.GetSpan(1);
@@ -170,6 +253,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(1);
     }
 
+    /// <summary>
+    /// Writes a raw integer in big-endian byte order without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawInt16(short value)
     {
         Span<byte> span = this.writer.GetSpan(2);
@@ -177,6 +264,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(2);
     }
 
+    /// <summary>
+    /// Writes a raw integer in big-endian byte order without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawUInt16(ushort value)
     {
         Span<byte> span = this.writer.GetSpan(2);
@@ -184,6 +275,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(2);
     }
 
+    /// <summary>
+    /// Writes a raw integer in big-endian byte order without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawInt32(int value)
     {
         Span<byte> span = this.writer.GetSpan(4);
@@ -191,6 +286,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(4);
     }
 
+    /// <summary>
+    /// Writes a raw integer in big-endian byte order without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawUInt32(uint value)
     {
         Span<byte> span = this.writer.GetSpan(4);
@@ -198,6 +297,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(4);
     }
 
+    /// <summary>
+    /// Writes a raw integer in big-endian byte order without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawInt64(long value)
     {
         Span<byte> span = this.writer.GetSpan(8);
@@ -205,6 +308,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(8);
     }
 
+    /// <summary>
+    /// Writes a raw integer in big-endian byte order without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawUInt64(ulong value)
     {
         Span<byte> span = this.writer.GetSpan(8);
@@ -212,6 +319,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(8);
     }
 
+    /// <summary>
+    /// Writes a raw integer in big-endian byte order without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawInt128(Int128 value)
     {
         Span<byte> span = this.writer.GetSpan(16);
@@ -219,6 +330,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(16);
     }
 
+    /// <summary>
+    /// Writes a raw integer in big-endian byte order without a format header.
+    /// </summary>
+    /// <param name="value">The value to write.</param>
     public void WriteRawUInt128(UInt128 value)
     {
         Span<byte> span = this.writer.GetSpan(16);
@@ -249,7 +364,11 @@ public ref struct TinyhandWriter
     /// <see cref="MessagePackCode.Array32"/>.
     /// </summary>
     /// <param name="count">The number of elements that will be written in the array.</param>
-    public void WriteArrayHeader(int count) => this.WriteArrayHeader((uint)count);
+    public void WriteArrayHeader(int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        this.WriteArrayHeader((uint)count);
+    }
 
     /// <summary>
     /// Write the length of the next array to be written in the most compact form of
@@ -290,7 +409,11 @@ public ref struct TinyhandWriter
     /// <see cref="MessagePackCode.Map32"/>.
     /// </summary>
     /// <param name="count">The number of key=value pairs that will be written in the map.</param>
-    public void WriteMapHeader(int count) => this.WriteMapHeader((uint)count);
+    public void WriteMapHeader(int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        this.WriteMapHeader((uint)count);
+    }
 
     /// <summary>
     /// Write the length of the next map to be written in the most compact form of
@@ -580,14 +703,7 @@ public ref struct TinyhandWriter
     }
 
     /// <summary>
-    /// Writes an <see cref="ulong"/> using a built-in 1-byte code when within specific MessagePack-supported ranges,
-    /// or the most compact of
-    /// <see cref="MessagePackCode.UInt8"/>,
-    /// <see cref="MessagePackCode.UInt16"/>,
-    /// <see cref="MessagePackCode.UInt32"/>,
-    /// <see cref="MessagePackCode.Int8"/>,
-    /// <see cref="MessagePackCode.Int16"/>,
-    /// <see cref="MessagePackCode.Int32"/>.
+    /// Writes an unsigned integer using the smallest fitting MessagePack encoding.
     /// </summary>
     /// <param name="value">The value to write.</param>
     public void Write(ulong value)
@@ -626,7 +742,7 @@ public ref struct TinyhandWriter
     }
 
     /// <summary>
-    /// Writes an <see cref="ulong"/> using <see cref="MessagePackCode.Int32"/>.
+    /// Writes a <see cref="ulong"/> using <see cref="MessagePackCode.UInt64"/>.
     /// </summary>
     /// <param name="value">The value to write.</param>
     public void WriteUInt64(ulong value)
@@ -705,12 +821,19 @@ public ref struct TinyhandWriter
         this.writer.Advance(9);
     }
 
+    /// <summary>
+    /// Writes an integer as a signed 64-bit value when it fits, or as a 128-bit extension.
+    /// </summary>
+    /// <param name="value">The integer to write.</param>
     public void Write(Int128 value)
     {
         var ripper = Unsafe.As<Int128, Int128Ripper>(ref value);
-        if (ripper.Upper == 0 || ~ripper.Upper == 0)
+        var lower = unchecked((long)ripper.Lower);
+
+        // The value fits in a long only when the upper half is the sign extension of the lower half.
+        if (ripper.Upper == unchecked((ulong)(lower >> 63)))
         {
-            this.Write((long)ripper.Lower);
+            this.Write(lower);
         }
         else
         {
@@ -718,6 +841,10 @@ public ref struct TinyhandWriter
         }
     }
 
+    /// <summary>
+    /// Writes an integer using the smallest supported encoding.
+    /// </summary>
+    /// <param name="value">The integer to write.</param>
     public void Write(UInt128 value)
     {
         var ripper = Unsafe.As<UInt128, Int128Ripper>(ref value);
@@ -731,6 +858,10 @@ public ref struct TinyhandWriter
         }
     }
 
+    /// <summary>
+    /// Writes an integer using a fixed 128-bit extension.
+    /// </summary>
+    /// <param name="value">The integer to write.</param>
     public void WriteInt128(Int128 value)
     {
         Span<byte> span = this.writer.GetSpan(18);
@@ -740,6 +871,10 @@ public ref struct TinyhandWriter
         this.writer.Advance(18);
     }
 
+    /// <summary>
+    /// Writes an integer using a fixed 128-bit extension.
+    /// </summary>
+    /// <param name="value">The integer to write.</param>
     public void WriteUInt128(UInt128 value)
     {
         Span<byte> span = this.writer.GetSpan(18);
@@ -889,7 +1024,7 @@ public ref struct TinyhandWriter
     /// <param name="src">The span of bytes to write.</param>
     public void Write(scoped ReadOnlySpan<byte> src)
     {
-        int length = (int)src.Length;
+        int length = src.Length;
         this.WriteBinHeader(length);
         var span = this.writer.GetSpan(length);
         src.CopyTo(span);
@@ -905,7 +1040,7 @@ public ref struct TinyhandWriter
     /// <param name="src">The span of bytes to write.</param>
     public void Write(in ReadOnlySequence<byte> src)
     {
-        int length = (int)src.Length;
+        int length = checked((int)src.Length);
         this.WriteBinHeader(length);
         var span = this.writer.GetSpan(length);
         src.CopyTo(span);
@@ -928,6 +1063,7 @@ public ref struct TinyhandWriter
     /// </remarks>
     public void WriteBinHeader(int length)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
         // When we write the header, we'll ask for all the space we need for the payload as well
         // as that may help ensure we only allocate a buffer once.
         if (length <= byte.MaxValue)
@@ -952,7 +1088,7 @@ public ref struct TinyhandWriter
         }
         else
         {
-            var size = length + 5;
+            var size = checked(length + 5);
             Span<byte> span = this.writer.GetSpan(size);
 
             span[0] = MessagePackCode.Bin32;
@@ -972,7 +1108,7 @@ public ref struct TinyhandWriter
     /// <param name="utf8stringBytes">The bytes to write.</param>
     public void WriteString(in ReadOnlySequence<byte> utf8stringBytes)
     {
-        var length = (int)utf8stringBytes.Length;
+        var length = checked((int)utf8stringBytes.Length);
         this.WriteStringHeader(length);
         Span<byte> span = this.writer.GetSpan(length);
         utf8stringBytes.CopyTo(span);
@@ -1011,6 +1147,7 @@ public ref struct TinyhandWriter
     /// </remarks>
     public void WriteStringHeader(int byteCount)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(byteCount);
         // When we write the header, we'll ask for all the space we need for the payload as well
         // as that may help ensure we only allocate a buffer once.
         if (byteCount <= MessagePackRange.MaxFixStringLength)
@@ -1035,7 +1172,7 @@ public ref struct TinyhandWriter
         }
         else
         {
-            Span<byte> span = this.writer.GetSpan(byteCount + 5);
+            Span<byte> span = this.writer.GetSpan(checked(byteCount + 5));
             span[0] = MessagePackCode.Str32;
             WriteBigEndian(byteCount, span.Slice(1));
             this.writer.Advance(5);
@@ -1082,13 +1219,10 @@ public ref struct TinyhandWriter
     public unsafe void Write(scoped ReadOnlySpan<char> value)
     {
         ref byte buffer = ref this.WriteString_PrepareSpan(value.Length, out int bufferSize, out int useOffset);
-        fixed (char* pValue = value)
+        fixed (byte* pBuffer = &buffer)
         {
-            fixed (byte* pBuffer = &buffer)
-            {
-                int byteCount = Encoding.UTF8.GetBytes(pValue, value.Length, pBuffer + useOffset, bufferSize);
-                this.WriteString_PostEncoding(pBuffer, useOffset, byteCount);
-            }
+            int byteCount = Encoding.UTF8.GetBytes(value, new Span<byte>(pBuffer + useOffset, bufferSize));
+            this.WriteString_PostEncoding(pBuffer, useOffset, byteCount);
         }
     }
 
@@ -1106,7 +1240,7 @@ public ref struct TinyhandWriter
     /// <param name="extensionHeader">The extension header.</param>
     public void WriteExtensionFormatHeader(ExtensionHeader extensionHeader)
     {
-        int dataLength = (int)extensionHeader.Length;
+        uint dataLength = extensionHeader.Length;
         byte typeCode = unchecked((byte)extensionHeader.TypeCode);
         switch (dataLength)
         {
@@ -1145,7 +1279,7 @@ public ref struct TinyhandWriter
                 {
                     if (dataLength <= byte.MaxValue)
                     {
-                        span = this.writer.GetSpan(dataLength + 3);
+                        span = this.writer.GetSpan((int)dataLength + 3);
                         span[0] = MessagePackCode.Ext8;
                         span[1] = unchecked((byte)dataLength);
                         span[2] = unchecked(typeCode);
@@ -1153,7 +1287,7 @@ public ref struct TinyhandWriter
                     }
                     else if (dataLength <= ushort.MaxValue)
                     {
-                        span = this.writer.GetSpan(dataLength + 4);
+                        span = this.writer.GetSpan((int)dataLength + 4);
                         span[0] = MessagePackCode.Ext16;
                         WriteBigEndian((ushort)dataLength, span.Slice(1));
                         span[3] = unchecked(typeCode);
@@ -1161,7 +1295,7 @@ public ref struct TinyhandWriter
                     }
                     else
                     {
-                        span = this.writer.GetSpan(dataLength + 6);
+                        span = this.writer.GetSpan(6);
                         span[0] = MessagePackCode.Ext32;
                         WriteBigEndian(dataLength, span.Slice(1));
                         span[5] = unchecked(typeCode);
@@ -1191,9 +1325,13 @@ public ref struct TinyhandWriter
         this.WriteSequence(extensionData.Data);
     }
 
+    /// <summary>
+    /// Writes UTF-8 bytes as an identifier extension.
+    /// </summary>
+    /// <param name="utf8">The UTF-8 identifier bytes.</param>
     public void WriteIdentifier(ReadOnlySpan<byte> utf8)
     {// code[1], length[4], extcode[1], utf8
-        var spanLength = 6 + utf8.Length;
+        var spanLength = checked(6 + utf8.Length);
         Span<byte> span = this.writer.GetSpan(spanLength);
 
         span[0] = MessagePackCode.Ext32;
@@ -1204,16 +1342,20 @@ public ref struct TinyhandWriter
         this.writer.Advance(spanLength);
     }
 
+    /// <summary>
+    /// Writes a UTF-16 identifier as a UTF-8 extension.
+    /// </summary>
+    /// <param name="utf16">The identifier; invalid UTF-16 sequences are replaced.</param>
     public void WriteIdentifier(string utf16)
     {// code[1], length[4], extcode[1], utf8
         var source = utf16.AsSpan();
-        var maxByteCount = (source.Length + 1) * 3;
+        var maxByteCount = Encoding.UTF8.GetMaxByteCount(source.Length);
 
-        Span<byte> span = this.writer.GetSpan(maxByteCount + 6);
-        var status = Utf8.FromUtf16(source, span.Slice(6), out var _, out var bytesWritten, replaceInvalidSequences: false);
-        if (status != OperationStatus.Done)
-        {
-        }
+        Span<byte> span = this.writer.GetSpan(checked(maxByteCount + 6));
+
+        // Invalid sequences are replaced (as Encoding.UTF8 does in Write(string)) rather than
+        // silently truncating the identifier at the first one.
+        Utf8.FromUtf16(source, span.Slice(6), out var _, out var bytesWritten, replaceInvalidSequences: true);
 
         span[0] = MessagePackCode.Ext32;
         WriteBigEndian((uint)bytesWritten, span.Slice(1));
@@ -1222,6 +1364,11 @@ public ref struct TinyhandWriter
         this.writer.Advance(bytesWritten + 6);
     }
 
+    /// <summary>
+    /// Formats a value into a temporary character buffer and writes it as a string.
+    /// </summary>
+    /// <typeparam name="T">The string-convertible type.</typeparam>
+    /// <param name="obj">The value, or null to write nil.</param>
     [SkipLocalsInit]
     public void WriteStringConvertible<T>(T? obj)
         where T : IStringConvertible<T>
@@ -1246,18 +1393,23 @@ public ref struct TinyhandWriter
 
         char[]? pooledName = default;
         var destination = length <= TinyhandConstants.StackallocThreshold ? stackalloc char[length] : (pooledName = ArrayPool<char>.Shared.Rent(length));
-        if (obj.TryFormat(destination, out var written))
+        try
         {
-            this.Write(destination.Slice(0, written));
+            if (obj.TryFormat(destination, out var written))
+            {
+                this.Write(destination.Slice(0, written));
+            }
+            else
+            {
+                this.Write(ReadOnlySpan<char>.Empty);
+            }
         }
-        else
+        finally
         {
-            this.Write(ReadOnlySpan<char>.Empty);
-        }
-
-        if (pooledName != null)
-        {
-            ArrayPool<char>.Shared.Return(pooledName);
+            if (pooledName != null)
+            {
+                ArrayPool<char>.Shared.Return(pooledName);
+            }
         }
     }
 
@@ -1269,90 +1421,29 @@ public ref struct TinyhandWriter
 
     private static void WriteBigEndian(Int128 value, Span<byte> span) => WriteBigEndian(unchecked((UInt128)value), span);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void WriteBigEndian(ushort value, Span<byte> span)
-    {
-        unchecked
-        {
-            // Write to highest index first so the JIT skips bounds checks on subsequent writes.
-            span[1] = (byte)value;
-            span[0] = (byte)(value >> 8);
-        }
-    }
+        => BinaryPrimitives.WriteUInt16BigEndian(span, value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe void WriteBigEndian(ushort value, byte* span)
-    {
-        unchecked
-        {
-            span[0] = (byte)(value >> 8);
-            span[1] = (byte)value;
-        }
-    }
+        => Unsafe.WriteUnaligned(span, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void WriteBigEndian(uint value, Span<byte> span)
-    {
-        unchecked
-        {
-            // Write to highest index first so the JIT skips bounds checks on subsequent writes.
-            span[3] = (byte)value;
-            span[2] = (byte)(value >> 8);
-            span[1] = (byte)(value >> 16);
-            span[0] = (byte)(value >> 24);
-        }
-    }
+        => BinaryPrimitives.WriteUInt32BigEndian(span, value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static unsafe void WriteBigEndian(uint value, byte* span)
-    {
-        unchecked
-        {
-            span[0] = (byte)(value >> 24);
-            span[1] = (byte)(value >> 16);
-            span[2] = (byte)(value >> 8);
-            span[3] = (byte)value;
-        }
-    }
+        => Unsafe.WriteUnaligned(span, BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void WriteBigEndian(ulong value, Span<byte> span)
-    {
-        unchecked
-        {
-            // Write to highest index first so the JIT skips bounds checks on subsequent writes.
-            span[7] = (byte)value;
-            span[6] = (byte)(value >> 8);
-            span[5] = (byte)(value >> 16);
-            span[4] = (byte)(value >> 24);
-            span[3] = (byte)(value >> 32);
-            span[2] = (byte)(value >> 40);
-            span[1] = (byte)(value >> 48);
-            span[0] = (byte)(value >> 56);
-        }
-    }
+        => BinaryPrimitives.WriteUInt64BigEndian(span, value);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void WriteBigEndian(UInt128 value, Span<byte> span)
-    {
-        var ripper = Unsafe.As<UInt128, Int128Ripper>(ref value);
-        unchecked
-        {
-            var lower = ripper.Lower;
-            var upper = ripper.Upper;
-
-            span[15] = (byte)lower;
-            span[14] = (byte)(lower >> 8);
-            span[13] = (byte)(lower >> 16);
-            span[12] = (byte)(lower >> 24);
-            span[11] = (byte)(lower >> 32);
-            span[10] = (byte)(lower >> 40);
-            span[9] = (byte)(lower >> 48);
-            span[8] = (byte)(lower >> 56);
-            span[7] = (byte)upper;
-            span[6] = (byte)(upper >> 8);
-            span[5] = (byte)(upper >> 16);
-            span[4] = (byte)(upper >> 24);
-            span[3] = (byte)(upper >> 32);
-            span[2] = (byte)(upper >> 40);
-            span[1] = (byte)(upper >> 48);
-            span[0] = (byte)(upper >> 56);
-        }
-    }
+        => BinaryPrimitives.WriteUInt128BigEndian(span, value);
 
     private static unsafe void WriteBigEndian(float value, Span<byte> span) => WriteBigEndian(*(int*)&value, span);
 
@@ -1374,7 +1465,7 @@ public ref struct TinyhandWriter
         // solves heuristic length check
 
         // ensure buffer by MaxByteCount(faster than GetByteCount)
-        bufferSize = Encoding.UTF8.GetMaxByteCount(characterLength) + 5;
+        bufferSize = checked(Encoding.UTF8.GetMaxByteCount(characterLength) + 5);
         ref byte buffer = ref this.writer.GetPointer(bufferSize);
 
         int useOffset;
@@ -1396,6 +1487,7 @@ public ref struct TinyhandWriter
         }
 
         encodedBytesOffset = useOffset;
+        bufferSize -= useOffset;
         return ref buffer;
     }
 
@@ -1408,8 +1500,6 @@ public ref struct TinyhandWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private unsafe void WriteString_PostEncoding(byte* pBuffer, int estimatedOffset, int byteCount)
     {
-        int bufferLength = estimatedOffset + byteCount;
-
         // move body and write prefix
         if (byteCount <= MessagePackRange.MaxFixStringLength)
         {

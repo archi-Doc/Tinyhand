@@ -8,7 +8,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public sealed class NativeGuidFormatter : ITinyhandFormatter<Guid>
+internal sealed class NativeGuidFormatter : ITinyhandFormatter<Guid>
 {
     /// <summary>
     /// Unsafe binary Guid formatter. this is only allowed on LittleEndian environment.
@@ -57,7 +57,7 @@ public sealed class NativeGuidFormatter : ITinyhandFormatter<Guid>
     public Guid Clone(Guid value, TinyhandSerializerOptions options) => value;
 }
 
-public sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
+internal sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
 {
     /// <summary>
     /// Unsafe binary Decimal formatter. this is only allows on LittleEndian environment.

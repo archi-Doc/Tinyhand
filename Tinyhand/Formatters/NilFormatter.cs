@@ -4,7 +4,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-public class NilFormatter : ITinyhandFormatter<Nil>
+internal class NilFormatter : ITinyhandFormatter<Nil>
 {
     public static readonly ITinyhandFormatter<Nil> Instance = new NilFormatter();
 
@@ -31,7 +31,7 @@ public class NilFormatter : ITinyhandFormatter<Nil>
 }
 
 // NullableNil is same as Nil.
-public class NullableNilFormatter : ITinyhandFormatter<Nil?>
+internal class NullableNilFormatter : ITinyhandFormatter<Nil?>
 {
     public static readonly ITinyhandFormatter<Nil?> Instance = new NullableNilFormatter();
 

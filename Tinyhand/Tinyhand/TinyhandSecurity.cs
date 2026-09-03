@@ -1,11 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.ExceptionServices;
 using Tinyhand.IO;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
@@ -26,17 +22,18 @@ public class TinyhandSecurity
     /// <summary>
     /// Gets an instance preconfigured with protections applied with reasonable settings for deserializing untrusted msgpack sequences.
     /// </summary>
+    /// <remarks>
+    /// Hash-based collections with <see cref="object"/> keys are not supported.
+    /// Use a supported concrete key type, such as <see cref="string"/> or <see cref="int"/>.
+    /// </remarks>
     public static readonly TinyhandSecurity UntrustedData = new TinyhandSecurity
     {
         HashCollisionResistant = true,
         MaximumObjectGraphDepth = 500,
     };
 
-    private readonly ObjectFallbackEqualityComparer objectFallbackEqualityComparer;
-
     private TinyhandSecurity()
     {
-        this.objectFallbackEqualityComparer = new ObjectFallbackEqualityComparer(this);
     }
 
     /// <summary>
@@ -45,7 +42,6 @@ public class TinyhandSecurity
     /// </summary>
     /// <param name="copyFrom">The template to copy from.</param>
     protected TinyhandSecurity(TinyhandSecurity copyFrom)
-        : this()
     {
         if (copyFrom is null)
         {
@@ -119,24 +115,12 @@ public class TinyhandSecurity
     /// <returns>The <see cref="IEqualityComparer{T}"/> to use.</returns>
     /// <remarks>
     /// When <see cref="HashCollisionResistant"/> is active, this will be a collision resistant instance which may reject certain key types.
+    /// The default implementation rejects <see cref="object"/> keys regardless of their runtime type.
     /// When <see cref="HashCollisionResistant"/> is not active, this will be <see cref="EqualityComparer{T}.Default"/>.
     /// </remarks>
     public IEqualityComparer<T> GetEqualityComparer<T>()
     {
         return this.HashCollisionResistant ? this.GetHashCollisionResistantEqualityComparer<T>() : EqualityComparer<T>.Default;
-    }
-
-    /// <summary>
-    /// Gets an <see cref="IEqualityComparer"/> that is suitable to use with a hash-based collection.
-    /// </summary>
-    /// <returns>The <see cref="IEqualityComparer"/> to use.</returns>
-    /// <remarks>
-    /// When <see cref="HashCollisionResistant"/> is active, this will be a collision resistant instance which may reject certain key types.
-    /// When <see cref="HashCollisionResistant"/> is not active, this will be <see cref="EqualityComparer{T}.Default"/>.
-    /// </remarks>
-    public IEqualityComparer GetEqualityComparer()
-    {
-        return this.HashCollisionResistant ? this.GetHashCollisionResistantEqualityComparer() : EqualityComparer<object>.Default;
     }
 
     /// <summary>
@@ -147,9 +131,9 @@ public class TinyhandSecurity
     protected virtual IEqualityComparer<T> GetHashCollisionResistantEqualityComparer<T>()
     {
         IEqualityComparer<T>? result = null;
-        if (typeof(T).GetTypeInfo().IsEnum)
+        if (typeof(T).IsEnum)
         {
-            Type underlyingType = typeof(T).GetTypeInfo().GetEnumUnderlyingType();
+            Type underlyingType = typeof(T).GetEnumUnderlyingType();
             result =
                 underlyingType == typeof(sbyte) ? CollisionResistantHasher<T>.Instance :
                 underlyingType == typeof(byte) ? CollisionResistantHasher<T>.Instance :
@@ -186,7 +170,6 @@ public class TinyhandSecurity
                 typeof(T) == typeof(Guid) ? (IEqualityComparer<T>)GuidEqualityComparer.Instance :
                 typeof(T) == typeof(DateTime) ? (IEqualityComparer<T>)DateTimeEqualityComparer.Instance :
                 typeof(T) == typeof(DateTimeOffset) ? (IEqualityComparer<T>)DateTimeOffsetEqualityComparer.Instance :
-                typeof(T) == typeof(object) ? (IEqualityComparer<T>)this.objectFallbackEqualityComparer :
                 null;
         }
 
@@ -220,12 +203,6 @@ public class TinyhandSecurity
     }
 
     /// <summary>
-    /// Returns a hash collision resistant equality comparer.
-    /// </summary>
-    /// <returns>A hash collision resistant equality comparer.</returns>
-    protected virtual IEqualityComparer GetHashCollisionResistantEqualityComparer() => (IEqualityComparer)this.GetHashCollisionResistantEqualityComparer<object>();
-
-    /// <summary>
     /// Creates a new instance that is a copy of this one.
     /// </summary>
     /// <remarks>
@@ -237,72 +214,13 @@ public class TinyhandSecurity
     /// A hash collision resistant implementation of <see cref="IEqualityComparer{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of key that will be hashed.</typeparam>
-    private class CollisionResistantHasher<T> : IEqualityComparer<T>, IEqualityComparer
+    private class CollisionResistantHasher<T> : IEqualityComparer<T>
     {
         internal static readonly CollisionResistantHasher<T> Instance = new CollisionResistantHasher<T>();
 
         public bool Equals(T? x, T? y) => EqualityComparer<T>.Default.Equals(x!, y!);
 
-        bool IEqualityComparer.Equals(object? x, object? y) => ((IEqualityComparer)EqualityComparer<T>.Default).Equals(x, y);
-
-        public int GetHashCode(object obj) => this.GetHashCode((T)obj);
-
         public virtual int GetHashCode(T value) => HashCode.Combine(value);
-    }
-
-    /// <summary>
-    /// A special hash-resistent equality comparer that defers picking the actual implementation
-    /// till it can check the runtime type of each value to be hashed.
-    /// </summary>
-    private class ObjectFallbackEqualityComparer : IEqualityComparer<object>, IEqualityComparer
-    {
-        private static readonly MethodInfo GetHashCollisionResistantEqualityComparerOpenGenericMethod = typeof(TinyhandSecurity).GetTypeInfo().DeclaredMethods.Single(m => m.Name == nameof(TinyhandSecurity.GetHashCollisionResistantEqualityComparer) && m.IsGenericMethod);
-        private readonly TinyhandSecurity security;
-        private readonly ThreadsafeTypeKeyHashtable<IEqualityComparer> equalityComparerCache = new ThreadsafeTypeKeyHashtable<IEqualityComparer>();
-
-        internal ObjectFallbackEqualityComparer(TinyhandSecurity security)
-        {
-            this.security = security ?? throw new ArgumentNullException(nameof(security));
-        }
-
-        bool IEqualityComparer<object>.Equals(object? x, object? y) => EqualityComparer<object>.Default.Equals(x!, y!);
-
-        bool IEqualityComparer.Equals(object? x, object? y) => ((IEqualityComparer)EqualityComparer<object>.Default).Equals(x, y);
-
-        public int GetHashCode(object value)
-        {
-            if (value is null)
-            {
-                return 0;
-            }
-
-            Type valueType = value.GetType();
-
-            // Take care to avoid recursion.
-            if (valueType == typeof(object))
-            {
-                // We can trust object.GetHashCode() to be collision resistant.
-                return value.GetHashCode();
-            }
-
-            if (!this.equalityComparerCache.TryGetValue(valueType, out var equalityComparer))
-            {
-                try
-                {
-#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-                    equalityComparer = (IEqualityComparer)GetHashCollisionResistantEqualityComparerOpenGenericMethod.MakeGenericMethod(valueType).Invoke(this.security, Array.Empty<object>())!;
-#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
-                }
-                catch (TargetInvocationException ex)
-                {
-                    ExceptionDispatchInfo.Capture(ex.InnerException!).Throw();
-                }
-
-                this.equalityComparerCache.TryAdd(valueType, equalityComparer);
-            }
-
-            return equalityComparer.GetHashCode(value);
-        }
     }
 
     private class UInt64EqualityComparer : CollisionResistantHasher<ulong>

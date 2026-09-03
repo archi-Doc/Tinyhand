@@ -19,6 +19,7 @@
 ## Table of Contents
 
 - [Requirements](#requirements)
+- [NativeAOT](NativeAOT.md)
 - [Quick Start](#quick-start)
 - [Performance](#performance)
 - [Serialization Target](#serialization-target)
@@ -37,17 +38,14 @@
   - [Serialization Callback](#serialization-callback)
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#lz4-Compression)
-  - [Non-Generic API](#non-generic-API)
 
 
 
 ## Requirements
 
-**C# 9.0** 以降：生成コードが使用
+**Visual Studio 2026** 以降、**C# 14** 以降、**.NET 10** 以降を使用します。
 
-**.NET 5** 世代以降のコンパイラ：ソースジェネレーターが使用
-
-.NET Core 3 プロジェクトでも使用可能ですが、`ModuleInitializerAttribute`を使用するため、**.NET 5** 以降を推奨します
+NativeAOT では、使用する型の formatter と閉じたジェネリック型の登録コードを Source Generator が生成します。[設定・移行手順・検証内容](NativeAOT.md)を参照してください。
 
 
 
@@ -687,6 +685,16 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 ### Built-in supported types
 
+`Standard` では、`object` 型の値をプリミティブ用 formatter で処理します。`null`、対応するプリミティブ値、列挙型、および対応する値を格納した `System.Collections.ICollection` / `System.Collections.IDictionary` を扱えます。任意の実行時型に応じた formatter の自動選択は行いません。カスタム型は具体的な型または定義済みの Union を使ってシリアライズしてください。
+
+`object` 経由でシリアライズするコレクションは、内部の値にもプリミティブのエンコードを使用します。内部の整数は整数型を保持するため、従来の実行時 formatter 選択と出力バイト列が変わる場合があります。データから復元される整数型は、引き続きエンコードされたバイト列で決まります。
+
+`Security = TinyhandSecurity.UntrustedData`（または `HashCollisionResistant` が有効）の場合、標準のセキュリティ設定ではハッシュコレクションの `object` キーを拒否します。`Dictionary<object, ...>`、`HashSet<object>`、`ILookup<object, ...>`、および `object` 経由で復元するマップが対象です。実際のキーが文字列でも拒否されるため、`Dictionary<string, ...>` など対応する具体的なキー型を指定してください。`object` に格納したスカラー値や、マップを含まない配列は引き続き扱えます。`TrustedData` の動作は変わりません。
+
+非ジェネリックのコレクション型（`IEnumerable`、`ICollection`、`IList`、`IDictionary`、`ArrayList`、`Hashtable`）はシリアライズ対象の型として指定できません。`IEnumerable<T>`、`ICollection<T>`、`IList<T>`、`IDictionary<TKey, TValue>` などのジェネリックインターフェイス、または対応するジェネリックコレクションの具体型を使用してください。
+
+`System.Type` の値を扱う組み込みformatterはなく、標準のシリアライザー設定では非対応です。
+
 サポートしている型の一覧：
 
 * Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
@@ -700,8 +708,6 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 * `Array[]`, `Array[,]`, `Array[,,]`, `Array[,,,]`, `ArraySegment<>`, `BitArray`
 
 * `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
-
-* `ArrayList`, `Hashtable`
 
 * `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
 
@@ -719,8 +725,6 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 * Custom implementations of `ICollection<>` or `IDictionary<,>` with a parameterless constructor
 
-* Custom implementations of `IList` or `IDictionary` with a parameterless constructor
-
 
 
 ### LZ4 Compression
@@ -731,15 +735,3 @@ LZ4による圧縮も可能です（[MessagePack for C#](https://github.com/neue
 var b = TinyhandSerializer.Serialize(myClass, TinyhandSerializerOptions.Lz4);
 var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b, TinyhandSerializerOptions.Standard.WithCompression(TinyhandCompression.Lz4)); // Same as TinyhandSerializerOptions.Lz4
 ```
-
-
-
-
-### Non-Generic API
-
-```csharp
-var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
-var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
-var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
-```
-

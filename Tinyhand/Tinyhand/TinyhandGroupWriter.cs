@@ -1,5 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
+using System.Runtime.CompilerServices;
 using Arc.IO;
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly
@@ -9,259 +11,200 @@ using Arc.IO;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Decides how group brackets are laid out when a binary is converted to text.<br/>
+/// In the indented modes (<see cref="TinyhandComposeOption.Standard"/> and <see cref="TinyhandComposeOption.UseContextualInformation"/>)
+/// the brackets are not written immediately: a run of closing brackets followed by a run of opening brackets is
+/// accumulated and rendered as a line feed, an indent and "+ " markers when the next value is written.<br/>
+/// A run of opening brackets can never be followed by a closing bracket without a value in between
+/// (an empty group is written as "{}" directly), so the pending state is fully described by
+/// the number of pending closes, the number of pending opens that follow them, and a pending line feed.
+/// </summary>
 public ref struct TinyhandGroupWriter
 {
+    /// <summary>
+    /// The maximum number of bytes <see cref="FlushCore"/> can write: a line feed, an indent, "+ " markers, and another line feed with an indent.
+    /// </summary>
+    internal const int MaxFlushLength = 1 + (MaxIndent * 2) + (MaxIndent * 2) + 1 + (MaxIndent * 2);
+
+    private const int MaxIndent = TinyhandGroupStack.MaxDepth;
+
     public readonly TinyhandComposeOption ComposeOption;
 
+    private readonly bool enableIndent;
     private int indents;
-    private int firstSerial;
-    private int secondSerial;
+    private int closes;
+    private int opens;
     private int lfCount;
-
-    public bool EnableIndent => this.ComposeOption == TinyhandComposeOption.Standard || this.ComposeOption == TinyhandComposeOption.UseContextualInformation;
-
-    public int Indents => this.indents;
 
     public TinyhandGroupWriter(TinyhandComposeOption composeOption)
     {
         this.ComposeOption = composeOption;
+        this.enableIndent = composeOption == TinyhandComposeOption.Standard || composeOption == TinyhandComposeOption.UseContextualInformation;
     }
 
+    public bool EnableIndent => this.enableIndent;
+
+    public int Indents => this.indents;
+
+    /// <summary>
+    /// Gets a value indicating whether <see cref="Flush(ref TinyhandRawWriter)"/> has something to write.
+    /// </summary>
+    internal bool HasPending => (this.closes | this.opens | this.lfCount) != 0;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddLF()
     {
         this.lfCount++;
     }
 
+    /// <summary>
+    /// Adds a pending opening bracket (indented modes only).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AddOpen()
+    {
+        this.opens++;
+    }
+
+    /// <summary>
+    /// Adds a pending closing bracket (indented modes only).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void AddClose()
+    {
+        if (this.opens == 0)
+        {
+            this.closes++;
+        }
+        else
+        {// An opening bracket directly followed by a closing bracket: an empty group, which the converter never produces.
+            this.opens--;
+            this.lfCount++;
+        }
+    }
+
     public void ProcessStartGroup(ref TinyhandRawWriter writer)
     {
-        if (!this.EnableIndent)
+        if (!this.enableIndent)
         {
             writer.WriteUInt8(TinyhandConstants.OpenBrace);
             return;
         }
 
-ProcessPartialLoop:
-        if (this.firstSerial == 0)
-        {// this.secondSerial == 0
-            this.firstSerial++;
-        }
-        else if (this.firstSerial < 0)
-        {// this.secondSerial >= 0
-            this.secondSerial++;
-        }
-        else
-        {// this.firstSerial > 0
-            if (this.secondSerial == 0)
-            {
-                this.firstSerial++;
-            }
-            else
-            {// this.secondSerial < 0
-                this.ProcessPartial(ref writer);
-                goto ProcessPartialLoop;
-            }
-        }
+        this.opens++;
     }
 
     public void ProcessEndGroup(ref TinyhandRawWriter writer)
     {
-        if (!this.EnableIndent)
+        if (!this.enableIndent)
         {
             writer.WriteUInt8(TinyhandConstants.CloseBrace);
             return;
         }
 
-ProcessPartialLoop:
-        if (this.firstSerial == 0)
-        {// this.secondSerial == 0
-            this.firstSerial--;
-        }
-        else if (this.firstSerial < 0)
-        {// this.secondSerial >= 0
-            if (this.secondSerial == 0)
-            {
-                this.firstSerial--;
-            }
-            else
-            {// this.secondSerial > 0
-                this.ProcessPartial(ref writer);
-                goto ProcessPartialLoop;
-            }
+        if (this.opens == 0)
+        {
+            this.closes++;
         }
         else
-        {// this.firstSerial > 0
-            this.secondSerial--;
+        {// An opening bracket directly followed by a closing bracket: an empty group, which the converter never produces.
+            this.opens--;
+            this.Flush(ref writer);
+            writer.WriteUInt16(TinyhandConstants.OpenCloseBrace);
         }
     }
 
+    /// <summary>
+    /// Writes the pending brackets and line feed.
+    /// </summary>
+    /// <param name="writer">The writer.</param>
     public void Flush(ref TinyhandRawWriter writer)
     {
-        /*if (this.lfCount > 0)
+        if (!this.HasPending)
         {
-            writer.WriteLF();
-            writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-            this.lfCount = 0;
-        }*/
-
-        if (this.firstSerial == 0)
-        {// 0 serial
+            return;
         }
-        else if (this.secondSerial == 0)
-        {// 1 serial
-            this.indents += this.firstSerial;
-            writer.WriteLF();
+
+        var span = writer.GetSpan(MaxFlushLength);
+        writer.Advance(this.FlushCore(span));
+    }
+
+    /// <summary>
+    /// Writes the pending brackets and line feed to <paramref name="span"/>, which must be at least <see cref="MaxFlushLength"/> bytes long.
+    /// </summary>
+    /// <param name="span">The destination.</param>
+    /// <returns>The number of bytes written.</returns>
+    internal int FlushCore(Span<byte> span)
+    {
+        var position = 0;
+        var opens = this.opens;
+        var closes = this.closes;
+
+        if ((opens | closes) != 0)
+        {
+            span[position++] = TinyhandConstants.LineFeed;
             this.lfCount--;
-            if (this.firstSerial > 1)
-            { // {{{ -> LF+4 "+ "
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents - 1));
-                writer.WriteUInt16(TinyhandConstants.StartGroup);
+
+            if (closes == 0)
+            {// {, {{, {{{ -> LF + indent, or LF + indent + "+ "
+                this.indents += opens;
+                if (opens > 1)
+                {
+                    position = WriteIndent(span, position, this.indents - 1);
+                    span[position++] = TinyhandConstants.Plus;
+                    span[position++] = TinyhandConstants.Space;
+                }
+                else
+                {
+                    position = WriteIndent(span, position, this.indents);
+                }
             }
             else
-            {
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+            {// }}} -> LF + indent, or }}}{{ -> LF + indent + "+ + "
+                this.indents -= closes;
+                position = WriteIndent(span, position, this.indents);
+                if (opens > 0)
+                {
+                    if (this.indents + opens > MaxIndent)
+                    {
+                        TinyhandGroupStack.ThrowIndentationDepthException();
+                    }
+
+                    for (var i = 0; i < opens; i++)
+                    {
+                        span[position++] = TinyhandConstants.Plus;
+                        span[position++] = TinyhandConstants.Space;
+                    }
+
+                    this.indents += opens;
+                }
             }
 
-            this.firstSerial = 0;
+            this.opens = 0;
+            this.closes = 0;
         }
-        else if (this.firstSerial > 0)
-        {// 2serials: 1st '{' 2nd '}'
-            if (this.firstSerial >= -this.secondSerial)
-            {// 3, -2: {{{}}
-                var dif = this.firstSerial + this.secondSerial;
-                if (dif != 0)
-                {
-                    this.indents += dif;
-                    writer.WriteLF();
-                    this.lfCount--;
-                    writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                }
-
-                for (var i = 0; i < -this.secondSerial; i++)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                }
-
-                this.AddLF();
-            }
-            else
-            {// 2, -3: {{}}}
-                for (var i = 0; i < this.firstSerial; i++)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                }
-
-                this.indents += this.firstSerial + this.secondSerial;
-                writer.WriteLF();
-                this.lfCount--;
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-            }
-        }
-        else
-        {// 2serials: 1st '}' 2nd '{'
-            if (-this.firstSerial >= this.secondSerial)
-            {// -3, 2: }}}{{
-                this.indents += this.firstSerial;
-                writer.WriteLF();
-                this.lfCount--;
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < this.secondSerial; i++)
-                {
-                    writer.WriteUInt16(TinyhandConstants.StartGroup);
-                }
-
-                this.indents += this.secondSerial;
-            }
-            else
-            {// -2, 3: }}{{{
-                this.indents += this.firstSerial;
-                writer.WriteLF();
-                this.lfCount--;
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < this.secondSerial; i++)
-                {
-                    writer.WriteUInt16(TinyhandConstants.StartGroup);
-                }
-
-                this.indents += this.secondSerial;
-            }
-        }
-
-        this.firstSerial = 0;
-        this.secondSerial = 0;
 
         if (this.lfCount > 0)
         {
-            writer.WriteLF();
-            writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
+            span[position++] = TinyhandConstants.LineFeed;
+            position = WriteIndent(span, position, this.indents);
         }
 
         this.lfCount = 0;
+        return position;
     }
 
-    private void ProcessPartial(ref TinyhandRawWriter writer)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int WriteIndent(Span<byte> span, int position, int indents)
     {
-        if (this.firstSerial > 0)
-        {// 2serials: 1st '{' 2nd '}'
-            if (this.firstSerial >= -this.secondSerial)
-            {// 3, -2: {{{}}
-                this.indents += this.firstSerial + this.secondSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < -this.secondSerial; i++)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                }
-
-                this.firstSerial = 0;
-                this.secondSerial = 0;
-            }
-            else
-            {// 2, -3: {{}}}
-                for (var i = 0; i < this.firstSerial; i++)
-                {
-                    writer.WriteUInt8(TinyhandConstants.OpenBrace);
-                    writer.WriteUInt8(TinyhandConstants.CloseBrace);
-                }
-
-                this.firstSerial += this.secondSerial;
-                this.secondSerial = 0;
-            }
+        if ((uint)indents > MaxIndent)
+        {
+            TinyhandGroupStack.ThrowIndentationDepthException();
         }
-        else
-        {// 2serials: 1st '}' 2nd '{'
-            if (-this.firstSerial >= this.secondSerial)
-            {// -3, 2: }}}{{
-                this.indents += this.firstSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < this.secondSerial; i++)
-                {
-                    writer.WriteUInt8((byte)'+');
-                    writer.WriteUInt8(TinyhandConstants.Space);
-                }
 
-                this.indents += this.secondSerial;
-                this.firstSerial = 0;
-                this.secondSerial = 0;
-            }
-            else
-            {// -2, 3: }}{{{
-                this.indents += this.firstSerial;
-                writer.WriteLF();
-                writer.WriteSpan(TinyhandTreeConverter.GetIndentSpan(this.indents));
-                for (var i = 0; i < this.secondSerial; i++)
-                {
-                    writer.WriteUInt8((byte)'+');
-                    writer.WriteUInt8(TinyhandConstants.Space);
-                }
-
-                this.indents += this.secondSerial;
-                this.firstSerial += this.secondSerial;
-                this.secondSerial = 0;
-            }
-        }
+        var length = indents * 2;
+        span.Slice(position, length).Fill(TinyhandConstants.Space);
+        return position + length;
     }
 }

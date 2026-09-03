@@ -24,7 +24,7 @@ namespace Tinyhand.Formatters;
     var trest = i == 8 ? "\r\n    where TRest : notnull" : "";
 #>
 
-public sealed class TupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>><#= trest #>
+internal sealed class TupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>><#= trest #>
 {
     public void Serialize(ref TinyhandWriter writer, <#= t #>? value, TinyhandSerializerOptions options)
     {

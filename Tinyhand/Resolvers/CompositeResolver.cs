@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Tinyhand.Resolvers;
@@ -13,10 +12,8 @@ namespace Tinyhand.Resolvers;
 /// <remarks>
 /// This class is not thread-safe for mutations. It is thread-safe when not being written to.
 /// </remarks>
-public static class CompositeResolver
+internal static class CompositeResolver
 {
-    private static readonly ReadOnlyDictionary<Type, ITinyhandFormatter> EmptyFormattersByType = new ReadOnlyDictionary<Type, ITinyhandFormatter>(new Dictionary<Type, ITinyhandFormatter>());
-
     /// <summary>
     /// Initializes a new instance of an <see cref="IFormatterResolver"/> with the specified formatters and sub-resolvers.
     /// </summary>
@@ -86,7 +83,7 @@ public static class CompositeResolver
 
                 foreach (IFormatterResolver resolver in this.subResolvers)
                 {
-                    formatter = resolver.GetFormatter<T>();
+                    formatter = resolver.TryGetFormatter<T>();
                     if (formatter != null)
                     {
                         goto CACHE;

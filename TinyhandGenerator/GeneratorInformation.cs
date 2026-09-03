@@ -26,8 +26,6 @@ public class GeneratorInformation
 
     public bool GeneratingStaticMethod { get; set; }
 
-    public bool FlatLoader { get; } = true;
-
     public bool EnumAsString { get; set; }
 
     public bool TryGetBlock(string blockKey, out GeneratorBlock block) => this.keyToBlock.TryGetValue(blockKey, out block);

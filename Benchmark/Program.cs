@@ -51,6 +51,8 @@ public class Program
 
         var switcher = new BenchmarkSwitcher(new[]
         {
+            typeof(Utf8Benchmark),
+            typeof(Utf8ConverterBenchmark),
             typeof(PrimitiveValueBenchmark),
             typeof(CharBufferBenchmark),
             typeof(Struct128Benchmark),
@@ -60,6 +62,7 @@ public class Program
             typeof(Union2.UnionBenchmark2),
             typeof(UnionBenchmark),
             typeof(SerializeIdentifierTest),
+            typeof(Utf8ReaderBenchmark),
             typeof(DualWriter.DualWriterBenchmark),
             typeof(TypeSwitch.SwitchBenchmark),
             typeof(Clone.CloneBenchmark),

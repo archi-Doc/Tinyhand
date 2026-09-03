@@ -7,6 +7,9 @@ namespace Tinyhand;
 /// </summary>
 public static class MessagePackExtensionCodes
 {
+    /// <summary>
+    /// The extension code for an eight-byte DateTime binary value.
+    /// </summary>
     public const byte DateTime = 99;
 
     /// <summary>

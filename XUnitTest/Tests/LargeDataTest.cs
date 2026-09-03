@@ -39,6 +39,6 @@ public class LargeDataTest
         var c = new LargeDataClass();
         c.Prepare();
 
-        TestHelper.TestWithoutMessagePack(c);
+        TestHelper.TestRoundtrip(c);
     }
 }

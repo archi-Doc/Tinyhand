@@ -12,6 +12,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
 ## Table of Contents
 
 - [Requirements](#requirements)
+- [NativeAOT](#nativeaot)
 - [Quick Start](#quick-start)
 - [Performance](#performance)
 - [Serialization Target](#serialization-target)
@@ -34,7 +35,6 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Deep copy](#deep-copy)
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#lz4-Compression)
-  - [Non-Generic API](#non-generic-API)
 - [Original formatter](#original-formatter)
 
 
@@ -105,7 +105,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        // TinyhandModule_ConsoleApp1.Initialize(); // Initialize() method is required on some platforms (e.g Xamarin, Native AOT) which does not support ModuleInitializer attribute.
+        // Formatters are registered automatically, including on .NET NativeAOT.
 
         var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
         var b = TinyhandSerializer.Serialize(myClass);
@@ -156,18 +156,13 @@ Tinyhand is quite fast and since it is based on Source Generator, it does not ta
 
 
 
-## Pitfalls
+## NativeAOT
 
-### ModuleInitializer
+Tinyhand generates registrations for closed model, enum, and collection types at compile time. Enable `<PublishAot>true</PublishAot>` in your .NET 10 application and publish for the target RID. Module initializers run automatically on .NET NativeAOT.
 
-Some AOT platforms (e.g Xamarin, Native AOT) currently does not support `ModuleInitializer` attribute.
+Use `[assembly: TinyhandRegister(typeof(MyClosedType))]` for types used only inside another assembly's generic helpers. Dynamic generic formatter factories have been removed. Type identifier registration now uses `TinyhandTypeIdentifier.Register<T>()`, and Processor plugins must be linked and registered with `TinyhandProcess.RegisterPlugin<T>(name)`.
 
-Tinyhand use `ModuleInitializer` attribute to load generated formatters, so you need to call `Initialize()` method manually on these platforms.
-
-```csharp
-// Add this code before the first use of Tinyhand.
-TinyhandModule_YourAssemblyName.Initialize(); // Assembly name is necessary to avoid name conflict in multiple assemblies.
-```
+See [NativeAOT setup, migration notes, and verification](doc/NativeAOT.md) for details, including the remaining upstream Arc.Unit trimming warnings in Processor.
 
 
 
@@ -860,6 +855,16 @@ public static class DeepCopyTest
 
 ### Built-in supported types
 
+With `Standard` options, `object`-typed values use the primitive object formatter. It supports null, supported primitive values, enums, and `System.Collections.ICollection` / `System.Collections.IDictionary` values containing supported values. It does not automatically select a formatter for an arbitrary runtime type. Serialize custom types using their concrete type or a declared union.
+
+Collections serialized through `object` now use primitive encoding recursively. Nested integers retain their integer type, so their bytes can differ from the previous runtime formatter dispatch. When reading data, integer types continue to be determined by the encoded bytes.
+
+With `Security = TinyhandSecurity.UntrustedData` (or `HashCollisionResistant` enabled), the built-in security policy rejects `object` keys in hash-based collections. This includes `Dictionary<object, ...>`, `HashSet<object>`, `ILookup<object, ...>`, and maps deserialized through `object`, even when their keys are strings. Use a concrete supported key type, such as `Dictionary<string, ...>`. Scalar `object` values and arrays without nested maps remain supported. `TrustedData` retains its existing behavior.
+
+Non-generic collection types (`IEnumerable`, `ICollection`, `IList`, `IDictionary`, `ArrayList`, and `Hashtable`) are not supported as the serialization type. Use generic interfaces such as `IEnumerable<T>`, `ICollection<T>`, `IList<T>`, and `IDictionary<TKey, TValue>`, or supported concrete generic collections.
+
+`System.Type` values do not have a built-in formatter and are not supported by the default serializer options.
+
 These types can serialize by default:
 
 * Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
@@ -873,8 +878,6 @@ These types can serialize by default:
 * `Array[]`, `Array[,]`, `Array[,,]`, `Array[,,,]`, `ArraySegment<>`, `BitArray`
 
 * `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
-
-* `ArrayList`, `Hashtable`
 
 * `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
 
@@ -892,8 +895,6 @@ These types can serialize by default:
 
 * Custom implementations of `ICollection<>` or `IDictionary<,>` with a parameterless constructor
 
-* Custom implementations of `IList` or `IDictionary` with a parameterless constructor
-
 
 
 ### LZ4 Compression
@@ -905,16 +906,6 @@ var b = TinyhandSerializer.Serialize(myClass, TinyhandSerializerOptions.Lz4);
 var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b, TinyhandSerializerOptions.Standard.WithCompression(TinyhandCompression.Lz4)); // Same as TinyhandSerializerOptions.Lz4
 ```
 
-
-
-
-### Non-Generic API
-
-```csharp
-var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
-var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
-var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
-```
 
 
 
