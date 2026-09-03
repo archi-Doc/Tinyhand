@@ -3,6 +3,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
@@ -211,7 +212,7 @@ internal sealed class DictionaryFormatter<TKey, TValue> : DictionaryFormatterBas
     }
 }
 
-internal sealed class GenericDictionaryFormatter<TKey, TValue, TDictionary> : DictionaryFormatterBase<TKey, TValue, TDictionary>
+internal sealed class GenericDictionaryFormatter<TKey, TValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TDictionary> : DictionaryFormatterBase<TKey, TValue, TDictionary>
     where TDictionary : IDictionary<TKey, TValue>, new()
 {
     protected override void Add(TDictionary collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
