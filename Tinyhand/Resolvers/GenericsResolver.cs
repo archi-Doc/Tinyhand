@@ -116,6 +116,12 @@ namespace Tinyhand.Internal
         // Reduce IL2CPP code generate size(don't write long code in <T>)
         internal static object? GetFormatter(Type t)
         {
+            // ExpandoObject must not be inferred as a custom dictionary.
+            if (t == typeof(System.Dynamic.ExpandoObject))
+            {
+                return null;
+            }
+
             TypeInfo ti = t.GetTypeInfo();
 
             if (t.IsArray)

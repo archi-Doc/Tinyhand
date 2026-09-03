@@ -1,6 +1,5 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System;
 using Xunit;
 
 #pragma warning disable SA1009
@@ -10,8 +9,6 @@ namespace Tinyhand.Tests;
 public static class TestHelper
 {
     public static T? Convert<T>(T obj) => TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize<T>(obj));
-
-    public static object? ConvertNonGeneric(Type type, object obj) => TinyhandSerializer.Deserialize(type, TinyhandSerializer.Serialize(type, obj));
 
     public static T? TestWithoutMessagePack<T>(T obj, bool testClone = true)
     {

@@ -20,6 +20,11 @@ public static class TinyhandTypeIdentifier
     private static readonly ThreadsafeTypeKeyHashtable<uint> TypeToTypeIdentifier = new();
     private static readonly ThreadsafeTypeKeyHashtable<MethodClass> TypeToMethodClass = new();
 
+    static TinyhandTypeIdentifier()
+    {
+        Resolvers.StandardResolver.Instance.RegisterInstantiableTypes();
+    }
+
     private class MethodClass
     {
         internal delegate void SerializeWriterDelegate(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options);

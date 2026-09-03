@@ -34,7 +34,6 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
   - [Deep copy](#deep-copy)
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#lz4-Compression)
-  - [Non-Generic API](#non-generic-API)
 - [Original formatter](#original-formatter)
 
 
@@ -909,16 +908,6 @@ var b = TinyhandSerializer.Serialize(myClass, TinyhandSerializerOptions.Lz4);
 var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b, TinyhandSerializerOptions.Standard.WithCompression(TinyhandCompression.Lz4)); // Same as TinyhandSerializerOptions.Lz4
 ```
 
-
-
-
-### Non-Generic API
-
-```csharp
-var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
-var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
-var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
-```
 
 
 

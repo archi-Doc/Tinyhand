@@ -1,7 +1,5 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using Tinyhand.Formatters;
-
 namespace Tinyhand.Resolvers;
 
 /// <summary>
@@ -19,7 +17,6 @@ internal sealed class StandardResolver : IFormatterResolver
         NativeGuidResolver.Instance,
         NativeDecimalResolver.Instance,
         BuiltinResolver.Instance,
-        CompositeResolver.Create(ExpandoObjectFormatter.Instance),
         GenericsResolver.Instance,
         GeneratedResolver.Instance,
         PrimitiveObjectResolver.Instance,

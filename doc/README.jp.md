@@ -37,7 +37,6 @@
   - [Serialization Callback](#serialization-callback)
   - [Built-in supported types](#built-in-supported-types)
   - [LZ4 Compression](#lz4-Compression)
-  - [Non-Generic API](#non-generic-API)
 
 
 
@@ -735,15 +734,3 @@ LZ4による圧縮も可能です（[MessagePack for C#](https://github.com/neue
 var b = TinyhandSerializer.Serialize(myClass, TinyhandSerializerOptions.Lz4);
 var myClass2 = TinyhandSerializer.Deserialize<MyClass>(b, TinyhandSerializerOptions.Standard.WithCompression(TinyhandCompression.Lz4)); // Same as TinyhandSerializerOptions.Lz4
 ```
-
-
-
-
-### Non-Generic API
-
-```csharp
-var myClass = (MyClass)TinyhandSerializer.Reconstruct(typeof(MyClass));
-var b = TinyhandSerializer.Serialize(myClass.GetType(), myClass);
-var myClass2 = TinyhandSerializer.Deserialize(typeof(MyClass), b);
-```
-

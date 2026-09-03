@@ -1,6 +1,5 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System.ComponentModel;
 using Xunit;
 
 namespace Tinyhand.Tests;
@@ -72,8 +71,6 @@ public class GenericsTest
         t.ClassInt.VValue = 23;
         var tt = TestHelper.Convert(t);
         tt.IsStructuralEqual(t);
-        tt = (GenericsTestClass<string>)TestHelper.ConvertNonGeneric(t.GetType(), (object)t);
-        tt.IsStructuralEqual(t);
 
         var t2 = TinyhandSerializer.Reconstruct<GenericsTestClass<long>>();
         t2.Int = 13;
@@ -83,9 +80,6 @@ public class GenericsTest
         t2.NestedClass2.String = "te";
         t2.ClassInt.VValue = 23;
         var tt2 = TestHelper.Convert(t2);
-        tt2.IsStructuralEqual(t2);
-
-        tt2 = (GenericsTestClass<long>)TestHelper.ConvertNonGeneric(t2.GetType(), (object)t2);
         tt2.IsStructuralEqual(t2);
     }
 }

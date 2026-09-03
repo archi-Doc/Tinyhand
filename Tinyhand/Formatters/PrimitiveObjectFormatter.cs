@@ -9,7 +9,7 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
-internal class PrimitiveObjectFormatter : ITinyhandFormatter<object>
+internal sealed class PrimitiveObjectFormatter : ITinyhandFormatter<object>
 {
     public static readonly ITinyhandFormatter<object> Instance = new PrimitiveObjectFormatter();
 
@@ -33,7 +33,7 @@ internal class PrimitiveObjectFormatter : ITinyhandFormatter<object>
         { typeof(byte[]), 14 },
     };
 
-    protected PrimitiveObjectFormatter()
+    private PrimitiveObjectFormatter()
     {
     }
 
@@ -299,7 +299,7 @@ internal class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                     options.Security.DepthStep(ref reader);
                     try
                     {
-                        value = this.DeserializeMap(ref reader, length, options);
+                        value = DeserializeMap(ref reader, length, options);
                         return;
                     }
                     finally
@@ -380,7 +380,7 @@ internal class PrimitiveObjectFormatter : ITinyhandFormatter<object>
         throw new TinyhandException("Not supported primitive object resolver. type:" + t.Name);
     }
 
-    protected virtual object DeserializeMap(ref TinyhandReader reader, int length, TinyhandSerializerOptions options)
+    private static object DeserializeMap(ref TinyhandReader reader, int length, TinyhandSerializerOptions options)
     {
         ITinyhandFormatter<object> objectFormatter = options.Resolver.GetFormatter<object>();
         var dictionary = new Dictionary<object, object>(length, options.Security.GetEqualityComparer<object>());

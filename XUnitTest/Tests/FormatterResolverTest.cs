@@ -31,4 +31,15 @@ public class FormatterResolverTest
         Assert.Equal(value, TinyhandSerializer.Deserialize<Uri>(bytes, options));
         Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize<object>(value, options));
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DefaultResolversDoNotSupportExpandoObject(bool compatible)
+    {
+        var options = compatible ? TinyhandSerializerOptions.Compatible : TinyhandSerializerOptions.Standard;
+
+        Assert.Null(options.Resolver.TryGetFormatter<System.Dynamic.ExpandoObject>());
+        Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(new System.Dynamic.ExpandoObject(), options));
+    }
 }
