@@ -20,6 +20,7 @@ internal class ExpandoObjectFormatter : ITinyhandFormatter<ExpandoObject>
     {
         if (reader.TryReadNil())
         {
+            value = null;
             return;
         }
 
@@ -86,6 +87,7 @@ internal class ExpandoObjectFormatter : ITinyhandFormatter<ExpandoObject>
 
         var result = new ExpandoObject();
         var dict = (IDictionary<string, object>)value!;
+        var resultDictionary = (IDictionary<string, object>)result!;
 
         if (dict.Count > 0)
         {
@@ -96,7 +98,7 @@ internal class ExpandoObjectFormatter : ITinyhandFormatter<ExpandoObject>
             {
                 string k = keyFormatter.Clone(item.Key, options) ?? string.Empty;
                 object v = valueFormatter.Clone(item.Value, options)!;
-                dict.Add(k, v);
+                resultDictionary.Add(k, v);
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System;
 using Tinyhand.Formatters;
 
 namespace Tinyhand.Resolvers;
@@ -21,6 +20,7 @@ internal sealed class CompatibleResolver : IFormatterResolver
         CompositeResolver.Create(ExpandoObjectFormatter.Instance),
         GenericsResolver.Instance,
         GeneratedResolver.Instance,
+        PrimitiveObjectResolver.Instance,
     };
 
     private CompatibleResolver()
@@ -34,6 +34,10 @@ internal sealed class CompatibleResolver : IFormatterResolver
 
     public void RegisterInstantiableTypes()
     {
+        foreach (var resolver in Resolvers)
+        {
+            resolver.RegisterInstantiableTypes();
+        }
     }
 
     private static class FormatterCache<T>
@@ -42,21 +46,13 @@ internal sealed class CompatibleResolver : IFormatterResolver
 
         static FormatterCache()
         {
-            if (typeof(T) == typeof(object))
+            foreach (var resolver in Resolvers)
             {
-                // final fallback
-                Formatter = (ITinyhandFormatter<T>)Tinyhand.Formatters.DynamicObjectTypeFallbackFormatter.Instance;
-            }
-            else
-            {
-                foreach (var x in Resolvers)
+                var formatter = resolver.TryGetFormatter<T>();
+                if (formatter != null)
                 {
-                    var f = x.TryGetFormatter<T>();
-                    if (f != null)
-                    {
-                        Formatter = f;
-                        return;
-                    }
+                    Formatter = formatter;
+                    return;
                 }
             }
         }

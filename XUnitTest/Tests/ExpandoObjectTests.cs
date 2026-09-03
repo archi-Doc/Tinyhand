@@ -1,117 +1,69 @@
 ﻿// Copyright (c) All contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
 using System.Dynamic;
-using System.Runtime.Serialization;
+using Tinyhand.IO;
 using Tinyhand.Resolvers;
 using Xunit;
 
 namespace Tinyhand.Tests;
 
-public partial class ExpandoObjectTests
+public class ExpandoObjectTests
 {
-    private readonly ITestOutputHelper logger;
-
-#if UNITY_2018_3_OR_NEWER
-
-    public ExpandoObjectTests()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Roundtrip(bool compatible)
     {
-        this.logger = new NullTestOutputHelper();
-    }
+        var options = compatible ? TinyhandSerializerOptions.Compatible : TinyhandSerializerOptions.Standard;
+        var expando = new ExpandoObject();
+        var properties = (IDictionary<string, object?>)expando;
+        properties.Add("Name", "George");
+        properties.Add("Age", 18);
+        properties.Add("Other", null);
 
-#endif
-
-    public ExpandoObjectTests(ITestOutputHelper logger)
-    {
-        this.logger = logger;
+        var bin = TinyhandSerializer.Serialize(expando, options);
+        var result = TinyhandSerializer.Deserialize<ExpandoObject>(bin, options)!;
+        var resultProperties = (IDictionary<string, object?>)result;
+        Assert.Equal("George", resultProperties["Name"]);
+        Assert.Equal(18, resultProperties["Age"]);
+        Assert.Null(resultProperties["Other"]);
     }
 
     [Fact]
-    public void ExpandoObject_Roundtrip()
+    public void CloneCopiesValuesWithoutModifyingSource()
     {
-        var options = TinyhandSerializerOptions.Standard;
+        var expando = new ExpandoObject();
+        var properties = (IDictionary<string, object?>)expando;
+        var bytes = new byte[] { 1, 2, 3 };
+        properties.Add("Name", "George");
+        properties.Add("Bytes", bytes);
 
-        dynamic expando = new ExpandoObject();
-        expando.Name = "George";
-        expando.Age = 18;
-
-        byte[] bin = TinyhandSerializer.Serialize(expando, options);
-        // this.logger.WriteLine(TinyhandSerializer.ConvertToJson(bin));
-
-        dynamic expando2 = TinyhandSerializer.Deserialize<ExpandoObject>(bin, options);
-        Assert.Equal(expando.Name, expando2.Name);
-        Assert.Equal(expando.Age, expando2.Age);
+        var result = TinyhandSerializer.Clone(expando)!;
+        var resultProperties = (IDictionary<string, object?>)result;
+        Assert.NotSame(expando, result);
+        Assert.Equal(2, properties.Count);
+        Assert.Equal(2, resultProperties.Count);
+        Assert.Equal("George", resultProperties["Name"]);
+        var clonedBytes = Assert.IsType<byte[]>(resultProperties["Bytes"]);
+        Assert.Equal(bytes, clonedBytes);
+        Assert.NotSame(bytes, clonedBytes);
+        clonedBytes[0] = 99;
+        Assert.Equal((byte)1, bytes[0]);
     }
 
-    /* Anonymous type is not supported.
     [Fact]
-    public void ExpandoObject_DeepGraphContainsAnonymousType()
+    public void DeserializeNilClearsExistingValue()
     {
-        dynamic expando = new ExpandoObject();
-        expando.Name = "George";
-        expando.Age = 18;
-        expando.Other = new { OtherProperty = "foo" };
+        ExpandoObject? value = new ExpandoObject();
+        var options = ExpandoObjectResolver.Options;
+        var bytes = TinyhandSerializer.Serialize<ExpandoObject>(null, options);
+        var reader = new TinyhandReader(bytes);
 
-        byte[] bin = TinyhandSerializer.Serialize(expando, TinyhandSerializerOptions.Standard);
-        // this.logger.WriteLine(TinyhandSerializer.ConvertToJson(bin));
+        options.Resolver.GetFormatter<ExpandoObject>().Deserialize(ref reader, ref value, options);
 
-        dynamic expando2 = TinyhandSerializer.Deserialize<ExpandoObject>(bin, ExpandoObjectResolver.Options);
-        Assert.Equal(expando.Name, expando2.Name);
-        Assert.Equal(expando.Age, expando2.Age);
-        Assert.NotNull(expando2.Other);
-        Assert.Equal(expando.Other.OtherProperty, expando2.Other.OtherProperty);
-    }*/
-
-    [Fact]
-    public void ExpandoObject_DeepGraphContainsCustomTypes()
-    {
-        var options = TinyhandSerializerOptions.Standard;
-        var f = options.Resolver.GetFormatter<string>();
-
-        dynamic expando = new ExpandoObject();
-        expando.Name = "George";
-        expando.Age = 18;
-        expando.Other = new CustomObject { OtherProperty = "foo" };
-
-        byte[] bin = TinyhandSerializer.Serialize(expando, TinyhandSerializerOptions.Standard);
-        // this.logger.WriteLine(TinyhandSerializer.ConvertToJson(bin));
-
-        dynamic expando2 = TinyhandSerializer.Deserialize<ExpandoObject>(bin, ExpandoObjectResolver.Options);
-        Assert.Equal(expando.Name, expando2.Name);
-        Assert.Equal(expando.Age, expando2.Age);
-        Assert.NotNull(expando2.Other);
-        Assert.Equal(expando.Other.OtherProperty, expando2.Other.OtherProperty);
-    }
-
-#if !UNITY_2018_3_OR_NEWER
-
-    /*[Fact]
-    public void ExpandoObject_DeepGraphContainsCustomTypes_TypeAnnotated()
-    {
-        var options = TinyhandSerializerOptions.Standard.WithResolver(TypelessObjectResolver.Instance);
-
-        dynamic expando = new ExpandoObject();
-        expando.Name = "George";
-        expando.Age = 18;
-        expando.Other = new CustomObject { OtherProperty = "foo" };
-
-        byte[] bin = TinyhandSerializer.Serialize(expando, options);
-        // this.logger.WriteLine(TinyhandSerializer.ConvertToJson(bin));
-
-        dynamic expando2 = TinyhandSerializer.Deserialize<ExpandoObject>(bin, options);
-        Assert.Equal(expando.Name, expando2.Name);
-        Assert.Equal(expando.Age, expando2.Age);
-        Assert.IsType<CustomObject>(expando2.Other);
-        Assert.Equal(expando.Other.OtherProperty, expando2.Other.OtherProperty);
-    }*/
-
-#endif
-
-    [DataContract]
-    [TinyhandObject(ImplicitMemberNameAsKey = true)]
-    public partial class CustomObject
-    {
-        [DataMember]
-        public string OtherProperty { get; set; }
+        Assert.Null(value);
+        Assert.True(reader.End);
     }
 }

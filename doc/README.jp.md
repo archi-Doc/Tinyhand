@@ -687,6 +687,10 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 ### Built-in supported types
 
+`Standard` と `Compatible` では、`object` 型の値をプリミティブ用 formatter で処理します。`null`、対応するプリミティブ値、列挙型、および対応する値を格納した `System.Collections.ICollection` / `System.Collections.IDictionary` を扱えます。任意の実行時型に応じた formatter の自動選択は行いません。カスタム型は具体的な型または定義済みの Union を使ってシリアライズしてください。
+
+`object` 経由でシリアライズするコレクションは、内部の値にもプリミティブのエンコードを使用します。内部の整数は整数型を保持するため、従来の実行時 formatter 選択と出力バイト列が変わる場合があります。データから復元される整数型は、引き続きエンコードされたバイト列で決まります。
+
 サポートしている型の一覧：
 
 * Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`

@@ -860,6 +860,10 @@ public static class DeepCopyTest
 
 ### Built-in supported types
 
+With `Standard` and `Compatible` options, `object`-typed values use the primitive object formatter. It supports null, supported primitive values, enums, and `System.Collections.ICollection` / `System.Collections.IDictionary` values containing supported values. It does not automatically select a formatter for an arbitrary runtime type. Serialize custom types using their concrete type or a declared union.
+
+Collections serialized through `object` now use primitive encoding recursively. Nested integers retain their integer type, so their bytes can differ from the previous runtime formatter dispatch. When reading data, integer types continue to be determined by the encoded bytes.
+
 These types can serialize by default:
 
 * Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
