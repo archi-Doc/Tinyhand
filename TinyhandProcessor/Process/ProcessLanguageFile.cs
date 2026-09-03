@@ -50,18 +50,18 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         return true;
     }
 
-    private static byte[] zeroByte = new byte[] { 0, };
-
     private static byte[] colonByte = new byte[] { TinyhandConstants.Colon, };
 
     private Group? referenceGroup;
 
     private bool ProcessReference(Value_String valueString)
     {
+        this.referenceGroup = null;
         var referencePath = Path.Combine(this.Environment.GetPath(PathType.SourceFolder), valueString.Utf16);
         if (!File.Exists(referencePath))
         {
             this.Environment.Fatal(valueString, $"Reference file ({referencePath}) does not exist.");
+            return false;
         }
 
         try
@@ -72,6 +72,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         {
             this.Environment.Fatal(valueString, $"Could not parse the reference file ({referencePath}).");
             this.Environment.Fatal(null, e.Message);
+            return false;
         }
 
         return true;
@@ -109,7 +110,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         }
 
 AddToTable:
-        var table = new Utf8Hashtable<byte[]>();
+        var table = new Utf8Hashtable<byte[]?>();
         this.ProcessTarget(table, Array.Empty<byte>(), targetGroup); // Add strings to Utf8Hashtable.
 
         var group = (Group)this.referenceGroup.DeepCopy();
@@ -127,12 +128,13 @@ AddToTable:
         catch
         {
             this.Environment.Log.Error(targetElement, $"Could not write the destination file ({destinationPath}).");
+            return false;
         }
 
         return true;
     }
 
-    private void ProcessTarget(Utf8Hashtable<byte[]> table, byte[] groupIdentifier, Group group)
+    private void ProcessTarget(Utf8Hashtable<byte[]?> table, byte[] groupIdentifier, Group group)
     {
         if (groupIdentifier.Length != 0)
         {
@@ -151,7 +153,7 @@ AddToTable:
                     }
                     else if (value is Value_Null)
                     {
-                        table.TryAdd(groupIdentifier.Concat(identifier).ToArray(), zeroByte);
+                        table.TryAdd(groupIdentifier.Concat(identifier).ToArray(), null);
                     }
                 }
                 else if (x.TryGetRight_Group(out var g))
@@ -162,7 +164,7 @@ AddToTable:
         }
     }
 
-    private void ProcessCloned(Utf8Hashtable<byte[]> table, byte[] groupIdentifier, Group group)
+    private void ProcessCloned(Utf8Hashtable<byte[]?> table, byte[] groupIdentifier, Group group)
     {
         if (groupIdentifier.Length != 0)
         {
@@ -178,7 +180,7 @@ AddToTable:
                 {// Right is string
                     if (table.TryGetValue(groupIdentifier.Concat(identifier).ToArray(), out var targetUtf8))
                     { // Found.
-                        if (targetUtf8.Length == 1 && targetUtf8[0] == 0)
+                        if (targetUtf8 is null)
                         { // null
                             assignment.RightElement = new Value_Null(assignment.RightElement);
                         }
@@ -199,7 +201,7 @@ AddToTable:
                 {// Right is null
                     if (table.TryGetValue(groupIdentifier.Concat(identifier).ToArray(), out var targetUtf8))
                     { // Found.
-                        if (targetUtf8.Length == 1 && targetUtf8[0] == 0)
+                        if (targetUtf8 is null)
                         { // null
                         }
                         else

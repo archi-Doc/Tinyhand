@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 
@@ -46,28 +45,6 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
         }
 
         this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.Configured;
-
-        foreach (var objectAttribute in this.AllAttributes.Where(x => x.FullName == TinyhandGenerateMemberAttributeMock.FullName))
-        {// TinyhandGenerateMember
-            try
-            {
-                var attribute = TinyhandGenerateMemberAttributeMock.FromArray(objectAttribute.ConstructorArguments, objectAttribute.NamedArguments);
-                var item = new Item(objectAttribute.Location, attribute.TinyhandPath, false);
-                this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.TinyhandGenerateMember;
-
-                if (objectAttribute.SyntaxReference is { } syntaxReferencee)
-                {
-                    item.SourcePath = syntaxReferencee.SyntaxTree.FilePath;
-                }
-
-                this.Items ??= new();
-                this.Items.Add(item);
-            }
-            catch (InvalidCastException)
-            {
-                this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, objectAttribute.Location);
-            }
-        }
 
         foreach (var x in this.AllAttributes)
         {

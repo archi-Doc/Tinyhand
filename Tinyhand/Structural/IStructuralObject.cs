@@ -169,7 +169,10 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
                 else
                 {
                     root = p.StructuralRoot;
-                    root.TryGetJournalWriter(JournalType.Record, out writer);
+                    if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+                    {
+                        return false;
+                    }
                 }
 
                 if (includeCurrent)
@@ -193,7 +196,10 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
                     else
                     {
                         root = p2.StructuralRoot;
-                        root.TryGetJournalWriter(JournalType.Record, out writer);
+                        if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+                        {
+                            return false;
+                        }
                     }
 
                     p.WriteKeyOrLocator(ref writer);
@@ -218,7 +224,10 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
                         else
                         {
                             root = p3.StructuralRoot;
-                            root.TryGetJournalWriter(JournalType.Record, out writer);
+                            if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+                            {
+                                return false;
+                            }
                         }
 
                         p2.WriteKeyOrLocator(ref writer);
@@ -244,7 +253,10 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
                             else
                             {
                                 root = p4.StructuralRoot;
-                                root.TryGetJournalWriter(JournalType.Record, out writer);
+                                if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+                                {
+                                    return false;
+                                }
                             }
 
                             p3.WriteKeyOrLocator(ref writer);
@@ -271,7 +283,10 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
                                 else
                                 {
                                     root = p5.StructuralRoot;
-                                    root.TryGetJournalWriter(JournalType.Record, out writer);
+                                    if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+                                    {
+                                        return false;
+                                    }
                                 }
 
                                 p4.WriteKeyOrLocator(ref writer);
@@ -299,7 +314,10 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
                                     else
                                     {
                                         root = p6.StructuralRoot;
-                                        root.TryGetJournalWriter(JournalType.Record, out writer);
+                                        if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+                                        {
+                                            return false;
+                                        }
                                     }
 
                                     p5.WriteKeyOrLocator(ref writer);
@@ -328,7 +346,10 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
                                         else
                                         {
                                             root = p7.StructuralRoot;
-                                            root.TryGetJournalWriter(JournalType.Record, out writer);
+                                            if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+                                            {
+                                                return false;
+                                            }
                                         }
 
                                         p6.WriteKeyOrLocator(ref writer);
@@ -358,7 +379,10 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
                                             else
                                             {
                                                 root = p8.StructuralRoot;
-                                                root.TryGetJournalWriter(JournalType.Record, out writer);
+                                                if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+                                                {
+                                                    return false;
+                                                }
                                             }
 
                                             p7.WriteKeyOrLocator(ref writer);

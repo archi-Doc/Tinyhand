@@ -927,12 +927,23 @@ public static partial class TinyhandSerializer
 
                 // Read from [Ext(98:int,int...), bin,bin,bin...]
                 var sequenceCount = arrayLength - 1;
+                if (sequenceCount > header.Length)
+                {
+                    throw new TinyhandException("Invalid LZ4 block length metadata.");
+                }
+
+                var lengthReader = reader.Clone(reader.ReadRaw(checked((int)header.Length)));
                 var uncompressedLengths = ArrayPool<int>.Shared.Rent(sequenceCount);
                 try
                 {
                     for (int i = 0; i < sequenceCount; i++)
                     {
-                        uncompressedLengths[i] = reader.ReadInt32();
+                        uncompressedLengths[i] = lengthReader.ReadInt32();
+                    }
+
+                    if (!lengthReader.End)
+                    {
+                        throw new TinyhandException("Invalid LZ4 block length metadata.");
                     }
 
                     for (int i = 0; i < sequenceCount; i++)

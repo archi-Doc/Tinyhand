@@ -612,6 +612,7 @@ _last_literals:
 
     private static unsafe int LZ4_uncompress_64(
         byte* src,
+        int src_len,
         byte* dst,
         int dst_len)
     {
@@ -623,6 +624,7 @@ _last_literals:
             {
                 // r93
                 var src_p = src;
+                var src_end = src + src_len;
                 byte* dst_ref;
 
                 var dst_p = dst;
@@ -641,12 +643,27 @@ _last_literals:
                     int length;
 
                     // get runlength
+                    if (src_p >= src_end)
+                    {
+                        goto _output_error;
+                    }
+
                     token = *src_p++;
                     if ((length = token >> ML_BITS) == RUN_MASK)
                     {
                         int len;
-                        for (; (len = *src_p++) == 255; length += 255)
+                        for (; ; length += 255)
                         {
+                            if (src_p >= src_end || length > int.MaxValue - 255)
+                            {
+                                goto _output_error;
+                            }
+
+                            if ((len = *src_p++) != 255)
+                            {
+                                break;
+                            }
+
                             /* do nothing */
                         }
 
@@ -654,6 +671,11 @@ _last_literals:
                     }
 
                     // copy literals
+                    if (length > src_end - src_p || length > dst_end - dst_p)
+                    {
+                        goto _output_error;
+                    }
+
                     dst_cpy = dst_p + length;
 
                     if (dst_cpy > dst_COPYLENGTH)
@@ -668,20 +690,34 @@ _last_literals:
                         break; // EOF
                     }
 
-                    do
+                    if (src_end - src_p < (long)length + COPYLENGTH)
                     {
-                        *(ulong*)dst_p = *(ulong*)src_p;
-                        dst_p += 8;
-                        src_p += 8;
+                        BlockCopy64(src_p, dst_p, length);
+                        src_p += length;
+                        dst_p = dst_cpy;
                     }
-                    while (dst_p < dst_cpy);
-                    src_p -= dst_p - dst_cpy;
-                    dst_p = dst_cpy;
+                    else
+                    {
+                        do
+                        {
+                            *(ulong*)dst_p = *(ulong*)src_p;
+                            dst_p += 8;
+                            src_p += 8;
+                        }
+                        while (dst_p < dst_cpy);
+                        src_p -= dst_p - dst_cpy;
+                        dst_p = dst_cpy;
+                        }
 
                     // get offset
+                    if (src_end - src_p < 2)
+                    {
+                        goto _output_error;
+                    }
+
                     dst_ref = dst_cpy - (*(ushort*)src_p);
                     src_p += 2;
-                    if (dst_ref < dst)
+                    if (dst_ref < dst || dst_ref == dst_p)
                     {
                         goto _output_error; // Error : offset outside destination buffer
                     }
@@ -689,8 +725,18 @@ _last_literals:
                     // get matchlength
                     if ((length = token & ML_MASK) == ML_MASK)
                     {
-                        for (; *src_p == 255; length += 255)
+                        for (; ; length += 255)
                         {
+                            if (src_p >= src_end || length > int.MaxValue - 255)
+                            {
+                                goto _output_error;
+                            }
+
+                            if (*src_p != 255)
+                            {
+                                break;
+                            }
+
                             src_p++;
                         }
 
@@ -698,6 +744,11 @@ _last_literals:
                     }
 
                     // copy repeated sequence
+                    if ((long)length + MINMATCH > dst_LASTLITERALS - dst_p)
+                    {
+                        goto _output_error;
+                    }
+
                     if ((dst_p - dst_ref) < STEPSIZE_64)
                     {
                         var dec64 = dec64table[dst_p - dst_ref];

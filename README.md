@@ -1,4 +1,4 @@
-# Tinyhand
+﻿# Tinyhand
 
 ![NuGet](https://img.shields.io/nuget/v/Tinyhand) ![Build and Test](https://github.com/archi-Doc/Tinyhand/workflows/Build%20and%20Test/badge.svg)
 
@@ -502,6 +502,14 @@ dotnet run --project QuickStart/QuickStart.csproj
 ```
 
 NativeAOT smoke tests must be published and run as native executables; see the [NativeAOT guide](doc/NativeAOT.md).
+
+Collect line and branch coverage with the Microsoft Testing Platform coverage extension:
+
+```sh
+dotnet test --project XUnitTest/XUnitTest.csproj --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+```
+
+The report is written to `TestResults`. Generator coverage measures generator calls made inside tests; source generation performed during the build is outside this measurement.
 
 The [Benchmark project](Benchmark) compares binary serialization, text conversion, and cloning. [Saved benchmark reports](Benchmark/ChampionData) are historical measurements, not results for every current runtime or version. Run Release benchmarks on the target hardware before drawing performance conclusions.
 

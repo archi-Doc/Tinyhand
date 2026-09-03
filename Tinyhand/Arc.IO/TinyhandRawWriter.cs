@@ -95,6 +95,17 @@ public ref struct TinyhandRawWriter
                     break;
 
                 default:
+                    if (utf8[i] < 0x20)
+                    {
+                        this.WriteSpan(utf8.Slice(from, i - from));
+                        from = i + 1;
+                        var escaped = this.writer.GetSpan(6);
+                        "\\u00"u8.CopyTo(escaped);
+                        escaped[4] = "0123456789abcdef"u8[utf8[i] >> 4];
+                        escaped[5] = "0123456789abcdef"u8[utf8[i] & 0xf];
+                        this.writer.Advance(6);
+                    }
+
                     continue;
             }
 

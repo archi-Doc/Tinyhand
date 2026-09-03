@@ -45,7 +45,7 @@ public static partial class TinyhandTreeConverter
     /// The bytes that must be escaped inside a quoted string.
     /// </summary>
 #pragma warning disable SA1214 // Readonly fields should appear before non-readonly fields
-    private static readonly SearchValues<byte> EscapeSearchValues = SearchValues.Create("\"\\\b\f\n\r\t"u8);
+    private static readonly SearchValues<byte> EscapeSearchValues = SearchValues.Create("\"\\\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f"u8);
 #pragma warning restore SA1214 // Readonly fields should appear before non-readonly fields
 
     /// <summary>
@@ -879,11 +879,15 @@ AfterElement:
         {
             if (table[utf8[i]] != 0)
             {
-                extra++;
+                extra = checked(extra + 1);
+            }
+            else if (utf8[i] < 0x20)
+            {
+                extra = checked(extra + 5);
             }
         }
 
-        Ensure(ref writer, ref destination, ref destinationPosition, utf8.Length + extra + 2);
+        Ensure(ref writer, ref destination, ref destinationPosition, checked(utf8.Length + extra + 2));
         var span = destination;
         var position = destinationPosition;
         span[position++] = TinyhandConstants.Quote;
@@ -894,9 +898,21 @@ AfterElement:
         {
             utf8.Slice(from, index - from).CopyTo(span.Slice(position));
             position += index - from;
-            span[position] = TinyhandConstants.BackSlash;
-            span[position + 1] = table[utf8[index]];
-            position += 2;
+            var escaped = table[utf8[index]];
+            if (escaped != 0)
+            {
+                span[position] = TinyhandConstants.BackSlash;
+                span[position + 1] = escaped;
+                position += 2;
+            }
+            else
+            {
+                "\\u00"u8.CopyTo(span.Slice(position));
+                span[position + 4] = "0123456789abcdef"u8[utf8[index] >> 4];
+                span[position + 5] = "0123456789abcdef"u8[utf8[index] & 0xf];
+                position += 6;
+            }
+
             from = index + 1;
 
             var next = utf8.Slice(from).IndexOfAny(EscapeSearchValues);

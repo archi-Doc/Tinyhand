@@ -90,6 +90,11 @@ internal partial class LZ4Codec
     /// <returns>Number of bytes written.</returns>
     public static unsafe int Decode(ReadOnlySpan<byte> input, Span<byte> output)
     {
+        if (input.IsEmpty)
+        {
+            throw new LZ4Exception("Input is empty.");
+        }
+
         if (output.Length == 0)
         {
             throw new LZ4Exception("Output is empty.");
@@ -102,11 +107,11 @@ internal partial class LZ4Codec
                 int length;
                 if (IntPtr.Size == 4)
                 {
-                    length = LZ4_uncompress_32(inputPtr, outputPtr, output.Length);
+                    length = LZ4_uncompress_32(inputPtr, input.Length, outputPtr, output.Length);
                 }
                 else
                 {
-                    length = LZ4_uncompress_64(inputPtr, outputPtr, output.Length);
+                    length = LZ4_uncompress_64(inputPtr, input.Length, outputPtr, output.Length);
                 }
 
                 if (length != input.Length)

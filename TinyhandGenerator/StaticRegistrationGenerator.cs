@@ -342,7 +342,7 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
                 return this.compilation.CreateArrayTypeSymbol(this.Substitute(array.ElementType, substitutions)!, array.Rank);
             }
 
-            if (type is INamedTypeSymbol named && named.IsGenericType && !named.IsUnboundGenericType)
+            if (type is INamedTypeSymbol named && named.TypeKind != TypeKind.Error && named.IsGenericType && !named.IsUnboundGenericType)
             {
                 var definition = named.OriginalDefinition;
                 if (named.ContainingType is { } containing)
