@@ -61,6 +61,10 @@ Check(TinyhandTypeIdentifier.TryParseOrDeserializeFromString(stringIdentifier, "
 PrivateTypes.Verify();
 GenericScope<int>.Verify();
 GenericHelpers.Verify(new HelperItem { Number = 91 });
+var named = Roundtrip(new NamedCollections { Values = [1, 2, 3] });
+Check(named.Values.SequenceEqual([1, 2, 3]), "constant string keys and primitive list");
+Check(ReferenceEquals(named.Empty, Array.Empty<Item>()), "empty generated array");
+Check(ReferenceEquals(TinyhandSerializer.Clone(named)!.Empty, Array.Empty<Item>()), "empty array clone");
 Console.WriteLine("NativeAOT serialization checks passed.");
 
 static T Roundtrip<T>(T value) => TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize(value))!;
@@ -71,6 +75,13 @@ static void Check(bool success, string operation)
     {
         throw new InvalidOperationException(operation);
     }
+}
+
+[TinyhandObject(SkipDefaultValues = false)]
+public partial class NamedCollections
+{
+    [Key("値\"\\\n")] public List<int> Values { get; set; } = [];
+    [Key("Empty")] public Item[] Empty { get; set; } = [];
 }
 
 [TinyhandObject]

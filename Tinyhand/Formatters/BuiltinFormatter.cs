@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Tinyhand.IO;
 
 #pragma warning disable SA1204 // Static elements should appear before instance elements
@@ -41,7 +42,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var value = new string[len];
+            var value = len == 0 ? Array.Empty<string>() : new string[len];
             for (int i = 0; i < value.Length; i++)
             {
                 value[i] = reader.ReadString() ?? string.Empty;
@@ -60,6 +61,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<string>();
+            }
+
             var array = new string[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -93,7 +99,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new string[len];
+            var array = len == 0 ? Array.Empty<string>() : new string[len];
             for (int i = 0; i < array.Length; i++)
             {
                 array[i] = reader.ReadString() ?? string.Empty;
@@ -112,10 +118,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }

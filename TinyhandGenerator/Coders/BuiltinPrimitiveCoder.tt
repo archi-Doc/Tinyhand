@@ -143,7 +143,7 @@ public sealed class <#= t.Name #>ArrayCoder : ITinyhandCoder
 
     public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
     {
-        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader) ?? new <#= t.Simple #>[0];");
+        ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.Deserialize<#= t.Name #>Array(ref reader) ?? [];");
     }
 
     public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)

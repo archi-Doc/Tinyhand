@@ -4121,7 +4121,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
             var originalName = ssb.FullObject;
             if (x.IsDefaultable)
             {
-                using (var conditionDeserialized = ssb.ScopeBrace($"if (!deserializedFlag[{reconstructIndex}])"))
+                using (var conditionDeserialized = ssb.ScopeBrace($"if ({this.GetMissingStringKeyCondition(reconstructIndex)})"))
                 {
                     assignment.Start(false);
                     ssb.AppendLine($"{ssb.FullObject} = {VisceralDefaultValue.DefaultValueToString(x.DefaultValue)};");
@@ -4132,7 +4132,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
             }
 
             // var nullCheckCode = withNullable.Object.Kind.IsReferenceType() && !x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget) ? $"if (!deserializedFlag[{reconstructIndex}] && {ssb.FullObject} == null)" : $"if (!deserializedFlag[{reconstructIndex}])";
-            var nullCheckCode = $"if (!deserializedFlag[{reconstructIndex}])";
+            var nullCheckCode = $"if ({this.GetMissingStringKeyCondition(reconstructIndex)})";
 
             using (var conditionDeserialized = ssb.ScopeBrace(nullCheckCode))
             {
@@ -4258,7 +4258,15 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         if (this.StringTrieReconstructNumber > 0)
         {
             // ssb.AppendLine($"var deserializedFlag = new bool[{this.StringTrieReconstructNumber}];");
-            ssb.AppendLine($"Span<bool> deserializedFlag = stackalloc bool[{this.StringTrieReconstructNumber}];");
+            if (this.StringTrieReconstructNumber <= 64)
+            {
+                ssb.AppendLine("ulong deserializedFlag = 0;");
+            }
+            else
+            {
+                ssb.AppendLine($"Span<ulong> deserializedFlag = stackalloc ulong[{(this.StringTrieReconstructNumber + 63) / 64}];");
+                ssb.AppendLine("deserializedFlag.Clear();");
+            }
         }
 
         ssb.AppendLine("var numberOfData = reader.ReadMapHeader2();");
@@ -4279,7 +4287,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
                     {
                         if (node.SubIndex >= 0)
                         {
-                            ssb.AppendLine($"deserializedFlag[{node.SubIndex}] = true;");
+                            ssb.AppendLine($"{this.GetStringKeyFlag(node.SubIndex)} |= {1UL << (node.SubIndex % 64)}UL;");
                         }
 
                         obj?.GenerateDeserializeCore2(ssb, info, node.Member);
@@ -4318,6 +4326,12 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
             ssb.AppendLine("reader.Depth--;");
         }
     }
+
+    private string GetStringKeyFlag(int index)
+        => this.StringTrieReconstructNumber <= 64 ? "deserializedFlag" : $"deserializedFlag[{index / 64}]";
+
+    private string GetMissingStringKeyCondition(int index)
+        => $"({this.GetStringKeyFlag(index)} & {1UL << (index % 64)}UL) == 0";
 
     internal void GenerateSerializeCore(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject? x, bool skipDefaultValue, ConvertToStringOrientation convertToStringOrientation)
     {
@@ -4604,7 +4618,13 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         var skipDefaultValue = this.ObjectAttribute?.SkipDefaultValues == true;
         foreach (var x in this.StringTrie.NodeList)
         {
-            ssb.AppendLine($"writer.WriteString({x.Utf8String});");
+            // Include the MessagePack header in the constant span to write each key in one operation.
+            var utf8 = Encoding.UTF8.GetBytes(x.Name!);
+            var header = utf8.Length < 32 ? new byte[] { (byte)(0xa0 | utf8.Length) }
+                : utf8.Length <= byte.MaxValue ? new byte[] { 0xd9, (byte)utf8.Length }
+                : utf8.Length <= ushort.MaxValue ? new byte[] { 0xda, (byte)(utf8.Length >> 8), (byte)utf8.Length }
+                : new byte[] { 0xdb, (byte)(utf8.Length >> 24), (byte)(utf8.Length >> 16), (byte)(utf8.Length >> 8), (byte)utf8.Length };
+            ssb.AppendLine($"writer.WriteSpan([{string.Join(", ", header.Concat(utf8))}]);");
             if (x.Member is not null)
             {
                 this.GenerateSerializerKey(ssb, info, x.Member, skipDefaultValue, convertToStringOrientation);

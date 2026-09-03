@@ -32,6 +32,7 @@ var allTypes = new (string Simple, string Name)[]
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Tinyhand.IO;
 
 #pragma warning disable SA1649 // File name should match first type name
@@ -72,7 +73,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new <#= t.Simple #>[len];
+            var array = len == 0 ? Array.Empty<<#= t.Simple #>>() : new <#= t.Simple #>[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -92,10 +93,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -129,6 +131,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<<#= t.Simple #>>();
+            }
+
             var array = new <#= t.Simple #>[value.Length];
             Array.Copy(value, array, value.Length);
             return array;

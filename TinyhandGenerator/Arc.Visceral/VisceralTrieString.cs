@@ -304,7 +304,7 @@ internal class VisceralTrieString<TObject>
 
         public byte[]? Utf8Name { get; private set; }
 
-        public string? Utf8String { get; set; } // "test"u8
+        public string? Name { get; private set; }
 
         public SortedDictionary<ulong, Node>? Nexts { get; private set; }
 
@@ -337,7 +337,7 @@ internal class VisceralTrieString<TObject>
             node.Index = index;
             node.Member = member;
             node.Utf8Name = utf8;
-            node.Utf8String = $"\"{name}\"u8";
+            node.Name = name;
 
             return node;
         }

@@ -193,11 +193,11 @@ public class ArrayCoder : ITinyhandCoder
             var idx = this.element.FullName.IndexOf('[');
             if (idx < 0)
             { // int
-                ssb.AppendLine($"var array = new {this.element.FullNameWithNullable}[len];");
+                ssb.AppendLine($"var array = len == 0 ? global::System.Array.Empty<{this.element.FullNameWithNullable}>() : new {this.element.FullNameWithNullable}[len];");
             }
             else
             { // int[][]
-                ssb.AppendLine($"var array = new {this.element.FullNameWithNullable.Substring(0, idx)}[len]{this.element.FullNameWithNullable.Substring(idx)};");
+                ssb.AppendLine($"var array = len == 0 ? global::System.Array.Empty<{this.element.FullNameWithNullable}>() : new {this.element.FullNameWithNullable.Substring(0, idx)}[len]{this.element.FullNameWithNullable.Substring(idx)};");
             }
 
             ssb.AppendLine("options.Security.DepthStep(ref reader);");

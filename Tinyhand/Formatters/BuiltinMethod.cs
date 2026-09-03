@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Tinyhand.IO;
 
 #pragma warning disable SA1649 // File name should match first type name
@@ -45,7 +46,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new byte[len];
+            var array = len == 0 ? Array.Empty<byte>() : new byte[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -65,10 +66,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -102,6 +104,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<byte>();
+            }
+
             var array = new byte[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -136,7 +143,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new sbyte[len];
+            var array = len == 0 ? Array.Empty<sbyte>() : new sbyte[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -156,10 +163,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -193,6 +201,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<sbyte>();
+            }
+
             var array = new sbyte[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -227,7 +240,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new ushort[len];
+            var array = len == 0 ? Array.Empty<ushort>() : new ushort[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -247,10 +260,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -284,6 +298,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<ushort>();
+            }
+
             var array = new ushort[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -318,7 +337,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new short[len];
+            var array = len == 0 ? Array.Empty<short>() : new short[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -338,10 +357,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -375,6 +395,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<short>();
+            }
+
             var array = new short[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -409,7 +434,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new uint[len];
+            var array = len == 0 ? Array.Empty<uint>() : new uint[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -429,10 +454,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -466,6 +492,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<uint>();
+            }
+
             var array = new uint[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -500,7 +531,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new int[len];
+            var array = len == 0 ? Array.Empty<int>() : new int[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -520,10 +551,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -557,6 +589,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<int>();
+            }
+
             var array = new int[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -591,7 +628,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new ulong[len];
+            var array = len == 0 ? Array.Empty<ulong>() : new ulong[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -611,10 +648,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -648,6 +686,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<ulong>();
+            }
+
             var array = new ulong[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -682,7 +725,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new long[len];
+            var array = len == 0 ? Array.Empty<long>() : new long[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -702,10 +745,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -739,6 +783,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<long>();
+            }
+
             var array = new long[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -773,7 +822,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new float[len];
+            var array = len == 0 ? Array.Empty<float>() : new float[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -793,10 +842,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -830,6 +880,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<float>();
+            }
+
             var array = new float[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -864,7 +919,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new double[len];
+            var array = len == 0 ? Array.Empty<double>() : new double[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -884,10 +939,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -921,6 +977,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<double>();
+            }
+
             var array = new double[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -955,7 +1016,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new bool[len];
+            var array = len == 0 ? Array.Empty<bool>() : new bool[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -975,10 +1036,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1012,6 +1074,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<bool>();
+            }
+
             var array = new bool[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -1046,7 +1113,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new char[len];
+            var array = len == 0 ? Array.Empty<char>() : new char[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -1066,10 +1133,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1103,6 +1171,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<char>();
+            }
+
             var array = new char[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -1137,7 +1210,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new DateTime[len];
+            var array = len == 0 ? Array.Empty<DateTime>() : new DateTime[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -1157,10 +1230,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1194,6 +1268,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<DateTime>();
+            }
+
             var array = new DateTime[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -1228,7 +1307,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new Int128[len];
+            var array = len == 0 ? Array.Empty<Int128>() : new Int128[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -1248,10 +1327,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1285,6 +1365,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<Int128>();
+            }
+
             var array = new Int128[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
@@ -1319,7 +1404,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
-            var array = new UInt128[len];
+            var array = len == 0 ? Array.Empty<UInt128>() : new UInt128[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
             {
@@ -1339,10 +1424,11 @@ public static partial class Builtin
         }
         else
         {
-            writer.WriteArrayHeader(value.Count);
-            for (int i = 0; i < value.Count; i++)
+            var span = CollectionsMarshal.AsSpan(value);
+            writer.WriteArrayHeader(span.Length);
+            for (int i = 0; i < span.Length; i++)
             {
-                writer.Write(value[i]);
+                writer.Write(span[i]);
             }
         }
     }
@@ -1376,6 +1462,11 @@ public static partial class Builtin
         }
         else
         {
+            if (value.Length == 0)
+            {
+                return Array.Empty<UInt128>();
+            }
+
             var array = new UInt128[value.Length];
             Array.Copy(value, array, value.Length);
             return array;
