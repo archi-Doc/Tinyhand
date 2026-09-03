@@ -80,7 +80,7 @@ public class GenericDictionaryFormatterTest
     [Fact]
     public void ConstructorExceptionsAreNotWrapped()
     {
-        var formatter = new GenericDictionaryFormatter<long, int, ThrowingDictionary>();
+        var formatter = new GenericDictionaryFormatter<long, int, ThrowingDictionary>(static (count, comparer) => new(count, comparer));
 
         Assert.Throws<InvalidOperationException>(() => formatter.Reconstruct(TinyhandSerializerOptions.Standard));
     }

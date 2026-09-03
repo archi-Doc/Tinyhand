@@ -1,13 +1,15 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Arc.Collections;
+using Arc.Threading;
 using Arc.Unit;
 using Microsoft.Extensions.DependencyInjection;
 using Tinyhand.Tree;
@@ -27,15 +29,7 @@ public class TinyhandProcessCoreInfo
     {
         this.Environment = environment;
         this.ProcessName = processName;
-        this.Factory = factory;
-    }
-
-    public TinyhandProcessCoreInfo(ProcessEnvironment environment, string processName, string pluginPath, string className)
-    {
-        this.Environment = environment;
-        this.ProcessName = processName;
-        this.PluginPath = pluginPath;
-        this.ClassName = className;
+        this.Factory = factory ?? throw new ArgumentNullException(nameof(factory));
     }
 
     public ProcessEnvironment Environment { get; }
@@ -50,39 +44,18 @@ public class TinyhandProcessCoreInfo
         {
             try
             {
-                if (this.Factory != null)
-                {
-                    this.instance = this.Factory();
-                }
-                else if (this.PluginPath != null)
-                {
-                    var asm = System.Reflection.Assembly.LoadFrom(this.PluginPath);
-                    var obj = asm?.CreateInstance(this.ClassName!);
-                    this.instance = obj as IProcessCore;
-                    if (this.instance == null)
-                    {
-                        this.Environment.Log.Error(element, $"Plugin {Path.GetFileName(this.PluginPath)} - {this.ClassName}: Could not create an instance.");
-                    }
-                }
-                else
-                {
-                    throw new Exception();
-                }
+                this.instance = this.Factory();
             }
             catch
             {
-                this.Environment.Log.Error(element, $"Process name \"{this.ProcessName}\": Could not create an instance.");
+                this.Environment.Fatal(element, $"Process name \"{this.ProcessName}\": Could not create an instance.");
             }
         }
 
         return this.instance;
     }
 
-    public Func<IProcessCore>? Factory { get; }
-
-    public string? PluginPath { get; }
-
-    public string? ClassName { get; }
+    public Func<IProcessCore> Factory { get; }
 }
 
 public class TinyhandProcessCore_None : IProcessCore
@@ -137,8 +110,6 @@ public class ConsoleAndResultFileLogger : ILogOutput
 
 public class ProcessEnvironment : IProcessEnvironment, IDisposable
 {
-    public const string PluginFolder = "plugins";
-
     public ProcessEnvironment(Group root, string? tinyhandFile)
     {
         this.ProcessCore = new Dictionary<string, TinyhandProcessCoreInfo>(); // Process name to TinyhandProcessCoreInfo
@@ -189,7 +160,10 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
         this.pendingMessages.Clear();
 
-        this.LoadPlugin();
+        foreach (var plugin in TinyhandProcess.Plugins)
+        {
+            this.AddProcessCoreInfo(plugin.Key, plugin.Value);
+        }
     }
 
     public static byte[] ModeIdentifier { get; } = Encoding.UTF8.GetBytes("mode");
@@ -294,13 +268,19 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
                     }
                     else
                     { // other
-                        await this.currentCore.Process(x);
+                        if (!await this.currentCore.Process(x).ConfigureAwait(false))
+                        {
+                            this.FatalStatus = true;
+                        }
                     }
                 }
             }
             else if (this.IsProcessMode)
             {
-                await this.currentCore.Process(x);
+                if (!await this.currentCore.Process(x).ConfigureAwait(false))
+                {
+                    this.FatalStatus = true;
+                }
             }
         }
 
@@ -318,7 +298,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
         // Clear
         this.Root = Group.Empty;
         await this.product.Context.ServiceProvider.GetRequiredService<LogUnit>().Flush().ConfigureAwait(false);
-        return true;
+        return !this.FatalStatus;
     }
 
     public void Dispose()
@@ -410,48 +390,70 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
         }
     }
 
+    // Arc.Unit's internal service is registered by Type; retain its constructor
+    // until the dependency carries the corresponding trimming annotations.
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, "Arc.Unit.LogService", "Arc.Unit")]
     private UnitProduct BuildUnit()
     {
-        var builder = new UnitBuilder()
-            .PreConfigure(context =>
-            {
-                context.SetOptions(new FileLoggerOptions
-                {
-                    Path = this.logSettings.Path,
-                    ClearLogsAtStartup = true,
-                    FormatterOptions = CreateFormatterOptions(this.logSettings.Format, enableColor: false),
-                });
+        var builder = new UnitBuilder().Configure(context =>
+        {
+            // Closed service registrations let NativeAOT see all constructors.
+            var services = context.Services;
+            services.AddSingleton<UnitContext>();
+            services.AddSingleton<UnitOptions>();
+            services.AddSingleton<UnitProduct>();
+            services.AddSingleton<ExecutionRoot>();
+            services.AddSingleton<IConsoleService, ConsoleService>();
+            services.AddSingleton<LogUnit>();
+            services.AddSingleton<EmptyLogger>();
+            services.AddSingleton<ConsoleLogger>();
+            services.AddSingleton<FileLogger<FileLoggerOptions>>();
+            services.AddSingleton<FileLogger<ResultFileLoggerOptions>>();
+            services.AddSingleton<ConsoleAndFileLogger>();
+            services.AddSingleton<ConsoleAndResultFileLogger>();
+            services.AddScoped<ILogger<DefaultLog>, StaticLogger<DefaultLog>>();
+            services.AddScoped<ILogger<ResultLog>, StaticLogger<ResultLog>>();
 
-                context.SetOptions(new ResultFileLoggerOptions
-                {
-                    Path = this.resultSettings.Path,
-                    ClearLogsAtStartup = true,
-                    FormatterOptions = CreateFormatterOptions(this.resultSettings.Format, enableColor: false),
-                });
-
-                context.SetOptions(new ConsoleLoggerOptions
-                {
-                    FormatterOptions = CreateFormatterOptions(this.logSettings.Format, enableColor: true),
-                });
-            })
-            .Configure(context =>
+            // Register option instances directly, avoiding reflective field copies.
+            services.AddSingleton(new FileLoggerOptions
             {
-                context.AddSingleton<FileLogger<ResultFileLoggerOptions>>();
-                context.AddSingleton<ConsoleAndResultFileLogger>();
-                context.AddLoggerResolver(x =>
-                {
-                    if (x.LogSourceType == typeof(ResultLog))
-                    {
-                        SetOutput(x, this.resultSettings.Output, result: true);
-                    }
-                    else
-                    {
-                        SetOutput(x, this.logSettings.Output, result: false);
-                    }
-                });
+                Path = this.logSettings.Path,
+                ClearLogsAtStartup = true,
+                FormatterOptions = CreateFormatterOptions(this.logSettings.Format, enableColor: false),
             });
+            services.AddSingleton(new ResultFileLoggerOptions
+            {
+                Path = this.resultSettings.Path,
+                ClearLogsAtStartup = true,
+                FormatterOptions = CreateFormatterOptions(this.resultSettings.Format, enableColor: false),
+            });
+            services.AddSingleton(new ConsoleLoggerOptions
+            {
+                FormatterOptions = CreateFormatterOptions(this.logSettings.Format, enableColor: true),
+            });
+            context.AddLoggerResolver(x =>
+            {
+                if (x.LogSourceType == typeof(ResultLog))
+                {
+                    SetOutput(x, this.resultSettings.Output, result: true);
+                }
+                else
+                {
+                    SetOutput(x, this.logSettings.Output, result: false);
+                }
+            });
+        });
 
         return builder.Build();
+    }
+
+    private sealed class StaticLogger<T> : ILogger<T>
+    {
+        private readonly ILogService service;
+
+        public StaticLogger(ILogService service) => this.service = service;
+
+        public LogWriter? GetWriter(LogLevel logLevel = LogLevel.Information) => this.service.GetWriter<T>(logLevel);
     }
 
     private static void SetOutput(LoggerResolverContext context, ProcessLogOutput output, bool result)
@@ -648,51 +650,23 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
     {
         this.ProcessCore.TryAdd(processName, new TinyhandProcessCoreInfo(this, processName, factory));
     }
-
-    private void AddProcessCoreInfo(string processName, string pluginPath, string className)
-    {
-        this.ProcessCore.TryAdd(processName, new TinyhandProcessCoreInfo(this, processName, pluginPath, className));
-    }
-
-    private void LoadPlugin()
-    { // Load plugins.
-        var folder = Path.Combine(Directory.GetCurrentDirectory(), PluginFolder);
-        if (!Directory.Exists(folder))
-        {
-            return;
-        }
-
-        try
-        {
-            foreach (var x in Directory.GetFiles(folder, "*.dll"))
-            {
-                var asm = System.Reflection.Assembly.LoadFrom(x);
-                foreach (Type t in asm.GetTypes())
-                {
-                    if (t.IsClass && t.IsPublic && !t.IsAbstract && t.GetInterface(typeof(IProcessCore).FullName!) != null)
-                    {
-                        var staticNameProperty = t.GetProperty("StaticName", BindingFlags.Public | BindingFlags.Static);
-                        var name = staticNameProperty?.GetValue(null);
-                        if (name is string processName)
-                        {
-                            this.AddProcessCoreInfo(processName, x, t.FullName!);
-                        }
-                        else
-                        {
-                            this.Log.Error(null, $"Plugin {Path.GetFileName(x)} - {t.FullName}: Could not find StaticName property.");
-                        }
-                    }
-                }
-            }
-        }
-        catch
-        {
-        }
-    }
 }
 
 public static class TinyhandProcess
 {
+    internal static readonly ConcurrentDictionary<string, Func<IProcessCore>> Plugins = new(StringComparer.Ordinal);
+
+    /// <summary>Registers a linked plugin without loading an assembly at runtime.</summary>
+    /// <typeparam name="T">The plugin implementation.</typeparam>
+    /// <param name="processName">The name used in process files.</param>
+    /// <returns>Whether the name was newly registered.</returns>
+    public static bool RegisterPlugin<T>(string processName)
+        where T : IProcessCore, new()
+    {
+        ArgumentException.ThrowIfNullOrEmpty(processName);
+        return Plugins.TryAdd(processName, static () => new T());
+    }
+
     public static async Task<bool> Process(Element element, string? tinyhandFile)
     {
         if (element is not Group group)

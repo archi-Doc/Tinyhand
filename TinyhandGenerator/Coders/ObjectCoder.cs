@@ -8,11 +8,6 @@ namespace Tinyhand.Coders;
 
 public sealed class ObjectResolver : ICoderResolver
 {
-    /// <summary>
-    /// The singleton instance that can be used.
-    /// </summary>
-    public static readonly ObjectResolver Instance = new();
-
     public ObjectResolver()
     {
     }

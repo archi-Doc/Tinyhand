@@ -19,6 +19,7 @@
 ## Table of Contents
 
 - [Requirements](#requirements)
+- [NativeAOT](NativeAOT.md)
 - [Quick Start](#quick-start)
 - [Performance](#performance)
 - [Serialization Target](#serialization-target)
@@ -42,11 +43,9 @@
 
 ## Requirements
 
-**C# 9.0** 以降：生成コードが使用
+**Visual Studio 2026** 以降、**C# 14** 以降、**.NET 10** 以降を使用します。
 
-**.NET 5** 世代以降のコンパイラ：ソースジェネレーターが使用
-
-.NET Core 3 プロジェクトでも使用可能ですが、`ModuleInitializerAttribute`を使用するため、**.NET 5** 以降を推奨します
+NativeAOT では、使用する型の formatter と閉じたジェネリック型の登録コードを Source Generator が生成します。[設定・移行手順・検証内容](NativeAOT.md)を参照してください。
 
 
 

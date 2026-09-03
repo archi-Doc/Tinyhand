@@ -4,13 +4,12 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text;
 using Arc;
 using Tinyhand.Formatters;
 
-#pragma warning disable SA1509 // Opening braces should not be preceded by blank line
+#pragma warning disable SA1401 // The private cache is initialized by its containing resolver.
 
 namespace Tinyhand.Resolvers;
 
@@ -24,116 +23,99 @@ internal sealed class BuiltinResolver : IFormatterResolver
     /// </summary>
     public static readonly BuiltinResolver Instance = new BuiltinResolver();
 
-    private static readonly Dictionary<Type, object> TypeToFormatter = new()
+    static BuiltinResolver()
     {
-        // Primitive
-        { typeof(byte), UInt8Formatter.Instance },
-        { typeof(sbyte), Int8Formatter.Instance },
-        { typeof(ushort), UInt16Formatter.Instance },
-        { typeof(short), Int16Formatter.Instance },
-        { typeof(uint), UInt32Formatter.Instance },
-        { typeof(int), Int32Formatter.Instance },
-        { typeof(ulong), UInt64Formatter.Instance },
-        { typeof(long), Int64Formatter.Instance },
-        { typeof(float), SingleFormatter.Instance },
-        { typeof(double), DoubleFormatter.Instance },
-        { typeof(bool), BooleanFormatter.Instance },
-        { typeof(string), StringFormatter.Instance },
-        { typeof(char), CharFormatter.Instance },
-        { typeof(DateTime), DateTimeFormatter.Instance },
-
-        { typeof(byte?), NullableUInt8Formatter.Instance },
-        { typeof(sbyte?), NullableInt8Formatter.Instance },
-        { typeof(ushort?), NullableUInt16Formatter.Instance },
-        { typeof(short?), NullableInt16Formatter.Instance },
-        { typeof(uint?), NullableUInt32Formatter.Instance },
-        { typeof(int?), NullableInt32Formatter.Instance },
-        { typeof(ulong?), NullableUInt64Formatter.Instance },
-        { typeof(long?), NullableInt64Formatter.Instance },
-        { typeof(float?), NullableSingleFormatter.Instance },
-        { typeof(double?), NullableDoubleFormatter.Instance },
-        { typeof(bool?), NullableBooleanFormatter.Instance },
-        // { typeof(string?), NullableStringFormatter.Instance },
-        { typeof(char?), NullableCharFormatter.Instance },
-        { typeof(DateTime?), NullableDateTimeFormatter.Instance },
-
-        { typeof(Int128), Int128Formatter.Instance },
-
-        // otpmitized primitive array formatter
-        { typeof(byte[]), ByteArrayFormatter.Instance },
-        { typeof(sbyte[]), Int8ArrayFormatter.Instance },
-        { typeof(ushort[]), UInt16ArrayFormatter.Instance },
-        { typeof(short[]), Int16ArrayFormatter.Instance },
-        { typeof(uint[]), UInt32ArrayFormatter.Instance },
-        { typeof(int[]), Int32ArrayFormatter.Instance },
-        { typeof(ulong[]), UInt64ArrayFormatter.Instance },
-        { typeof(long[]), Int64ArrayFormatter.Instance },
-        { typeof(float[]), SingleArrayFormatter.Instance },
-        { typeof(double[]), DoubleArrayFormatter.Instance },
-        { typeof(bool[]), BooleanArrayFormatter.Instance },
-        { typeof(string[]), StringArrayFormatter.Instance },
-        { typeof(char[]), CharArrayFormatter.Instance },
-        { typeof(DateTime[]), DateTimeArrayFormatter.Instance },
-
-        { typeof(List<byte>), ByteListFormatter.Instance },
-        { typeof(List<sbyte>), Int8ListFormatter.Instance },
-        { typeof(List<ushort>), UInt16ListFormatter.Instance },
-        { typeof(List<short>), Int16ListFormatter.Instance },
-        { typeof(List<uint>), UInt32ListFormatter.Instance },
-        { typeof(List<int>), Int32ListFormatter.Instance },
-        { typeof(List<ulong>), UInt64ListFormatter.Instance },
-        { typeof(List<long>), Int64ListFormatter.Instance },
-        { typeof(List<float>), SingleListFormatter.Instance },
-        { typeof(List<double>), DoubleListFormatter.Instance },
-        { typeof(List<bool>), BooleanListFormatter.Instance },
-        { typeof(List<string>), StringListFormatter.Instance },
-        { typeof(List<char>), CharListFormatter.Instance },
-        { typeof(List<DateTime>), DateTimeListFormatter.Instance },
-
-        // StandardClassLibraryFormatter
-        { typeof(decimal), NativeDecimalFormatter.Instance },
-        { typeof(decimal?), new StaticNullableFormatter<decimal>(NativeDecimalFormatter.Instance) },
-        { typeof(TimeSpan), TimeSpanFormatter.Instance },
-        { typeof(TimeSpan?), new StaticNullableFormatter<TimeSpan>(TimeSpanFormatter.Instance) },
-        { typeof(DateTimeOffset), DateTimeOffsetFormatter.Instance },
-        { typeof(DateTimeOffset?), new StaticNullableFormatter<DateTimeOffset>(DateTimeOffsetFormatter.Instance) },
-        { typeof(Guid), NativeGuidFormatter.Instance },
-        { typeof(Guid?), new StaticNullableFormatter<Guid>(NativeGuidFormatter.Instance) },
-        { typeof(Uri), UriFormatter.Instance },
-        { typeof(Version), VersionFormatter.Instance },
-        { typeof(StringBuilder), StringBuilderFormatter.Instance },
-        { typeof(BitArray), BitArrayFormatter.Instance },
-        { typeof(System.Numerics.BigInteger), BigIntegerFormatter.Instance },
-        { typeof(System.Numerics.BigInteger?), new StaticNullableFormatter<System.Numerics.BigInteger>(BigIntegerFormatter.Instance) },
-        { typeof(System.Numerics.Complex), ComplexFormatter.Instance },
-        { typeof(System.Numerics.Complex?), new StaticNullableFormatter<System.Numerics.Complex>(ComplexFormatter.Instance) },
-
-        // Nil
-        { typeof(Nil), NilFormatter.Instance },
-        { typeof(Nil?), NullableNilFormatter.Instance },
-
-        { typeof(object[]), new ArrayFormatter<object>() },
-        { typeof(List<object>), new ListFormatter<object>() },
-
-        { typeof(Memory<byte>), ByteMemoryFormatter.Instance },
-        { typeof(Memory<byte>?), new StaticNullableFormatter<Memory<byte>>(ByteMemoryFormatter.Instance) },
-        { typeof(ReadOnlyMemory<byte>), ByteReadOnlyMemoryFormatter.Instance },
-        { typeof(ReadOnlyMemory<byte>?), new StaticNullableFormatter<ReadOnlyMemory<byte>>(ByteReadOnlyMemoryFormatter.Instance) },
-        { typeof(ReadOnlySequence<byte>), ByteReadOnlySequenceFormatter.Instance },
-        { typeof(ReadOnlySequence<byte>?), new StaticNullableFormatter<ReadOnlySequence<byte>>(ByteReadOnlySequenceFormatter.Instance) },
-        { typeof(ArraySegment<byte>), ByteArraySegmentFormatter.Instance },
-        { typeof(ArraySegment<byte>?), new StaticNullableFormatter<ArraySegment<byte>>(ByteArraySegmentFormatter.Instance) },
-        { typeof(Memory<char>), CharMemoryFormatter.Instance },
-        { typeof(ReadOnlyMemory<char>), CharReadOnlyMemoryFormatter.Instance },
-
-        // Extra
-        { typeof(IPAddress), IPAddressFormatter.Instance },
-        { typeof(IPEndPoint), IPEndPointFormatter.Instance },
-        // { typeof(BytePool.RentMemory), RentMemoryFormatter.Instance },
-        // { typeof(BytePool.RentReadOnlyMemory), RentReadOnlyMemoryFormatter.Instance },
-        { typeof(Struct128), Struct128Formatter.Instance },
-        { typeof(Struct256), Struct256Formatter.Instance },
-    };
+        FormatterCache<byte>.Formatter = UInt8Formatter.Instance;
+        FormatterCache<sbyte>.Formatter = Int8Formatter.Instance;
+        FormatterCache<ushort>.Formatter = UInt16Formatter.Instance;
+        FormatterCache<short>.Formatter = Int16Formatter.Instance;
+        FormatterCache<uint>.Formatter = UInt32Formatter.Instance;
+        FormatterCache<int>.Formatter = Int32Formatter.Instance;
+        FormatterCache<ulong>.Formatter = UInt64Formatter.Instance;
+        FormatterCache<long>.Formatter = Int64Formatter.Instance;
+        FormatterCache<float>.Formatter = SingleFormatter.Instance;
+        FormatterCache<double>.Formatter = DoubleFormatter.Instance;
+        FormatterCache<bool>.Formatter = BooleanFormatter.Instance;
+        FormatterCache<string>.Formatter = StringFormatter.Instance;
+        FormatterCache<char>.Formatter = CharFormatter.Instance;
+        FormatterCache<DateTime>.Formatter = DateTimeFormatter.Instance;
+        FormatterCache<byte?>.Formatter = NullableUInt8Formatter.Instance;
+        FormatterCache<sbyte?>.Formatter = NullableInt8Formatter.Instance;
+        FormatterCache<ushort?>.Formatter = NullableUInt16Formatter.Instance;
+        FormatterCache<short?>.Formatter = NullableInt16Formatter.Instance;
+        FormatterCache<uint?>.Formatter = NullableUInt32Formatter.Instance;
+        FormatterCache<int?>.Formatter = NullableInt32Formatter.Instance;
+        FormatterCache<ulong?>.Formatter = NullableUInt64Formatter.Instance;
+        FormatterCache<long?>.Formatter = NullableInt64Formatter.Instance;
+        FormatterCache<float?>.Formatter = NullableSingleFormatter.Instance;
+        FormatterCache<double?>.Formatter = NullableDoubleFormatter.Instance;
+        FormatterCache<bool?>.Formatter = NullableBooleanFormatter.Instance;
+        FormatterCache<char?>.Formatter = NullableCharFormatter.Instance;
+        FormatterCache<DateTime?>.Formatter = NullableDateTimeFormatter.Instance;
+        FormatterCache<Int128>.Formatter = Int128Formatter.Instance;
+        FormatterCache<byte[]>.Formatter = ByteArrayFormatter.Instance;
+        FormatterCache<sbyte[]>.Formatter = Int8ArrayFormatter.Instance;
+        FormatterCache<ushort[]>.Formatter = UInt16ArrayFormatter.Instance;
+        FormatterCache<short[]>.Formatter = Int16ArrayFormatter.Instance;
+        FormatterCache<uint[]>.Formatter = UInt32ArrayFormatter.Instance;
+        FormatterCache<int[]>.Formatter = Int32ArrayFormatter.Instance;
+        FormatterCache<ulong[]>.Formatter = UInt64ArrayFormatter.Instance;
+        FormatterCache<long[]>.Formatter = Int64ArrayFormatter.Instance;
+        FormatterCache<float[]>.Formatter = SingleArrayFormatter.Instance;
+        FormatterCache<double[]>.Formatter = DoubleArrayFormatter.Instance;
+        FormatterCache<bool[]>.Formatter = BooleanArrayFormatter.Instance;
+        FormatterCache<string[]>.Formatter = StringArrayFormatter.Instance;
+        FormatterCache<char[]>.Formatter = CharArrayFormatter.Instance;
+        FormatterCache<DateTime[]>.Formatter = DateTimeArrayFormatter.Instance;
+        FormatterCache<List<byte>>.Formatter = ByteListFormatter.Instance;
+        FormatterCache<List<sbyte>>.Formatter = Int8ListFormatter.Instance;
+        FormatterCache<List<ushort>>.Formatter = UInt16ListFormatter.Instance;
+        FormatterCache<List<short>>.Formatter = Int16ListFormatter.Instance;
+        FormatterCache<List<uint>>.Formatter = UInt32ListFormatter.Instance;
+        FormatterCache<List<int>>.Formatter = Int32ListFormatter.Instance;
+        FormatterCache<List<ulong>>.Formatter = UInt64ListFormatter.Instance;
+        FormatterCache<List<long>>.Formatter = Int64ListFormatter.Instance;
+        FormatterCache<List<float>>.Formatter = SingleListFormatter.Instance;
+        FormatterCache<List<double>>.Formatter = DoubleListFormatter.Instance;
+        FormatterCache<List<bool>>.Formatter = BooleanListFormatter.Instance;
+        FormatterCache<List<string>>.Formatter = StringListFormatter.Instance;
+        FormatterCache<List<char>>.Formatter = CharListFormatter.Instance;
+        FormatterCache<List<DateTime>>.Formatter = DateTimeListFormatter.Instance;
+        FormatterCache<decimal>.Formatter = NativeDecimalFormatter.Instance;
+        FormatterCache<decimal?>.Formatter = new StaticNullableFormatter<decimal>(NativeDecimalFormatter.Instance);
+        FormatterCache<TimeSpan>.Formatter = TimeSpanFormatter.Instance;
+        FormatterCache<TimeSpan?>.Formatter = new StaticNullableFormatter<TimeSpan>(TimeSpanFormatter.Instance);
+        FormatterCache<DateTimeOffset>.Formatter = DateTimeOffsetFormatter.Instance;
+        FormatterCache<DateTimeOffset?>.Formatter = new StaticNullableFormatter<DateTimeOffset>(DateTimeOffsetFormatter.Instance);
+        FormatterCache<Guid>.Formatter = NativeGuidFormatter.Instance;
+        FormatterCache<Guid?>.Formatter = new StaticNullableFormatter<Guid>(NativeGuidFormatter.Instance);
+        FormatterCache<Uri>.Formatter = UriFormatter.Instance;
+        FormatterCache<Version>.Formatter = VersionFormatter.Instance;
+        FormatterCache<StringBuilder>.Formatter = StringBuilderFormatter.Instance;
+        FormatterCache<BitArray>.Formatter = BitArrayFormatter.Instance;
+        FormatterCache<System.Numerics.BigInteger>.Formatter = BigIntegerFormatter.Instance;
+        FormatterCache<System.Numerics.BigInteger?>.Formatter = new StaticNullableFormatter<System.Numerics.BigInteger>(BigIntegerFormatter.Instance);
+        FormatterCache<System.Numerics.Complex>.Formatter = ComplexFormatter.Instance;
+        FormatterCache<System.Numerics.Complex?>.Formatter = new StaticNullableFormatter<System.Numerics.Complex>(ComplexFormatter.Instance);
+        FormatterCache<Nil>.Formatter = NilFormatter.Instance;
+        FormatterCache<Nil?>.Formatter = NullableNilFormatter.Instance;
+        FormatterCache<object[]>.Formatter = new ArrayFormatter<object>();
+        FormatterCache<List<object>>.Formatter = new ListFormatter<object>();
+        FormatterCache<Memory<byte>>.Formatter = ByteMemoryFormatter.Instance;
+        FormatterCache<Memory<byte>?>.Formatter = new StaticNullableFormatter<Memory<byte>>(ByteMemoryFormatter.Instance);
+        FormatterCache<ReadOnlyMemory<byte>>.Formatter = ByteReadOnlyMemoryFormatter.Instance;
+        FormatterCache<ReadOnlyMemory<byte>?>.Formatter = new StaticNullableFormatter<ReadOnlyMemory<byte>>(ByteReadOnlyMemoryFormatter.Instance);
+        FormatterCache<ReadOnlySequence<byte>>.Formatter = ByteReadOnlySequenceFormatter.Instance;
+        FormatterCache<ReadOnlySequence<byte>?>.Formatter = new StaticNullableFormatter<ReadOnlySequence<byte>>(ByteReadOnlySequenceFormatter.Instance);
+        FormatterCache<ArraySegment<byte>>.Formatter = ByteArraySegmentFormatter.Instance;
+        FormatterCache<ArraySegment<byte>?>.Formatter = new StaticNullableFormatter<ArraySegment<byte>>(ByteArraySegmentFormatter.Instance);
+        FormatterCache<Memory<char>>.Formatter = CharMemoryFormatter.Instance;
+        FormatterCache<ReadOnlyMemory<char>>.Formatter = CharReadOnlyMemoryFormatter.Instance;
+        FormatterCache<IPAddress>.Formatter = IPAddressFormatter.Instance;
+        FormatterCache<IPEndPoint>.Formatter = IPEndPointFormatter.Instance;
+        FormatterCache<Struct128>.Formatter = Struct128Formatter.Instance;
+        FormatterCache<Struct256>.Formatter = Struct256Formatter.Instance;
+    }
 
     private BuiltinResolver()
     {
@@ -145,18 +127,101 @@ internal sealed class BuiltinResolver : IFormatterResolver
     }
 
     public void RegisterInstantiableTypes()
-        => TinyhandTypeIdentifier.Register(TypeToFormatter.Keys.ToArray());
+    {
+        TinyhandTypeIdentifier.Register<byte>();
+        TinyhandTypeIdentifier.Register<sbyte>();
+        TinyhandTypeIdentifier.Register<ushort>();
+        TinyhandTypeIdentifier.Register<short>();
+        TinyhandTypeIdentifier.Register<uint>();
+        TinyhandTypeIdentifier.Register<int>();
+        TinyhandTypeIdentifier.Register<ulong>();
+        TinyhandTypeIdentifier.Register<long>();
+        TinyhandTypeIdentifier.Register<float>();
+        TinyhandTypeIdentifier.Register<double>();
+        TinyhandTypeIdentifier.Register<bool>();
+        TinyhandTypeIdentifier.Register<string>();
+        TinyhandTypeIdentifier.Register<char>();
+        TinyhandTypeIdentifier.Register<DateTime>();
+        TinyhandTypeIdentifier.Register<byte?>();
+        TinyhandTypeIdentifier.Register<sbyte?>();
+        TinyhandTypeIdentifier.Register<ushort?>();
+        TinyhandTypeIdentifier.Register<short?>();
+        TinyhandTypeIdentifier.Register<uint?>();
+        TinyhandTypeIdentifier.Register<int?>();
+        TinyhandTypeIdentifier.Register<ulong?>();
+        TinyhandTypeIdentifier.Register<long?>();
+        TinyhandTypeIdentifier.Register<float?>();
+        TinyhandTypeIdentifier.Register<double?>();
+        TinyhandTypeIdentifier.Register<bool?>();
+        TinyhandTypeIdentifier.Register<char?>();
+        TinyhandTypeIdentifier.Register<DateTime?>();
+        TinyhandTypeIdentifier.Register<Int128>();
+        TinyhandTypeIdentifier.Register<byte[]>();
+        TinyhandTypeIdentifier.Register<sbyte[]>();
+        TinyhandTypeIdentifier.Register<ushort[]>();
+        TinyhandTypeIdentifier.Register<short[]>();
+        TinyhandTypeIdentifier.Register<uint[]>();
+        TinyhandTypeIdentifier.Register<int[]>();
+        TinyhandTypeIdentifier.Register<ulong[]>();
+        TinyhandTypeIdentifier.Register<long[]>();
+        TinyhandTypeIdentifier.Register<float[]>();
+        TinyhandTypeIdentifier.Register<double[]>();
+        TinyhandTypeIdentifier.Register<bool[]>();
+        TinyhandTypeIdentifier.Register<string[]>();
+        TinyhandTypeIdentifier.Register<char[]>();
+        TinyhandTypeIdentifier.Register<DateTime[]>();
+        TinyhandTypeIdentifier.Register<List<byte>>();
+        TinyhandTypeIdentifier.Register<List<sbyte>>();
+        TinyhandTypeIdentifier.Register<List<ushort>>();
+        TinyhandTypeIdentifier.Register<List<short>>();
+        TinyhandTypeIdentifier.Register<List<uint>>();
+        TinyhandTypeIdentifier.Register<List<int>>();
+        TinyhandTypeIdentifier.Register<List<ulong>>();
+        TinyhandTypeIdentifier.Register<List<long>>();
+        TinyhandTypeIdentifier.Register<List<float>>();
+        TinyhandTypeIdentifier.Register<List<double>>();
+        TinyhandTypeIdentifier.Register<List<bool>>();
+        TinyhandTypeIdentifier.Register<List<string>>();
+        TinyhandTypeIdentifier.Register<List<char>>();
+        TinyhandTypeIdentifier.Register<List<DateTime>>();
+        TinyhandTypeIdentifier.Register<decimal>();
+        TinyhandTypeIdentifier.Register<decimal?>();
+        TinyhandTypeIdentifier.Register<TimeSpan>();
+        TinyhandTypeIdentifier.Register<TimeSpan?>();
+        TinyhandTypeIdentifier.Register<DateTimeOffset>();
+        TinyhandTypeIdentifier.Register<DateTimeOffset?>();
+        TinyhandTypeIdentifier.Register<Guid>();
+        TinyhandTypeIdentifier.Register<Guid?>();
+        TinyhandTypeIdentifier.Register<Uri>();
+        TinyhandTypeIdentifier.Register<Version>();
+        TinyhandTypeIdentifier.Register<StringBuilder>();
+        TinyhandTypeIdentifier.Register<BitArray>();
+        TinyhandTypeIdentifier.Register<System.Numerics.BigInteger>();
+        TinyhandTypeIdentifier.Register<System.Numerics.BigInteger?>();
+        TinyhandTypeIdentifier.Register<System.Numerics.Complex>();
+        TinyhandTypeIdentifier.Register<System.Numerics.Complex?>();
+        TinyhandTypeIdentifier.Register<Nil>();
+        TinyhandTypeIdentifier.Register<Nil?>();
+        TinyhandTypeIdentifier.Register<object[]>();
+        TinyhandTypeIdentifier.Register<List<object>>();
+        TinyhandTypeIdentifier.Register<Memory<byte>>();
+        TinyhandTypeIdentifier.Register<Memory<byte>?>();
+        TinyhandTypeIdentifier.Register<ReadOnlyMemory<byte>>();
+        TinyhandTypeIdentifier.Register<ReadOnlyMemory<byte>?>();
+        TinyhandTypeIdentifier.Register<ReadOnlySequence<byte>>();
+        TinyhandTypeIdentifier.Register<ReadOnlySequence<byte>?>();
+        TinyhandTypeIdentifier.Register<ArraySegment<byte>>();
+        TinyhandTypeIdentifier.Register<ArraySegment<byte>?>();
+        TinyhandTypeIdentifier.Register<Memory<char>>();
+        TinyhandTypeIdentifier.Register<ReadOnlyMemory<char>>();
+        TinyhandTypeIdentifier.Register<IPAddress>();
+        TinyhandTypeIdentifier.Register<IPEndPoint>();
+        TinyhandTypeIdentifier.Register<Struct128>();
+        TinyhandTypeIdentifier.Register<Struct256>();
+    }
 
     private static class FormatterCache<T>
     {
-        public static readonly ITinyhandFormatter<T>? Formatter;
-
-        static FormatterCache()
-        {
-            if (BuiltinResolver.TypeToFormatter.TryGetValue(typeof(T), out var obj))
-            {
-                FormatterCache<T>.Formatter = (ITinyhandFormatter<T>)obj;
-            }
-        }
+        internal static ITinyhandFormatter<T>? Formatter;
     }
 }

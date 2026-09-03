@@ -12,6 +12,7 @@ This document may be inaccurate. It would be greatly appreciated if anyone could
 ## Table of Contents
 
 - [Requirements](#requirements)
+- [NativeAOT](#nativeaot)
 - [Quick Start](#quick-start)
 - [Performance](#performance)
 - [Serialization Target](#serialization-target)
@@ -104,7 +105,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        // TinyhandModule_ConsoleApp1.Initialize(); // Initialize() method is required on some platforms (e.g Xamarin, Native AOT) which does not support ModuleInitializer attribute.
+        // Formatters are registered automatically, including on .NET NativeAOT.
 
         var myClass = new MyClass() { Age = 10, FirstName = "hoge", LastName = "huga", };
         var b = TinyhandSerializer.Serialize(myClass);
@@ -155,18 +156,13 @@ Tinyhand is quite fast and since it is based on Source Generator, it does not ta
 
 
 
-## Pitfalls
+## NativeAOT
 
-### ModuleInitializer
+Tinyhand generates registrations for closed model, enum, and collection types at compile time. Enable `<PublishAot>true</PublishAot>` in your .NET 10 application and publish for the target RID. Module initializers run automatically on .NET NativeAOT.
 
-Some AOT platforms (e.g Xamarin, Native AOT) currently does not support `ModuleInitializer` attribute.
+Use `[assembly: TinyhandRegister(typeof(MyClosedType))]` for types used only inside another assembly's generic helpers. Dynamic generic formatter factories have been removed. Type identifier registration now uses `TinyhandTypeIdentifier.Register<T>()`, and Processor plugins must be linked and registered with `TinyhandProcess.RegisterPlugin<T>(name)`.
 
-Tinyhand use `ModuleInitializer` attribute to load generated formatters, so you need to call `Initialize()` method manually on these platforms.
-
-```csharp
-// Add this code before the first use of Tinyhand.
-TinyhandModule_YourAssemblyName.Initialize(); // Assembly name is necessary to avoid name conflict in multiple assemblies.
-```
+See [NativeAOT setup, migration notes, and verification](doc/NativeAOT.md) for details, including the remaining upstream Arc.Unit trimming warnings in Processor.
 
 
 

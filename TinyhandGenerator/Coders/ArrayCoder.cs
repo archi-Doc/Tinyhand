@@ -26,7 +26,7 @@ public sealed class ArrayResolver : ICoderResolver
                 return new GenericArrayCoder(element, withNullable.Nullable);
             }
 
-            var elementCoder = CoderResolver.Instance.TryGetCoder(element);
+            var elementCoder = withNullable.Object.Body.CoderResolver.TryGetCoder(element);
             return new ArrayCoder(element, elementCoder, withNullable.Nullable);
         }
 

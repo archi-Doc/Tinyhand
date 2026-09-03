@@ -12,46 +12,16 @@ internal sealed class StandardResolver : IFormatterResolver
     /// </summary>
     public static readonly StandardResolver Instance = new();
 
-    private static readonly IFormatterResolver[] Resolvers = new IFormatterResolver[]
-    {
-        BuiltinResolver.Instance,
-        GenericsResolver.Instance,
-        GeneratedResolver.Instance,
-        PrimitiveObjectResolver.Instance,
-    };
-
     private StandardResolver()
     {
     }
 
     public ITinyhandFormatter<T>? TryGetFormatter<T>()
     {
-        return FormatterCache<T>.Formatter;
+        return BuiltinResolver.Instance.TryGetFormatter<T>()
+            ?? GeneratedResolver.Instance.TryGetFormatter<T>()
+            ?? PrimitiveObjectResolver.Instance.TryGetFormatter<T>();
     }
 
-    public void RegisterInstantiableTypes()
-    {
-        foreach (var resolver in Resolvers)
-        {
-            resolver.RegisterInstantiableTypes();
-        }
-    }
-
-    private static class FormatterCache<T>
-    {
-        public static readonly ITinyhandFormatter<T>? Formatter;
-
-        static FormatterCache()
-        {
-            foreach (var resolver in Resolvers)
-            {
-                var formatter = resolver.TryGetFormatter<T>();
-                if (formatter != null)
-                {
-                    Formatter = formatter;
-                    return;
-                }
-            }
-        }
-    }
+    public void RegisterInstantiableTypes() => BuiltinResolver.Instance.RegisterInstantiableTypes();
 }

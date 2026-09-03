@@ -13,11 +13,6 @@ namespace Tinyhand.Coders;
 
 public sealed class FormatterResolver : ICoderResolver
 {
-    /// <summary>
-    /// The singleton instance that can be used.
-    /// </summary>
-    public static readonly FormatterResolver Instance = new();
-
     public FormatterResolver()
     {
         // Several non-generic types which have formatters but not coders.
@@ -134,10 +129,10 @@ public sealed class FormatterResolver : ICoderResolver
             var elementWithNullable = withNullable.Array_ElementWithNullable;
             if (elementWithNullable != null)
             {
-                return CoderResolver.Instance.IsCoderOrFormatterAvailable(elementWithNullable);
+                return withNullable.Object.Body.CoderResolver.IsCoderOrFormatterAvailable(elementWithNullable);
             }
         }
-        else if (withNullable.Object.Generics_Kind == VisceralGenericsKind.ClosedGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
+        else if (withNullable.Object.Generics_IsGeneric && withNullable.Object.OriginalDefinition is { } baseObject)
         {// Generics
             var arguments = withNullable.Generics_ArgumentsWithNullable;
             if (this.genericsType.Contains(baseObject.FullName))
@@ -164,7 +159,7 @@ Check_GenericsArguments:
 
             foreach (var x in arguments)
             {// Check all the arguments.
-                if (!CoderResolver.Instance.IsCoderOrFormatterAvailable(x))
+                if (x.Object.Kind != VisceralObjectKind.TypeParameter && !withNullable.Object.Body.CoderResolver.IsCoderOrFormatterAvailable(x))
                 {
                     return false;
                 }

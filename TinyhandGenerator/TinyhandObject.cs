@@ -182,30 +182,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public bool RequiresSetAccessor { get; private set; }
 
-    public string? GetterDelegate { get; private set; } // GetterDelegate(class), GetterDelegate(in struct)
-
-    public string? SetterDelegate { get; private set; } // SetterDelegate(class, value), SetterDelegate(in struct, value)
-
     public string? RefFieldDelegate { get; private set; } // ref RefFieldDelegate(class), ref RefFieldDelegate(in struct)
-
-    public string RefFieldOrGetterDelegate
-    {
-        get
-        {
-            if (this.RefFieldDelegate is not null)
-            {
-                return this.RefFieldDelegate;
-            }
-            else if (this.GetterDelegate is not null)
-            {
-                return this.GetterDelegate + "!";
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
-    }
 
     private ReconstructCondition reconstructCondition;
 
@@ -1018,11 +995,11 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
         {
             if (this.TypeObjectWithNullable.Object.ObjectAttribute?.UseResolver == false)
             {
-                ObjectResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+                this.Body.CoderResolver.ObjectResolver.AddFormatter(this.TypeObjectWithNullable);
             }
             else
             {
-                FormatterResolver.Instance.AddFormatter(this.TypeObjectWithNullable);
+                this.Body.CoderResolver.FormatterResolver.AddFormatter(this.TypeObjectWithNullable);
             }
 
             /*if (this.Generics_Kind == VisceralGenericsKind.ClosedGeneric &&
@@ -1030,7 +1007,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 this.ContainingObject.OriginalDefinition is { } od)
             {// Requires Class<T>.NestedClass<int> formatter.
                 var typeName = od.FullName + "." + this.LocalName;
-                FormatterResolver.Instance.AddFormatter(this.Kind, typeName);
+                this.Body.CoderResolver.FormatterResolver.AddFormatter(this.Kind, typeName);
             }*/
         }
 
@@ -1622,13 +1599,13 @@ Exit:
                     !this.TypeObject.ContainsTypeParameter &&
                     this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
                     this.TypeObject.Kind != VisceralObjectKind.Error &&
-                    CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
+                    this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                 {// No Coder or Formatter
                     /*var obj = this.TypeObjectWithNullable.Object;
                     obj.Configure();
                     if (obj.ObjectAttribute == null)*/
                     {
-                        CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable);
+                        this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable);
                         this.Body.ReportDiagnostic(TinyhandBody.Error_ObjectAttributeRequired, this.Location, this.TypeObject.FullName);
                     }
                 }
@@ -1659,7 +1636,7 @@ Exit:
                 if (/*parent.Generics_Kind != VisceralGenericsKind.OpenGeneric &&*/
                 this.TypeObjectWithNullable != null &&
                 this.TypeObjectWithNullable.Object.ObjectAttribute == null &&
-CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
+this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) == false)
                 {// No Coder or Formatter
                     this.ObjectFlag &= ~TinyhandObjectFlag.CloneTarget;
                 }
@@ -2041,150 +2018,6 @@ CoderResolver.Instance.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable) 
         this.CheckObject();
     }
 
-    public static void GenerateLoader(ScopingStringBuilder ssb, GeneratorInformation info, List<TinyhandObject> list)
-    {// list: Primary TinyhandObject
-        var list2 = list.SelectMany(x => x.ConstructedObjects).Where(x => x.ObjectAttribute != null).ToArray();
-
-        if (list2.Length > 0 && list2[0].ContainingObject is { } containingObject)
-        {// Add ModuleInitializerClass
-            string? initializerClassName = null;
-
-            if (containingObject.ClosedGenericHint != null)
-            {// ClosedGenericHint
-                initializerClassName = containingObject.ClosedGenericHint.FullName;
-                goto ModuleInitializerClass_Added;
-            }
-
-            var constructedList = containingObject.ConstructedObjects;
-            if (constructedList != null)
-            {// Closed generic
-                for (var n = 0; n < constructedList.Count; n++)
-                {
-                    if (constructedList[n].Generics_Kind != VisceralGenericsKind.OpenGeneric)
-                    {
-                        initializerClassName = constructedList[n].FullName;
-                        goto ModuleInitializerClass_Added;
-                    }
-                }
-            }
-
-            // Open generic
-            var nameList = containingObject.GetSafeGenericNameList();
-            (initializerClassName, _) = containingObject.GetClosedGenericName(nameList);
-
-ModuleInitializerClass_Added:
-            if (initializerClassName != null)
-            {
-                info.ModuleInitializerClass.Add(initializerClassName);
-            }
-        }
-
-        using (var m = ssb.ScopeBrace("internal static void __gen__th()"))
-        {
-            foreach (var x in list2.Where(x => x.ObjectFlag.HasFlag(TinyhandObjectFlag.InterfaceImplemented)))
-            {
-                x.GenerateLoaderCore(ssb, info, false);
-            }
-        }
-    }
-
-    internal void GenerateLoaderCore(ScopingStringBuilder ssb, GeneratorInformation info, bool checkAccessibility)
-    {
-        var isAccessible = true;
-        if (checkAccessibility && this.ContainsNonPublicObject())
-        {
-            isAccessible = false;
-        }
-
-        if (this.Generics_Kind != VisceralGenericsKind.OpenGeneric)
-        {// FormatterContainsNonPublic
-            if (isAccessible)
-            {
-                ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{this.FullName}>());");
-                if (this.ObjectAttribute?.AddImmutable == true)
-                {
-                    ssb.AppendLine($"GeneratedResolver.Instance.SetFormatter(new Tinyhand.Formatters.TinyhandObjectFormatter<{this.FullName}.{TinyhandBody.ImmutableClassName}>());");
-                }
-            }
-            else
-            {
-                var fullName = this.GetGenericsName();
-                Add_SetFormatterGenerator(ssb, fullName);
-
-                if (this.ObjectAttribute?.AddImmutable == true)
-                {
-                    Add_SetFormatterGenerator(ssb, $"{fullName}.{TinyhandBody.ImmutableClassName}");
-                }
-            }
-        }
-        else
-        {// Formatter generator
-            string typeName;
-            if (isAccessible)
-            {
-                var generic = this.GetClosedGenericName(null);
-                typeName = $"typeof({generic.Name})";
-            }
-            else
-            {
-                var fullName = this.GetGenericsName();
-                typeName = $"Type.GetType(\"{fullName}\")!";
-            }
-
-            ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator({typeName}, static (x, y) =>");
-            ssb.AppendLine("{");
-            ssb.IncrementIndent();
-
-            ssb.AppendLine($"var ft = x.MakeGenericType(y);");
-            ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(ft));");
-            ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
-
-            ssb.DecrementIndent();
-            ssb.AppendLine("});");
-        }
-
-        static void Add_SetFormatterGenerator(ScopingStringBuilder ssb, string name)
-        {
-            ssb.AppendLine($"GeneratedResolver.Instance.SetFormatterGenerator(Type.GetType(\"{name}\")!, static (x, y) =>");
-            ssb.AppendLine("{");
-            ssb.IncrementIndent();
-
-            ssb.AppendLine($"var formatter = Activator.CreateInstance(typeof(Tinyhand.Formatters.TinyhandObjectFormatter<>).MakeGenericType(x));");
-            ssb.AppendLine("return (ITinyhandFormatter)formatter!;");
-
-            ssb.DecrementIndent();
-            ssb.AppendLine("});");
-        }
-    }
-
-    internal void GenerateFlatLoader(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        if (this.ObjectAttribute == null)
-        {
-        }
-        else if (this.ConstructedObjects == null)
-        {
-        }
-        else if (this.IsAbstractOrInterface && this.Union == null)
-        {
-        }
-        else if (!this.ObjectFlag.HasFlag(TinyhandObjectFlag.InterfaceImplemented))
-        {
-        }
-        else
-        {
-            this.GenerateLoaderCore(ssb, info, true);
-        }
-
-        if (this.Children?.Count > 0)
-        {
-            foreach (var x in this.Children)
-            {
-                x.GenerateFlatLoader(ssb, info);
-            }
-        }
-    }
-
     internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)
     { // Primary TinyhandObject
         if (this.ConstructedObjects == null)
@@ -2200,12 +2033,6 @@ ModuleInitializerClass_Added:
                     foreach (var x in this.Children)
                     {
                         x.Generate(ssb, info);
-                    }
-
-                    if (!info.FlatLoader)
-                    {
-                        ssb.AppendLine();
-                        GenerateLoader(ssb, info, this.Children);
                     }
                 }
             }
@@ -2340,12 +2167,6 @@ ModuleInitializerClass_Added:
                 {
                     x.Generate(ssb, info);
                 }
-
-                if (!info.FlatLoader)
-                {
-                    ssb.AppendLine();
-                    GenerateLoader(ssb, info, this.Children);
-                }
             }
         }
     }
@@ -2354,27 +2175,9 @@ ModuleInitializerClass_Added:
     {// Prepare Primary TinyhandObject
         this.PrepareTrie();
 
-        // Exclusive to Primary
-        foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresGetAccessor || x.RequiresSetAccessor))
-        {// Requirement: Field -> RefField delegate, Property -> Getter/Setter delegate
-            if (x.Kind == VisceralObjectKind.Field)
-            {// Field
-                x.RefFieldDelegate = this.Identifier.GetIdentifier();
-            }
-            else
-            {// Property
-                x.RefFieldDelegate = this.Identifier.GetIdentifier();
-
-                /*if (x.RequiresGetAccessor)
-                {
-                    x.GetterDelegate = this.Identifier.GetIdentifier();
-                }
-
-                if (x.RequiresSetAccessor)
-                {
-                    x.SetterDelegate = this.Identifier.GetIdentifier();
-                }*/
-            }
+        foreach (var member in this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.RequiresGetAccessor || x.RequiresSetAccessor))
+        {
+            member.RefFieldDelegate = this.Identifier.GetIdentifier();
         }
     }
 
@@ -2392,8 +2195,6 @@ ModuleInitializerClass_Added:
         // Init setter delegates
         for (var n = 0; n < this.Members.Length; n++)
         {
-            this.Members[n].GetterDelegate = od.Members[n].GetterDelegate;
-            this.Members[n].SetterDelegate = od.Members[n].SetterDelegate;
             this.Members[n].RefFieldDelegate = od.Members[n].RefFieldDelegate;
         }
     }
@@ -2511,69 +2312,6 @@ ModuleInitializerClass_Added:
 
             ssb.AppendLine($"private static extern ref {x.TypeObjectWithNullable?.FullNameWithNullable} {x.RefFieldDelegate}({this.InIfStruct}{x.ContainingObject!.FullName} obj);"); // x.TypeObject!.FullName
         }
-
-        // Getter/Setter delegate
-        var array = this.MembersWithFlag(TinyhandObjectFlag.SerializeTarget).Where(x => x.GetterDelegate is not null || x.SetterDelegate is not null).ToArray();
-        if (array.Length == 0)
-        {
-            return;
-        }
-
-        // InitializeFlag/Method
-        var initializeFlag = this.Identifier.GetIdentifier();
-        var initializeMethod = this.Identifier.GetIdentifier();
-        ssb.AppendLine();
-        ssb.AppendLine($"private static bool {initializeFlag} = {initializeMethod}();");
-        using (var scopeMethod = ssb.ScopeBrace($"private static bool {initializeMethod}()"))
-        {
-            foreach (var x in array)
-            {
-                if (x.Kind == VisceralObjectKind.Property)
-                {// Delegate.CreateDelegate
-                    if (x.GetterDelegate is not null)
-                    {
-                        var delegateName = this.Kind == VisceralObjectKind.Struct ? "ByRefFunc" : "Func";
-                        var delegateType = $"{delegateName}<{this.LocalName}, {x.TypeObject!.FullName}>";
-                        ssb.AppendLine($"{x.GetterDelegate} = ({delegateType})Delegate.CreateDelegate(typeof({delegateType}), typeof({x.ContainingObject!.FullName}).GetProperty(\"{x.SimpleName}\", Arc.Visceral.VisceralHelper.TargetBindingFlags)!.GetGetMethod(true)!);");
-                    }
-
-                    if (x.SetterDelegate is not null)
-                    {
-                        var delegateName = this.Kind == VisceralObjectKind.Struct ? "ByRefAction" : "Action";
-                        var delegateType = $"{delegateName}<{this.LocalName}, {x.TypeObject!.FullName}>";
-                        ssb.AppendLine($"{x.SetterDelegate} = ({delegateType})Delegate.CreateDelegate(typeof({delegateType}), typeof({x.ContainingObject!.FullName}).GetProperty(\"{x.SimpleName}\", Arc.Visceral.VisceralHelper.TargetBindingFlags)!.GetSetMethod(true)!);");
-                    }
-
-                    continue;
-                }
-            }
-
-            ssb.AppendLine("return true;");
-        }
-
-        // Delegates
-        ssb.AppendLine();
-        foreach (var x in array)
-        {
-            if (x.SetterDelegate is not null)
-            {
-                if (this.Kind == VisceralObjectKind.Struct)
-                {
-                    ssb.AppendLine($"private static ByRefAction<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegate};");
-                }
-                else
-                {
-                    ssb.AppendLine($"private static Action<{this.LocalName}, {x.TypeObject!.FullName}{x.TypeObject!.QuestionMarkIfReferenceType}>? {x.SetterDelegate};");
-                }
-            }
-
-            if (x.GetterDelegate is not null)
-            {
-                ssb.AppendLine($"private static Func<{this.LocalName}, {x.TypeObject!.FullName}>? {x.GetterDelegate};");
-            }
-        }
-
-        ssb.AppendLine();
     }
 
     internal void Generate_CallbackMethod(ScopingStringBuilder ssb, CallbackKind kind)
@@ -3138,57 +2876,6 @@ ModuleInitializerClass_Added:
         }
     }
 
-    /*internal void GenerateClone_Method(ScopingStringBuilder ssb, GeneratorInformation info)
-    {
-        string methodCode;
-        string sourceObject;
-
-        if (this.MethodCondition_Clone == MethodCondition.MemberMethod)
-        {
-            info.GeneratingStaticMethod = false;
-            methodCode = $"public {this.UnsafeDeserializeString}{this.FullName} DeepClone(TinyhandSerializerOptions options)";
-            sourceObject = "this";
-        }
-        else if (this.MethodCondition_Clone == MethodCondition.StaticMethod)
-        {
-            info.GeneratingStaticMethod = true;
-            methodCode = $"public static {this.UnsafeDeserializeString}{this.FullName + this.QuestionMarkIfReferenceType} DeepClone(ref {this.RegionalName + this.QuestionMarkIfReferenceType} v, TinyhandSerializerOptions options)"; // {this.GenericsNumberString}
-            sourceObject = "v";
-        }
-        else
-        {
-            return;
-        }
-
-        using (var m = ssb.ScopeBrace(methodCode))
-        using (var v = ssb.ScopeObject("value"))
-        {// this.x = value.x;
-            if (this.MethodCondition_Clone == MethodCondition.StaticMethod && this.Kind.IsReferenceType())
-            {
-                ssb.AppendLine($"if (v == null) return null;");
-            }
-
-            ssb.AppendLine($"var value = {this.NewInstanceCode()};");
-            foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
-            {
-                string sourceName;
-                if (x.RequiresGetter)
-                {
-                    var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    sourceName = $"{prefix}{x.GetterDelegateIdentifier}!({sourceObject})";
-                }
-                else
-                {
-                    sourceName = this.GetSourceName(sourceObject, x);
-                }
-
-                this.GenerateCloneCore(ssb, info, x, sourceName);
-            }
-
-            ssb.AppendLine($"return value;");
-        }
-    }*/
-
     internal void GenerateClone_Method2(ScopingStringBuilder ssb, GeneratorInformation info)
     {
         info.GeneratingStaticMethod = true;
@@ -3213,10 +2900,10 @@ ModuleInitializerClass_Added:
             foreach (var x in this.MembersWithFlag(TinyhandObjectFlag.CloneTarget))
             {
                 string sourceName;
-                if (x.RefFieldDelegate is not null || x.GetterDelegate is not null)
+                if (x.RefFieldDelegate is not null)
                 {// Ref field or getter delegate
                     var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-                    sourceName = $"{prefix}{x.RefFieldOrGetterDelegate}({sourceObject})";
+                    sourceName = $"{prefix}{x.RefFieldDelegate}({sourceObject})";
                 }
                 else
                 {// Hidden members
@@ -3903,7 +3590,7 @@ ModuleInitializerClass_Added:
 
             assignment.Start(false);
 
-            var coder = CoderResolver.Instance.TryGetCoder(withNullable)!;
+            var coder = this.Body.CoderResolver.TryGetCoder(withNullable)!;
             if (coder != null)
             {
                 if (coder.RequiresRefValue)
@@ -4188,7 +3875,7 @@ ModuleInitializerClass_Added:
         using (var m = this.ScopeMember(ssb, x))
         {
             var originalName = ssb.FullObject;
-            var coder = CoderResolver.Instance.TryGetCoder(withNullable);
+            var coder = this.Body.CoderResolver.TryGetCoder(withNullable);
             var exclude = x.KeyAttribute?.Exclude == true ? "!options.IsExcludeMode && " : string.Empty;
             using (var valid = ssb.ScopeBrace($"if ({exclude}numberOfData-- > 0 && !reader.TryReadNil())"))
             {
@@ -4281,7 +3968,7 @@ ModuleInitializerClass_Added:
         using (var m = this.ScopeMember(ssb, x))
         {
             var originalName = ssb.FullObject;
-            var coder = CoderResolver.Instance.TryGetCoder(withNullable);
+            var coder = this.Body.CoderResolver.TryGetCoder(withNullable);
             using (var valid = ssb.ScopeBrace($"if (!reader.TryReadNil())"))
             {
                 assignment.Start(false);
@@ -4400,7 +4087,7 @@ ModuleInitializerClass_Added:
                     assignment.End();
                 }
             }
-            else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
+            else if (this.Body.CoderResolver.TryGetCoder(withNullable) is { } coder)
             {// Coder
                 using (var c = ssb.ScopeBrace(string.Empty))
                 {
@@ -4458,7 +4145,7 @@ ModuleInitializerClass_Added:
                     {// TinyhandObject. For the purpose of default value and instance reuse.
                         withNullable.Object.GenerateFormatter_Reconstruct2(ssb, info, originalName, x.DefaultValue, x.ObjectFlag.HasFlag(TinyhandObjectFlag.ReuseInstanceTarget));
                     }
-                    else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
+                    else if (this.Body.CoderResolver.TryGetCoder(withNullable) is { } coder)
                     {
                         coder.CodeReconstruct(ssb, info);
                     }
@@ -4491,7 +4178,7 @@ ModuleInitializerClass_Added:
                 ssb.AppendLine($"{ssb.FullObject} = TinyhandSerializer.CloneObject({sourceObject}, options)!;");
                 assignment.End(true);
             }
-            else if (CoderResolver.Instance.TryGetCoder(withNullable) is { } coder)
+            else if (this.Body.CoderResolver.TryGetCoder(withNullable) is { } coder)
             {// Coder
                 assignment.Start(true, true);
                 coder.CodeClone(ssb, info, sourceObject);
@@ -4643,11 +4330,11 @@ ModuleInitializerClass_Added:
 
         ScopingStringBuilder.IScope? v1 = null;
         ScopingStringBuilder.IScope v2;
-        if (x.RefFieldDelegate is not null || x.GetterDelegate is not null)
+        if (x.RefFieldDelegate is not null)
         {// Ref field or getter delegate
             v1 = ssb.ScopeBrace(string.Empty);
             var prefix = info.GeneratingStaticMethod ? (this.RegionalName + ".") : string.Empty;
-            ssb.AppendLine($"var vd = {prefix}{x.RefFieldOrGetterDelegate}({ssb.FullObject});");
+            ssb.AppendLine($"var vd = {prefix}{x.RefFieldDelegate}({ssb.FullObject});");
             v2 = ssb.ScopeFullObject("vd");
         }
         else
@@ -4726,7 +4413,7 @@ ModuleInitializerClass_Added:
         }
         else
         {
-            var coder = CoderResolver.Instance.TryGetCoder(withNullable);
+            var coder = this.Body.CoderResolver.TryGetCoder(withNullable);
             if (coder != null)
             {// Coder
                 coder.CodeSerializer(ssb, info);

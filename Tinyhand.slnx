@@ -4,6 +4,8 @@
   </Folder>
   <Project Path="Benchmark/Benchmark.csproj" />
   <Project Path="Playground/Playground.csproj" />
+  <Project Path="NativeAotTest/NativeAotTest.csproj" />
+  <Project Path="NativeAotProcessorTest/NativeAotProcessorTest.csproj" />
   <Project Path="QuickStart/QuickStart.csproj" />
   <Project Path="TestAssembly/TestAssembly.csproj" />
   <Project Path="TestPlugin/TestPlugin.csproj" />

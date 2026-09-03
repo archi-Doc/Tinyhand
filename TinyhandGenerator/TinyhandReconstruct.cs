@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Arc.Visceral;
-using Tinyhand.Coders;
 
 #pragma warning disable SA1602 // Enumeration items should be documented
 
@@ -50,7 +49,7 @@ internal static class TinyhandReconstruct
             }
         }
 
-        if (obj.TypeObjectWithNullable != null && CoderResolver.Instance.TryGetCoder(obj.TypeObjectWithNullable) != null)
+        if (obj.TypeObjectWithNullable != null && obj.Body.CoderResolver.TryGetCoder(obj.TypeObjectWithNullable) != null)
         {// Coder found
             return ReconstructCondition.Can;
         }

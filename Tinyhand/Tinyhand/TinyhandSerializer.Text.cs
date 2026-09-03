@@ -337,6 +337,13 @@ public static partial class TinyhandSerializer
         {// {Text}
             try
             {
+                options ??= TinyhandSerializerOptions.ConvertToString;
+                if (OmitTopLevelBracket<T>(options))
+                {
+                    // The ordinary reader adds the omitted outer array/map itself.
+                    utf16 = utf16.Slice(1, utf16.Length - 2);
+                }
+
                 return DeserializeFromString<T>(utf16, options);
             }
             catch

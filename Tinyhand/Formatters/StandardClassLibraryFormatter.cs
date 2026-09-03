@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Tinyhand.IO;
 
@@ -430,7 +431,7 @@ internal sealed class ComplexFormatter : ITinyhandFormatter<System.Numerics.Comp
     public System.Numerics.Complex Clone(System.Numerics.Complex value, TinyhandSerializerOptions options) => value;
 }
 
-internal sealed class LazyFormatter<T> : ITinyhandFormatter<Lazy<T>>
+internal sealed class LazyFormatter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> : ITinyhandFormatter<Lazy<T>>
 {
     public void Serialize(ref TinyhandWriter writer, Lazy<T>? value, TinyhandSerializerOptions options)
     {

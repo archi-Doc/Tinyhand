@@ -17,19 +17,22 @@ public class Program
         Console.WriteLine(title);
         Console.WriteLine();
 
-        if (args.Length == 0 || args[0].ToLower() == "--help")
+        if (args.Length == 0 || string.Equals(args[0], "--help", StringComparison.OrdinalIgnoreCase))
         {
             var usage = "usage: tinyhand [FILE]";
             Console.WriteLine(usage);
         }
         else
         {
-            await Process(args[0]);
+            Environment.ExitCode = await Process(args[0]) ? 0 : 1;
         }
 
-        Console.WriteLine();
-        Console.WriteLine("Press any key to exit.");
-        Console.ReadKey();
+        if (!Console.IsInputRedirected)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
+        }
     }
 
     public static async Task<bool> Process(string file)
@@ -45,7 +48,7 @@ public class Program
         byte[] buffer;
         try
         {
-            using var fs = new FileStream(file, FileMode.Open);
+            using var fs = File.OpenRead(file);
             var length = fs.Length;
             buffer = new byte[length];
             fs.ReadExactly(buffer.AsSpan());

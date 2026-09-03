@@ -1,9 +1,9 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using Tinyhand.IO;
 
 #pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
@@ -212,9 +212,16 @@ internal sealed class DictionaryFormatter<TKey, TValue> : DictionaryFormatterBas
     }
 }
 
-internal sealed class GenericDictionaryFormatter<TKey, TValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TDictionary> : DictionaryFormatterBase<TKey, TValue, TDictionary>
+internal sealed class GenericDictionaryFormatter<TKey, TValue, TDictionary> : DictionaryFormatterBase<TKey, TValue, TDictionary>
     where TDictionary : IDictionary<TKey, TValue>, new()
 {
+    private readonly Func<int, IEqualityComparer<TKey>, TDictionary> factory;
+
+    public GenericDictionaryFormatter(Func<int, IEqualityComparer<TKey>, TDictionary> factory)
+    {
+        this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+    }
+
     protected override void Add(TDictionary collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
         collection.TryAdd(key, value);
@@ -223,7 +230,7 @@ internal sealed class GenericDictionaryFormatter<TKey, TValue, [DynamicallyAcces
     protected override TDictionary Create(TDictionary? reuse, int count, TinyhandSerializerOptions options)
     {
         var comparer = options.Security.GetEqualityComparer<TKey>();
-        return reuse ?? CollectionHelpers<TDictionary, IEqualityComparer<TKey>>.CreateHashCollection(count, comparer);
+        return reuse ?? this.factory(count, comparer);
     }
 }
 

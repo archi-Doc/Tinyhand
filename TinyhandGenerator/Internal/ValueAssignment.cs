@@ -33,7 +33,7 @@ internal ref struct ValueAssignment
             return;
         }
 
-        if (this.@object.RefFieldDelegate is not null || this.@object.SetterDelegate is not null || this.@object.IsReadOnly)
+        if (this.@object.RefFieldDelegate is not null || this.@object.IsReadOnly)
         {// TypeName vd;
             if (brace)
             {
@@ -45,10 +45,10 @@ internal ref struct ValueAssignment
             if (requiresValueReference &&
                 withNullable.Object.Kind == VisceralObjectKind.Class)
             {// Special handling for specific types is undesirable, but...
-                if (this.@object.RefFieldDelegate is not null || this.@object.GetterDelegate is not null)
-                {// Ref field or getter delegate
+                if (this.@object.RefFieldDelegate is not null)
+                {// Access the backing field through its generated accessor.
                     var prefix = this.info.GeneratingStaticMethod ? (this.parent + ".") : string.Empty;
-                    this.ssb.AppendLine($"var vd = {prefix}{this.@object.RefFieldOrGetterDelegate}({this.parent.InIfStruct}{this.destObject});");
+                    this.ssb.AppendLine($"var vd = {prefix}{this.@object.RefFieldDelegate}({this.parent.InIfStruct}{this.destObject});");
                 }
                 else
                 {
@@ -131,11 +131,6 @@ internal ref struct ValueAssignment
             {// RefFieldDelegate(obj) = vd;
                 var prefix = this.info.GeneratingStaticMethod ? (this.parent.RegionalName + ".") : string.Empty;
                 this.ssb.AppendLine($"{prefix}{this.@object.RefFieldDelegate}({this.parent.InIfStruct}{this.destObject}) = vd;");
-            }
-            else if (this.@object.SetterDelegate is not null)
-            {// SetterDelegate!(obj, vd);
-                var prefix = this.info.GeneratingStaticMethod ? (this.parent.RegionalName + ".") : string.Empty;
-                this.ssb.AppendLine($"{prefix}{this.@object.SetterDelegate}!({this.parent.InIfStruct}{this.destObject}, vd);");
             }
             else if (this.@object.IsReadOnly)
             {

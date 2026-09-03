@@ -18,6 +18,10 @@ namespace Tinyhand.Generator;
 
 public class TinyhandBody : VisceralBody<TinyhandObject>
 {
+    // Keep mutable coder caches within one compilation; compiler servers run
+    // generators concurrently and can reuse the analyzer assembly indefinitely.
+    public Tinyhand.Coders.CoderResolver CoderResolver { get; } = new();
+
     public const string GeneratorName = "TinyhandGenerator";
     public static readonly int MaxIntegerKey = 5_000;
     public static readonly int MaxStringKeySizeInBytes = 512;
@@ -317,7 +321,6 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     {
         ScopingStringBuilder ssb = new();
         GeneratorInformation info = new(generator.AssemblyName);
-        List<TinyhandObject> rootObjects = new();
 
         // Namespace - Primary TinyhandObjects
         foreach (var x in this.Namespaces)
@@ -325,8 +328,6 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
             cancellationToken.ThrowIfCancellationRequested();
             this.GenerateHeader(ssb);
             ssb.AppendNamespace(x.Key);
-
-            rootObjects.AddRange(x.Value); // For loader generation
 
             var firstFlag = true;
             foreach (var y in x.Value)
@@ -357,7 +358,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        this.GenerateLoader(generator, info, rootObjects, this.Namespaces);
+        this.GenerateLoader(generator, info);
         this.FlushDiagnostic();
     }
 
@@ -406,7 +407,6 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         ssb.AddUsing("System");
         ssb.AddUsing("System.Collections.Generic");
         ssb.AddUsing("System.Diagnostics.CodeAnalysis");
-        ssb.AddUsing("System.Linq.Expressions");
         ssb.AddUsing("System.Runtime.CompilerServices");
         ssb.AddUsing("System.Threading.Tasks");
         ssb.AddUsing("Tinyhand");
@@ -424,7 +424,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         ssb.AppendLine();
     }
 
-    private void GenerateLoader(IGeneratorInformation generator, GeneratorInformation info, List<TinyhandObject> rootObjects, Dictionary<string, List<TinyhandObject>> namespaces)
+    private void GenerateLoader(IGeneratorInformation generator, GeneratorInformation info)
     {
         var ssb = new ScopingStringBuilder();
         this.GenerateHeader(ssb);
@@ -435,22 +435,10 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
             {
                 info.FinalizeBlock(ssb);
 
-                if (!info.FlatLoader)
+                using (var method = ssb.ScopeBrace("internal static void __gen__th()"))
                 {
-                    TinyhandObject.GenerateLoader(ssb, info, rootObjects);
-                }
-                else
-                {// FlatLoader
-                    using (var m = ssb.ScopeBrace("internal static void __gen__th()"))
-                    {
-                        foreach (var x in namespaces.Values)
-                        {
-                            foreach (var y in x)
-                            {
-                                y.GenerateFlatLoader(ssb, info);
-                            }
-                        }
-                    }
+                    var assembly = new string((generator.AssemblyName ?? "Assembly").Select(x => char.IsLetterOrDigit(x) ? x : '_').ToArray());
+                    ssb.AppendLine($"global::TinyhandStaticRegistration_{assembly}.Initialize();");
                 }
             }
         }

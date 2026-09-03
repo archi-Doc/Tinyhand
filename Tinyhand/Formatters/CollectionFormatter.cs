@@ -136,7 +136,7 @@ internal sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
 
     public T[] Reconstruct(TinyhandSerializerOptions options)
     {
-        return new T[0];
+        return Array.Empty<T>();
     }
 
     public T[]? Clone(T[]? value, TinyhandSerializerOptions options)
@@ -390,7 +390,7 @@ internal sealed class MemoryFormatter<T> : ITinyhandFormatter<Memory<T>>
         return Memory<T>.Empty;
     }
 
-    public Memory<T> Clone(Memory<T> value, TinyhandSerializerOptions options) => options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
+    public Memory<T> Clone(Memory<T> value, TinyhandSerializerOptions options) => CollectionCloneHelper.Clone<T>(value.Span, options);
 }
 
 internal sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMemory<T>>
@@ -418,7 +418,7 @@ internal sealed class ReadOnlyMemoryFormatter<T> : ITinyhandFormatter<ReadOnlyMe
         return ReadOnlyMemory<T>.Empty;
     }
 
-    public ReadOnlyMemory<T> Clone(ReadOnlyMemory<T> value, TinyhandSerializerOptions options) => options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
+    public ReadOnlyMemory<T> Clone(ReadOnlyMemory<T> value, TinyhandSerializerOptions options) => CollectionCloneHelper.Clone(value.Span, options);
 }
 
 internal sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnlySequence<T>>
@@ -448,7 +448,7 @@ internal sealed class ReadOnlySequenceFormatter<T> : ITinyhandFormatter<ReadOnly
         return ReadOnlySequence<T>.Empty;
     }
 
-    public ReadOnlySequence<T> Clone(ReadOnlySequence<T> value, TinyhandSerializerOptions options) => new ReadOnlySequence<T>(options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options) ?? Array.Empty<T>());
+    public ReadOnlySequence<T> Clone(ReadOnlySequence<T> value, TinyhandSerializerOptions options) => new(CollectionCloneHelper.Clone(in value, options));
 }
 
 internal sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment<T>>
@@ -485,8 +485,7 @@ internal sealed class ArraySegmentFormatter<T> : ITinyhandFormatter<ArraySegment
 
     public ArraySegment<T> Clone(ArraySegment<T> value, TinyhandSerializerOptions options)
     {
-        var array = options.Resolver.GetFormatter<T[]>().Clone(value.ToArray(), options);
-        return array == null ? ArraySegment<T>.Empty : new ArraySegment<T>(array);
+        return new ArraySegment<T>(CollectionCloneHelper.Clone<T>(value.AsSpan(), options));
     }
 }
 

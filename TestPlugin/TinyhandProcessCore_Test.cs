@@ -11,6 +11,8 @@ public class TinyhandProcessCore_Test : IProcessCore
 {
     public static string StaticName => "log test";
 
+    public static void Register() => TinyhandProcess.RegisterPlugin<TinyhandProcessCore_Test>(StaticName);
+
     public TinyhandProcessCore_Test()
     {
     }
