@@ -911,44 +911,6 @@ internal sealed class ReadOnlyCollectionFormatter<T> : CollectionFormatterBase<T
     }
 }
 
-[Obsolete("Use " + nameof(InterfaceListFormatter2<int>) + " instead.")]
-internal sealed class InterfaceListFormatter<T> : CollectionFormatterBase<T, T[], IList<T>>
-{
-    protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
-    {
-        collection[index] = value;
-    }
-
-    protected override T[] Create(int count, TinyhandSerializerOptions options)
-    {
-        return count == 0 ? Array.Empty<T>() : new T[count];
-    }
-
-    protected override IList<T> Complete(T[] intermediateCollection)
-    {
-        return intermediateCollection;
-    }
-}
-
-[Obsolete("Use " + nameof(InterfaceCollectionFormatter2<int>) + " instead.")]
-internal sealed class InterfaceCollectionFormatter<T> : CollectionFormatterBase<T, T[], ICollection<T>>
-{
-    protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
-    {
-        collection[index] = value;
-    }
-
-    protected override T[] Create(int count, TinyhandSerializerOptions options)
-    {
-        return count == 0 ? Array.Empty<T>() : new T[count];
-    }
-
-    protected override ICollection<T> Complete(T[] intermediateCollection)
-    {
-        return intermediateCollection;
-    }
-}
-
 internal sealed class InterfaceListFormatter2<T> : CollectionFormatterBase<T, List<T>, IList<T>>
 {
     protected override void Add(List<T> collection, int index, T value, TinyhandSerializerOptions options)

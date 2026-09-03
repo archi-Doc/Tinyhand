@@ -943,6 +943,13 @@ public static partial class TinyhandSerializer
                             throw new TinyhandException("Invalid LZ4 block.");
                         }
 
+                        // The length comes from the data, so it is validated before it is used to size a buffer;
+                        // an LZ4 block expands by at most 255x, and an empty block produces no output.
+                        if (uncompressedLength <= 0 || (long)uncompressedLength > (long)span.Length * 255)
+                        {
+                            throw new TinyhandException("Invalid LZ4 block length.");
+                        }
+
                         var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
                         var actualUncompressedLength = LZ4Codec.Decode(span, uncompressedSpan);
                         Debug.Assert(actualUncompressedLength == uncompressedLength, "Unexpected length of uncompressed data.");

@@ -53,6 +53,9 @@ internal sealed class BuiltinResolver : IFormatterResolver
         FormatterCache<char?>.Formatter = NullableCharFormatter.Instance;
         FormatterCache<DateTime?>.Formatter = NullableDateTimeFormatter.Instance;
         FormatterCache<Int128>.Formatter = Int128Formatter.Instance;
+        FormatterCache<UInt128>.Formatter = UInt128Formatter.Instance;
+        FormatterCache<Int128?>.Formatter = NullableInt128Formatter.Instance;
+        FormatterCache<UInt128?>.Formatter = NullableUInt128Formatter.Instance;
         FormatterCache<byte[]>.Formatter = ByteArrayFormatter.Instance;
         FormatterCache<sbyte[]>.Formatter = Int8ArrayFormatter.Instance;
         FormatterCache<ushort[]>.Formatter = UInt16ArrayFormatter.Instance;
@@ -67,6 +70,8 @@ internal sealed class BuiltinResolver : IFormatterResolver
         FormatterCache<string[]>.Formatter = StringArrayFormatter.Instance;
         FormatterCache<char[]>.Formatter = CharArrayFormatter.Instance;
         FormatterCache<DateTime[]>.Formatter = DateTimeArrayFormatter.Instance;
+        FormatterCache<Int128[]>.Formatter = Int128ArrayFormatter.Instance;
+        FormatterCache<UInt128[]>.Formatter = UInt128ArrayFormatter.Instance;
         FormatterCache<List<byte>>.Formatter = ByteListFormatter.Instance;
         FormatterCache<List<sbyte>>.Formatter = Int8ListFormatter.Instance;
         FormatterCache<List<ushort>>.Formatter = UInt16ListFormatter.Instance;
@@ -81,6 +86,8 @@ internal sealed class BuiltinResolver : IFormatterResolver
         FormatterCache<List<string>>.Formatter = StringListFormatter.Instance;
         FormatterCache<List<char>>.Formatter = CharListFormatter.Instance;
         FormatterCache<List<DateTime>>.Formatter = DateTimeListFormatter.Instance;
+        FormatterCache<List<Int128>>.Formatter = Int128ListFormatter.Instance;
+        FormatterCache<List<UInt128>>.Formatter = UInt128ListFormatter.Instance;
         FormatterCache<decimal>.Formatter = NativeDecimalFormatter.Instance;
         FormatterCache<decimal?>.Formatter = new StaticNullableFormatter<decimal>(NativeDecimalFormatter.Instance);
         FormatterCache<TimeSpan>.Formatter = TimeSpanFormatter.Instance;
@@ -156,6 +163,7 @@ internal sealed class BuiltinResolver : IFormatterResolver
         TinyhandTypeIdentifier.Register<char?>();
         TinyhandTypeIdentifier.Register<DateTime?>();
         TinyhandTypeIdentifier.Register<Int128>();
+        TinyhandTypeIdentifier.Register<UInt128>();
         TinyhandTypeIdentifier.Register<byte[]>();
         TinyhandTypeIdentifier.Register<sbyte[]>();
         TinyhandTypeIdentifier.Register<ushort[]>();

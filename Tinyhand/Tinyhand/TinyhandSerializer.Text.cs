@@ -125,6 +125,9 @@ public static partial class TinyhandSerializer
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;
 
+        // The same layout as SerializeToUtf8<T>(T), so the text can be read back by DeserializeFromUtf8<T>.
+        var omitTopLevelBracket = OmitTopLevelBracket<T>(options);
+
         // Slow
         // TinyhandTreeConverter.FromBinaryToElement(binary, out var element, options);
         // TinyhandComposer.Compose(writer, element, options.Compose);
@@ -135,7 +138,7 @@ public static partial class TinyhandSerializer
             var writer = new TinyhandRawWriter(bufferWriter);
             try
             {
-                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options);
+                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
                 writer.Flush(); // Commit the last segment to the buffer writer.
             }
             finally
@@ -154,7 +157,7 @@ public static partial class TinyhandSerializer
             var writer = new TinyhandRawWriter(bufferWriter);
             try
             {
-                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options);
+                TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);
                 writer.Flush(); // Commit the last segment to the buffer writer.
             }
             finally
