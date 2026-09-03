@@ -80,7 +80,7 @@ public class Utf8Benchmark
         return TinyhandSerializer.DeserializeFromUtf8<H2HTest.ObjectH2H2>(this.utf8b);
     }
 
-    [Benchmark]
+    /*[Benchmark]
     public int StringConvertibleViaString()
     {
         var reader = new TinyhandReader(this.stringConvertibleData);
@@ -101,7 +101,7 @@ public class Utf8Benchmark
         var value = default(StringConvertibleValue);
         reader.TryReadStringConvertible(ref value);
         return value.Value;
-    }
+    }*/
 
     public struct StringConvertibleValue : IStringConvertible<StringConvertibleValue>
     {
