@@ -2,7 +2,6 @@
 
 using System;
 using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -299,26 +298,6 @@ namespace Tinyhand.Internal
             else if (ti.IsEnum)
             {
                 return CreateInstance(typeof(GenericEnumFormatter<>), new[] { t });
-            }
-            else
-            {
-                // Non-generic collection interfaces
-                if (t == typeof(IEnumerable))
-                {
-                    return NonGenericInterfaceEnumerableFormatter.Instance;
-                }
-                else if (t == typeof(ICollection))
-                {
-                    return NonGenericInterfaceCollectionFormatter.Instance;
-                }
-                else if (t == typeof(IList))
-                {
-                    return NonGenericInterfaceListFormatter.Instance;
-                }
-                else if (t == typeof(IDictionary))
-                {
-                    return NonGenericInterfaceDictionaryFormatter.Instance;
-                }
             }
 
             // check inherited types(e.g. Foo : ICollection<>, Bar<T> : ICollection<T>)

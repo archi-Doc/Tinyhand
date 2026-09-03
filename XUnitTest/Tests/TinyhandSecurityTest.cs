@@ -1,10 +1,10 @@
 // Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Tinyhand.IO;
 using Xunit;
 
@@ -45,13 +45,23 @@ public class TinyhandSecurityTest
         AssertObjectKeysRejected(new ReadOnlyDictionary<object, int>(dictionary), reuse);
         AssertObjectKeysRejected(new ConcurrentDictionary<object, int>(dictionary), reuse);
         AssertObjectKeysRejected(new Dictionary<object, int>(), reuse);
-        AssertObjectKeysRejected<IDictionary>(new Hashtable { ["key"] = 1 }, reuse);
     }
 
     [Fact]
     public void UntrustedDataRejectsObjectKeySets()
     {
         AssertObjectKeysRejected(new HashSet<object> { 1, "key" }, false);
+    }
+
+    [Fact]
+    public void UntrustedDataRejectsObjectKeyLookups()
+    {
+        var lookup = new[] { 1 }.ToLookup(x => (object)"key");
+        AssertObjectKeysRejected(lookup, false);
+
+        var options = TinyhandSerializerOptions.Standard with { Security = TinyhandSecurity.UntrustedData };
+        Assert.Throws<TypeAccessException>(() => TinyhandSerializer.Clone(lookup, options));
+        Assert.Throws<TypeAccessException>(() => TinyhandSerializer.Reconstruct<ILookup<object, int>>(options));
     }
 
     [Fact]

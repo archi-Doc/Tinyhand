@@ -690,9 +690,9 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 `object` 経由でシリアライズするコレクションは、内部の値にもプリミティブのエンコードを使用します。内部の整数は整数型を保持するため、従来の実行時 formatter 選択と出力バイト列が変わる場合があります。データから復元される整数型は、引き続きエンコードされたバイト列で決まります。
 
-`Security = TinyhandSecurity.UntrustedData`（または `HashCollisionResistant` が有効）の場合、標準のセキュリティ設定ではハッシュコレクションの `object` キーを拒否します。`Dictionary<object, ...>`、`HashSet<object>`、非ジェネリック辞書、および `object` 経由で復元するマップが対象です。実際のキーが文字列でも拒否されるため、`Dictionary<string, ...>` など対応する具体的なキー型を指定してください。`object` に格納したスカラー値や、マップを含まない配列は引き続き扱えます。`TrustedData` の動作は変わりません。
+`Security = TinyhandSecurity.UntrustedData`（または `HashCollisionResistant` が有効）の場合、標準のセキュリティ設定ではハッシュコレクションの `object` キーを拒否します。`Dictionary<object, ...>`、`HashSet<object>`、`ILookup<object, ...>`、および `object` 経由で復元するマップが対象です。実際のキーが文字列でも拒否されるため、`Dictionary<string, ...>` など対応する具体的なキー型を指定してください。`object` に格納したスカラー値や、マップを含まない配列は引き続き扱えます。`TrustedData` の動作は変わりません。
 
-`ArrayList`、`Hashtable`、独自の `IList` / `IDictionary` 実装など、非ジェネリックのコレクションインターフェイスのみを実装する具体型の formatter は自動生成しません。対応するジェネリックコレクションを使用するか、`IList` / `IDictionary` 型としてシリアライズしてください。インターフェイス経由のデシリアライズでは、元の具体型ではなく配列または辞書を生成します。
+非ジェネリックのコレクション型（`IEnumerable`、`ICollection`、`IList`、`IDictionary`、`ArrayList`、`Hashtable`）はシリアライズ対象の型として指定できません。`IEnumerable<T>`、`ICollection<T>`、`IList<T>`、`IDictionary<TKey, TValue>` などのジェネリックインターフェイス、または対応するジェネリックコレクションの具体型を使用してください。
 
 サポートしている型の一覧：
 
@@ -707,8 +707,6 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 * `Array[]`, `Array[,]`, `Array[,,]`, `Array[,,,]`, `ArraySegment<>`, `BitArray`
 
 * `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
-
-* `IEnumerable`, `ICollection`, `IList`, `IDictionary`
 
 * `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
 

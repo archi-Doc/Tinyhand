@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Tinyhand.Resolvers;
 using Xunit;
 
@@ -47,7 +48,7 @@ public class FormatterResolverTest
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void DefaultResolversDoNotSupportConcreteNonGenericCollections(bool compatible)
+    public void DefaultResolversDoNotSupportNonGenericCollections(bool compatible)
     {
         var options = compatible ? TinyhandSerializerOptions.Compatible : TinyhandSerializerOptions.Standard;
 
@@ -55,5 +56,24 @@ public class FormatterResolverTest
         Assert.Null(options.Resolver.TryGetFormatter<Hashtable>());
         Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(new ArrayList { 1, "value" }, options));
         Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(new Hashtable { ["key"] = 1 }, options));
+
+        var list = new object[] { 1, "value" };
+        var listBytes = TinyhandSerializer.Serialize(list, options);
+        AssertUnsupportedCollection<IEnumerable>(list, listBytes, options);
+        AssertUnsupportedCollection<ICollection>(list, listBytes, options);
+        AssertUnsupportedCollection<IList>(list, listBytes, options);
+
+        var dictionary = new Dictionary<string, int> { ["key"] = 1 };
+        var dictionaryBytes = TinyhandSerializer.Serialize(dictionary, options);
+        AssertUnsupportedCollection<IDictionary>(dictionary, dictionaryBytes, options);
+    }
+
+    private static void AssertUnsupportedCollection<T>(T value, byte[] bytes, TinyhandSerializerOptions options)
+    {
+        Assert.Null(options.Resolver.TryGetFormatter<T>());
+        Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(value, options));
+        Assert.Throws<TinyhandException>(() => TinyhandSerializer.Deserialize<T>(bytes, options));
+        Assert.Throws<FormatterNotRegisteredException>(() => TinyhandSerializer.Clone(value, options));
+        Assert.Throws<FormatterNotRegisteredException>(() => TinyhandSerializer.Reconstruct<T>(options));
     }
 }

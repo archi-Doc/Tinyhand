@@ -863,9 +863,9 @@ With `Standard` and `Compatible` options, `object`-typed values use the primitiv
 
 Collections serialized through `object` now use primitive encoding recursively. Nested integers retain their integer type, so their bytes can differ from the previous runtime formatter dispatch. When reading data, integer types continue to be determined by the encoded bytes.
 
-With `Security = TinyhandSecurity.UntrustedData` (or `HashCollisionResistant` enabled), the built-in security policy rejects `object` keys in hash-based collections. This includes `Dictionary<object, ...>`, `HashSet<object>`, non-generic dictionaries, and maps deserialized through `object`, even when their keys are strings. Use a concrete supported key type, such as `Dictionary<string, ...>`. Scalar `object` values and arrays without nested maps remain supported. `TrustedData` retains its existing behavior.
+With `Security = TinyhandSecurity.UntrustedData` (or `HashCollisionResistant` enabled), the built-in security policy rejects `object` keys in hash-based collections. This includes `Dictionary<object, ...>`, `HashSet<object>`, `ILookup<object, ...>`, and maps deserialized through `object`, even when their keys are strings. Use a concrete supported key type, such as `Dictionary<string, ...>`. Scalar `object` values and arrays without nested maps remain supported. `TrustedData` retains its existing behavior.
 
-Concrete collections that implement only non-generic interfaces, such as `ArrayList`, `Hashtable`, and custom `IList` / `IDictionary` implementations, are no longer resolved automatically. Use a supported generic collection or serialize through `IList` / `IDictionary`. Interface-based deserialization returns an array or dictionary, rather than the original concrete type.
+Non-generic collection types (`IEnumerable`, `ICollection`, `IList`, `IDictionary`, `ArrayList`, and `Hashtable`) are not supported as the serialization type. Use generic interfaces such as `IEnumerable<T>`, `ICollection<T>`, `IList<T>`, and `IDictionary<TKey, TValue>`, or supported concrete generic collections.
 
 These types can serialize by default:
 
@@ -880,8 +880,6 @@ These types can serialize by default:
 * `Array[]`, `Array[,]`, `Array[,,]`, `Array[,,,]`, `ArraySegment<>`, `BitArray`
 
 * `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
-
-* `IEnumerable`, `ICollection`, `IList`, `IDictionary`
 
 * `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
 

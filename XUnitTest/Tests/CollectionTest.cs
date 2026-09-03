@@ -103,6 +103,27 @@ public class CollectionTest
         Assert.Equal(new[] { 1, 2, 3, 4 }, setCollection.OrderBy(n => n).ToArray());
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void LookupReturnsEmptySequenceForMissingKeys(bool untrusted)
+    {
+        var options = TinyhandSerializerOptions.Standard with
+        {
+            Security = untrusted ? TinyhandSecurity.UntrustedData : TinyhandSecurity.TrustedData,
+        };
+        var source = new[] { 1, 2, 3 }.ToLookup(x => x % 2 == 0 ? "even" : "odd");
+        var bytes = TinyhandSerializer.Serialize(source, options);
+        var result = TinyhandSerializer.Deserialize<ILookup<string, int>>(bytes, options)!;
+
+        Assert.Equal(2, result.Count);
+        Assert.Equal(new[] { 1, 3 }, result["odd"]);
+        Assert.False(result.Contains("missing"));
+        Assert.Empty(result["missing"]);
+        Assert.Empty(TinyhandSerializer.Clone(source, options)!["missing"]);
+        Assert.Empty(TinyhandSerializer.Reconstruct<ILookup<string, int>>(options)["missing"]);
+    }
+
     [Fact]
     public void StackTest()
     {
@@ -213,19 +234,6 @@ public class CollectionTest
         this.Convert(nullableTest).Value.ToArray().Is((byte)1, (byte)10, (byte)100);
         nullableTest = null;
         this.Convert(nullableTest).IsNull();
-    }
-
-    [Fact]
-    public void NonGenericInterfaceCollectionsTest()
-    {
-        var xs = new[] { 1, 2, 3 };
-        IEnumerable a = xs;
-        ICollection b = xs;
-        IList c = xs;
-        // in MessagePack v2.1, deserialized type is byte so can not use Cast<int>().
-        this.Convert(a).Cast<object>().Select(x => System.Convert.ToInt32(x)).Is(xs);
-        this.Convert(b).Cast<object>().Select(x => System.Convert.ToInt32(x)).Is(xs);
-        this.Convert(c).Cast<object>().Select(x => System.Convert.ToInt32(x)).Is(xs);
     }
 
     [Fact]
