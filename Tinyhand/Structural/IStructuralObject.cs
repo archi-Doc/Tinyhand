@@ -11,8 +11,7 @@ using Tinyhand.IO;
 namespace Tinyhand;
 
 /// <summary>
-/// Represents a structural object that can participate in a hierarchical structure,
-/// support journaling, and provide serialization/deserialization capabilities.
+/// Defines parent-child relationships, journal replay, and persistence operations for a structural object.
 /// </summary>
 public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
 {
@@ -60,12 +59,12 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
     /// </summary>
     /// <param name="storeMode">The mode that determines how the data should be stored.</param>
     /// <returns>A <see cref="Task{Boolean}"/> representing the asynchronous save operation. Returns <c>true</c> if the save was successful; otherwise, <c>false</c>.</returns>
+    /// <remarks>The default implementation completes successfully without storing data.</remarks>
     Task<bool> StoreData(StoreMode storeMode)
         => Task.FromResult(true);
 
     /// <summary>
-    /// Delete the storage and data of the current object.<br/>
-    /// This is an asynchronous function; if the elapsed time exceeds the specified timeout, the object is forcibly deleted.<br/>
+    /// Requests deletion of this object's stored data, with an optional deadline for forced deletion.
     /// </summary>
     /// <param name="forceDeleteAfter">The UTC <see cref="DateTime"/> after which the object will be forcibly deleted if not already deleted.<br/>
     /// <see langword="default"/>: Do not forcibly delete; wait until all operations are finished.<br/>
@@ -73,6 +72,7 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
     /// </param>
     /// <param name="writeJournal">Indicates whether to write the deletion operation to the journal.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous delete operation.</returns>
+    /// <remarks>The default implementation does nothing. Implementations provide deletion and deadline handling.</remarks>
     Task DeleteData(DateTime forceDeleteAfter = default, bool writeJournal = true)
         => Task.CompletedTask;
 

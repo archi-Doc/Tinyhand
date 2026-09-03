@@ -16,6 +16,9 @@ using Arc.Collections;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Provides Tinyhand text encoding, escaping, keyword, and Unicode helpers.
+/// </summary>
 public static class TinyhandHelper
 {
     static TinyhandHelper()

@@ -6,6 +6,9 @@ using System.Runtime.CompilerServices;
 
 namespace Tinyhand.IO;
 
+/// <summary>
+/// Reads and writes journal headers, record markers, and structural updates.
+/// </summary>
 public static class JournalHelper
 {
     public static bool ReadJournal(IStructuralObject journalObject, ReadOnlyMemory<byte> data)

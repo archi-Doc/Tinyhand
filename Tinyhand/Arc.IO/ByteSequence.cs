@@ -8,6 +8,9 @@ using Arc.Collections;
 
 namespace Arc.IO;
 
+/// <summary>
+/// Stores bytes in pooled segments and exposes them as a buffer writer or read-only sequence. Dispose it after use.
+/// </summary>
 public class ByteSequence : IBufferWriter<byte>, IDisposable
 {
     public const int DefaultVaultSize = 32 * 1024;

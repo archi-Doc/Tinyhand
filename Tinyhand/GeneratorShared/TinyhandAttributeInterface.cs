@@ -34,33 +34,38 @@ public enum PropertyAccessibility
 }
 
 /// <summary>
-/// Attribute to specify a method to be called before serialization.<br/>
-/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// Marks a callback to run before serialization.
 /// </summary>
+/// <remarks>
+/// Callbacks are not inherited by derived classes. Serialization and deserialization callbacks run under the configured object lock.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class TinyhandOnSerializingAttribute : Attribute;
 
 /// <summary>
-/// Attribute to specify a method to be called after serialization.<br/>
-/// Callbacks are not inherited by derived classes.<br/>
-/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// Marks a callback to run after serialization.
 /// </summary>
+/// <remarks>
+/// Callbacks are not inherited by derived classes. Serialization and deserialization callbacks run under the configured object lock.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class TinyhandOnSerializedAttribute : Attribute;
 
 /// <summary>
-/// Attribute to specify a method to be called before deserialization.<br/>
-/// Callbacks are not inherited by derived classes.<br/>
-/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// Marks a callback to run before deserialization.
 /// </summary>
+/// <remarks>
+/// Callbacks are not inherited by derived classes. Serialization and deserialization callbacks run under the configured object lock.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class TinyhandOnDeserializingAttribute : Attribute;
 
 /// <summary>
-/// Attribute to specify a method to be called after deserialization.<br/>
-/// Callbacks are not inherited by derived classes.<br/>
-/// If a <see cref="TinyhandObjectAttribute.LockObject"/> is specified, it will be executed while holding an exclusive lock.
+/// Marks a callback to run after deserialization.
 /// </summary>
+/// <remarks>
+/// Callbacks are not inherited by derived classes. Serialization and deserialization callbacks run under the configured object lock.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class TinyhandOnDeserializedAttribute : Attribute;
 
@@ -72,98 +77,97 @@ public sealed class TinyhandOnDeserializedAttribute : Attribute;
 public sealed class TinyhandOnReconstructingAttribute : Attribute;*/
 
 /// <summary>
-/// Attribute to specify a method to be called after reconstruction.<br/>
-/// Callbacks are not inherited by derived classes.
+/// Marks a callback to run after reconstruction.
 /// </summary>
+/// <remarks>
+/// Callbacks are not inherited by derived classes.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
 public sealed class TinyhandOnReconstructedAttribute : Attribute;
 
 /// <summary>
-/// Enables serialization/deserialization by TinyhandSerializer. The class or struct must be a partial type.
+/// Enables generated Tinyhand serialization for a partial class, struct, record, or union interface.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface, AllowMultiple = false, Inherited = true)]
 public sealed class TinyhandObjectAttribute : Attribute
 {
     /// <summary>
-    /// Gets or sets a value indicating whether or not to include private/protected members as serialization targets [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether private and protected members are serialization targets. The default is false.
     /// </summary>
     public bool IncludePrivateMembers { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to use member names as string keys.<br/>
-    /// String key and Int key are exclusive [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether eligible members use their names as string keys. The default is false.
     /// </summary>
     public bool ImplicitMemberNameAsKey { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether the serialization target should be limited to members with the Key attribute [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether only explicitly keyed members are serialized. The default is false.
     /// </summary>
     public bool ExplicitKeysOnly { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to create an instance of a member variable even if there is no matching data (default constructor required) [default is <see langword="true"/>].
+    /// Gets or sets a value indicating whether members are automatically selected for reconstruction. The default is true.
     /// </summary>
     public bool ReconstructMembers { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to reuse an instance of a member variable when deserializing/reconstructing [default is <see langword="true"/>].
+    /// Gets or sets a value indicating whether deserialization reuses existing Tinyhand member instances. The default is true.
     /// </summary>
     public bool ReuseMembers { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to skip a serialization if the value is the same as the the default value [default is <see langword="true"/>].
+    /// Gets or sets a value indicating whether generated serialization omits recognized default values. The default is true.
     /// </summary>
     public bool SkipDefaultValues { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to use <seealso cref="IServiceProvider"/> to create an instance [default is <see langword="false"/>]. Set <see cref="TinyhandSerializer.ServiceProvider"/>.
+    /// Gets or sets a value indicating whether instances are obtained from <see cref="TinyhandSerializer.ServiceProvider"/>. The default is false.
     /// </summary>
     public bool UseServiceProvider { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets the number of reserved keys for future use.<br/>
-    /// Derived classes cannot use reserved keys from 0 to (ReservedKeyCount - 1).
+    /// Gets or sets the number of integer keys reserved by this type, starting at zero, for use by its own members.
     /// </summary>
     public int ReservedKeyCount { get; set; } = 0;
 
     /// <summary>
-    /// Gets or sets the name of the member used for lock statememt during serialization and deserialization [default is <see cref="string.Empty"/>].
+    /// Gets or sets the name of the member used to lock serialization and deserialization. An empty string disables locking.
     /// </summary>
     public string LockObject { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to serialize/deserialize objects of Enum type as strings [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether enum members are serialized by name. The default is false.
     /// </summary>
     public bool EnumAsString { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to use formatter resolvers instead of static abstract methods [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether generated callers use a formatter resolver for this type instead of its static methods. The default is false.
     /// </summary>
     public bool UseResolver { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to generate code to manage objects in a tree structure for journaling and data persistence [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether to generate object-tree and journaling support. The default is false.
     /// </summary>
     public bool Structural { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to register as a serializable TinyhandObject, but the actual code is to be generated externally (e.g., by a source generator).
+    /// Gets or sets a value indicating whether serialization code for this type is supplied externally. The default is false.
     /// </summary>
     public bool External { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to include the SignatureId during serialization in signature mode [default is <see langword="true"/>].
+    /// Gets or sets a value indicating whether signature serialization includes the type signature identifier. The default is true.
     /// </summary>
     public bool AddSignatureId { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to add a ToImmutable() method and an Immutable class to the object. [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether to generate a read-only wrapper, ToImmutable(), and CloneAndToImmutable(). The default is false.
     /// </summary>
     public bool AddImmutable { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to add dual keys consisting of an base int key and a alternate string key [default is <see langword="false"/>].<br/>
-    /// Specify the key using an integer key, and provide an alternate string key if necessary.
+    /// Gets or sets a value indicating whether integer-key objects also support alternate string keys for text serialization. The default is false.
     /// </summary>
     public bool AddAlternateKey { get; set; } = false;
 
@@ -188,7 +192,7 @@ public sealed class ReserveKeyAttribute : Attribute
 }*/
 
 /// <summary>
-/// Adds the member to the serialization target and specify the Key (integer or string).
+/// Includes a field or property in serialization with an integer or string key.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
 public class KeyAttribute : Attribute
@@ -206,34 +210,32 @@ public class KeyAttribute : Attribute
     public string? StringKey { get; private set; }
 
     /// <summary>
-    /// Gets or sets the level for signature (will be serialized if Writer.Level is the same or greater than this) [default is <see cref="int.MinValue"/> (disabled)].
+    /// Gets or sets the minimum writer level for including this member in signature mode. The default includes it at all levels.
     /// </summary>
     public int Level { get; set; } = DefaultLevel;
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to serialize the member during exclude mode (it will not be serialized in exclude mode and this property is true) [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether this member is omitted in exclude mode. The default is false.
     /// </summary>
     public bool Exclude { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a name of a property that will be created from the field.<br/>
-    /// <b>Valid for fields only.</b>
+    /// Gets or sets the name of the property generated for this field. An empty string disables property generation.
     /// </summary>
     public string AddProperty { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets an alternative string key.<br/>
-    /// Valid only when the dual key option is enabled.
+    /// Gets or sets the alternate string key when AddAlternateKey is enabled. An empty string uses the member name.
     /// </summary>
     public string Alternate { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets an accessibility of a property that will be created from the field.<br/>
+    /// Gets or sets the accessor visibility of the property generated for this field.
     /// </summary>
     public PropertyAccessibility PropertyAccessibility { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether or not to ignore the reserved key's warnings and use it forcefully [default is <see langword="false"/>].
+    /// Gets or sets a value indicating whether to suppress reserved-key diagnostics for this member. The default is false.
     /// </summary>
     public bool IgnoreKeyReservation { get; set; } = false;
 
@@ -249,7 +251,7 @@ public class KeyAttribute : Attribute
 }
 
 /// <summary>
-/// Use the member name as a key and include it as a serialization target.
+/// Includes a field or property in serialization using its name as a string key.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
 public class MemberNameAsKeyAttribute : Attribute
@@ -260,7 +262,7 @@ public class MemberNameAsKeyAttribute : Attribute
 }
 
 /// <summary>
-/// Removes the member from the serialization target.
+/// Excludes a field or property from generated serialization.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
 public class IgnoreMemberAttribute : Attribute
@@ -268,8 +270,11 @@ public class IgnoreMemberAttribute : Attribute
 }
 
 /// <summary>
-/// Adds the member to the reconstruct target if reconstruct is true.
+/// Controls whether a member is selected for generated reconstruction.
 /// </summary>
+/// <remarks>
+/// Class reconstruction relies on constructors and initializers. Deserialization can still initialize missing non-nullable map members.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
 public sealed class ReconstructAttribute : Attribute
 {
@@ -282,7 +287,7 @@ public sealed class ReconstructAttribute : Attribute
 }
 
 /// <summary>
-/// Reuse the member instance when deserializing. The member must have TinyhandObject attribute.
+/// Controls whether deserialization reuses an existing member instance of a Tinyhand object type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
 public sealed class ReuseAttribute : Attribute
@@ -296,8 +301,7 @@ public sealed class ReuseAttribute : Attribute
 }
 
 /// <summary>
-/// Sets the maximum length of the member (<see cref="string"/>, <see cref="Array"/>, <see cref="List{T}"/>).<br/>
-/// Valid only when <b>deserializing</b>.
+/// Limits string, array, or list length during deserialization and in generated property setters.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
 public sealed class MaxLengthAttribute : Attribute
@@ -348,7 +352,7 @@ public sealed class TinyhandGeneratorOptionAttribute : Attribute
 public interface ITinyhandSingleLayoutSerializable;
 
 /// <summary>
-/// An interface for serialize/deserialize methods.
+/// Defines serialization and deserialization methods for a Tinyhand object.
 /// </summary>
 public interface ITinyhandSerializable
 {
@@ -374,8 +378,7 @@ public interface ITinyhandSerializable
 }
 
 /// <summary>
-/// Interface for serialize/deserialize methods.
-/// If this interface is implemented, Tinyhand use it instead of the generated code.
+/// Defines static serialization methods that generated code can provide or a type can implement.
 /// </summary>
 /// <typeparam name="T">The type to be serialized.</typeparam>
 public interface ITinyhandSerializable<T>
@@ -404,8 +407,7 @@ public interface ITinyhandSerializable<T>
 }
 
 /// <summary>
-/// Interface for custom reconstruct methods.
-/// If this interface is implemented, Tinyhand use it instead of the generated code.
+/// Defines a static reconstruction method that generated code can provide or a type can implement.
 /// </summary>
 /// <typeparam name="T">The type to be reconstructed.</typeparam>
 public interface ITinyhandReconstructable<T>
@@ -414,8 +416,7 @@ public interface ITinyhandReconstructable<T>
 }
 
 /// <summary>
-/// Interface for custom clone methods.
-/// If this interface is implemented, Tinyhand use it instead of the generated code.
+/// Defines a static cloning method that generated code can provide or a type can implement.
 /// </summary>
 /// <typeparam name="T">The type to be cloned.</typeparam>
 public interface ITinyhandCloneable<T>
@@ -424,21 +425,19 @@ public interface ITinyhandCloneable<T>
 }
 
 /// <summary>
-/// Interface for handling default value.
+/// Allows a type to indicate that its current value can be omitted from serialization.
 /// </summary>
 public interface ITinyhandDefault
 {
     /// <summary>
     /// Determines if serialization of this object can be omitted.
     /// </summary>
-    /// <returns><see langword="true"/>; Skip serializing this object.</returns>
+    /// <returns><see langword="true"/> if serialization can omit this value; otherwise, <see langword="false"/>.</returns>
     bool CanSkipSerialization();
 }
 
 /// <summary>
-/// You can serialize/deserialize derived types via the base type by adding TinyhandUnionAttribute to the base type.<br/>
-/// The base type must be an abstract class or interface.<br/>
-/// Specify Key (an identifier of the subtype) and SubType (the derived or implementing type).
+/// Registers a derived type under an integer or string key on an abstract base class or interface.
 /// </summary>
 [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
 public class TinyhandUnionAttribute : Attribute
@@ -482,7 +481,7 @@ public class TinyhandUnionAttribute : Attribute
 }
 
 /// <summary>
-/// Generates members or child classes from tinyhand file and set values to the members.
+/// Generates initialized members and nested classes from a Tinyhand text file.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
 public sealed class TinyhandGenerateMemberAttribute : Attribute
@@ -493,7 +492,7 @@ public sealed class TinyhandGenerateMemberAttribute : Attribute
 }
 
 /// <summary>
-/// Generates members or child classes from tinyhand file, and sets the hash of the identifier to the value.
+/// Generates identifier hash constants and nested classes from a Tinyhand text file.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
 public sealed class TinyhandGenerateHashAttribute : Attribute

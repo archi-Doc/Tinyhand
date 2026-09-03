@@ -5,6 +5,9 @@ using System.Runtime.InteropServices;
 
 namespace Arc.Visceral;
 
+/// <summary>
+/// Reads UTF-8 key fragments used by generated string-key lookups.
+/// </summary>
 public static class VisceralTrieHelper
 {
     public static ulong ReadKey(ref ReadOnlySpan<byte> span)

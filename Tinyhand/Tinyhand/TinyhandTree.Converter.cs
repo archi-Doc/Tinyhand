@@ -25,6 +25,9 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Converts between Tinyhand binary data, UTF-8 text, and syntax trees.
+/// </summary>
 public static partial class TinyhandTreeConverter
 {
     private const int InitialBufferSize = 32 * 1024;
@@ -66,11 +69,11 @@ public static partial class TinyhandTreeConverter
     #region BinaryToUtf8
 
     /// <summary>
-    /// Converts a sequence of byte to UTF-8 text.
+    /// Converts Tinyhand binary data to UTF-8 text.
     /// </summary>
     /// <param name="span">A byte span to convert.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
-    /// <param name="options">The options. Use <c>null</c> to use default options.</param>
+    /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
     public static void FromBinaryToUtf8(ReadOnlySpan<byte> span, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options, bool omitTopLevelBracket = false)
     {
@@ -99,7 +102,7 @@ public static partial class TinyhandTreeConverter
     }
 
     /// <summary>
-    /// Converts a sequence of byte to an Element using TinyhandReader.
+    /// Reads one binary value and writes its Tinyhand text representation.
     /// </summary>
     /// <param name="reader">TinyhandReader which has a sequence of byte.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
@@ -1120,7 +1123,7 @@ AfterElement:
     /// </summary>
     /// <param name="utf8">UTF-8 text.</param>
     /// <param name="writer">TinyhandRawWriter.</param>
-    /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
+    /// <param name="omitTopLevelBracket"><see langword="true"/> if the input omits its outer group delimiters.</param>
     public static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, ref TinyhandWriter writer, bool omitTopLevelBracket = false)
     {
         var buffer = BinaryBuffer.Acquire();
@@ -1139,7 +1142,7 @@ AfterElement:
     /// Converts UTF-8 text to a sequence of byte stored in <paramref name="buffer"/> (which must be acquired and released by the caller).
     /// </summary>
     /// <param name="utf8">UTF-8 text.</param>
-    /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
+    /// <param name="omitTopLevelBracket"><see langword="true"/> if the input omits its outer group delimiters.</param>
     /// <param name="buffer">The buffer that receives the binary.</param>
     internal static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, bool omitTopLevelBracket, ref BinaryBuffer buffer)
         => FromUtf8ToBinaryFast(utf8, omitTopLevelBracket, ref buffer);
@@ -1548,7 +1551,7 @@ Done:
     #region Element
 
     /// <summary>
-    /// Converts an Element to a sequence of byte.
+    /// Converts a Tinyhand syntax tree to binary data.
     /// </summary>
     /// <param name="element">Element to convert.</param>
     /// <param name="byteArray">A byte array converted from an element.</param>
@@ -1574,12 +1577,12 @@ Done:
     }
 
     /// <summary>
-    /// Get the Element from binary position.
+    /// Finds the syntax node corresponding to a serialized byte position.
     /// </summary>
     /// <param name="element">Element to search.</param>
     /// <param name="position">The byte position.</param>
     /// <param name="options">The serialization options.</param>
-    /// <returns>Element found at position in byte array.</returns>
+    /// <returns>The matching node, or null if no node matches.</returns>
     public static Element? GetElementFromPosition(Element element, long position, TinyhandSerializerOptions options)
     {
         if (initialBuffer == null)
@@ -1745,7 +1748,7 @@ Done:
     }
 
     /// <summary>
-    /// Converts a sequence of byte to an Element.
+    /// Converts Tinyhand binary data to a syntax tree.
     /// </summary>
     /// <param name="byteArray">A byte array to convert.</param>
     /// <param name="element">Element converted from a byte array.</param>

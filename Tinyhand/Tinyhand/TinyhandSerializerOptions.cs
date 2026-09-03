@@ -7,6 +7,9 @@ using Tinyhand.Resolvers;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Deserializes values with the selected resolver and reconstructs null results.
+/// </summary>
 public static class TinyhandSerializerOptionsExtension
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,6 +47,9 @@ public static class TinyhandSerializerOptionsExtension
     }
 }
 
+/// <summary>
+/// Configures formatter resolution, security, compression, text layout, and serialization modes.
+/// </summary>
 public record TinyhandSerializerOptions
 {
     public enum Mode
@@ -64,7 +70,7 @@ public record TinyhandSerializerOptions
         Signature,
 
         /// <summary>
-        /// Special serialization defined by the user.
+        /// Selects a mode that custom serialization code can handle.
         /// </summary>
         Special,
     }
@@ -121,7 +127,7 @@ public record TinyhandSerializerOptions
     public SerializationFlag Flags { get; init; }
 
     /// <summary>
-    /// Gets the security-related options for deserializing messagepack sequences.
+    /// Gets the security policy for deserializing Tinyhand binary data.
     /// </summary>
     /// <value>
     /// The default value is to use <see cref="TinyhandSecurity.TrustedData"/>.
@@ -129,7 +135,7 @@ public record TinyhandSerializerOptions
     public TinyhandSecurity Security { get; init; } = TinyhandSecurity.TrustedData;
 
     /// <summary>
-    /// Gets the compose option.
+    /// Gets the layout used when composing Tinyhand text.
     /// </summary>
     public TinyhandComposeOption Compose { get; init; } = TinyhandComposeOption.Standard;
 
@@ -152,7 +158,7 @@ public record TinyhandSerializerOptions
     public bool IsSpecialMode => this.SerializationMode == Mode.Special;
 
     /// <summary>
-    /// Gets a value indicating whether the option uses Standard resolver or not.
+    /// Gets a value indicating whether this instance uses the standard formatter resolver.
     /// </summary>
     public bool IsStandardResolver => this.Resolver == StandardResolver.Instance;
 

@@ -18,11 +18,14 @@ public interface IFormatterResolver
     ITinyhandFormatter<T>? TryGetFormatter<T>();
 
     /// <summary>
-    /// Registers instantiable types.
+    /// Registers type identifiers for the concrete types known to this resolver.
     /// </summary>
     void RegisterInstantiableTypes();
 }
 
+/// <summary>
+/// Retrieves required formatters and reports missing registrations.
+/// </summary>
 public static class ResolverExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -45,6 +48,9 @@ public static class ResolverExtensions
     }
 }
 
+/// <summary>
+/// Indicates that a resolver has no formatter for the requested type.
+/// </summary>
 public class FormatterNotRegisteredException : Exception
 {
     public FormatterNotRegisteredException(string message)

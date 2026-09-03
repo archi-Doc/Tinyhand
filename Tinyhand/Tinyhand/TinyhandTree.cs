@@ -66,7 +66,7 @@ public enum ValueElementType
 }
 
 /// <summary>
-/// Tinyhand Modifier.
+/// Represents a type, key, or presence modifier in Tinyhand text.
 /// </summary>
 public class Modifier : Element
 {
@@ -122,7 +122,7 @@ public class Modifier : Element
 }
 
 /// <summary>
-/// A base class for TinyhandValue/TinyhandAssignment and other classes.
+/// Represents a Tinyhand syntax node with parent and source-position information.
 /// </summary>
 public class Element
 {
@@ -198,7 +198,7 @@ public class Element
 }
 
 /// <summary>
-/// TinyhandValue.
+/// Provides the base node for Tinyhand scalar values.
 /// </summary>
 public class Value : Element
 {
@@ -216,7 +216,7 @@ public class Value : Element
 }
 
 /// <summary>
-/// TinyhandLineFeed.
+/// Preserves a line break in a Tinyhand syntax tree.
 /// </summary>
 public class LineFeed : Element
 {
@@ -232,7 +232,7 @@ public class LineFeed : Element
 }
 
 /// <summary>
-/// TinyhandComment.
+/// Preserves a comment in a Tinyhand syntax tree.
 /// </summary>
 public class Comment : Element
 {
@@ -280,6 +280,9 @@ public class Comment : Element
     }
 }
 
+/// <summary>
+/// Represents a regular or special identifier in Tinyhand text.
+/// </summary>
 public class Value_Identifier : Value
 {
     public Value_Identifier(bool isSpecial, byte[] identifierUtf8)
@@ -325,6 +328,9 @@ public class Value_Identifier : Value
     public override string ToString() => "Identifier: " + this.Utf16;
 }
 
+/// <summary>
+/// Represents a Boolean value in a Tinyhand syntax tree.
+/// </summary>
 public class Value_Bool : Value
 {
     public Value_Bool()
@@ -343,6 +349,9 @@ public class Value_Bool : Value
     public override string ToString() => "Bool: " + this.ValueBool.ToString();
 }
 
+/// <summary>
+/// Represents a null value in a Tinyhand syntax tree.
+/// </summary>
 public class Value_Null : Value
 {
     public Value_Null()
@@ -359,6 +368,9 @@ public class Value_Null : Value
     public override string ToString() => "Null";
 }
 
+/// <summary>
+/// Represents a signed 64-bit integer in a Tinyhand syntax tree.
+/// </summary>
 public class Value_Long : Value
 {
     public Value_Long()
@@ -377,6 +389,9 @@ public class Value_Long : Value
     public long ValueLong { get; set; }
 }
 
+/// <summary>
+/// Represents an unsigned 64-bit integer in a Tinyhand syntax tree.
+/// </summary>
 public class Value_ULong : Value
 {
     public Value_ULong()
@@ -395,6 +410,9 @@ public class Value_ULong : Value
     public ulong ValueULong { get; set; }
 }
 
+/// <summary>
+/// Represents a double-precision floating-point value in a Tinyhand syntax tree.
+/// </summary>
 public class Value_Double : Value
 {
     public Value_Double()
@@ -413,6 +431,9 @@ public class Value_Double : Value
     public double ValueDouble { get; set; }
 }
 
+/// <summary>
+/// Represents a string with UTF-8 and UTF-16 accessors in a Tinyhand syntax tree.
+/// </summary>
 public class Value_String : Value
 {
     public Value_String()
@@ -506,6 +527,9 @@ public class Value_String : Value
     }
 }
 
+/// <summary>
+/// Represents binary data in a Tinyhand syntax tree.
+/// </summary>
 public class Value_Binary : Value
 {
     public Value_Binary()
@@ -532,7 +556,7 @@ public class Value_Binary : Value
 }
 
 /// <summary>
-/// A base class for TinyhandValue/TinyhandAssignment and other classes.
+/// Associates a left-hand syntax node with a right-hand value or group.
 /// </summary>
 public class Assignment : Element
 {
@@ -548,7 +572,7 @@ public class Assignment : Element
     /// Initializes a new instance of the <see cref="Assignment"/> class.
     /// </summary>
     /// <param name="leftElement">The left part of an assignment.</param>
-    /// /// <param name="rightElement">The right part of an assignment.</param>
+    /// <param name="rightElement">The right part of an assignment.</param>
     public Assignment(Element? leftElement, Element? rightElement)
         : base(ElementType.Assignment)
     {
@@ -647,7 +671,7 @@ public class Assignment : Element
 }
 
 /// <summary>
-/// TinyhandGroup holds multiple Elements.
+/// Contains an ordered collection of Tinyhand syntax nodes.
 /// </summary>
 public class Group : Element, IEnumerable<Element>
 {

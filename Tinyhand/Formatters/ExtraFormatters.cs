@@ -9,7 +9,7 @@ using Tinyhand.IO;
 namespace Tinyhand.Formatters;
 
 /// <summary>
-/// Struct128 formatter.
+/// Serializes and clones 128-bit values from Arc.Crypto.
 /// </summary>
 public sealed class Struct128Formatter : ITinyhandFormatter<Struct128>
 {
@@ -42,7 +42,7 @@ public sealed class Struct128Formatter : ITinyhandFormatter<Struct128>
 }
 
 /// <summary>
-/// Struct256 formatter.
+/// Serializes and clones 256-bit values from Arc.Crypto.
 /// </summary>
 public sealed class Struct256Formatter : ITinyhandFormatter<Struct256>
 {

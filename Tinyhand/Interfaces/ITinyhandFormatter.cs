@@ -6,6 +6,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Adds a return-value deserialization overload to Tinyhand formatters.
+/// </summary>
 public static class ITinyhandFormatterExtension
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -18,14 +21,14 @@ public static class ITinyhandFormatterExtension
 }
 
 /// <summary>
-/// A base interface for <see cref="ITinyhandFormatter{T}"/> so that all generic implementations can be detected by a common base type.
+/// Defines the common marker for Tinyhand formatters.
 /// </summary>
 public interface ITinyhandFormatter
 {
 }
 
 /// <summary>
-/// The contract for serialization of some specific type.
+/// Defines serialization, deserialization, reconstruction, and cloning for a specific type.
 /// </summary>
 /// <typeparam name="T">The type to be serialized or deserialized.</typeparam>
 public interface ITinyhandFormatter<T> : ITinyhandFormatter
@@ -47,7 +50,7 @@ public interface ITinyhandFormatter<T> : ITinyhandFormatter
     void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options);
 
     /// <summary>
-    /// Create a new object.
+    /// Reconstructs a default value.
     /// </summary>
     /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
     /// <returns>The new object.</returns>

@@ -8,6 +8,9 @@ using System;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Defines Tinyhand syntax characters, keywords, and encoding constants.
+/// </summary>
 public static class TinyhandConstants
 {
     public const char OpenBraceChar = '{';

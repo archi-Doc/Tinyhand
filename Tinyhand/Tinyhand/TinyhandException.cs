@@ -4,6 +4,9 @@ using System;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Represents an error while parsing, composing, or serializing Tinyhand data.
+/// </summary>
 public class TinyhandException : Exception
 {
     public TinyhandException(string message)
@@ -17,6 +20,9 @@ public class TinyhandException : Exception
     }
 }
 
+/// <summary>
+/// Indicates that a MessagePack code does not match the expected value type.
+/// </summary>
 public class TinyhandUnexpectedCodeException : TinyhandException
 {
     public TinyhandUnexpectedCodeException(string message, MessagePackType actual, MessagePackType expected)

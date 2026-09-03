@@ -4,6 +4,10 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
+/// <summary>
+/// Adapts static Tinyhand serialization, reconstruction, and cloning methods to a formatter.
+/// </summary>
+/// <typeparam name="T">The type implementing the static Tinyhand operations.</typeparam>
 public class TinyhandObjectFormatter<T> : ITinyhandFormatter<T>
     where T : ITinyhandSerializable<T>, ITinyhandReconstructable<T>, ITinyhandCloneable<T>
 {

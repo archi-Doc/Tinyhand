@@ -5,8 +5,7 @@ using System.Collections.Generic;
 namespace Tinyhand;
 
 /// <summary>
-/// A collection of key value pairs (List&lt;<see cref="KeyValuePair{TKey, TValue}"/>&gt;).<br/>
-/// Represents a <see cref="KeyValuePair{TKey, TValue}"/> as a map structure (key = { value }).
+/// Stores ordered key-value pairs and serializes them as a Tinyhand map.
 /// </summary>
 /// <typeparam name="TKey">The type of the key. </typeparam>
 /// <typeparam name="TValue">The type of the value.</typeparam>

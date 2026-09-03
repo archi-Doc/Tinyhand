@@ -439,7 +439,7 @@ public ref partial struct TinyhandReader
     /// Thrown if the header cannot be read in the bytes left in the span
     /// or if it is clear that there are insufficient bytes remaining after the header to include all the elements the header claims to be there.
     /// </exception>
-    /// <exception cref="TinyhandException">Thrown if a code other than an map header is encountered.</exception>
+    /// <exception cref="TinyhandException">Thrown if a code other than a map header is encountered.</exception>
     public int ReadMapHeader()
     {
         ThrowInsufficientBufferUnless(this.TryReadMapHeader(out int count));
@@ -463,7 +463,7 @@ public ref partial struct TinyhandReader
     /// Thrown if the header cannot be read in the bytes left in the span
     /// or if it is clear that there are insufficient bytes remaining after the header to include all the elements the header claims to be there.
     /// </exception>
-    /// <exception cref="TinyhandException">Thrown if a code other than an map header is encountered.</exception>
+    /// <exception cref="TinyhandException">Thrown if a code other than a map header is encountered.</exception>
     /// <remarks>Returns 0 if the next code is an empty array.</remarks>
     public int ReadMapHeader2()
     {
@@ -485,8 +485,8 @@ public ref partial struct TinyhandReader
     /// if there is sufficient buffer to read it.
     /// </summary>
     /// <param name="count">Receives the number of key=value pairs in the map if the entire map header can be read.</param>
-    /// <returns><c>true</c> if there was sufficient buffer and a map header was found; <c>false</c> if the buffer incompletely describes an map header.</returns>
-    /// <exception cref="TinyhandException">Thrown if a code other than an map header is encountered.</exception>
+    /// <returns><c>true</c> if there was sufficient buffer and a map header was found; <c>false</c> if the buffer incompletely describes a map header.</returns>
+    /// <exception cref="TinyhandException">Thrown if a code other than a map header is encountered.</exception>
     /// <remarks>
     /// When this method returns <c>false</c> the position of the reader is left in an undefined position.
     /// The caller is expected to recreate the reader (presumably with a longer sequence to read from) before continuing.
@@ -538,8 +538,8 @@ public ref partial struct TinyhandReader
     /// if there is sufficient buffer to read it. This method can read an array with zero element.
     /// </summary>
     /// <param name="count">Receives the number of key=value pairs in the map if the entire map header can be read.</param>
-    /// <returns><c>true</c> if there was sufficient buffer and a map header was found; <c>false</c> if the buffer incompletely describes an map header.</returns>
-    /// <exception cref="TinyhandException">Thrown if a code other than an map header is encountered.</exception>
+    /// <returns><c>true</c> if there was sufficient buffer and a map header was found; <c>false</c> if the buffer incompletely describes a map header.</returns>
+    /// <exception cref="TinyhandException">Thrown if a code other than a map header is encountered.</exception>
     /// <remarks>
     /// When this method returns <c>false</c> the position of the reader is left in an undefined position.
     /// The caller is expected to recreate the reader (presumably with a longer sequence to read from) before continuing.

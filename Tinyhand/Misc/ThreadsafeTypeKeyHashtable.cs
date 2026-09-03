@@ -12,8 +12,7 @@ using System.Threading;
 namespace Tinyhand;
 
 /// <summary>
-/// A dictionary where <see cref="Type"/> is the key, and a configurable <typeparamref name="TValue"/> type
-/// that is thread-safe to read and write, allowing concurrent reads and exclusive writes.
+/// Caches values by type with concurrent reads and synchronized writes.
 /// </summary>
 /// <typeparam name="TValue">The type of value stored in the dictionary.</typeparam>
 public class ThreadsafeTypeKeyHashtable<TValue>

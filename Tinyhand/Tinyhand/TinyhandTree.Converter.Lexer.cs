@@ -14,6 +14,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Provides the specialized lexer for converting UTF-8 text to binary data.
+/// </summary>
 public static partial class TinyhandTreeConverter
 {
     /// <summary>

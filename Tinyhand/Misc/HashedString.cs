@@ -11,7 +11,7 @@ using Tinyhand.Tree;
 namespace Tinyhand;
 
 /// <summary>
-/// Represents a collection of <see langword="ulong"/> hash and string pairs for each culture.
+/// Stores and retrieves localized strings by their identifier hashes.
 /// </summary>
 public static class HashedString
 {

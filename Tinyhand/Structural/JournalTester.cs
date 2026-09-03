@@ -8,6 +8,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Collects journal records in a fixed-size memory buffer for testing structural objects.
+/// </summary>
 public class JournalTester : IStructuralRoot, IStructuralObject
 {
     private const int MaxJournalLength = 1024 * 1024 * 1; // 1 MB

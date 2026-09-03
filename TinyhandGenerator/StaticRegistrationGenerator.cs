@@ -199,7 +199,7 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
         {
             ITypeParameterSymbol => false,
             IArrayTypeSymbol array => IsClosed(array.ElementType),
-            INamedTypeSymbol named => !named.IsUnboundGenericType && (named.ContainingType is null || IsClosed(named.ContainingType)) && named.TypeArguments.All(IsClosed),
+            INamedTypeSymbol named => named.TypeKind != TypeKind.Error && !named.IsAnonymousType && !named.IsUnboundGenericType && (named.ContainingType is null || IsClosed(named.ContainingType)) && named.TypeArguments.All(IsClosed),
             _ => type.TypeKind is not (TypeKind.Error or TypeKind.Pointer or TypeKind.FunctionPointer or TypeKind.Dynamic),
         };
 

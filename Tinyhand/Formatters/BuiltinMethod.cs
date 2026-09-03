@@ -12,6 +12,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
+/// <summary>
+/// Provides generated array and list operations for built-in element types.
+/// </summary>
 public static partial class Builtin
 {
     [MethodImpl(MethodImplOptions.NoInlining)]

@@ -5,7 +5,7 @@ using Tinyhand.IO;
 namespace Tinyhand;
 
 /// <summary>
-/// Defines the contract for a structural root that supports journal operations and save queue management.
+/// Provides journal writers and save scheduling for a structural object tree.
 /// </summary>
 public interface IStructuralRoot
 {

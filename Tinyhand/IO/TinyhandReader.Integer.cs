@@ -6,6 +6,9 @@ using System.Runtime.CompilerServices;
 
 namespace Tinyhand.IO;
 
+/// <summary>
+/// Provides integer-reading operations for the Tinyhand binary reader.
+/// </summary>
 public ref partial struct TinyhandReader
 {
     /// <summary>

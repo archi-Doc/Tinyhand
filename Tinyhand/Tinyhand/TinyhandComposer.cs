@@ -20,6 +20,9 @@ public enum TinyhandComposeOption
     Strict,
 }
 
+/// <summary>
+/// Converts a Tinyhand syntax tree to UTF-8 bytes or a UTF-16 string.
+/// </summary>
 public static class TinyhandComposer
 {
     private const int InitialBufferLength = 32 * 1024;

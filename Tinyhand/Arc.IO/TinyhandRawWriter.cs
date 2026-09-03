@@ -9,6 +9,9 @@ using Tinyhand.IO;
 
 namespace Arc.IO;
 
+/// <summary>
+/// Writes Tinyhand text tokens and raw bytes to a buffer. Dispose it to release owned pooled buffers.
+/// </summary>
 public ref struct TinyhandRawWriter
 {
     public static TinyhandRawWriter CreateFromBytePool(int initialBufferSize = TinyhandSerializer.InitialBufferSize)

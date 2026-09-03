@@ -12,6 +12,9 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Parses Tinyhand text into a syntax tree.
+/// </summary>
 public static class TinyhandParser
 {
     internal class ParserCore

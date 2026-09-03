@@ -22,6 +22,13 @@ public sealed partial class GeneratedResolver : IFormatterResolver
     {
     }
 
+    /// <summary>
+    /// Registers or replaces a formatter in the generated-type cache and registers its type identifier.
+    /// </summary>
+    /// <typeparam name="T">The type handled by the formatter.</typeparam>
+    /// <param name="formatter">The formatter to register.</param>
+    /// <remarks>The standard resolver checks built-in formatters before this cache.</remarks>
+    /// <exception cref="ArgumentNullException">The formatter is null.</exception>
     public void SetFormatter<T>(ITinyhandFormatter<T> formatter)
     {
         ArgumentNullException.ThrowIfNull(formatter);

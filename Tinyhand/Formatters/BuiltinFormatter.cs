@@ -9,6 +9,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand.Formatters;
 
+/// <summary>
+/// Provides serialization, deserialization, reconstruction, and cloning helpers for built-in types.
+/// </summary>
 public static partial class Builtin
 {
     [MethodImpl(MethodImplOptions.NoInlining)]

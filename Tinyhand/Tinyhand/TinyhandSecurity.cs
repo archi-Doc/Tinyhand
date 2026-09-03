@@ -10,7 +10,7 @@ using Tinyhand.IO;
 namespace Tinyhand;
 
 /// <summary>
-/// Settings related to security, particularly relevant when deserializing data from untrusted sources.
+/// Configures depth limits and collection comparer policies for deserialization.
 /// </summary>
 public class TinyhandSecurity
 {
@@ -55,7 +55,7 @@ public class TinyhandSecurity
     /// <summary>
     /// Gets a value indicating whether data to be deserialized is untrusted and thus should not be allowed to create
     /// dictionaries or other hash-based collections unless the hashed type has a hash collision resistant implementation available.
-    /// This can mitigate some denial of service attacks when deserializing untrusted code.
+    /// This can mitigate some denial of service attacks when deserializing untrusted data.
     /// </summary>
     /// <value>
     /// The value is <c>false</c> for <see cref="TrustedData"/> and <c>true</c> for <see cref="UntrustedData"/>.

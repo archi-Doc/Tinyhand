@@ -173,6 +173,9 @@ internal static partial class LZ4Codec
     #endregion
 }
 
+/// <summary>
+/// Indicates an LZ4 compression or decompression failure.
+/// </summary>
 public class LZ4Exception : Exception
 {
     public LZ4Exception(string message)

@@ -55,12 +55,18 @@ public enum TinyhandModifierType
     Optional,
 }
 
+/// <summary>
+/// Identifies a line and byte position in UTF-8 Tinyhand text.
+/// </summary>
 public struct TinyhandUtf8LinePosition
 {
     public int LineNumber;
     public int BytePositionInLine;
 }
 
+/// <summary>
+/// Reads tokens and source positions from UTF-8 Tinyhand text.
+/// </summary>
 public ref struct TinyhandUtf8Reader
 {
     private const int InitialLinePosition = 1;
@@ -879,8 +885,7 @@ Unexpected_Symbol:
     }
 
     /// <summary>
-    /// Unescapes a string into <see cref="unescapeBuffer"/>, which is grown as needed and reused
-    /// by every subsequent string, so a document allocates at most one buffer.
+    /// Unescapes text into a reusable buffer that grows when needed.
     /// </summary>
     /// <param name="source">The escaped string.</param>
     /// <returns>The unescaped string.</returns>

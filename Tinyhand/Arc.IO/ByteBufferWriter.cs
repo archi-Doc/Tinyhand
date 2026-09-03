@@ -11,8 +11,7 @@ using Arc.Collections;
 namespace Arc.IO;
 
 /// <summary>
-/// Buffer Writer. Wraps <see cref="IBufferWriter{T}"/> and get byte array.
-/// Call Dispose() to return a byte array that is rent by ByteSequence.
+/// Writes bytes to an external writer or an expandable buffer. Dispose it to release owned pooled buffers.
 /// </summary>
 public ref struct ByteBufferWriter
 {
@@ -109,7 +108,7 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Get a span to write to.
+    /// Gets a span with at least the requested capacity.
     /// </summary>
     /// <param name="sizeHint">The minimum size of the requested buffer.</param>
     /// <returns>A span to write to.</returns>
@@ -136,7 +135,7 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output.
+    /// Commits pending bytes to the underlying buffer writer.
     /// </summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     public void Flush()
@@ -165,9 +164,9 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.
+    /// Commits pending bytes and returns the written data as owned pooled memory.
     /// </summary>
-    /// <returns>A byte array consisting of the written data.</returns>
+    /// <returns>The written data. Return the memory to its pool after use.</returns>
     public BytePool.RentMemory FlushAndGetRentMemory()
     {
         if (this.bufferWriter == null)
@@ -194,7 +193,7 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.
+    /// Commits pending bytes and returns the written data as a byte array.
     /// </summary>
     /// <returns>A byte array consisting of the written data.</returns>
     public byte[] FlushAndGetArray()
@@ -215,9 +214,9 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySequence{T}" />.
+    /// Commits pending bytes and returns the written data as a read-only sequence.
     /// </summary>
-    /// <returns>A byte array consisting of the written data.</returns>
+    /// <returns>A sequence of the written bytes, valid until the writer is reused or disposed.</returns>
     public ReadOnlySequence<byte> FlushAndGetReadOnlySequence()
     {
         if (this.bufferWriter == null)
@@ -236,12 +235,11 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a byte array.<br/>
-    /// Pursue perfection.
+    /// Commits pending bytes and returns the written data as a byte array.
     /// </summary>
     /// <param name="array">The byte array containing the written data.</param>
     /// <param name="written">The total number of bytes written by the writer.</param>
-    /// /// <param name="isInitialBuffer"><see langword="true"/>: The byte array is the initial buffer.</param>
+    /// <param name="isInitialBuffer"><see langword="true"/> if the byte array is the initial buffer.</param>
     public void FlushAndGetArray(out byte[] array, out int written, out bool isInitialBuffer)
     {
         if (this.bufferWriter == null)
@@ -265,7 +263,7 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a memory region.<br/>
+    /// Commits pending bytes and returns the written memory region.
     /// </summary>
     /// <param name="memory">The memory region consisting of the written data.</param>
     /// <param name="isInitialBuffer"><see langword="true"/>: The memory region is a part of the initial buffer.</param>
@@ -290,7 +288,7 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
-    /// Notifies the <see cref="IBufferWriter{T}"/>  that count data items were written to the output and get a <see cref="ReadOnlySpan{T}" />.
+    /// Commits pending bytes and returns a read-only span of the written data.
     /// </summary>
     /// <param name="span">A byte span consisting of the written data.</param>
     /// <param name="isInitialBuffer"><see langword="true"/>: The byte span is a part of the initial buffer.</param>
@@ -317,7 +315,7 @@ public ref struct ByteBufferWriter
     /// <summary>
     /// Notifies that data is written to the output span.
     /// </summary>
-    /// <param name="count">The number of written data.</param>
+    /// <param name="count">The number of bytes written to the current span.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // Hot path.
     public void Advance(int count)
     {
@@ -331,7 +329,7 @@ public ref struct ByteBufferWriter
     public long Written => this.spanWritten + this.spanSize;
 
     /// <summary>
-    /// Write a span of data to the buffer.
+    /// Writes a span of bytes to the buffer.
     /// </summary>
     /// <param name="source">A source span.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -4,6 +4,9 @@ using Tinyhand.IO;
 
 namespace Tinyhand;
 
+/// <summary>
+/// Handles custom journal records for a structural object.
+/// </summary>
 public interface ITinyhandCustomJournal
 {
     void WriteCustomLocator(ref TinyhandWriter writer)
