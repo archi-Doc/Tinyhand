@@ -692,6 +692,8 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 `Security = TinyhandSecurity.UntrustedData`（または `HashCollisionResistant` が有効）の場合、標準のセキュリティ設定ではハッシュコレクションの `object` キーを拒否します。`Dictionary<object, ...>`、`HashSet<object>`、非ジェネリック辞書、および `object` 経由で復元するマップが対象です。実際のキーが文字列でも拒否されるため、`Dictionary<string, ...>` など対応する具体的なキー型を指定してください。`object` に格納したスカラー値や、マップを含まない配列は引き続き扱えます。`TrustedData` の動作は変わりません。
 
+`ArrayList`、`Hashtable`、独自の `IList` / `IDictionary` 実装など、非ジェネリックのコレクションインターフェイスのみを実装する具体型の formatter は自動生成しません。対応するジェネリックコレクションを使用するか、`IList` / `IDictionary` 型としてシリアライズしてください。インターフェイス経由のデシリアライズでは、元の具体型ではなく配列または辞書を生成します。
+
 サポートしている型の一覧：
 
 * Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
@@ -706,7 +708,7 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 * `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
 
-* `ArrayList`, `Hashtable`
+* `IEnumerable`, `ICollection`, `IList`, `IDictionary`
 
 * `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
 
@@ -723,8 +725,6 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 * Immutable collections (`ImmutableList<>`, etc)
 
 * Custom implementations of `ICollection<>` or `IDictionary<,>` with a parameterless constructor
-
-* Custom implementations of `IList` or `IDictionary` with a parameterless constructor
 
 
 

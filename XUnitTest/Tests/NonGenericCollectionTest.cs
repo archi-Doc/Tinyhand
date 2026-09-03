@@ -3,63 +3,74 @@
 
 using System;
 using System.Collections;
+using System.Linq;
+using Tinyhand.IO;
 using Xunit;
-
-#pragma warning disable CS8605
 
 namespace Tinyhand.Tests;
 
 public class NonGenericCollectionTest
 {
-#if !ENABLE_IL2CPP
     [Fact]
-    public void List()
+    public void ListInterface()
     {
-        var xs = new System.Collections.ArrayList { 1, 100, "hoge", 999.888 };
+        var xs = new ArrayList { 1, 100, "hoge", 999.888 };
+        var bin = TinyhandSerializer.Serialize<IList>(xs);
+        var v = TinyhandSerializer.Deserialize<IList>(bin);
+
+        Assert.NotNull(v);
+        Assert.Equal(1, Convert.ToInt32(v[0]));
+        Assert.Equal(100, Convert.ToInt32(v[1]));
+        Assert.Equal("hoge", v[2]);
+        Assert.Equal(999.888, v[3]);
+    }
+
+    [Fact]
+    public void DictionaryInterface()
+    {
+        var xs = new Hashtable { { "a", 1 }, { 100, "hoge" }, { "foo", 999.888 } };
+        var bin = TinyhandSerializer.Serialize<IDictionary>(xs);
+        var v = TinyhandSerializer.Deserialize<IDictionary>(bin);
+
+        Assert.NotNull(v);
+        Assert.Equal(1, Convert.ToInt32(v["a"]));
+        Assert.Equal("hoge", v[100]);
+        Assert.Equal(999.888, v["foo"]);
+    }
+
+    [Fact]
+    public void InterfaceCollectionClonesPreserveAllElements()
+    {
+        var source = new object?[] { 1, "value", null };
+        foreach (var clone in new IEnumerable?[]
         {
-            var bin = TinyhandSerializer.Serialize<IList>(xs);
-            IList v = TinyhandSerializer.Deserialize<IList>(bin);
-
-            Convert.ToInt32(v[0]).Is(1);
-            Convert.ToInt32(v[1]).Is(100);
-            ((string)v[2]).Is("hoge");
-            ((double)v[3]).Is(999.888);
-        }
-
+            TinyhandSerializer.Clone<ICollection>(source),
+            TinyhandSerializer.Clone<IEnumerable>(source),
+            TinyhandSerializer.Clone<IList>(source),
+        })
         {
-            var bin = TinyhandSerializer.Serialize(xs);
-            ArrayList v = TinyhandSerializer.Deserialize<ArrayList>(bin);
-
-            Convert.ToInt32(v[0]).Is(1);
-            Convert.ToInt32(v[1]).Is(100);
-            ((string)v[2]).Is("hoge");
-            ((double)v[3]).Is(999.888);
+            Assert.NotNull(clone);
+            Assert.NotSame(source, clone);
+            Assert.Equal(source, clone.Cast<object?>());
         }
     }
 
     [Fact]
-    public void Dictionary()
+    public void EmptyInterfaceArraysReplaceExistingContents()
     {
-        {
-            var xs = new System.Collections.Hashtable { { "a", 1 }, { 100, "hoge" }, { "foo", 999.888 } };
-            var bin = TinyhandSerializer.Serialize<IDictionary>(xs);
-            IDictionary v = TinyhandSerializer.Deserialize<IDictionary>(bin);
-
-            Convert.ToInt32(v["a"]).Is(1);
-            v[100].Is((object)(string)"hoge");
-            v["foo"].Is((object)(double)999.888);
-        }
-
-        {
-            var xs = new System.Collections.Hashtable { { "a", 1 }, { 100, "hoge" }, { "foo", 999.888 } };
-            var bin = TinyhandSerializer.Serialize<Hashtable>(xs);
-            Hashtable v = TinyhandSerializer.Deserialize<Hashtable>(bin);
-
-            Convert.ToInt32(v["a"]).Is(1);
-            v[100].Is((object)(string)"hoge");
-            v["foo"].Is((object)(double)999.888);
-        }
+        var source = new object[] { 1, 2, 3 };
+        AssertEmptyArrayReplacesExisting<ICollection>(source);
+        AssertEmptyArrayReplacesExisting<IEnumerable>(source);
+        AssertEmptyArrayReplacesExisting<IList>(source);
     }
 
-#endif
+    private static void AssertEmptyArrayReplacesExisting<T>(T value)
+        where T : class, IEnumerable
+    {
+        var options = TinyhandSerializerOptions.Standard;
+        var reader = new TinyhandReader(TinyhandSerializer.Serialize(Array.Empty<object>(), options));
+        options.Resolver.GetFormatter<T>().Deserialize(ref reader, ref value, options);
+        Assert.NotNull(value);
+        Assert.Empty(value.Cast<object>());
+    }
 }

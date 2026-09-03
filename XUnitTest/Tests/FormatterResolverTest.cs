@@ -1,6 +1,7 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
+using System.Collections;
 using Tinyhand.Resolvers;
 using Xunit;
 
@@ -41,5 +42,18 @@ public class FormatterResolverTest
 
         Assert.Null(options.Resolver.TryGetFormatter<System.Dynamic.ExpandoObject>());
         Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(new System.Dynamic.ExpandoObject(), options));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void DefaultResolversDoNotSupportConcreteNonGenericCollections(bool compatible)
+    {
+        var options = compatible ? TinyhandSerializerOptions.Compatible : TinyhandSerializerOptions.Standard;
+
+        Assert.Null(options.Resolver.TryGetFormatter<ArrayList>());
+        Assert.Null(options.Resolver.TryGetFormatter<Hashtable>());
+        Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(new ArrayList { 1, "value" }, options));
+        Assert.Throws<TinyhandException>(() => TinyhandSerializer.Serialize(new Hashtable { ["key"] = 1 }, options));
     }
 }

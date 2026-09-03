@@ -865,6 +865,8 @@ Collections serialized through `object` now use primitive encoding recursively. 
 
 With `Security = TinyhandSecurity.UntrustedData` (or `HashCollisionResistant` enabled), the built-in security policy rejects `object` keys in hash-based collections. This includes `Dictionary<object, ...>`, `HashSet<object>`, non-generic dictionaries, and maps deserialized through `object`, even when their keys are strings. Use a concrete supported key type, such as `Dictionary<string, ...>`. Scalar `object` values and arrays without nested maps remain supported. `TrustedData` retains its existing behavior.
 
+Concrete collections that implement only non-generic interfaces, such as `ArrayList`, `Hashtable`, and custom `IList` / `IDictionary` implementations, are no longer resolved automatically. Use a supported generic collection or serialize through `IList` / `IDictionary`. Interface-based deserialization returns an array or dictionary, rather than the original concrete type.
+
 These types can serialize by default:
 
 * Primitives (`int`, `string`, etc...), `Enum`s, `Nullable<>`, `Lazy<>`
@@ -879,7 +881,7 @@ These types can serialize by default:
 
 * `KeyValuePair<,>`, `Tuple<,...>`, `ValueTuple<,...>`
 
-* `ArrayList`, `Hashtable`
+* `IEnumerable`, `ICollection`, `IList`, `IDictionary`
 
 * `List<>`, `LinkedList<>`, `Queue<>`, `Stack<>`, `HashSet<>`, `ReadOnlyCollection<>`, `SortedList<,>`
 
@@ -896,8 +898,6 @@ These types can serialize by default:
 * Immutable collections (`ImmutableList<>`, etc)
 
 * Custom implementations of `ICollection<>` or `IDictionary<,>` with a parameterless constructor
-
-* Custom implementations of `IList` or `IDictionary` with a parameterless constructor
 
 
 

@@ -229,17 +229,6 @@ public class CollectionTest
     }
 
     [Fact]
-    public void CustomNonGenericInterfaceListTest()
-    {
-        var xs = new ImplNonGenericList();
-        xs.Add(1);
-        xs.Add(2);
-        xs.Add(3);
-
-        this.Convert(xs).Cast<object>().Select(System.Convert.ToInt32).Is(1, 2, 3);
-    }
-
-    [Fact]
     public void CustomGenericInterfaceCollectionTest()
     {
         {
@@ -271,73 +260,6 @@ public class CollectionTest
         var d2 = this.Convert(d);
         d2["foo"].Is(10);
         d2["bar"].Is(20);
-    }
-}
-
-public class ImplNonGenericList : IList
-{
-    private readonly IList inner;
-
-    public ImplNonGenericList()
-    {
-        inner = new List<object>();
-    }
-
-    public object? this[int index] { get => inner[index]; set => inner[index] = value; }
-
-    public bool IsReadOnly => inner.IsReadOnly;
-
-    public bool IsFixedSize => inner.IsFixedSize;
-
-    public int Count => inner.Count;
-
-    public object SyncRoot => inner.SyncRoot;
-
-    public bool IsSynchronized => inner.IsSynchronized;
-
-    public int Add(object? value)
-    {
-        return inner.Add(value);
-    }
-
-    public void Clear()
-    {
-        inner.Clear();
-    }
-
-    public bool Contains(object? value)
-    {
-        return inner.Contains(value);
-    }
-
-    public void CopyTo(Array array, int index)
-    {
-        inner.CopyTo(array, index);
-    }
-
-    public IEnumerator GetEnumerator()
-    {
-        return inner.GetEnumerator();
-    }
-
-    public int IndexOf(object? value)
-    {
-        return inner.IndexOf(value);
-    }
-
-    public void Insert(int index, object? value)
-    {
-        inner.Insert(index, value);
-    }
-
-    public void Remove(object? value)
-    {
-        inner.Remove(value);
-    }
-
-    public void RemoveAt(int index)
-    {
-        inner.RemoveAt(index);
     }
 }
 

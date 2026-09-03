@@ -1160,78 +1160,6 @@ internal class Lookup<TKey, TElement> : ILookup<TKey, TElement>
 
 /* NonGenerics */
 
-#pragma warning disable SA1202 // Elements should be ordered by access
-internal sealed class NonGenericListFormatter<T> : ITinyhandFormatter<T>
-#pragma warning restore SA1202 // Elements should be ordered by access
-    where T : class, IList, new()
-{
-    public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
-    {
-        if (value == null)
-        {
-            writer.WriteNil();
-            return;
-        }
-
-        ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
-
-        writer.WriteArrayHeader(value.Count);
-        foreach (var item in value)
-        {
-            formatter.Serialize(ref writer, item, options);
-        }
-    }
-
-    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
-    {
-        if (reader.TryReadNil())
-        {
-        }
-
-        ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
-
-        var count = reader.ReadArrayHeader();
-
-        value ??= new T();
-        options.Security.DepthStep(ref reader);
-        try
-        {
-            for (int i = 0; i < count; i++)
-            {
-                value.Add(formatter.Deserialize(ref reader, options));
-            }
-        }
-        finally
-        {
-            reader.Depth--;
-        }
-    }
-
-    public T Reconstruct(TinyhandSerializerOptions options)
-    {
-        return new T();
-    }
-
-    public T? Clone(T? value, TinyhandSerializerOptions options)
-    {
-        if (value == null)
-        {
-            return default(T);
-        }
-
-        var formatter = options.Resolver.GetFormatter<object>();
-
-        var count = value.Count;
-        var list = new T();
-        foreach (var item in value)
-        {
-            list.Add(formatter.Clone(item, options));
-        }
-
-        return list;
-    }
-}
-
 internal sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatter<ICollection>
 {
     public static readonly ITinyhandFormatter<ICollection> Instance = new NonGenericInterfaceCollectionFormatter();
@@ -1267,7 +1195,7 @@ internal sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatte
         var count = reader.ReadArrayHeader();
         if (count == 0)
         {
-            value ??= Array.Empty<object>();
+            value = Array.Empty<object>();
             return;
         }
 
@@ -1309,7 +1237,7 @@ internal sealed class NonGenericInterfaceCollectionFormatter : ITinyhandFormatte
         var i = 0;
         foreach (var item in value)
         {
-            list[i] = formatter.Clone(item, options)!;
+            list[i++] = formatter.Clone(item, options)!;
         }
 
         return list;
@@ -1374,7 +1302,7 @@ internal sealed class NonGenericInterfaceEnumerableFormatter : ITinyhandFormatte
         var count = reader.ReadArrayHeader();
         if (count == 0)
         {
-            value ??= Array.Empty<object>();
+            value = Array.Empty<object>();
             return;
         }
 
@@ -1455,7 +1383,7 @@ internal sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<ILis
         var count = reader.ReadArrayHeader();
         if (count == 0)
         {
-            value ??= Array.Empty<object>();
+            value = Array.Empty<object>();
             return;
         }
 
@@ -1480,7 +1408,7 @@ internal sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<ILis
 
     public IList Reconstruct(TinyhandSerializerOptions options)
     {
-        return new object[0];
+        return Array.Empty<object>();
     }
 
     public IList? Clone(IList? value, TinyhandSerializerOptions options)
@@ -1501,82 +1429,6 @@ internal sealed class NonGenericInterfaceListFormatter : ITinyhandFormatter<ILis
         }
 
         return list;
-    }
-}
-
-internal sealed class NonGenericDictionaryFormatter<T> : ITinyhandFormatter<T>
-    where T : class, IDictionary, new()
-{
-    public void Serialize(ref TinyhandWriter writer, T? value, TinyhandSerializerOptions options)
-    {
-        if (value == null)
-        {
-            writer.WriteNil();
-            return;
-        }
-
-        ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
-
-        writer.WriteMapHeader(value.Count);
-        foreach (DictionaryEntry item in value)
-        {
-            formatter.Serialize(ref writer, item.Key, options);
-            formatter.Serialize(ref writer, item.Value, options);
-        }
-    }
-
-    public void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options)
-    {
-        if (reader.TryReadNil())
-        {
-            return;
-        }
-
-        ITinyhandFormatter<object> formatter = options.Resolver.GetFormatter<object>();
-
-        var count = reader.ReadMapHeader2();
-
-        var dict = CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(count, options.Security.GetEqualityComparer());
-        options.Security.DepthStep(ref reader);
-        try
-        {
-            for (int i = 0; i < count; i++)
-            {
-                var key = formatter.Deserialize(ref reader, options)!;
-                var v = formatter.Deserialize(ref reader, options);
-                dict.Add(key, v);
-            }
-        }
-        finally
-        {
-            reader.Depth--;
-        }
-
-        value = dict;
-    }
-
-    public T Reconstruct(TinyhandSerializerOptions options)
-    {
-        return CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(0, options.Security.GetEqualityComparer());
-    }
-
-    public T? Clone(T? value, TinyhandSerializerOptions options)
-    {
-        if (value == null)
-        {
-            return null;
-        }
-
-        var formatter = options.Resolver.GetFormatter<object>();
-        var count = value.Count;
-
-        var dict = CollectionHelpers<T, IEqualityComparer>.CreateHashCollection(count, options.Security.GetEqualityComparer());
-        foreach (DictionaryEntry item in value)
-        {
-            dict.Add(formatter.Clone(item.Key, options) ?? formatter.Reconstruct(options), formatter.Clone(item.Value, options));
-        }
-
-        return dict;
     }
 }
 

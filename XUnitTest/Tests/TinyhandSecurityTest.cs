@@ -23,7 +23,6 @@ public class TinyhandSecurityTest
         })
         {
             Assert.Throws<TypeAccessException>(() => security.GetEqualityComparer<object>());
-            Assert.Throws<TypeAccessException>(() => security.GetEqualityComparer());
         }
     }
 
@@ -31,7 +30,6 @@ public class TinyhandSecurityTest
     public void TrustedDataPreservesObjectComparers()
     {
         Assert.Same(EqualityComparer<object>.Default, TinyhandSecurity.TrustedData.GetEqualityComparer<object>());
-        Assert.Same(EqualityComparer<object>.Default, TinyhandSecurity.TrustedData.GetEqualityComparer());
         Assert.Same(EqualityComparer<object>.Default, TinyhandSecurity.UntrustedData.WithHashCollisionResistant(false).GetEqualityComparer<object>());
     }
 
@@ -48,7 +46,6 @@ public class TinyhandSecurityTest
         AssertObjectKeysRejected(new ConcurrentDictionary<object, int>(dictionary), reuse);
         AssertObjectKeysRejected(new Dictionary<object, int>(), reuse);
         AssertObjectKeysRejected<IDictionary>(new Hashtable { ["key"] = 1 }, reuse);
-        AssertObjectKeysRejected(new Hashtable { ["key"] = 1 }, reuse);
     }
 
     [Fact]

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Tinyhand.IO;
 
@@ -125,20 +124,6 @@ public class TinyhandSecurity
     }
 
     /// <summary>
-    /// Gets an <see cref="IEqualityComparer"/> that is suitable to use with a hash-based collection.
-    /// </summary>
-    /// <returns>The <see cref="IEqualityComparer"/> to use.</returns>
-    /// <remarks>
-    /// When <see cref="HashCollisionResistant"/> is active, this will be a collision resistant instance which may reject certain key types.
-    /// The default implementation rejects non-generic comparer requests because the key type is <see cref="object"/>.
-    /// When <see cref="HashCollisionResistant"/> is not active, this will be <see cref="EqualityComparer{T}.Default"/>.
-    /// </remarks>
-    public IEqualityComparer GetEqualityComparer()
-    {
-        return this.HashCollisionResistant ? this.GetHashCollisionResistantEqualityComparer() : EqualityComparer<object>.Default;
-    }
-
-    /// <summary>
     /// Returns a hash collision resistant equality comparer.
     /// </summary>
     /// <typeparam name="T">The type of key that will be hashed in the collection.</typeparam>
@@ -218,12 +203,6 @@ public class TinyhandSecurity
     }
 
     /// <summary>
-    /// Returns a hash collision resistant equality comparer.
-    /// </summary>
-    /// <returns>A hash collision resistant equality comparer.</returns>
-    protected virtual IEqualityComparer GetHashCollisionResistantEqualityComparer() => (IEqualityComparer)this.GetHashCollisionResistantEqualityComparer<object>();
-
-    /// <summary>
     /// Creates a new instance that is a copy of this one.
     /// </summary>
     /// <remarks>
@@ -235,15 +214,11 @@ public class TinyhandSecurity
     /// A hash collision resistant implementation of <see cref="IEqualityComparer{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of key that will be hashed.</typeparam>
-    private class CollisionResistantHasher<T> : IEqualityComparer<T>, IEqualityComparer
+    private class CollisionResistantHasher<T> : IEqualityComparer<T>
     {
         internal static readonly CollisionResistantHasher<T> Instance = new CollisionResistantHasher<T>();
 
         public bool Equals(T? x, T? y) => EqualityComparer<T>.Default.Equals(x!, y!);
-
-        bool IEqualityComparer.Equals(object? x, object? y) => ((IEqualityComparer)EqualityComparer<T>.Default).Equals(x, y);
-
-        public int GetHashCode(object obj) => this.GetHashCode((T)obj);
 
         public virtual int GetHashCode(T value) => HashCode.Combine(value);
     }

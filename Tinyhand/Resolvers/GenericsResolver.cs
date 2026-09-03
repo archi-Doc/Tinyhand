@@ -302,7 +302,7 @@ namespace Tinyhand.Internal
             }
             else
             {
-                // NonGeneric Collection
+                // Non-generic collection interfaces
                 if (t == typeof(IEnumerable))
                 {
                     return NonGenericInterfaceEnumerableFormatter.Instance;
@@ -318,15 +318,6 @@ namespace Tinyhand.Internal
                 else if (t == typeof(IDictionary))
                 {
                     return NonGenericInterfaceDictionaryFormatter.Instance;
-                }
-
-                if (typeof(IList).GetTypeInfo().IsAssignableFrom(ti) && ti.DeclaredConstructors.Any(x => x.GetParameters().Length == 0))
-                {
-                    return Activator.CreateInstance(typeof(NonGenericListFormatter<>).MakeGenericType(t));
-                }
-                else if (typeof(IDictionary).GetTypeInfo().IsAssignableFrom(ti) && ti.DeclaredConstructors.Any(x => x.GetParameters().Length == 0))
-                {
-                    return Activator.CreateInstance(typeof(NonGenericDictionaryFormatter<>).MakeGenericType(t));
                 }
             }
 
