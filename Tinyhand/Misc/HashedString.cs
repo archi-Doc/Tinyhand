@@ -29,7 +29,7 @@ public static class HashedString
         where T : Enum
         => GetOrAlternative($"{typeof(T).Name}.{enumValue.ToString()}", ErrorMessage);
 
-    public static ulong IdentifierToHash(string identifier) => FarmHash.Hash64(identifier);
+    public static ulong IdentifierToHash(string identifier) => Arc.Crypto.FarmHash.Hash64(identifier);
 
     public static string ShortNameToCultureName(string name) => name switch
     {
