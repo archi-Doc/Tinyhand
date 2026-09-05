@@ -201,7 +201,7 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
         {
             ITypeParameterSymbol => false,
             IArrayTypeSymbol array => IsClosed(array.ElementType),
-            INamedTypeSymbol named => named.TypeKind != TypeKind.Error && !named.IsAnonymousType && !named.IsUnboundGenericType && (named.ContainingType is null || IsClosed(named.ContainingType)) && named.TypeArguments.All(IsClosed),
+            INamedTypeSymbol named => named.TypeKind != TypeKind.Error && !named.IsExtension && !named.IsAnonymousType && !named.IsUnboundGenericType && (named.ContainingType is null || IsClosed(named.ContainingType)) && named.TypeArguments.All(IsClosed),
             _ => type.TypeKind is not (TypeKind.Error or TypeKind.Pointer or TypeKind.FunctionPointer or TypeKind.Dynamic),
         };
 
@@ -445,7 +445,7 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
                 }
 
                 var code = $"{Resolver}.RegisterObject<{name}>();";
-                if (named.AllInterfaces.Any(x => MetadataName(x) == "Arc.IStringConvertible`1"))
+                if (named.AllInterfaces.Any(x => MetadataName(x) == "Arc.IStringConvertible`1" && SymbolEqualityComparer.Default.Equals(x.TypeArguments[0], named)))
                 {
                     code += $"\nglobal::Tinyhand.TinyhandTypeIdentifier.RegisterStringConvertible<{name}>();";
                 }

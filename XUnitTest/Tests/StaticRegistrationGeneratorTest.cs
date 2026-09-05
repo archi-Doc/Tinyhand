@@ -41,6 +41,67 @@ public class StaticRegistrationGeneratorTest
         Assert.DoesNotContain("RegisterArray<", generated);
     }
 
+    [Fact]
+    public void ExtensionDeclarationsAreNotRegistered()
+    {
+        var result = Generate("""
+            using System.Collections.Generic;
+            public enum Result
+            {
+                Success,
+            }
+            public static class ResultExtensions
+            {
+                extension(Result result)
+                {
+                    public bool IsSuccess => result == Result.Success;
+                }
+            }
+            public static class Consumer
+            {
+                public static List<int> Known() => new();
+            }
+            """, out var output);
+        Assert.Empty(result.Diagnostics);
+        Assert.DoesNotContain(output.GetDiagnostics(TestContext.Current.CancellationToken), x => x.Severity == DiagnosticSeverity.Error);
+        var generated = string.Join("\n", result.GeneratedTrees.Select(x => x.ToString()));
+        Assert.Contains("RegisterListFormatter<int>()", generated);
+    }
+
+    [Fact]
+    public void StringConvertibleRegistrationRequiresMatchingSelfType()
+    {
+        var result = Generate("""
+            using System;
+            using Tinyhand;
+            [TinyhandObject]
+            public partial class Base : Arc.IStringConvertible<Base>
+            {
+                public static int MaxStringLength => 1;
+                public int GetStringLength() => 1;
+                public bool TryFormat(Span<char> destination, out int written, Arc.IConversionOptions? conversionOptions = null)
+                {
+                    written = 0;
+                    return true;
+                }
+                public static bool TryParse(ReadOnlySpan<char> source, out Base? instance, out int read, Arc.IConversionOptions? conversionOptions = null)
+                {
+                    instance = new();
+                    read = source.Length;
+                    return true;
+                }
+            }
+            [TinyhandObject]
+            public partial class Derived : Base
+            {
+            }
+            """);
+        Assert.Empty(result.Diagnostics);
+        var generated = string.Join("\n", result.GeneratedTrees.Select(x => x.ToString()));
+        Assert.Contains("RegisterStringConvertible<global::Base>()", generated);
+        Assert.DoesNotContain("RegisterStringConvertible<global::Derived>()", generated);
+    }
+
     [Theory]
     [InlineData("Missing")]
     [InlineData("Missing<int>")]
