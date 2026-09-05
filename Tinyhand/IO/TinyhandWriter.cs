@@ -40,13 +40,15 @@ public ref struct TinyhandWriter
         => new(BytePool.Default.Rent(initialBufferSize));
 
     /// <summary>
-    /// Creates a new instance of <see cref="TinyhandWriter"/> from a thread-static buffer with a size of <see cref="TinyhandSerializer.InitialBufferSize"/>.<br/>
-    /// The buffer is shared per thread, so it should be used locally.<br/>
-    /// <see cref="FlushAndGetArray()" /> can be used safely.
+    /// Borrows a thread-local buffer, or rents a separate buffer when another writer is active.
     /// </summary>
+    /// <remarks>Dispose on the creating thread before reuse or an await. Do not copy an active writer.</remarks>
     /// <returns>A new instance of <see cref="TinyhandWriter"/>.</returns>
     public static TinyhandWriter CreateFromThreadStaticBuffer()
-        => new(TinyhandSerializer.GetThreadStaticBuffer());
+        => new() { writer = ByteBufferWriter.CreateFromThreadStaticBuffer(), Level = DefaultLevel };
+
+    internal static TinyhandWriter CreateFromThreadStaticBuffer2()
+        => new() { writer = ByteBufferWriter.CreateFromThreadStaticBuffer(secondary: true), Level = DefaultLevel };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct over an external writer.

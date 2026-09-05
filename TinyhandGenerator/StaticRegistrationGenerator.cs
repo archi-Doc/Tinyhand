@@ -383,7 +383,17 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
 
         private void AddAttributeTypes(TypedConstant argument)
         {
-            if (argument.Value is ITypeSymbol type)
+            if (argument.Kind == TypedConstantKind.Array)
+            {
+                if (!argument.IsNull)
+                {
+                    foreach (var element in argument.Values)
+                    {
+                        this.AddAttributeTypes(element);
+                    }
+                }
+            }
+            else if (argument.Value is ITypeSymbol type)
             {
                 this.Add(type);
             }

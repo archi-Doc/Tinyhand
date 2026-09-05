@@ -271,7 +271,7 @@ public static class HashedString
 
 #if !NETFX_CORE
     /// <summary>
-    /// Load from assembly.
+    /// Loads localized strings from an embedded Tinyhand resource.
     /// </summary>
     /// <param name="culture">The target culture (null for default culture).</param>
     /// <param name="assembly">The assembly.</param>
@@ -301,9 +301,7 @@ public static class HashedString
             throw new OverflowException();
         }
 
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        var element = (Group)TinyhandParser.Parse(ms.ToArray());
+        var element = (Group)TinyhandParser.Parse(stream);
 
         UInt64Hashtable<string>? table = null;
         culture ??= defaultCultureName;

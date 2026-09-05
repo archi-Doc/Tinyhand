@@ -883,8 +883,8 @@ public ref partial struct TinyhandReader
     /// <see cref="MessagePackCode.Str32"/>,
     /// or something between <see cref="MessagePackCode.MinFixStr"/> and <see cref="MessagePackCode.MaxFixStr"/>.
     /// </summary>
-    /// <param name="span">A read span of byte.</param>
-    /// <returns><see langword="true"/>; success.</returns>
+    /// <param name="span">The payload span, which borrows the input buffer.</param>
+    /// <returns>False for nil; true for binary or compatible string data. Invalid or truncated input throws.</returns>
     public bool TryReadBytes(out ReadOnlySpan<byte> span)
     {
         if (this.TryReadNil())

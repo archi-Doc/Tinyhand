@@ -188,7 +188,8 @@ public static partial class TinyhandSerializerExtensions
         {
             if (options.HasLz4CompressFlag)
             {
-                var w = writer.Clone(TinyhandSerializer.GetThreadStaticBuffer2());
+                var w = TinyhandWriter.CreateFromThreadStaticBuffer2();
+                w.Level = writer.Level;
                 try
                 {
                     value.Serialize(ref w, options);

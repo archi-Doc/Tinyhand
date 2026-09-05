@@ -6,6 +6,7 @@ using Tinyhand.Tree;
 
 namespace Tinyhand;
 
+/// <summary>Executes a named operation over elements in a Tinyhand process script.</summary>
 public interface IProcessCore
 {
     // public static string StaticName => "process name";
@@ -18,7 +19,7 @@ public interface IProcessCore
     /// <summary>
     /// Called when the process is changed to this core.
     /// </summary>
-    /// <param name="environment">IProcessEnvironment.</param>
+    /// <param name="environment">The active script environment and loggers.</param>
     void Initialize(IProcessEnvironment environment);
 
     /// <summary>
@@ -27,13 +28,14 @@ public interface IProcessCore
     void Uninitialize();
 
     /// <summary>
-    /// Process elements.
+    /// Processes one script element.
     /// </summary>
-    /// <param name="element">Element.</param>
-    /// <returns>Returns true on success.</returns>
+    /// <param name="element">The next element in the script.</param>
+    /// <returns>A task that reports whether processing succeeded.</returns>
     Task<bool> Process(Element element);
 }
 
+/// <summary>Provides script paths, loggers, and failure reporting to process cores.</summary>
 public interface IProcessEnvironment
 {
     /// <summary>
@@ -53,19 +55,19 @@ public interface IProcessEnvironment
     Group Root { get; }
 
     /// <summary>
-    /// Notify that a fatal error has occured and quit the process.
+    /// Marks the script as failed so processing stops.
     /// </summary>
     void Fatal();
 
     /// <summary>
-    /// Writes a fatal message to <see cref="Log"/>, then notifies that a fatal error has occured and quits the process.
+    /// Logs a fatal message and marks the script as failed.
     /// </summary>
     /// <param name="element">The element which caused the error (<see langword="null"/> to omit the position).</param>
     /// <param name="message">The message.</param>
     void Fatal(Element? element, string message);
 
     /// <summary>
-    /// Gets a file path which specified by <paramref name="pathType"/>.
+    /// Gets the path selected by <paramref name="pathType"/>.
     /// </summary>
     /// <param name="pathType">Specifies the path type.</param>
     /// <returns>A path.</returns>

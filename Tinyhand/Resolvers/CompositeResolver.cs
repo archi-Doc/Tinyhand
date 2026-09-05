@@ -10,7 +10,8 @@ namespace Tinyhand.Resolvers;
 /// Represents a collection of formatters and resolvers acting as one.
 /// </summary>
 /// <remarks>
-/// This class is not thread-safe for mutations. It is thread-safe when not being written to.
+/// Factory methods copy the supplied lists. Each returned resolver caches lookups, including misses;
+/// configure its child resolvers before the first lookup.
 /// </remarks>
 internal static class CompositeResolver
 {

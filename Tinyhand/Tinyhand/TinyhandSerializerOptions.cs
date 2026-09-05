@@ -162,7 +162,9 @@ public record TinyhandSerializerOptions
     /// </summary>
     public bool IsStandardResolver => this.Resolver == StandardResolver.Instance;
 
-    public bool HasLz4CompressFlag => this.Flags.HasFlag(SerializationFlag.Lz4Compress);
+    /// <summary>Gets a value indicating whether LZ4 compression is enabled.</summary>
+    public bool HasLz4CompressFlag => (this.Flags & SerializationFlag.Lz4Compress) != 0;
 
-    public bool HasConvertToStringFlag => this.Flags.HasFlag(SerializationFlag.ConvertToString);
+    /// <summary>Gets a value indicating whether string-convertible types use their text representation.</summary>
+    public bool HasConvertToStringFlag => (this.Flags & SerializationFlag.ConvertToString) != 0;
 }

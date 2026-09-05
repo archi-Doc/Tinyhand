@@ -15,6 +15,30 @@ namespace Arc.IO;
 /// </summary>
 public ref struct ByteBufferWriter
 {
+    [ThreadStatic]
+    private static byte[]? primaryBuffer;
+    [ThreadStatic]
+    private static byte[]? secondaryBuffer;
+    [ThreadStatic]
+    private static bool primaryInUse;
+    [ThreadStatic]
+    private static bool secondaryInUse;
+
+    // Nested serialization rents its own buffer instead of overwriting an active writer.
+    internal static ByteBufferWriter CreateFromThreadStaticBuffer(bool secondary = false)
+    {
+        ref var inUse = ref (secondary ? ref secondaryInUse : ref primaryInUse);
+        if (inUse)
+        {
+            return new ByteBufferWriter(BytePool.Default.Rent(Tinyhand.TinyhandSerializer.InitialBufferSize));
+        }
+
+        ref var buffer = ref (secondary ? ref secondaryBuffer : ref primaryBuffer);
+        buffer ??= new byte[Tinyhand.TinyhandSerializer.InitialBufferSize];
+        inUse = true;
+        return new ByteBufferWriter(buffer) { threadStaticSlot = secondary ? (byte)2 : (byte)1 };
+    }
+
     public ByteBufferWriter(IBufferWriter<byte> bufferWriter)
     { // Use other IBufferWriter instance (this.bufferWriter != null).
         this.byteSequence = null;
@@ -57,11 +81,26 @@ public ref struct ByteBufferWriter
     private long spanWritten; // The size of the written span.
     private byte[]? initialBuffer; // The initial buffer.
     private BytePool.RentArray? array;
+    private byte threadStaticSlot;
 
     #endregion
 
     public void Dispose()
     {
+        if (this.threadStaticSlot != 0)
+        {
+            if (this.threadStaticSlot == 1)
+            {
+                primaryInUse = false;
+            }
+            else
+            {
+                secondaryInUse = false;
+            }
+
+            this.threadStaticSlot = 0;
+        }
+
         if (this.byteSequence is not null)
         {
             this.byteSequence.Dispose();
@@ -221,7 +260,7 @@ public ref struct ByteBufferWriter
     {
         if (this.bufferWriter == null)
         { // Initial Buffer
-            return new ReadOnlySequence<byte>(this.initialBuffer.AsSpan(0, this.spanSize).ToArray());
+            return this.spanSize == 0 ? ReadOnlySequence<byte>.Empty : new ReadOnlySequence<byte>(this.initialBuffer!, 0, this.spanSize);
         }
 
         this.Flush();
