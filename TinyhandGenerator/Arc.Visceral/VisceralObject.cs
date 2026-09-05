@@ -76,9 +76,13 @@ public class VisceralAttribute : IComparable<VisceralAttribute>
             if (x.Kind == TypedConstantKind.Array)
             {
                 // this.ConstructorArguments[n++] = ValueToString(x);
-                if (x.Values.Length > 0)
+                if (!x.Values.IsDefaultOrEmpty)
                 {
                     this.ConstructorArguments[n++] = x.Values[0];
+                }
+                else
+                {
+                    this.ConstructorArguments[n++] = null;
                 }
             }
             else
@@ -106,6 +110,11 @@ public class VisceralAttribute : IComparable<VisceralAttribute>
 
         string ValueToString(TypedConstant value)
         {
+            if (value.IsNull)
+            {
+                return "null";
+            }
+
             if (value.Kind != TypedConstantKind.Array)
             {
                 return value.ToCSharpString();

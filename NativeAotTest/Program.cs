@@ -65,6 +65,16 @@ var named = Roundtrip(new NamedCollections { Values = [1, 2, 3] });
 Check(named.Values.SequenceEqual([1, 2, 3]), "constant string keys and primitive list");
 Check(ReferenceEquals(named.Empty, Array.Empty<Item>()), "empty generated array");
 Check(ReferenceEquals(TinyhandSerializer.Clone(named)!.Empty, Array.Empty<Item>()), "empty array clone");
+Check(Roundtrip(ImmutableArray<int>.Empty).IsEmpty, "empty immutable array");
+Check(TinyhandSerializer.Clone(default(ImmutableArray<int>)).IsDefault, "default immutable array clone");
+Check(Roundtrip(new List<byte> { 1, 2, 3 }).SequenceEqual(new byte[] { 1, 2, 3 }), "binary byte list");
+foreach (var options in new[] { TinyhandSerializerOptions.Standard, TinyhandSerializerOptions.Lz4 })
+{
+    var nested = new Envelope<NestedCallback> { Value = new() { Number = 123 } };
+    var nestedCopy = TinyhandSerializer.Deserialize<Envelope<NestedCallback>>(TinyhandSerializer.Serialize(nested, options), options)!;
+    Check(nestedCopy.Value.Number == 123, "nested serialization callback");
+}
+
 Console.WriteLine("NativeAOT serialization checks passed.");
 
 static T Roundtrip<T>(T value) => TinyhandSerializer.Deserialize<T>(TinyhandSerializer.Serialize(value))!;
@@ -82,6 +92,19 @@ public partial class NamedCollections
 {
     [Key("値\"\\\n")] public List<int> Values { get; set; } = [];
     [Key("Empty")] public Item[] Empty { get; set; } = [];
+}
+
+[TinyhandObject]
+public partial class NestedCallback
+{
+    [Key(0)] public int Number { get; set; }
+
+    [TinyhandOnSerializing]
+    private void Serializing()
+    {
+        _ = TinyhandSerializer.Serialize(new string('x', 512), TinyhandSerializerOptions.Lz4);
+        _ = TinyhandSerializer.SerializeToUtf8("nested text");
+    }
 }
 
 [TinyhandObject]
