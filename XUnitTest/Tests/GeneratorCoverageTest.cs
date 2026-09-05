@@ -12,12 +12,13 @@ public partial class StaticRegistrationGeneratorTest
     [InlineData("typeof(System.Collections.Generic.List<int>), typeof(int[])")]
     [InlineData("")]
     [InlineData("null")]
+    [InlineData("null, More = null")]
     public void AttributeTypeArraysDoNotCrashRegistration(string arguments)
     {
         var result = Generate($$"""
             using System;
             using Tinyhand;
-            public sealed class KnownTypesAttribute(params Type[] types) : Attribute { }
+            public sealed class KnownTypesAttribute(params Type[] types) : Attribute { public Type[]? More { get; set; } }
             [TinyhandObject, KnownTypes({{arguments}})]
             public partial class Model { }
             """, out var output, new TinyhandGeneratorV2().AsSourceGenerator());
