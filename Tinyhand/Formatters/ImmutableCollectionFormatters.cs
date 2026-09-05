@@ -44,6 +44,7 @@ internal class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>
             var len = reader.ReadArrayHeader();
             if (len == 0)
             {
+                value = ImmutableArray<T>.Empty;
                 return;
             }
 
@@ -73,6 +74,11 @@ internal class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>
 
     public ImmutableArray<T> Clone(ImmutableArray<T> value, TinyhandSerializerOptions options)
     {
+        if (value.IsDefault)
+        {
+            return default;
+        }
+
         var len = value.Length;
         if (len == 0)
         {

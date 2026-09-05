@@ -14,7 +14,7 @@ using Tinyhand.Formatters;
 namespace Tinyhand.Resolvers;
 
 /// <summary>
-/// Default composited resolver.
+/// Resolves built-in scalar and collection formatters through per-type caches.
 /// </summary>
 internal sealed class BuiltinResolver : IFormatterResolver
 {

@@ -47,10 +47,9 @@ public class Program
         Console.WriteLine(Stopwatch.ToSimpleString());
         Console.WriteLine();
 
-        DebugRun<PrimitiveValueBenchmark>();
-
         var switcher = new BenchmarkSwitcher(new[]
         {
+            typeof(AllocationAuditBenchmark),
             typeof(Utf8Benchmark),
             typeof(GeneratedCodeBenchmark),
             typeof(Utf8ConverterBenchmark),

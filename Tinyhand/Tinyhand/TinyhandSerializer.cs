@@ -30,14 +30,6 @@ public static partial class TinyhandSerializer
     private const int MaxHintSize = 1024 * 1024;
 
     /// <summary>
-    /// A thread-local, recyclable array that may be used for short bursts of code.
-    /// </summary>
-    [ThreadStatic]
-    private static byte[]? threadStaticBuffer;
-    [ThreadStatic]
-    private static byte[]? threadStaticBuffer2;
-
-    /// <summary>
     /// Gets or sets <see cref="IServiceProvider"/> that is used to create an instance with  <see cref="TinyhandObjectAttribute.UseServiceProvider"/> set to true.
     /// </summary>
     public static IServiceProvider ServiceProvider
@@ -611,7 +603,8 @@ public static partial class TinyhandSerializer
         {
             if (options.HasLz4CompressFlag && !PrimitiveChecker<T>.IsTinyhandFixedSizePrimitive)
             {
-                var w = writer.Clone(GetThreadStaticBuffer2());
+                var w = TinyhandWriter.CreateFromThreadStaticBuffer2();
+                w.Level = writer.Level;
                 try
                 {
                     options.Resolver.GetFormatter<T>().Serialize(ref w, value, options);
@@ -685,9 +678,9 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="buffer">The buffer to deserialize from.</param>
-    /// <param name="value">.</param>
+    /// <param name="value">The non-null result on success, or the default value on failure.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <returns><see langword="true"/> if the deserialization is successfully done; otherwise, <see langword="false"/>.</returns>
+    /// <returns>True if deserialization succeeds with a non-null result; otherwise, false.</returns>
     public static bool TryDeserialize<T>(ReadOnlySpan<byte> buffer, [MaybeNullWhen(false)] out T value, TinyhandSerializerOptions? options = null)
     {
         try
@@ -712,11 +705,17 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? Deserialize<T>(ReadOnlySpan<byte> buffer)
     {
+        var options = DefaultOptions;
+        if (options.HasLz4CompressFlag)
+        {
+            return Deserialize<T>(buffer, options);
+        }
+
         var reader = new TinyhandReader(buffer);
 
         try
         {
-            return DefaultOptions.Resolver.GetFormatter<T>().Deserialize(ref reader, DefaultOptions);
+            return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
         }
         catch (Exception ex)
         {
@@ -746,10 +745,10 @@ public static partial class TinyhandSerializer
     /// </summary>
     /// <typeparam name="T">The type of value to deserialize.</typeparam>
     /// <param name="buffer">The buffer to deserialize from.</param>
-    /// <param name="value">.</param>
-    /// <param name="bytesRead">The number of bytes read.</param>
+    /// <param name="value">The non-null result on success, or the default value on failure.</param>
+    /// <param name="bytesRead">The consumed byte count, or zero when deserialization throws.</param>
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
-    /// <returns><see langword="true"/> if the deserialization is successfully done; otherwise, <see langword="false"/>.</returns>
+    /// <returns>True if deserialization succeeds with a non-null result; otherwise, false.</returns>
     public static bool TryDeserialize<T>(ReadOnlySpan<byte> buffer, [MaybeNullWhen(false)] out T value, out int bytesRead, TinyhandSerializerOptions? options = null)
     {
         try
@@ -1006,22 +1005,6 @@ public static partial class TinyhandSerializer
             writer.Advance(lz4Length + 5);
         }
     }
-
-    /// <summary>
-    /// Gets a thread-static buffer with a size of <see cref="InitialBufferSize"/>.
-    /// </summary>
-    /// <returns>A byte array that can be used as a buffer.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static byte[] GetThreadStaticBuffer()
-        => threadStaticBuffer ??= new byte[InitialBufferSize];
-
-    /// <summary>
-    /// Gets a thread-static buffer2 with a size of <see cref="InitialBufferSize"/>.
-    /// </summary>
-    /// <returns>A byte array that can be used as a buffer.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static byte[] GetThreadStaticBuffer2()
-        => threadStaticBuffer2 ??= new byte[InitialBufferSize];
 
     private static bool TryDeserializeFromMemoryStream<T>(Stream stream, TinyhandSerializerOptions? options, out T? result)
     {

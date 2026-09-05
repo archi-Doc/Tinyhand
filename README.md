@@ -27,6 +27,7 @@ Tinyhand is a data format and C# serializer based on [MessagePack for C#](https:
   - [Exclusion and signatures](#exclusion-and-signatures)
 - [Text serialization and syntax trees](#text-serialization-and-syntax-trees)
 - [Buffers, streams, and compression](#buffers-streams-and-compression)
+  - [Buffer ownership and allocations](#buffer-ownership-and-allocations)
 - [Supported types](#supported-types)
 - [Deserialization security](#deserialization-security)
 - [Custom serialization and formatters](#custom-serialization-and-formatters)
@@ -35,6 +36,7 @@ Tinyhand is a data format and C# serializer based on [MessagePack for C#](https:
 - [Structural objects and journaling](#structural-objects-and-journaling)
 - [Tinyhand Processor](#tinyhand-processor)
 - [Building, testing, and benchmarks](#building-testing-and-benchmarks)
+  - [Coverage and performance checks](#coverage-and-performance-checks)
 
 ## Requirements and installation
 
@@ -84,7 +86,7 @@ public partial class Person
 }
 ```
 
-`Deserialize<T>` can return null for a reference type. `TryDeserialize<T>` reports failure without throwing. `Reconstruct<T>()` invokes the type's reconstruction operation, and `Clone(value)` copies supported members without a binary round trip.
+`Deserialize<T>` can return null for a reference type. `TryDeserialize<T>` returns false for errors and null results, including a valid nil payload. `Reconstruct<T>()` invokes the type's reconstruction operation, and `Clone(value)` copies supported members without a binary round trip.
 
 See [QuickStart](QuickStart) for additional examples.
 
@@ -189,6 +191,8 @@ TinyhandSerializer.DeserializeObject(bytes, ref existing);
 ```
 
 This overload calls the type's static deserializer directly. Use the regular `Deserialize<T>` APIs when compression handling is required.
+
+Low-level formatter overloads that accept `ref T` may preserve existing values on nil or merge collection contents. For example, dictionary reuse keeps existing entries when an incoming key already exists. Use the return-value `Deserialize<T>` APIs, or pass a default value to a formatter, when a fresh result is required.
 
 ### Constructors and service providers
 
@@ -325,6 +329,8 @@ string document = TinyhandComposer.ComposeToString(
 
 `TinyhandParserOptions.ContextualInformation` retains comments and line breaks. `Tinyhand.Tree` exposes groups, assignments, identifiers, and scalar nodes; `TinyhandTreeHelper` provides queries. `TinyhandTreeConverter` converts between text, trees, and binary data, and `TinyhandSerializer.DeserializeFromElement<T>` deserializes a tree.
 
+`TinyhandParser.Parse(Stream)` reads from the current position to the end and leaves the stream open. It supports short reads and non-seekable streams. File parsing opens files for reading, and `ParseFileAsync` reads asynchronously before building the tree. Parsing buffers the complete input; apply an input-size limit when needed.
+
 ## Buffers, streams, and compression
 
 Binary serialization accepts `IBufferWriter<byte>`, `Stream`, and `ref TinyhandWriter`. Deserialization accepts byte spans, streams, and `ref TinyhandReader`; an overload reports consumed bytes. `SerializeAsync` and `DeserializeAsync` support streams.
@@ -355,6 +361,22 @@ Person? copy = TinyhandSerializer.Deserialize<Person>(compressed, TinyhandSerial
 ```
 
 LZ4 options can also read uncompressed data. Small payloads may be emitted without compression. To combine settings, use `with`, such as `TinyhandSerializerOptions.Lz4 with { Security = TinyhandSecurity.UntrustedData }`.
+
+Binary overloads without explicit options use `TinyhandSerializer.DefaultOptions`, including its compression setting. Text APIs default to `TinyhandSerializerOptions.ConvertToString`. Configure global defaults at startup; pass explicit options when callers need different settings.
+
+### Buffer ownership and allocations
+
+| API | Storage and lifetime |
+| --- | --- |
+| `Serialize(value)` | Returns a new owned byte array. |
+| `Serialize(IBufferWriter<byte>, value)` | Writes to caller-owned storage; reuse its capacity to avoid output allocations. |
+| `Serialize(Stream, value)` | Uses temporary buffers and leaves the stream open. |
+| `SerializeToRentMemory(value)` | Transfers pooled memory to the caller, which must call `Return()`. |
+| `writer.FlushAndGetReadOnlySequence()` | Borrows writer storage without copying; consume before reuse or disposal. |
+
+Thread-local writer buffers are reserved until disposal. Nested serialization uses separate pooled storage, so callbacks and custom formatters can serialize other values without overwriting the outer operation. Dispose a writer on its creating thread before an `await`, and do not copy active writers. Use caller-owned buffers or pool-backed writers when a longer lifetime is required.
+
+Primitive array reconstruction and empty-array cloning reuse `Array.Empty<T>()`. `List<byte>` uses binary encoding and copies directly between list storage and the input or output buffer. These optimizations preserve the binary format; a deserialized mutable collection still requires its own storage.
 
 ## Supported types
 
@@ -467,6 +489,10 @@ Use assembly-level registration for closed types that cannot be discovered from 
 
 Place assembly attributes after `using` directives and before type declarations or top-level statements. Open generic types such as `Dictionary<,>` cannot be registered. There is no runtime factory for arbitrary closed generic types.
 
+`[TinyhandObject(External = true)]` delegates implementation to another provider. Tinyhand registers it only when all three interfaces—`ITinyhandSerializable<T>`, `ITinyhandReconstructable<T>`, and `ITinyhandCloneable<T>`—are visible with the matching self type. Otherwise, the provider must register the type or supply a custom formatter; ValueLink registers its own generated owners. Dependency discovery continues even when the external type itself is skipped.
+
+An explicit `TinyhandRegister` for an unverified external type reports informational diagnostic `THAOT004`. It does not force Tinyhand to generate an implementation. `THAOT001` reports inaccessible registration scopes, `THAOT002` reports recursively expanding type graphs, and `THAOT003` reports open registration roots.
+
 `TinyhandTypeIdentifier` dispatches operations for registered types by a 32-bit identifier. Generated and built-in types register automatically; manual registrations use `Register<T>()`. Use `RegisterStringConvertible<T>()` for manually registered types needing their static string parser. Identifiers derive from type names, so renaming a type affects identifier-based persistence.
 
 See [NativeAOT setup and migration notes](doc/NativeAOT.md) for diagnostics, publishing commands, and verification details.
@@ -503,13 +529,23 @@ dotnet run --project QuickStart/QuickStart.csproj
 
 NativeAOT smoke tests must be published and run as native executables; see the [NativeAOT guide](doc/NativeAOT.md).
 
-Collect line and branch coverage with the Microsoft Testing Platform coverage extension:
+### Coverage and performance checks
+
+Collect line and branch coverage for the library, processor, and generator with the Microsoft Testing Platform coverage extension:
 
 ```sh
-dotnet test --project XUnitTest/XUnitTest.csproj --coverage --coverage-output-format cobertura --coverage-output coverage.cobertura.xml
+dotnet test --project XUnitTest/XUnitTest.csproj --coverage --coverage-settings XUnitTest/coverage.config --coverage-output-format cobertura --coverage-output coverage.cobertura.xml --filter-not-trait Category=Allocation
 ```
 
-The report is written to `TestResults`. Generator coverage measures generator calls made inside tests; source generation performed during the build is outside this measurement.
+The report is written to the test application's `TestResults` directory. Exact-allocation tests run separately without coverage instrumentation. Generator coverage measures generator calls made inside tests; source generation performed during the build is outside this measurement. Final-compilation tests exercise primitive, nullable, array, list, enum, callback, locking, and static-registration paths.
+
+```sh
+dotnet test --project XUnitTest/XUnitTest.csproj -c Release --filter-trait Category=Allocation
+dotnet run --project ExternalRegistrationTest/ExternalRegistrationTest.csproj -p:PublishAot=false
+dotnet run --project Benchmark/Benchmark.csproj -c Release -- --filter '*AllocationAuditBenchmark*' --job short
+```
+
+The ValueLink integration executable checks external registration in ordinary execution and NativeAOT. BenchmarkDotNet reports throughput and managed allocations for byte lists, streams, LZ4, borrowed sequences, and empty arrays. Run benchmarks without coverage instrumentation and compare the same runtime and machine. See [the runtime audit](doc/RuntimeAudit.md) for measured results and coverage limits.
 
 The [Benchmark project](Benchmark) compares binary serialization, text conversion, and cloning. [Saved benchmark reports](Benchmark/ChampionData) are historical measurements, not results for every current runtime or version. Run Release benchmarks on the target hardware before drawing performance conclusions.
 

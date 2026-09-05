@@ -45,7 +45,7 @@ public interface ITinyhandFormatter<T> : ITinyhandFormatter
     /// Deserializes a value.
     /// </summary>
     /// <param name="reader">The reader to deserialize from.</param>
-    /// <param name="value">The original value before deserialization and the value after deserialization.</param>
+    /// <param name="value">The existing value to reuse and the resulting value. Reuse and nil handling depend on the formatter.</param>
     /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
     void Deserialize(ref TinyhandReader reader, ref T? value, TinyhandSerializerOptions options);
 
@@ -53,15 +53,15 @@ public interface ITinyhandFormatter<T> : ITinyhandFormatter
     /// Reconstructs a default value.
     /// </summary>
     /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
-    /// <returns>The new object.</returns>
+    /// <returns>A default value, which may be a shared immutable instance.</returns>
     T Reconstruct(TinyhandSerializerOptions options);
 
     /// <summary>
-    /// Creates a deep copy of the object.
+    /// Copies supported mutable data while allowing immutable values to be shared.
     /// </summary>
     /// <param name="value">The value to be cloned.</param>
     /// <param name="options">The serialization settings to use, including the resolver to use to obtain formatters for types that make up the composite type <typeparamref name="T"/>.</param>
-    /// <returns>The new object.</returns>
+    /// <returns>The cloned value, or null when the input is null.</returns>
     [return: NotNullIfNotNull(nameof(value))]
     T? Clone(T? value, TinyhandSerializerOptions options);
 }

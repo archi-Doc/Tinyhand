@@ -430,5 +430,5 @@ public static class TinyhandTypeIdentifier
     /// <returns>The type identifier as a <see cref="uint"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint GetTypeIdentifier(Type type)
-        => TypeToTypeIdentifier.GetOrAdd(type, x => (uint)FarmHash.Hash64(x.FullName ?? string.Empty));
+        => TypeToTypeIdentifier.GetOrAdd(type, x => (uint)Arc.Crypto.FarmHash.Hash64(x.FullName ?? string.Empty));
 }

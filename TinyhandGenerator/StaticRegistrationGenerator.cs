@@ -28,6 +28,9 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor OpenRoot = new(
         "THAOT003", "Registration requires a closed type", "TinyhandRegister requires a closed type, but '{0}' contains unspecified type arguments", "Tinyhand", DiagnosticSeverity.Error, true);
 
+    private static readonly DiagnosticDescriptor ExternalRoot = new(
+        "THAOT004", "External registration is delegated", "TinyhandRegister explores dependencies of external type '{0}'; its implementation provider must register the type or supply a custom formatter because the three self-type interfaces are not visible", "Tinyhand", DiagnosticSeverity.Info, true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var usages = context.SyntaxProvider.CreateSyntaxProvider(
@@ -125,6 +128,10 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
                             {
                                 this.requiredTypes.Add(root);
                                 this.Add(root);
+                                if (root is INamedTypeSymbol named && IsExternal(named) && !HasObjectInterfaces(named))
+                                {
+                                    this.context.ReportDiagnostic(Diagnostic.Create(ExternalRoot, attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation(), Name(root)));
+                                }
                             }
                         }
                     }
@@ -206,6 +213,20 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
         };
 
         private static string MetadataName(INamedTypeSymbol type) => type.OriginalDefinition.ContainingNamespace.ToDisplayString() + "." + type.OriginalDefinition.MetadataName;
+
+        private static bool IsExternal(INamedTypeSymbol type) => type.GetAttributes().Any(x =>
+            x.AttributeClass?.ToDisplayString() == "Tinyhand.TinyhandObjectAttribute" &&
+            x.NamedArguments.Any(x => x.Key == "External" && x.Value.Value is true));
+
+        private static bool HasObjectInterfaces(INamedTypeSymbol type)
+        {
+            bool Implements(string metadataName) => type.AllInterfaces.Any(x =>
+                MetadataName(x) == metadataName && SymbolEqualityComparer.Default.Equals(x.TypeArguments[0], type));
+
+            return Implements("Tinyhand.ITinyhandSerializable`1") &&
+                Implements("Tinyhand.ITinyhandReconstructable`1") &&
+                Implements("Tinyhand.ITinyhandCloneable`1");
+        }
 
         private bool CheckDepth(ITypeSymbol type)
         {
@@ -362,7 +383,17 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
 
         private void AddAttributeTypes(TypedConstant argument)
         {
-            if (argument.Value is ITypeSymbol type)
+            if (argument.Kind == TypedConstantKind.Array)
+            {
+                if (!argument.IsNull)
+                {
+                    foreach (var element in argument.Values)
+                    {
+                        this.AddAttributeTypes(element);
+                    }
+                }
+            }
+            else if (argument.Value is ITypeSymbol type)
             {
                 this.Add(type);
             }
@@ -439,34 +470,51 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
             else if (named.GetAttributes().Any(x => x.AttributeClass?.ToDisplayString() is "Tinyhand.TinyhandObjectAttribute" or "Tinyhand.TinyhandUnionAttribute") ||
                 named.AllInterfaces.Any(x => MetadataName(x) == "Tinyhand.ITinyhandSerializable`1"))
             {
-                if ((named.IsAbstract || named.TypeKind == TypeKind.Interface) && !named.GetAttributes().Any(x => x.AttributeClass?.ToDisplayString() == "Tinyhand.TinyhandUnionAttribute"))
+                var attributes = named.GetAttributes();
+                var objectAttribute = attributes.FirstOrDefault(x => x.AttributeClass?.ToDisplayString() == "Tinyhand.TinyhandObjectAttribute");
+                var hasUnion = attributes.Any(x => x.AttributeClass?.ToDisplayString() == "Tinyhand.TinyhandUnionAttribute");
+                // Match TinyhandObject.Generate: External takes precedence over Union,
+                // and abstract types without a union receive no implementation.
+                // Other generators register their own implementations; their output is
+                // not visible in this compilation's AllInterfaces.
+                var generatesImplementation = !IsExternal(named) && (objectAttribute is not null || hasUnion) &&
+                    (!(named.IsAbstract || named.TypeKind == TypeKind.Interface) || hasUnion) &&
+                    SymbolEqualityComparer.Default.Equals(named.ContainingAssembly, this.compilation.Assembly);
+                if (generatesImplementation || HasObjectInterfaces(named))
                 {
-                    return;
-                }
+                    var code = $"{Resolver}.RegisterObject<{name}>();";
+                    if (named.AllInterfaces.Any(x => MetadataName(x) == "Arc.IStringConvertible`1" && SymbolEqualityComparer.Default.Equals(x.TypeArguments[0], named)))
+                    {
+                        code += $"\nglobal::Tinyhand.TinyhandTypeIdentifier.RegisterStringConvertible<{name}>();";
+                    }
 
-                var code = $"{Resolver}.RegisterObject<{name}>();";
-                if (named.AllInterfaces.Any(x => MetadataName(x) == "Arc.IStringConvertible`1" && SymbolEqualityComparer.Default.Equals(x.TypeArguments[0], named)))
-                {
-                    code += $"\nglobal::Tinyhand.TinyhandTypeIdentifier.RegisterStringConvertible<{name}>();";
-                }
-
-                foreach (var attribute in named.GetAttributes())
-                {
-                    if (attribute.AttributeClass?.ToDisplayString() == "Tinyhand.TinyhandObjectAttribute" && attribute.NamedArguments.Any(x => x.Key == "AddImmutable" && x.Value.Value is true))
+                    if (generatesImplementation && objectAttribute?.NamedArguments.Any(x => x.Key == "AddImmutable" && x.Value.Value is true) == true)
                     {
                         code += $"\n{Resolver}.RegisterObject<{name}.Immutable>();";
                     }
+                    else if (objectAttribute?.NamedArguments.Any(x => x.Key == "AddImmutable" && x.Value.Value is true) == true)
+                    {
+                        // An implementation from a referenced assembly may already contain Immutable.
+                        foreach (var immutable in named.GetTypeMembers("Immutable", 0))
+                        {
+                            this.Add(immutable);
+                        }
+                    }
 
+                    this.registrations.Add((type, code));
+                    if (named.IsValueType)
+                    {
+                        this.Add(this.compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(named));
+                    }
+                }
+
+                // Dependency discovery is needed even when object registration is delegated.
+                foreach (var attribute in attributes)
+                {
                     foreach (var argument in attribute.ConstructorArguments)
                     {
                         this.AddAttributeTypes(argument);
                     }
-                }
-
-                this.registrations.Add((type, code));
-                if (named.IsValueType)
-                {
-                    this.Add(this.compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(named));
                 }
 
                 for (var current = named; current is not null; current = current.BaseType)

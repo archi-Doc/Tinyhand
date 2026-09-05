@@ -1,4 +1,4 @@
-﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
+// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 /* THIS (.cs) FILE IS GENERATED. DO NOT CHANGE IT.
  * CHANGE THE .tt FILE INSTEAD. */
@@ -141,13 +141,17 @@ internal sealed class Int8ArrayFormatter : ITinyhandFormatter<sbyte[]>
 
     public void Deserialize(ref TinyhandReader reader, ref sbyte[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt8Array(ref reader);
 
-    public sbyte[] Reconstruct(TinyhandSerializerOptions options) => new sbyte[0];
+    public sbyte[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<sbyte>();
 
     public sbyte[]? Clone(sbyte[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<sbyte>();
         }
         else
         {
@@ -246,13 +250,17 @@ internal sealed class UInt16ArrayFormatter : ITinyhandFormatter<ushort[]>
 
     public void Deserialize(ref TinyhandReader reader, ref ushort[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt16Array(ref reader);
 
-    public ushort[] Reconstruct(TinyhandSerializerOptions options) => new ushort[0];
+    public ushort[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<ushort>();
 
     public ushort[]? Clone(ushort[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<ushort>();
         }
         else
         {
@@ -351,13 +359,17 @@ internal sealed class Int16ArrayFormatter : ITinyhandFormatter<short[]>
 
     public void Deserialize(ref TinyhandReader reader, ref short[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt16Array(ref reader);
 
-    public short[] Reconstruct(TinyhandSerializerOptions options) => new short[0];
+    public short[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<short>();
 
     public short[]? Clone(short[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<short>();
         }
         else
         {
@@ -456,13 +468,17 @@ internal sealed class UInt32ArrayFormatter : ITinyhandFormatter<uint[]>
 
     public void Deserialize(ref TinyhandReader reader, ref uint[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt32Array(ref reader);
 
-    public uint[] Reconstruct(TinyhandSerializerOptions options) => new uint[0];
+    public uint[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<uint>();
 
     public uint[]? Clone(uint[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<uint>();
         }
         else
         {
@@ -561,13 +577,17 @@ internal sealed class Int32ArrayFormatter : ITinyhandFormatter<int[]>
 
     public void Deserialize(ref TinyhandReader reader, ref int[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader);
 
-    public int[] Reconstruct(TinyhandSerializerOptions options) => new int[0];
+    public int[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<int>();
 
     public int[]? Clone(int[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<int>();
         }
         else
         {
@@ -666,13 +686,17 @@ internal sealed class UInt64ArrayFormatter : ITinyhandFormatter<ulong[]>
 
     public void Deserialize(ref TinyhandReader reader, ref ulong[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt64Array(ref reader);
 
-    public ulong[] Reconstruct(TinyhandSerializerOptions options) => new ulong[0];
+    public ulong[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<ulong>();
 
     public ulong[]? Clone(ulong[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<ulong>();
         }
         else
         {
@@ -771,13 +795,17 @@ internal sealed class Int64ArrayFormatter : ITinyhandFormatter<long[]>
 
     public void Deserialize(ref TinyhandReader reader, ref long[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt64Array(ref reader);
 
-    public long[] Reconstruct(TinyhandSerializerOptions options) => new long[0];
+    public long[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<long>();
 
     public long[]? Clone(long[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<long>();
         }
         else
         {
@@ -876,13 +904,17 @@ internal sealed class SingleArrayFormatter : ITinyhandFormatter<float[]>
 
     public void Deserialize(ref TinyhandReader reader, ref float[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeSingleArray(ref reader);
 
-    public float[] Reconstruct(TinyhandSerializerOptions options) => new float[0];
+    public float[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<float>();
 
     public float[]? Clone(float[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<float>();
         }
         else
         {
@@ -981,13 +1013,17 @@ internal sealed class DoubleArrayFormatter : ITinyhandFormatter<double[]>
 
     public void Deserialize(ref TinyhandReader reader, ref double[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeDoubleArray(ref reader);
 
-    public double[] Reconstruct(TinyhandSerializerOptions options) => new double[0];
+    public double[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<double>();
 
     public double[]? Clone(double[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<double>();
         }
         else
         {
@@ -1086,13 +1122,17 @@ internal sealed class BooleanArrayFormatter : ITinyhandFormatter<bool[]>
 
     public void Deserialize(ref TinyhandReader reader, ref bool[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeBooleanArray(ref reader);
 
-    public bool[] Reconstruct(TinyhandSerializerOptions options) => new bool[0];
+    public bool[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<bool>();
 
     public bool[]? Clone(bool[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<bool>();
         }
         else
         {
@@ -1191,13 +1231,17 @@ internal sealed class CharArrayFormatter : ITinyhandFormatter<char[]>
 
     public void Deserialize(ref TinyhandReader reader, ref char[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeCharArray(ref reader);
 
-    public char[] Reconstruct(TinyhandSerializerOptions options) => new char[0];
+    public char[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<char>();
 
     public char[]? Clone(char[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<char>();
         }
         else
         {
@@ -1296,13 +1340,17 @@ internal sealed class DateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
 
     public void Deserialize(ref TinyhandReader reader, ref DateTime[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeDateTimeArray(ref reader);
 
-    public DateTime[] Reconstruct(TinyhandSerializerOptions options) => new DateTime[0];
+    public DateTime[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<DateTime>();
 
     public DateTime[]? Clone(DateTime[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<DateTime>();
         }
         else
         {
@@ -1401,13 +1449,17 @@ internal sealed class Int128ArrayFormatter : ITinyhandFormatter<Int128[]>
 
     public void Deserialize(ref TinyhandReader reader, ref Int128[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt128Array(ref reader);
 
-    public Int128[] Reconstruct(TinyhandSerializerOptions options) => new Int128[0];
+    public Int128[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<Int128>();
 
     public Int128[]? Clone(Int128[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<Int128>();
         }
         else
         {
@@ -1506,13 +1558,17 @@ internal sealed class UInt128ArrayFormatter : ITinyhandFormatter<UInt128[]>
 
     public void Deserialize(ref TinyhandReader reader, ref UInt128[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt128Array(ref reader);
 
-    public UInt128[] Reconstruct(TinyhandSerializerOptions options) => new UInt128[0];
+    public UInt128[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<UInt128>();
 
     public UInt128[]? Clone(UInt128[]? value, TinyhandSerializerOptions options)
     {
         if (value == null)
         {
             return null;
+        }
+        else if (value.Length == 0)
+        {
+            return Array.Empty<UInt128>();
         }
         else
         {

@@ -240,7 +240,7 @@ internal sealed class ByteArrayFormatter : ITinyhandFormatter<byte[]>
 
     public byte[] Reconstruct(TinyhandSerializerOptions options)
     {
-        return new byte[0];
+        return Array.Empty<byte>();
     }
 
     public byte[]? Clone(byte[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.CloneUInt8Array(value);
@@ -262,7 +262,7 @@ internal sealed class ByteListFormatter : ITinyhandFormatter<List<byte>>
         }
         else
         {
-            writer.Write(value.ToArray().AsSpan());
+            writer.Write(CollectionsMarshal.AsSpan(value));
         }
     }
 
@@ -270,7 +270,9 @@ internal sealed class ByteListFormatter : ITinyhandFormatter<List<byte>>
     {
         if (reader.TryReadBytes(out var span))
         {
-            value = new(span.ToArray());
+            value = new List<byte>(span.Length);
+            CollectionsMarshal.SetCount(value, span.Length);
+            span.CopyTo(CollectionsMarshal.AsSpan(value));
         }
     }
 

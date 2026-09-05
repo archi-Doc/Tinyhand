@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Arc.IO;
 using Tinyhand.Tree;
 
 #pragma warning disable SA1011 // Closing square brackets should be spaced correctly
@@ -255,28 +256,42 @@ public static class TinyhandParser
         }
     }
 
+    /// <summary>Reads a UTF-8 file and parses its complete contents.</summary>
+    /// <param name="fileName">The file to open for reading.</param>
+    /// <param name="options">The parser options, or null for standard options.</param>
+    /// <returns>The parsed syntax tree.</returns>
     public static Element ParseFile(string fileName, TinyhandParserOptions? options = null)
     {
         options ??= TinyhandParserOptions.Standard;
-        using var fs = new FileStream(fileName, FileMode.Open);
-        var length = fs.Length;
-        var buffer = new byte[length];
-        fs.ReadExactly(buffer.AsSpan());
-
-        return Parse(buffer, options);
+        using var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return Parse(fs, options);
     }
 
+    /// <summary>Asynchronously reads a UTF-8 file, then parses its complete contents.</summary>
+    /// <param name="fileName">The file to open for reading.</param>
+    /// <param name="options">The parser options, or null for standard options.</param>
+    /// <returns>A task containing the parsed syntax tree.</returns>
     public static async Task<Element> ParseFileAsync(string fileName, TinyhandParserOptions? options = null)
     {
         options ??= TinyhandParserOptions.Standard;
-        using var fs = new FileStream(fileName, FileMode.Open);
-        var length = fs.Length;
-        var buffer = new byte[length];
-        await fs.ReadExactlyAsync(buffer.AsMemory());
-
-        return Parse(buffer, options);
+        using var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        var length = checked((int)fs.Length);
+        var buffer = ArrayPool<byte>.Shared.Rent(length);
+        try
+        {
+            await fs.ReadExactlyAsync(buffer.AsMemory(0, length)).ConfigureAwait(false);
+            return Parse(buffer.AsSpan(0, length), options);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
     }
 
+    /// <summary>Parses UTF-8 text into an independent syntax tree.</summary>
+    /// <param name="utf8">The UTF-8 text.</param>
+    /// <param name="options">The parser options, or null for standard options.</param>
+    /// <returns>The parsed syntax tree.</returns>
     public static Element Parse(ReadOnlySpan<byte> utf8, TinyhandParserOptions? options = null)
     {
         options ??= TinyhandParserOptions.Standard;
@@ -286,30 +301,51 @@ public static class TinyhandParser
         return core.Parse(ref reader);
     }
 
+    /// <summary>Parses UTF-8 text from the current position to the end, leaving the stream open.</summary>
+    /// <remarks>Supports non-seekable streams and short reads. The complete text must fit in memory.</remarks>
+    /// <param name="stream">The readable stream, positioned at the first byte to parse.</param>
+    /// <param name="options">The parser options, or null for standard options.</param>
+    /// <returns>The parsed syntax tree.</returns>
     public static Element Parse(Stream stream, TinyhandParserOptions? options = null)
     {
         options ??= TinyhandParserOptions.Standard;
-
-        Element result;
 
         if (stream is MemoryStream ms && ms.TryGetBuffer(out ArraySegment<byte> streamBuffer))
         {// MemoryStream
             var span = streamBuffer.AsSpan(checked((int)ms.Position));
             ms.Seek(span.Length, SeekOrigin.Current);
-            result = Parse(span, options);
-        }
-        else
-        {// Other
-            var buffer = ArrayPool<byte>.Shared.Rent(checked((int)(stream.Length - stream.Position)));
-            var span = buffer.AsSpan();
-            var readBytes = stream.Read(span);
-            result = Parse(span.Slice(0, readBytes), options);
-            ArrayPool<byte>.Shared.Return(buffer);
+            return Parse(span, options);
         }
 
-        return result;
+        if (stream.CanSeek)
+        {
+            var length = checked((int)Math.Max(0, stream.Length - stream.Position));
+            var buffer = ArrayPool<byte>.Shared.Rent(length);
+            try
+            {
+                stream.ReadExactly(buffer.AsSpan(0, length));
+                return Parse(buffer.AsSpan(0, length), options);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
+        using var sequence = new ByteSequence();
+        int read;
+        while ((read = stream.Read(sequence.GetSpan(4096))) != 0)
+        {
+            sequence.Advance(read);
+        }
+
+        return Parse(sequence.ToReadOnlySpan(), options);
     }
 
+    /// <summary>Parses UTF-16 text into an independent syntax tree.</summary>
+    /// <param name="text">The UTF-16 text.</param>
+    /// <param name="options">The parser options, or null for standard options.</param>
+    /// <returns>The parsed syntax tree.</returns>
     public static Element Parse(string text, TinyhandParserOptions? options = null)
     {
         options ??= TinyhandParserOptions.Standard;

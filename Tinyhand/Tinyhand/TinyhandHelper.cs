@@ -55,6 +55,7 @@ public static class TinyhandHelper
         throw new TinyhandException($"There is no service of type: {type.FullName}");
     }
 
+    /// <summary>Unescapes UTF-8 text into a new array and returns a span over it.</summary>
     public static ReadOnlySpan<byte> GetUnescapedSpan(ReadOnlySpan<byte> utf8Source)
     {
         // The escaped name is always >= than the unescaped, so it is safe to use escaped name for the buffer length.
@@ -64,16 +65,18 @@ public static class TinyhandHelper
         Span<byte> utf8Unescaped = length <= TinyhandConstants.StackallocThreshold ?
             stackalloc byte[length] : (pooledName = ArrayPool<byte>.Shared.Rent(length));
 
-        Unescape(utf8Source, utf8Unescaped, out var written);
-
-        ReadOnlySpan<byte> result = utf8Unescaped.Slice(0, written).ToArray();
-
-        if (pooledName != null)
+        try
         {
-            ArrayPool<byte>.Shared.Return(pooledName);
+            Unescape(utf8Source, utf8Unescaped, out var written);
+            return utf8Unescaped.Slice(0, written).ToArray();
         }
-
-        return result;
+        finally
+        {
+            if (pooledName != null)
+            {
+                ArrayPool<byte>.Shared.Return(pooledName);
+            }
+        }
     }
 
     internal static void Unescape(ReadOnlySpan<byte> source, Span<byte> destination, out int written)

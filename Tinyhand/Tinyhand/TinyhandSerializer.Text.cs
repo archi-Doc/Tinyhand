@@ -38,7 +38,7 @@ public static partial class TinyhandSerializer
         }
 
         // The binary is written to the second thread-static buffer and the text to the first one: no intermediate array.
-        var binaryWriter = new TinyhandWriter(GetThreadStaticBuffer2());
+        var binaryWriter = TinyhandWriter.CreateFromThreadStaticBuffer2();
         try
         {
             SerializeObject(ref binaryWriter, value, options);
@@ -152,7 +152,7 @@ public static partial class TinyhandSerializer
             return;
         }
 
-        var binaryWriter = new TinyhandWriter(GetThreadStaticBuffer2());
+        var binaryWriter = TinyhandWriter.CreateFromThreadStaticBuffer2();
         try
         {
             Serialize(ref binaryWriter, value, options);
@@ -197,7 +197,7 @@ public static partial class TinyhandSerializer
         }
 
         // The binary is written to the second thread-static buffer and the text to the first one: no intermediate array.
-        var binaryWriter = new TinyhandWriter(GetThreadStaticBuffer2());
+        var binaryWriter = TinyhandWriter.CreateFromThreadStaticBuffer2();
         try
         {
             Serialize(ref binaryWriter, value, options);
@@ -402,7 +402,7 @@ public static partial class TinyhandSerializer
     /// </summary>
     private static byte[] BinaryToUtf8Array(ReadOnlySpan<byte> binary, TinyhandSerializerOptions options, bool omitTopLevelBracket)
     {
-        var writer = new TinyhandRawWriter(GetThreadStaticBuffer());
+        var writer = TinyhandRawWriter.CreateFromThreadStaticBuffer();
         try
         {
             TinyhandTreeConverter.FromBinaryToUtf8(binary, ref writer, options, omitTopLevelBracket);

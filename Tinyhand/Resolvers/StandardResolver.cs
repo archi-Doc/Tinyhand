@@ -3,7 +3,7 @@
 namespace Tinyhand.Resolvers;
 
 /// <summary>
-/// Default composited resolver.
+/// Resolves built-in, generated, and primitive-object formatters in that order.
 /// </summary>
 internal sealed class StandardResolver : IFormatterResolver
 {
