@@ -22,6 +22,8 @@ jobs:
       run: dotnet build --configuration Release --no-restore
     - name: Test
       run: dotnet test --no-restore --verbosity normal
+    - name: Run external registration checks
+      run: dotnet run --project ExternalRegistrationTest/ExternalRegistrationTest.csproj -p:PublishAot=false
 
   native-aot:
     strategy:
@@ -45,15 +47,20 @@ jobs:
       run: dotnet publish NativeAotTest/NativeAotTest.csproj -c Release -r ${{ matrix.rid }} -o artifacts/aot
     - name: Publish processor checks
       run: dotnet publish NativeAotProcessorTest/NativeAotProcessorTest.csproj -c Release -r ${{ matrix.rid }} -o artifacts/processor-aot
+    - name: Publish external registration checks
+      run: dotnet publish ExternalRegistrationTest/ExternalRegistrationTest.csproj -c Release -r ${{ matrix.rid }} -o artifacts/external-aot
     - name: Run native checks (Linux)
       if: runner.os == 'Linux'
       run: |
         ./artifacts/aot/NativeAotTest
         ./artifacts/processor-aot/NativeAotProcessorTest
+        ./artifacts/external-aot/ExternalRegistrationTest --require-native
     - name: Run native checks (Windows)
       if: runner.os == 'Windows'
       run: |
         & ./artifacts/aot/NativeAotTest.exe
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         & ./artifacts/processor-aot/NativeAotProcessorTest.exe
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        & ./artifacts/external-aot/ExternalRegistrationTest.exe --require-native
         exit $LASTEXITCODE

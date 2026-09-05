@@ -44,11 +44,16 @@ public partial class Envelope<T>
 
 private な型を登録するために、その型を参照できる包含型へ登録メソッドを生成する場合があります。包含型はすべて `partial` にしてください。
 
+`[TinyhandObject(External = true)]` は実装の生成を外部へ委譲します。この属性だけでは `RegisterObject<T>()` を生成しません。入力ソースまたは参照アセンブリで `ITinyhandSerializable<T>`、`ITinyhandReconstructable<T>`、`ITinyhandCloneable<T>` のすべてを自己型で実装している場合は登録します。ValueLink の所有クラスなど、同時に実行する別ジェネレーターが実装する型は、その提供元による登録を利用します。未使用の空の External 型は登録せず、メンバーや Union の依存型探索は継続します。`External` と `AddImmutable` を併記しても、生成されない `Immutable` 型への登録は出力しません。
+
+External 型を `TinyhandRegister` で明示しても、この責任分担は変わりません。3つのインターフェースを確認できない場合は、属性の位置に情報診断 `THAOT004` を出し、依存型のみを探索します。これは実装欠落を断定するエラーではありません。実装の提供元が登録するか、カスタム formatter を供給してください。
+
 | 診断 | 意味 |
 | --- | --- |
 | THAOT001 | 登録が必要な型にアクセスできないため、包含型を `partial` にする必要がある |
 | THAOT002 | 型の入れ子が 64 段、または展開後の型要素数が 4096 を超えた。型引数が再帰的に増えるモデルや補助メソッドを確認する |
 | THAOT003 | `TinyhandRegister` に開いたジェネリック型を指定している |
+| THAOT004 | 明示した External 型の登録を外部へ委譲する。依存型探索は続行する（情報診断） |
 
 ## API の変更
 
@@ -80,7 +85,11 @@ TinyhandProcess.RegisterPlugin<MyProcessCore>("my process");
 dotnet test --project XUnitTest/XUnitTest.csproj
 dotnet publish NativeAotTest/NativeAotTest.csproj -c Release -r win-x64
 dotnet publish NativeAotProcessorTest/NativeAotProcessorTest.csproj -c Release -r win-x64
+dotnet run --project ExternalRegistrationTest/ExternalRegistrationTest.csproj -p:PublishAot=false
+dotnet publish ExternalRegistrationTest/ExternalRegistrationTest.csproj -c Release -r win-x64
 ```
+
+`ExternalRegistrationTest` は ValueLink 0.118.3 と作業ツリーの Tinyhand を参照する結合テストです。未使用の External 宣言を含むビルド、既定名・カスタム名のジェネリック所有クラス、手書きの External 実装、カスタム formatter のシリアライズ・デシリアライズ・再構築・複製を検証します。発行した `ExternalRegistrationTest.exe --require-native` を実行すると、NativeAOT で動作していることも確認します。CI では通常実行と Windows / Linux のネイティブ実行を行います。
 
 発行先の `NativeAotTest.exe` と `NativeAotProcessorTest.exe` を実行します。これらは JIT で実行すると失敗するため、`dotnet run` は使用しません。CI に Windows / Linux の発行・実行を追加しています。
 

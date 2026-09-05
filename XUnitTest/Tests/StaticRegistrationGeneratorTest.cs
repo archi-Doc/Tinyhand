@@ -13,7 +13,7 @@ using Xunit;
 
 namespace XUnitTest;
 
-public class StaticRegistrationGeneratorTest
+public partial class StaticRegistrationGeneratorTest
 {
     private static readonly ImmutableArray<MetadataReference> References = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
         .Split(Path.PathSeparator).Append(typeof(TinyhandSerializer).Assembly.Location).Distinct()
