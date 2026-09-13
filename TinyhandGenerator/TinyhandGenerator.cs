@@ -1,20 +1,23 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+#pragma warning disable RS1036
+
 namespace Tinyhand.Generator;
 
-/* [Generator]
-public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
+[Generator]
+public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
 {
-    public bool AttachDebugger { get; private set; } = false;
+    public bool AttachDebugger { get; private set; }
 
-    public bool GenerateToFile { get; private set; } = false;
+    public bool GenerateToFile { get; private set; }
 
     public string? CustomNamespace { get; private set; }
 
@@ -28,107 +31,216 @@ public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
 
     public string? TargetFolder { get; private set; }
 
-    public GeneratorExecutionContext Context { get; private set; }
-
-    private TinyhandBody body = default!;
-    private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
-    private INamedTypeSymbol? tinyhandUnionAttributeSymbol;
-    private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
-#pragma warning disable RS1024
-    private HashSet<INamedTypeSymbol?> processedSymbol = new();
-#pragma warning restore RS1024
-
-    static TinyhandGenerator()
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var provider = context.CompilationProvider.Combine(
+            context.SyntaxProvider
+            .CreateSyntaxProvider(static (s, _) => IsSyntaxTargetForGeneration(s), static (ctx, _) => GetSemanticTargetForGeneration(ctx))
+            .Collect());
+
+        context.RegisterImplementationSourceOutput(provider, this.Emit);
     }
 
-    public void Execute(GeneratorExecutionContext context)
+    private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
     {
-        try
+        if (node is TypeDeclarationSyntax m && m.AttributeLists.Count > 0)
         {
-            this.Context = context;
-            context.CancellationToken.ThrowIfCancellationRequested();
-
-            if (!(context.SyntaxReceiver is TinyhandSyntaxReceiver receiver))
-            {
-                return;
-            }
-
-            var compilation = context.Compilation;
-            this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
-            if (this.tinyhandObjectAttributeSymbol == null)
-            {
-                return;
-            }
-
-            this.tinyhandUnionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandUnionAttributeMock.FullName);
-            if (this.tinyhandUnionAttributeSymbol == null)
-            {
-                return;
-            }
-
-            this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeMock.FullName);
-            if (this.tinyhandGeneratorOptionAttributeSymbol == null)
-            {
-                return;
-            }
-
-            this.ProcessGeneratorOption(receiver, compilation);
-            if (this.AttachDebugger)
-            {
-                System.Diagnostics.Debugger.Launch();
-            }
-
-            this.Prepare(context, compilation);
-            context.CancellationToken.ThrowIfCancellationRequested();
-
-            this.body = new TinyhandBody(context, this.AssemblySymbol);
-            receiver.Generics.Prepare(compilation);
-
-            // IN: type declaration
-            foreach (var x in receiver.CandidateSet)
-            {
-                var model = compilation.GetSemanticModel(x.SyntaxTree);
-                if (model.GetDeclaredSymbol(x) is INamedTypeSymbol s)
-                {
-                    this.ProcessSymbol(s);
-                }
-            }
-
-            // IN: close generic (member, expression)
-            foreach (var ts in receiver.Generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric).Select(a => a.TypeSymbol))
-            {
-                if (ts != null)
-                {
-                    this.ProcessSymbol(ts);
-                }
-            }
-
-            this.SalvageCloseGeneric(receiver.Generics);
-            context.CancellationToken.ThrowIfCancellationRequested();
-
-            this.body.Prepare();
-            context.CancellationToken.ThrowIfCancellationRequested();
-            if (this.body.Abort)
-            {
-                return;
-            }
-
-            this.body.Generate(this, context.CancellationToken);
+            return true;
         }
-        catch
+        else if (node is GenericNameSyntax { })
         {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
-    public void Initialize(GeneratorInitializationContext context)
+    private static CSharpSyntaxNode? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
-        // System.Diagnostics.Debugger.Launch();
+        if (context.Node is TypeDeclarationSyntax typeSyntax)
+        {
+            foreach (var attributeList in typeSyntax.AttributeLists)
+            {
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    var name = attribute.Name.ToString();
+                    if (name.EndsWith(TinyhandGeneratorOptionAttributeMock.Name) ||
+                        name.EndsWith(TinyhandGeneratorOptionAttributeMock.SimpleName))
+                    {
+                        return typeSyntax;
+                    }
+                    else if (name.EndsWith(TinyhandGenerateMemberAttributeMock.Name) ||
+                        name.EndsWith(TinyhandGenerateMemberAttributeMock.SimpleName) ||
+                        name.EndsWith(TinyhandGenerateHashAttributeMock.Name) ||
+                        name.EndsWith(TinyhandGenerateHashAttributeMock.SimpleName))
+                    {
+                        return typeSyntax;
+                    }
+                    else if (name.EndsWith(TinyhandObjectAttributeMock.Name) ||
+                        name.EndsWith(TinyhandObjectAttributeMock.SimpleName) ||
+                        name.EndsWith(TinyhandUnionAttributeMock.Name) ||
+                        name.EndsWith(TinyhandUnionAttributeMock.SimpleName))
+                    {
+                        return typeSyntax;
+                    }
+                }
+            }
+        }
+        else if (context.Node is GenericNameSyntax genericSyntax)
+        {
+            return genericSyntax;
+        }
 
-        context.RegisterForSyntaxNotifications(() => new TinyhandSyntaxReceiver());
+        return null;
     }
 
-    private void SalvageCloseGeneric(VisceralGenerics generics)
+    private void Emit(SourceProductionContext context, (Compilation Compilation, ImmutableArray<CSharpSyntaxNode?> Types) source)
+    {
+        var compilation = source.Compilation;
+        this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
+        if (this.tinyhandObjectAttributeSymbol == null)
+        {
+            return;
+        }
+
+        this.tinyhandUnionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandUnionAttributeMock.FullName);
+        if (this.tinyhandUnionAttributeSymbol == null)
+        {
+            return;
+        }
+
+        this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeMock.FullName);
+        if (this.tinyhandGeneratorOptionAttributeSymbol == null)
+        {
+            return;
+        }
+
+        this.tinyhandGenerateMemberAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateMemberAttributeMock.FullName);
+        if (this.tinyhandGenerateMemberAttributeSymbol == null)
+        {
+            return;
+        }
+
+        this.tinyhandGenerateHashAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateHashAttributeMock.FullName);
+        if (this.tinyhandGenerateHashAttributeSymbol == null)
+        {
+            return;
+        }
+
+        this.AssemblySymbol = compilation.Assembly;
+        this.AssemblyName = compilation.AssemblyName ?? string.Empty;
+        this.AssemblyId = this.AssemblyName.GetHashCode();
+        this.OutputKind = compilation.Options.OutputKind;
+
+        var body = new TinyhandBody(compilation, context, this.AssemblySymbol);
+        var generateMemberBody = new TinyhandGenerateMemberBody(context);
+        // receiver.Generics.Prepare(compilation);
+#pragma warning disable RS1024 // Symbols should be compared for equality
+        var processed = new HashSet<INamedTypeSymbol?>();
+#pragma warning restore RS1024 // Symbols should be compared for equality
+
+        this.generatorOptionIsSet = false;
+        var generics = new VisceralGenerics();
+        foreach (var x in source.Types)
+        {
+            if (x == null)
+            {
+                continue;
+            }
+            else if (x is GenericNameSyntax genericSyntax)
+            {
+                generics.Add(genericSyntax);
+                continue;
+            }
+
+            var model = compilation.GetSemanticModel(x.SyntaxTree);
+#pragma warning disable RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
+            if (model.GetDeclaredSymbol(x) is INamedTypeSymbol symbol)
+            {
+                this.ProcessSymbol(body, generateMemberBody, processed, x.SyntaxTree, symbol);
+            }
+#pragma warning restore RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
+        }
+
+        generics.Prepare(compilation);
+        foreach (var ts in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric))
+        {
+            if (ts.TypeSymbol != null)
+            {
+                this.ProcessSymbol(body, generateMemberBody, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
+            }
+        }
+
+        // this.SalvageCloseGeneric(body, generics, processed);
+
+        body.Prepare();
+        if (body.Abort)
+        {
+            return;
+        }
+
+        if (compilation.Options is CSharpCompilationOptions csharpCompilationOptions &&
+            !csharpCompilationOptions.AllowUnsafe &&
+            body.RequiresUnsafeBlocks)
+        {
+            body.ReportDiagnostic(TinyhandBody.Error_UnsafeRequired, default);
+        }
+
+        generateMemberBody.Prepare();
+        if (generateMemberBody.Abort)
+        {
+            return;
+        }
+
+        body.Generate(this, context.CancellationToken);
+        generateMemberBody.Generate(this, context.CancellationToken);
+    }
+
+    private void ProcessSymbol(TinyhandBody body, TinyhandGenerateMemberBody? generateMemberBody, HashSet<INamedTypeSymbol?> processed, SyntaxTree? syntaxTree, INamedTypeSymbol symbol)
+    {
+        if (!SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, this.AssemblySymbol))
+        {// Different assembly
+            return;
+        }
+        else if (processed.Contains(symbol))
+        {
+            return;
+        }
+
+        processed.Add(symbol);
+        foreach (var y in symbol.GetAttributes())
+        {
+            if (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandObjectAttributeSymbol) ||
+                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandUnionAttributeSymbol))
+            { // TinyhandObject or TinyhandUnion
+                body.Add(symbol);
+                break;
+            }
+            else if (generateMemberBody != null &&
+                (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGenerateMemberAttributeSymbol) ||
+                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGenerateHashAttributeSymbol)))
+            { // TinyhandGenerateMember
+                generateMemberBody.Add(symbol);
+            }
+            else if (!this.generatorOptionIsSet &&
+                syntaxTree != null &&
+                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGeneratorOptionAttributeSymbol))
+            {
+                this.generatorOptionIsSet = true;
+                var va = new VisceralAttribute(TinyhandGeneratorOptionAttributeMock.FullName, y);
+                var ta = TinyhandGeneratorOptionAttributeMock.FromArray(va.ConstructorArguments, va.NamedArguments);
+
+                this.AttachDebugger = ta.AttachDebugger;
+                this.GenerateToFile = ta.GenerateToFile;
+                this.CustomNamespace = ta.CustomNamespace;
+                this.TargetFolder = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(syntaxTree.FilePath), "Generated");
+            }
+        }
+    }
+
+    private void SalvageCloseGeneric(TinyhandBody body, VisceralGenerics generics, HashSet<INamedTypeSymbol?> processed)
     {
         var stack = new Stack<INamedTypeSymbol>();
         foreach (var x in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric))
@@ -151,7 +263,7 @@ public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
                 return;
             }
 
-            this.ProcessSymbol(ts);
+            this.ProcessSymbol(body, null, processed, null, ts);
 
             stack.Push(ts);
             try
@@ -182,115 +294,10 @@ public class TinyhandGenerator : ISourceGenerator, IGeneratorInformation
         }
     }
 
-    private void ProcessSymbol(INamedTypeSymbol s)
-    {
-        if (!SymbolEqualityComparer.Default.Equals(s.ContainingAssembly, this.AssemblySymbol))
-        {// Different assembly
-            return;
-        }
-        else if (this.processedSymbol.Contains(s))
-        {
-            return;
-        }
-
-        this.processedSymbol.Add(s);
-        foreach (var x in s.GetAttributes())
-        {
-            if (SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandObjectAttributeSymbol) ||
-                SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandUnionAttributeSymbol))
-            { // TinyhandObject or TinyhandUnion
-                var obj = this.body.Add(s);
-                break;
-            }
-        }
-    }
-
-    private void Prepare(GeneratorExecutionContext context, Compilation compilation)
-    {
-        this.AssemblySymbol = compilation.Assembly;
-        this.AssemblyName = compilation.AssemblyName ?? string.Empty;
-        this.AssemblyId = this.AssemblyName.GetHashCode();
-        this.OutputKind = compilation.Options.OutputKind;
-    }
-
-    private void ProcessGeneratorOption(TinyhandSyntaxReceiver receiver, Compilation compilation)
-    {
-        if (receiver.GeneratorOptionSyntax == null)
-        {
-            return;
-        }
-
-        var model = compilation.GetSemanticModel(receiver.GeneratorOptionSyntax.SyntaxTree);
-        if (model.GetDeclaredSymbol(receiver.GeneratorOptionSyntax) is INamedTypeSymbol s)
-        {
-            var attr = s.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this.tinyhandGeneratorOptionAttributeSymbol));
-            if (attr != null)
-            {
-                var va = new VisceralAttribute(TinyhandGeneratorOptionAttributeMock.FullName, attr);
-                var ta = TinyhandGeneratorOptionAttributeMock.FromArray(va.ConstructorArguments, va.NamedArguments);
-
-                this.AttachDebugger = ta.AttachDebugger;
-                this.GenerateToFile = ta.GenerateToFile;
-                this.CustomNamespace = ta.CustomNamespace;
-                this.TargetFolder = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(receiver.GeneratorOptionSyntax.SyntaxTree.FilePath), "Generated");
-            }
-        }
-    }
-
-    internal class TinyhandSyntaxReceiver : ISyntaxReceiver
-    {
-        public TypeDeclarationSyntax? GeneratorOptionSyntax { get; private set; }
-
-        public HashSet<TypeDeclarationSyntax> CandidateSet { get; } = new HashSet<TypeDeclarationSyntax>();
-
-        public VisceralGenerics Generics { get; } = new VisceralGenerics();
-
-        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-        {
-            if (syntaxNode is TypeDeclarationSyntax typeSyntax)
-            {// Our target is a type syntax.
-                if (this.CheckAttribute(typeSyntax))
-                {// If a type has the specific attribute.
-                    this.CandidateSet.Add(typeSyntax);
-                }
-            }
-            else if (syntaxNode is GenericNameSyntax genericSyntax)
-            {// Generics
-                this.Generics.Add(genericSyntax);
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the Type Sytax contains the specific attribute.
-        /// </summary>
-        /// <param name="typeSyntax">A type syntax.</param>
-        /// <returns>True if the Type Sytax contains the specific attribute.</returns>
-        private bool CheckAttribute(TypeDeclarationSyntax typeSyntax)
-        {
-            foreach (var attributeList in typeSyntax.AttributeLists)
-            {
-                foreach (var attribute in attributeList.Attributes)
-                {
-                    var name = attribute.Name.ToString();
-                    if (this.GeneratorOptionSyntax == null)
-                    {
-                        if (name.EndsWith(TinyhandGeneratorOptionAttributeMock.Name) || name.EndsWith(TinyhandGeneratorOptionAttributeMock.SimpleName))
-                        {
-                            this.GeneratorOptionSyntax = typeSyntax;
-                        }
-                    }
-
-                    if (name.EndsWith(TinyhandObjectAttributeMock.Name) ||
-                        name.EndsWith(TinyhandObjectAttributeMock.SimpleName) ||
-                        name.EndsWith(TinyhandUnionAttributeMock.Name) ||
-                        name.EndsWith(TinyhandUnionAttributeMock.SimpleName))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-    }
-}*/
+    private bool generatorOptionIsSet;
+    private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
+    private INamedTypeSymbol? tinyhandUnionAttributeSymbol;
+    private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
+    private INamedTypeSymbol? tinyhandGenerateMemberAttributeSymbol;
+    private INamedTypeSymbol? tinyhandGenerateHashAttributeSymbol;
+}
