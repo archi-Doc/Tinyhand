@@ -222,11 +222,11 @@ public static class TinyhandComposer
                     writer.WriteUInt8((byte)'b');
                     writer.WriteUInt8(TinyhandConstants.Quote);
 
-                    var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(binary.ValueBinary.Length);
+                    var encodedLength = Arc.Crypto.FastBase64Url.GetEncodedLength(binary.ValueBinary.Length);
                     var spanowner = new SpanOwner<byte>(stackalloc byte[BaseHelper.StackallocThreshold], encodedLength);
                     try
                     {
-                        Arc.Crypto.Base64Url.Encode(binary.ValueBinary, spanowner.Span);
+                        Arc.Crypto.FastBase64Url.Encode(binary.ValueBinary, spanowner.Span);
                         writer.WriteSpan(spanowner.Span);
                     }
                     finally

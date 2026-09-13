@@ -52,7 +52,7 @@ internal sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hasht
                 {
                     var key = reader.ReadString() ?? string.Empty;
                     var v = valueFormatter.Deserialize(ref reader, options) ?? valueFormatter.Reconstruct(options);
-                    value.Add(key, v);
+                    value.AddOrUpdate(key, v);
                 }
             }
             finally

@@ -108,7 +108,7 @@ public class Utf8ToBinaryTest
         foreach (var length in new[] { 31, 32, 255, 256, 65535, 65536 })
         {
             var s = new string('a', length);
-            Compare(Encoding.UTF8.GetBytes($"{{a = \"{s}\", b = \"\\t{s}\", c = \"\"\"{s}\"\"\", d = b\"{Arc.Crypto.Base64Url.EncodeToString(new byte[length])}\"}}"));
+            Compare(Encoding.UTF8.GetBytes($"{{a = \"{s}\", b = \"\\t{s}\", c = \"\"\"{s}\"\"\", d = b\"{Arc.Crypto.FastBase64Url.EncodeToString(new byte[length])}\"}}"));
         }
 
         // A string with escapes that drops to a smaller header (32 escaped bytes -> 16 bytes).

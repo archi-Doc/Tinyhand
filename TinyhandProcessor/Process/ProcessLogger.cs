@@ -7,7 +7,7 @@ namespace Tinyhand;
 
 /// <summary>
 /// The log source of <see cref="IProcessEnvironment.Result"/>.<br/>
-/// <see cref="DefaultLog"/> is used as the log source of <see cref="IProcessEnvironment.Log"/>.
+/// <see cref="DefaultLogSource"/> is used as the log source of <see cref="IProcessEnvironment.Log"/>.
 /// </summary>
 public class ResultLog
 {
@@ -19,22 +19,22 @@ public class ResultLog
 public enum ProcessLogOutput
 {
     /// <summary>
-    /// Discards the log (<see cref="EmptyLogger"/>).
+    /// Discards the log (<see cref="EmptyLogOutput"/>).
     /// </summary>
     None,
 
     /// <summary>
-    /// Writes to the console (<see cref="ConsoleLogger"/>).
+    /// Writes to the console (<see cref="ConsoleLogOutput"/>).
     /// </summary>
     Console,
 
     /// <summary>
-    /// Writes to a file (<see cref="FileLogger{TOption}"/>).
+    /// Writes to a file (<see cref="FileLogOutput{TOption}"/>).
     /// </summary>
     File,
 
     /// <summary>
-    /// Writes to both the console and a file (<see cref="ConsoleAndFileLogger"/>).
+    /// Writes to both the console and a file (<see cref="ConsoleAndFileLogOutput"/>).
     /// </summary>
     ConsoleAndFile,
 }

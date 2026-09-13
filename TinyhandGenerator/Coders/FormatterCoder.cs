@@ -92,8 +92,8 @@ public sealed class FormatterResolver : ICoderResolver
 
         this.AddFormatter(typeof(System.Net.IPAddress));
         this.AddFormatter(typeof(System.Net.IPEndPoint));
-        // this.AddFormatter("Arc.Collections.BytePool.RentMemory");
-        // this.AddFormatter("Arc.Collections.BytePool.RentReadOnlyMemory");
+        // this.AddFormatter("Arc.Collections.BytePool.RentedMemory");
+        // this.AddFormatter("Arc.Collections.BytePool.RentedReadOnlyMemory");
         this.AddFormatter("Arc.Struct128");
         this.AddFormatter("Arc.Struct256");
 

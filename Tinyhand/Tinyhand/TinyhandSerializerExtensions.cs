@@ -64,7 +64,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="options">The serialization options. If null, default options will be used.</param>
     /// <returns>The serialized bytes. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when serialization fails.</exception>
-    public static BytePool.RentMemory SerializeToRentMemory(this ITinyhandSerializable value, TinyhandSerializerOptions? options = null)
+    public static BytePool.RentedMemory SerializeToRentMemory(this ITinyhandSerializable value, TinyhandSerializerOptions? options = null)
     {
         var writer = TinyhandWriter.CreateFromBytePool();
         try
@@ -107,7 +107,7 @@ public static partial class TinyhandSerializerExtensions
     /// <param name="level">The level for serialization (members with this level or lower will be serialized).</param>
     /// <returns>The signature bytes. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static BytePool.RentMemory SerializeSignatureToRentMemory(this ITinyhandSerializable value, int level)
+    public static BytePool.RentedMemory SerializeSignatureToRentMemory(this ITinyhandSerializable value, int level)
     {
         var writer = TinyhandWriter.CreateFromBytePool();
         writer.Level = level;

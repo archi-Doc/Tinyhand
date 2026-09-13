@@ -72,7 +72,7 @@ public ref struct TinyhandWriter
     /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct with a rented buffer.
     /// </summary>
     /// <param name="array">The rented buffer managed by this writer.</param>
-    public TinyhandWriter(BytePool.RentArray array)
+    public TinyhandWriter(BytePool.RentedArray array)
     {
         this.writer = new ByteBufferWriter(array);
     }
@@ -174,7 +174,7 @@ public ref struct TinyhandWriter
     /// Flushes and obtains the written data as rented memory.
     /// </summary>
     /// <returns>The memory, which the caller must return.</returns>
-    public BytePool.RentMemory FlushAndGetRentMemory()
+    public BytePool.RentedMemory FlushAndGetRentMemory()
         => this.writer.FlushAndGetRentMemory();
 
     /// <summary>

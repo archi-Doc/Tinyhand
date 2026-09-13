@@ -165,7 +165,7 @@ public static partial class TinyhandSerializer
         T.Serialize(ref writer, ref Unsafe.AsRef(in value), options);
     }
 
-    public static BytePool.RentMemory SerializeObjectToRentMemory<T>(in T? value, TinyhandSerializerOptions? options = null)
+    public static BytePool.RentedMemory SerializeObjectToRentMemory<T>(in T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
@@ -489,13 +489,13 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
-    /// Serializes a given value to a <see cref="BytePool.RentMemory"/>.
+    /// Serializes a given value to a <see cref="BytePool.RentedMemory"/>.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The serialized bytes. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static BytePool.RentMemory SerializeToRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
+    public static BytePool.RentedMemory SerializeToRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
     {
         options = options ?? DefaultOptions;
         var writer = TinyhandWriter.CreateFromBytePool();

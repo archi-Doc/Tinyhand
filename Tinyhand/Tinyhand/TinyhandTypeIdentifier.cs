@@ -34,7 +34,7 @@ public static class TinyhandTypeIdentifier
 
         public abstract byte[] Serialize(object value, TinyhandSerializerOptions? options);
 
-        public abstract BytePool.RentMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options);
+        public abstract BytePool.RentedMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options);
 
         public abstract void SerializeWriter(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options);
 
@@ -59,7 +59,7 @@ public static class TinyhandTypeIdentifier
 
         public override byte[] Serialize(object value, TinyhandSerializerOptions? options) => TinyhandSerializer.Serialize((T)value, options);
 
-        public override BytePool.RentMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options) => TinyhandSerializer.SerializeToRentMemory((T)value, options);
+        public override BytePool.RentedMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options) => TinyhandSerializer.SerializeToRentMemory((T)value, options);
 
         public override void SerializeWriter(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options) => TinyhandSerializer.Serialize(ref writer, (T)value, options);
 
@@ -207,9 +207,9 @@ public static class TinyhandTypeIdentifier
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
     /// <returns>
-    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentMemory" />, or the default tuple if serialization fails.
+    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentedMemory" />, or the default tuple if serialization fails.
     /// </returns>
-    public static (uint TypeIdentifier, BytePool.RentMemory RentMemory) TrySerializeRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
+    public static (uint TypeIdentifier, BytePool.RentedMemory RentMemory) TrySerializeRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
     {
         if (!IsRegistered<T>())
         {
@@ -234,9 +234,9 @@ public static class TinyhandTypeIdentifier
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
     /// <returns>
-    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentMemory" />, or the default tuple if serialization fails.
+    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentedMemory" />, or the default tuple if serialization fails.
     /// </returns>
-    public static (uint TypeIdentifier, BytePool.RentMemory RentMemory) TrySerializeRentMemory(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
+    public static (uint TypeIdentifier, BytePool.RentedMemory RentMemory) TrySerializeRentMemory(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
     {
         if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {

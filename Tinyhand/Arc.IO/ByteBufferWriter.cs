@@ -59,7 +59,7 @@ public ref struct ByteBufferWriter
         this.initialBuffer = initialBuffer;
     }
 
-    public ByteBufferWriter(BytePool.RentArray array)
+    public ByteBufferWriter(BytePool.RentedArray array)
     { // Use ByteArrayPool.Owner and ByteSequence (this.bufferWriter null -> not null, this.initialBuffer not null -> null).
         this.byteSequence = null;
         this.bufferWriter = null!;
@@ -80,7 +80,7 @@ public ref struct ByteBufferWriter
     // private Span<byte> originalSpan; // The original (not sliced) version of the span.
     private long spanWritten; // The size of the written span.
     private byte[]? initialBuffer; // The initial buffer.
-    private BytePool.RentArray? array;
+    private BytePool.RentedArray? array;
     private byte threadStaticSlot;
 
     #endregion
@@ -206,7 +206,7 @@ public ref struct ByteBufferWriter
     /// Commits pending bytes and returns the written data as owned pooled memory.
     /// </summary>
     /// <returns>The written data. Return the memory to its pool after use.</returns>
-    public BytePool.RentMemory FlushAndGetRentMemory()
+    public BytePool.RentedMemory FlushAndGetRentMemory()
     {
         if (this.bufferWriter == null)
         { // Initial Buffer
@@ -217,7 +217,7 @@ public ref struct ByteBufferWriter
             }
             else
             {
-                return BytePool.RentMemory.CreateFrom(this.initialBuffer.AsSpan(0, this.spanSize).ToArray(), 0, this.spanSize);
+                return BytePool.RentedMemory.CreateFrom(this.initialBuffer.AsSpan(0, this.spanSize).ToArray(), 0, this.spanSize);
             }
         }
 

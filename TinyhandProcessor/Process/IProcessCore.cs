@@ -39,7 +39,7 @@ public interface IProcessCore
 public interface IProcessEnvironment
 {
     /// <summary>
-    /// Gets a default logger (<see cref="DefaultLog"/> source).<br/>
+    /// Gets a default logger (<see cref="DefaultLogSource"/>).<br/>
     /// Use the <see cref="ProcessLoggerExtensions"/> methods to include the position of an <see cref="Element"/> in the message.
     /// </summary>
     ILogger Log { get; }

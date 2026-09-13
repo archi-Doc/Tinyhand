@@ -428,11 +428,11 @@ Bin:
                 p += n;
                 FlushGroup(ref writer, ref destination, ref destinationPosition, ref groupWriter);
 
-                var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(n);
+                var encodedLength = Arc.Crypto.FastBase64Url.GetEncodedLength(n);
                 Ensure(ref writer, ref destination, ref destinationPosition, encodedLength + 3);
                 destination[destinationPosition] = (byte)'b';
                 destination[destinationPosition + 1] = TinyhandConstants.Quote;
-                Arc.Crypto.Base64Url.Encode(binary, destination.Slice(destinationPosition + 2, encodedLength));
+                Arc.Crypto.FastBase64Url.Encode(binary, destination.Slice(destinationPosition + 2, encodedLength));
                 destinationPosition += encodedLength + 2;
                 destination[destinationPosition++] = TinyhandConstants.Quote;
 
@@ -1270,10 +1270,10 @@ AfterElement:
                         {
                             positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                             var base64 = reader.ValueSpan;
-                            var decodedLength = Arc.Crypto.Base64Url.GetDecodedLength(base64);
+                            var decodedLength = Arc.Crypto.FastBase64Url.GetDecodedLength(base64);
                             array = EnsureCapacity(ref buffer, array, position, decodedLength + 5);
                             position = WriteBinHeader(array, position, decodedLength);
-                            if (!Arc.Crypto.Base64Url.TryDecode(base64, array.AsSpan(position, decodedLength), out var written) ||
+                            if (!Arc.Crypto.FastBase64Url.TryDecode(base64, array.AsSpan(position, decodedLength), out var written) ||
                                 written != decodedLength)
                             {
                                 reader.ThrowBase64Exception();

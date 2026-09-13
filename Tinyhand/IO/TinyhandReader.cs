@@ -937,7 +937,7 @@ public ref partial struct TinyhandReader
     /// Reads binary data into pooled memory of the exact payload length.
     /// </summary>
     /// <returns>The rented memory, which the caller must return, or empty memory for nil or empty data.</returns>
-    public BytePool.RentMemory ReadBytesToRentMemory()
+    public BytePool.RentedMemory ReadBytesToRentMemory()
     {
         if (this.TryReadNil())
         {

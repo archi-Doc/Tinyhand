@@ -541,10 +541,10 @@ Dispatch:
                         }
 
                         var base64 = utf8.Slice(start, i - start);
-                        var decodedLength = Arc.Crypto.Base64Url.GetDecodedLength(base64);
+                        var decodedLength = Arc.Crypto.FastBase64Url.GetDecodedLength(base64);
                         array = EnsureCapacity(ref buffer, array, position, decodedLength + 5);
                         var contentPosition = WriteBinHeader(array, position, decodedLength);
-                        if (!Arc.Crypto.Base64Url.TryDecode(base64, array.AsSpan(contentPosition, decodedLength), out var written) ||
+                        if (!Arc.Crypto.FastBase64Url.TryDecode(base64, array.AsSpan(contentPosition, decodedLength), out var written) ||
                             written != decodedLength)
                         {
                             ThrowAt("Cannot decode Base64 string.", lineNumber, start - lineStart);

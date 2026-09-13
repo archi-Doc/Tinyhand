@@ -58,7 +58,7 @@ public static partial class TinyhandSerializer
     /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>The UTF-8 text. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static BytePool.RentMemory SerializeObjectToUtf8RentMemory<T>(T value, TinyhandSerializerOptions? options = null)
+    public static BytePool.RentedMemory SerializeObjectToUtf8RentMemory<T>(T value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>
     {
         options = options ?? TinyhandSerializerOptions.ConvertToString;

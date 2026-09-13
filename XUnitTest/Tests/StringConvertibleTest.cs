@@ -29,8 +29,8 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
         }
 
         source = source.Slice(1);
-        var byteArray = new byte[Base64Url.GetDecodedLength(source)];
-        Base64Url.Decode(source, byteArray);
+        var byteArray = new byte[FastBase64Url.GetDecodedLength(source)];
+        FastBase64Url.Decode(source, byteArray);
         if (byteArray.Length != 16)
         {
             return false;
@@ -65,7 +65,7 @@ public partial class StringConvertibleTestClass : IStringConvertible<StringConve
 
         destination[0] = '@';
         destination = destination.Slice(1);
-        written = Base64Url.Encode(this.Byte16, destination);
+        written = FastBase64Url.Encode(this.Byte16, destination);
         if (written < 0)
         {
             written = 0;

@@ -32,7 +32,7 @@ public ref struct TinyhandRawWriter
         this.writer = new ByteBufferWriter(initialBuffer);
     }
 
-    public TinyhandRawWriter(BytePool.RentArray array)
+    public TinyhandRawWriter(BytePool.RentedArray array)
     {
         this.writer = new ByteBufferWriter(array);
     }
@@ -45,7 +45,7 @@ public ref struct TinyhandRawWriter
     public byte[] FlushAndGetArray()
         => this.writer.FlushAndGetArray();
 
-    public BytePool.RentMemory FlushAndGetRentMemory()
+    public BytePool.RentedMemory FlushAndGetRentMemory()
         => this.writer.FlushAndGetRentMemory();
 
     public void FlushAndGetReadOnlySpan(out ReadOnlySpan<byte> span, out bool isInitialBuffer)

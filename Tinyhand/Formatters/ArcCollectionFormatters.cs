@@ -94,7 +94,7 @@ internal sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<Ord
             return null;
         }
 
-        return new(value, value.Comparer, value.Reverse);
+        return new(value, value.Comparer, value.IsReversed);
     }
 }
 
@@ -176,7 +176,7 @@ internal sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
             return null;
         }
 
-        return new(value, value.Comparer, value.Reverse);
+        return new(value, value.Comparer, value.IsReversed);
     }
 }
 
@@ -264,7 +264,7 @@ internal sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatte
             return null;
         }
 
-        var newValue = new OrderedMultiMap<TKey, TValue>(value.Comparer, value.Reverse);
+        var newValue = new OrderedMultiMap<TKey, TValue>(value.Comparer, value.IsReversed);
         foreach (var x in value)
         {
             newValue.Add(x.Key, x.Value);
@@ -352,7 +352,7 @@ internal sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMu
             return null;
         }
 
-        return new(value, value.Comparer, value.Reverse);
+        return new(value, value.Comparer, value.IsReversed);
     }
 }
 
@@ -440,7 +440,7 @@ internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<U
             return null;
         }
 
-        var newValue = new UnorderedMap<TKey, TValue>(value.Capacity, value.Comparer, value.AllowDuplicate);
+        var newValue = new UnorderedMap<TKey, TValue>(value.Capacity, value.Comparer, value.AllowDuplicates);
         foreach (var x in value)
         {
             newValue.Add(x.Key, x.Value);
@@ -528,7 +528,7 @@ internal sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet
             return null;
         }
 
-        return new(value, value.Comparer, value.AllowDuplicate);
+        return new(value, value.Comparer, value.AllowDuplicates);
     }
 }
 

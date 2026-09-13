@@ -122,8 +122,8 @@ public ref struct TinyhandUtf8Reader
         {
             if (this.valueBinary is null && this.AtomType == TinyhandAtomType.Value_Base64)
             {
-                var decoded = new byte[Arc.Crypto.Base64Url.GetDecodedLength(this.ValueSpan)];
-                if (!Arc.Crypto.Base64Url.TryDecode(this.ValueSpan, decoded, out _))
+                var decoded = new byte[Arc.Crypto.FastBase64Url.GetDecodedLength(this.ValueSpan)];
+                if (!Arc.Crypto.FastBase64Url.TryDecode(this.ValueSpan, decoded, out _))
                 {
                     this.ThrowBase64Exception();
                 }
