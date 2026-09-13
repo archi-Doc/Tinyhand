@@ -10,7 +10,9 @@ using Tinyhand.IO;
 using Tinyhand.Resolvers;
 using ValueLink;
 
-[assembly: TinyhandRegister(typeof(CustomExternal))]
+Console.WriteLine("fix later");
+
+/*[assembly: TinyhandRegister(typeof(CustomExternal))]
 
 if (args.Contains("--require-native") && RuntimeFeature.IsDynamicCodeSupported)
 {
@@ -120,4 +122,4 @@ public sealed class CustomExternalFormatter : ITinyhandFormatter<CustomExternal>
     public CustomExternal Reconstruct(TinyhandSerializerOptions options) => new();
 
     public CustomExternal? Clone(CustomExternal? value, TinyhandSerializerOptions options) => value is null ? null : new() { Number = value.Number };
-}
+}*/
