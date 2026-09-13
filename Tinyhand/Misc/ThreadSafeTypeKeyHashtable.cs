@@ -15,7 +15,7 @@ namespace Tinyhand;
 /// Caches values by type with concurrent reads and synchronized writes.
 /// </summary>
 /// <typeparam name="TValue">The type of value stored in the dictionary.</typeparam>
-public class ThreadsafeTypeKeyHashtable<TValue>
+public class ThreadSafeTypeKeyHashtable<TValue>
 {
     private Entry[] buckets;
     private int size; // only use in writer lock
@@ -26,7 +26,7 @@ public class ThreadsafeTypeKeyHashtable<TValue>
     // IEqualityComparer.Equals is overhead if key only Type, don't use it.
     //// readonly IEqualityComparer<TKey> comparer;
 
-    public ThreadsafeTypeKeyHashtable(int capacity = 4, float loadFactor = 0.75f)
+    public ThreadSafeTypeKeyHashtable(int capacity = 4, float loadFactor = 0.75f)
     {
         var tableSize = CalculateCapacity(capacity, loadFactor);
         this.buckets = new Entry[tableSize];

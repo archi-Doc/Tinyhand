@@ -43,23 +43,23 @@ public sealed class ListResolver : ICoderResolver
 
 public class ListCoder : ITinyhandCoder
 {
-    public ListCoder(WithNullable<TinyhandObject> withNullable, ITinyhandCoder? elementCoder, NullableAnnotation nullableAnnotation)
+    public ListCoder(WithNullable<TinyhandObject> element, ITinyhandCoder? elementCoder, NullableAnnotation nullableAnnotation)
     {
-        this.element = withNullable;
+        this.element = element;
         this.elementCoder = elementCoder;
         this.nullableAnnotation = nullableAnnotation;
     }
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         this.GenerateMethod(info);
 
-        ssb.AppendLine($"{info.GeneratedMethod}.SerializeList_{this.block!.SerialNumber:0000}(ref writer, {ssb.FullObject}, options);");
+        ssb.AppendLine($"{info.GeneratedClassFullName}.SerializeList_{this.block!.SerialNumber:0000}(ref writer, {ssb.FullObject}, options);");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         this.GenerateMethod(info);
 
@@ -104,26 +104,26 @@ public class ListCoder : ITinyhandCoder
 
         void CodeDeserializerNullable()
         {
-            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedMethod}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options);");
+            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedClassFullName}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options);");
         }
 
         void CodeDeserializerNonNullable()
         {
-            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedMethod}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options) ?? [];");
+            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedClassFullName}.DeserializeList_{this.block!.SerialNumber:0000}(ref reader, options) ?? [];");
         }
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<System.Collections.Generic.List<{this.element.FullNameWithNullable}>>().Clone({sourceObject}, options)!;");
     }
 
-    private void GenerateMethod(GeneratorInformation info)
+    private void GenerateMethod(GenerationContext info)
     {
         var key = this.element.FullNameWithNullable;
         /*if (this.element.Object.Kind.IsReferenceType())
@@ -131,17 +131,17 @@ public class ListCoder : ITinyhandCoder
             key = key.TrimEnd('?');
         }*/
 
-        if (!info.CreateBlock($"List::{key}", out this.block))
+        if (!info.GetOrCreateBlock($"List::{key}", out this.block))
         {// Already exists.
             return;
         }
 
-        this.GenerateSerializer(this.block.SSB, info);
-        this.GenerateDeserializer(this.block.SSB, info);
-        this.block.SSB.AppendLine();
+        this.GenerateSerializer(this.block.Ssb, info);
+        this.GenerateDeserializer(this.block.Ssb, info);
+        this.block.Ssb.AppendLine();
     }
 
-    private void GenerateSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    private void GenerateSerializer(ScopingStringBuilder ssb, GenerationContext info)
     {
         using (var m = ssb.ScopeBrace($"internal static void SerializeList_{this.block!.SerialNumber:0000}(ref TinyhandWriter writer, System.Collections.Generic.List<{this.element.FullNameWithNullable}>? value, TinyhandSerializerOptions options)"))
         using (var v = ssb.ScopeObject("value"))
@@ -162,7 +162,7 @@ public class ListCoder : ITinyhandCoder
                     {
                         if (this.elementCoder == null)
                         {// use option.Resolver.GetFormatter<T>()
-                            if (this.element.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
+                            if (this.element.Object.ObjectFlags.HasFlag(TinyhandObjectFlags.HasIStringConvertible))
                             {
                                 ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
                                 ssb.AppendLine($"else formatter.Serialize(ref writer, {ssb.FullObject}, options);");
@@ -174,7 +174,7 @@ public class ListCoder : ITinyhandCoder
                         }
                         else
                         {// use coder
-                            this.elementCoder.CodeSerializer(ssb, info);
+                            this.elementCoder.CodeSerialize(ssb, info);
                         }
                     }
 
@@ -184,7 +184,7 @@ public class ListCoder : ITinyhandCoder
         }
     }
 
-    private void GenerateDeserializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    private void GenerateDeserializer(ScopingStringBuilder ssb, GenerationContext info)
     {
         using (var m = ssb.ScopeBrace($"internal static System.Collections.Generic.List<{this.element.FullNameWithNullable}>? DeserializeList_{this.block!.SerialNumber:0000}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
         {
@@ -195,14 +195,14 @@ public class ListCoder : ITinyhandCoder
 
             ssb.AppendLine("var len = reader.ReadArrayHeader();");
             ssb.AppendLine($"var list = new System.Collections.Generic.List<{this.element.FullNameWithNullable}>(len);");
-            ssb.AppendLine("options.Security.DepthStep(ref reader);");
+            ssb.AppendLine("options.Security.IncrementDepth(ref reader);");
             using (var scopeSecurityTry = ssb.ScopeBrace("try"))
             {
                 using (var c2 = ssb.ScopeBrace("for (int i = 0; i < len; i++)"))
                 {// list[i]
                     if (this.elementCoder == null)
                     {// use option.Resolver.GetFormatter<T>()
-                        if (this.element.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
+                        if (this.element.Object.ObjectFlags.HasFlag(TinyhandObjectFlags.HasIStringConvertible))
                         {
                             ssb.AppendLine($"{this.element.FullNameWithNullable} lv = default!;");
                             if (this.element.Nullable == NullableAnnotation.NotAnnotated)
@@ -211,7 +211,7 @@ public class ListCoder : ITinyhandCoder
                             }
                             else
                             {
-                                ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject2(ref reader, ref lv, options);");
+                                ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeAndReconstructObject(ref reader, ref lv, options);");
                             }
 
                             ssb.AppendLine("list.Add(lv);");
@@ -234,7 +234,7 @@ public class ListCoder : ITinyhandCoder
 
                         using (var listValue = ssb.ScopeObject("lv"))
                         {
-                            this.elementCoder.CodeDeserializer(ssb, info);
+                            this.elementCoder.CodeDeserialize(ssb, info);
                             ssb.AppendLine("list.Add(lv);");
                         }
                     }

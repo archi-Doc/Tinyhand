@@ -12,10 +12,10 @@ public interface IStructuralRoot
     /// <summary>
     /// Attempts to obtain a <see cref="TinyhandWriter"/> for writing a journal entry of the specified <see cref="JournalType"/>.
     /// </summary>
-    /// <param name="recordType">The type of the journal entry to write.</param>
+    /// <param name="journalType">The type of the journal entry to write.</param>
     /// <param name="writer">When this method returns, contains the <see cref="TinyhandWriter"/> instance if successful; otherwise, the default value.</param>
     /// <returns><c>true</c> if a writer was successfully obtained; otherwise, <c>false</c>.</returns>
-    bool TryGetJournalWriter(JournalType recordType, out TinyhandWriter writer);
+    bool TryGetJournalWriter(JournalType journalType, out TinyhandWriter writer);
 
     /// <summary>
     /// Adds the journal entry using the provided <see cref="TinyhandWriter"/> and disposes of the writer.

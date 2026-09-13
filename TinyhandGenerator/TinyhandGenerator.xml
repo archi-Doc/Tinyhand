@@ -65,7 +65,7 @@
             The singleton instance that can be used.
             </summary>
         </member>
-        <member name="F:Tinyhand.Coders.BuiltinCoder.Instance">
+        <member name="F:Tinyhand.Coders.BuiltinResolver.Instance">
             <summary>
             The singleton instance that can be used.
             </summary>
@@ -85,27 +85,27 @@
             The singleton instance that can be used.
             </summary>
         </member>
-        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeSerializer(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GeneratorInformation)">
+        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeSerialize(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GenerationContext)">
             <summary>
             Outputs the code to serialize an object.
             </summary>
             <param name="ssb">The scoping string builder to output code.</param>
-            <param name="info">The generator information.</param>
+            <param name="info">The generation context.</param>
         </member>
-        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeDeserializer(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GeneratorInformation,System.Boolean)">
+        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeDeserialize(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GenerationContext,System.Boolean)">
             <summary>
             Outputs the code to deserialize an object.
             </summary>
             <param name="ssb">The scoping string builder to output code.</param>
-            <param name="info">The generator information.</param>
+            <param name="info">The generation context.</param>
             <param name="nilChecked">True if the next code is non-Nil.</param>
         </member>
-        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeReconstruct(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GeneratorInformation)">
+        <member name="M:Tinyhand.Coders.ITinyhandCoder.CodeReconstruct(Arc.Visceral.ScopingStringBuilder,Tinyhand.Generator.GenerationContext)">
             <summary>
             Outputs the code to reconstruct an object (create a new instance).
             </summary>
             <param name="ssb">The scoping string builder to output code.</param>
-            <param name="info">The generator information.</param>
+            <param name="info">The generation context.</param>
         </member>
         <member name="F:Tinyhand.Coders.ListResolver.Instance">
             <summary>

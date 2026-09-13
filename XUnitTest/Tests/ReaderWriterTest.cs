@@ -192,7 +192,7 @@ public class ReaderWriterTest
 
         // The original reader is unaffected.
         reader.ReadString().Is("test");
-        reader.Reverse(reader.Consumed - 1);
+        reader.Rewind(reader.Consumed - 1);
         reader.Consumed.Is(1);
     }
 }

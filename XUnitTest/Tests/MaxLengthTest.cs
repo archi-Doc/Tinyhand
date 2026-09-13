@@ -12,11 +12,11 @@ public partial class MaxLengthClass
     // [MaxLength(3)]
     public partial int X { get; set; }
 
-    [Key(1, AddProperty = "Name")]
+    [Key(1, PropertyName = "Name")]
     [MaxLength(3)]
     private string _name = default!;
 
-    [Key(2, AddProperty = "Ids")]
+    [Key(2, PropertyName = "Ids")]
     [MaxLength(3)]
     private int[] _ids = default!;
 
@@ -24,14 +24,14 @@ public partial class MaxLengthClass
     [MaxLength(3, 4)]
     public partial string[] StringArray { get; set; } = default!;
 
-    [Key(4, AddProperty = "StringList")]
+    [Key(4, PropertyName = "StringList")]
     [MaxLength(4, 3)]
     private List<string> _stringList = default!;
 
     // [IgnoreMember]
     public int DataId;
 
-    [Key(8, AddProperty = "TestId")]
+    [Key(8, PropertyName = "TestId")]
     public int testId;
 }
 
@@ -42,11 +42,11 @@ public partial class MaxLengthClass2 : MaxLengthClass
     [MaxLength(4)]
     public partial byte[] Byte { get; set; } = default!;
 
-    [Key(6, AddProperty = "ByteArray")]
+    [Key(6, PropertyName = "ByteArray")]
     [MaxLength(2, 3)]
     private byte[][] _byteArray = default!;
 
-    [Key(7, AddProperty = "ByteList")]
+    [Key(7, PropertyName = "ByteList")]
     [MaxLength(3, 2)]
     private List<byte[]> _byteList = default!;
 

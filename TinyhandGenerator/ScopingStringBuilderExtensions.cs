@@ -8,7 +8,7 @@ internal static class ScopingStringBuilderExtensions
 {
     internal static ScopingStringBuilder.IScope ScopeSecurityDepth(this ScopingStringBuilder ssb)
     {
-        ssb.AppendLine("options.Security.DepthStep(ref reader);");
+        ssb.AppendLine("options.Security.IncrementDepth(ref reader);");
         return ssb.ScopeBrace("try");
     }
 

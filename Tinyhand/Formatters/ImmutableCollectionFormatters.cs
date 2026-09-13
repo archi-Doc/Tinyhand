@@ -50,7 +50,7 @@ internal class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>
 
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
             ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(len);
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int i = 0; i < len; i++)

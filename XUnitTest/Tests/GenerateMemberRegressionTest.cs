@@ -101,7 +101,7 @@ public class GenerateMemberRegressionTest : IDisposable
         var options = new CSharpParseOptions(LanguageVersion.Preview);
         var compilation = CSharpCompilation.Create("GeneratedMembers", new[] { CSharpSyntaxTree.ParseText(source, options, cancellationToken: cancellationToken) }, References,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
-        return CSharpGeneratorDriver.Create(new[] { new TinyhandGeneratorV2().AsSourceGenerator(), new StaticRegistrationGenerator().AsSourceGenerator() }, parseOptions: options)
+        return CSharpGeneratorDriver.Create(new[] { new TinyhandGenerator().AsSourceGenerator(), new StaticRegistrationGenerator().AsSourceGenerator() }, parseOptions: options)
             .RunGeneratorsAndUpdateCompilation(compilation, out output, out _, cancellationToken).GetRunResult();
     }
 

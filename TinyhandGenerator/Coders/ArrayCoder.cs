@@ -45,17 +45,17 @@ public class ArrayCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         // if (this.block == null) // XUnitTest static issue
         {
             this.GenerateMethod(info);
         }
 
-        ssb.AppendLine($"{info.GeneratedMethod}.SerializeArray_{this.block!.SerialNumber:0000}(ref writer, {ssb.FullObject}, options);");
+        ssb.AppendLine($"{info.GeneratedClassFullName}.SerializeArray_{this.block!.SerialNumber:0000}(ref writer, {ssb.FullObject}, options);");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         // if (this.block == null) // XUnitTest static issue
         {
@@ -103,26 +103,26 @@ public class ArrayCoder : ITinyhandCoder
 
         void CodeDeserializerNullable()
         {
-            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options);");
+            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedClassFullName}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options);");
         }
 
         void CodeDeserializerNonNullable()
         {
-            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedMethod}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options) ?? [];");
+            ssb.AppendLine($"{ssb.FullObject} = {info.GeneratedClassFullName}.DeserializeArray_{this.block!.SerialNumber:0000}(ref reader, options) ?? [];");
         }
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullNameWithNullable}[]>().Clone({sourceObject}, options)!;");
     }
 
-    private void GenerateMethod(GeneratorInformation info)
+    private void GenerateMethod(GenerationContext info)
     {
         var key = this.element.FullNameWithNullable;
         /*if (this.element.Object.Kind.IsReferenceType())
@@ -130,17 +130,17 @@ public class ArrayCoder : ITinyhandCoder
             key = key.TrimEnd('?');
         }*/
 
-        if (!info.CreateBlock($"Array::{key}", out this.block))
+        if (!info.GetOrCreateBlock($"Array::{key}", out this.block))
         {// Already exists.
             return;
         }
 
-        this.GenerateSerializer(this.block.SSB, info);
-        this.GenerateDeserializer(this.block.SSB, info);
-        this.block.SSB.AppendLine();
+        this.GenerateSerializer(this.block.Ssb, info);
+        this.GenerateDeserializer(this.block.Ssb, info);
+        this.block.Ssb.AppendLine();
     }
 
-    private void GenerateSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    private void GenerateSerializer(ScopingStringBuilder ssb, GenerationContext info)
     {
         using (var m = ssb.ScopeBrace($"internal static void SerializeArray_{this.block!.SerialNumber:0000}(ref TinyhandWriter writer, {this.element.FullNameWithNullable}[]? value, TinyhandSerializerOptions options)"))
         using (var v = ssb.ScopeObject("value"))
@@ -160,7 +160,7 @@ public class ArrayCoder : ITinyhandCoder
                     {
                         if (this.elementCoder == null)
                         {// use option.Resolver.GetFormatter<T>()
-                            if (this.element.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
+                            if (this.element.Object.ObjectFlags.HasFlag(TinyhandObjectFlags.HasIStringConvertible))
                             {
                                 ssb.AppendLine($"if (options.HasConvertToStringFlag) writer.WriteStringConvertible({ssb.FullObject});");
                                 ssb.AppendLine($"else formatter.Serialize(ref writer, {ssb.FullObject}, options);");
@@ -172,7 +172,7 @@ public class ArrayCoder : ITinyhandCoder
                         }
                         else
                         {// use coder
-                            this.elementCoder.CodeSerializer(ssb, info);
+                            this.elementCoder.CodeSerialize(ssb, info);
                         }
                     }
                 }
@@ -180,7 +180,7 @@ public class ArrayCoder : ITinyhandCoder
         }
     }
 
-    private void GenerateDeserializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    private void GenerateDeserializer(ScopingStringBuilder ssb, GenerationContext info)
     {
         using (var m = ssb.ScopeBrace($"internal static {this.element.FullNameWithNullable}[]? DeserializeArray_{this.block!.SerialNumber:0000}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
         {
@@ -200,7 +200,7 @@ public class ArrayCoder : ITinyhandCoder
                 ssb.AppendLine($"var array = len == 0 ? global::System.Array.Empty<{this.element.FullNameWithNullable}>() : new {this.element.FullNameWithNullable.Substring(0, idx)}[len]{this.element.FullNameWithNullable.Substring(idx)};");
             }
 
-            ssb.AppendLine("options.Security.DepthStep(ref reader);");
+            ssb.AppendLine("options.Security.IncrementDepth(ref reader);");
             using (var scopeSecurityTry = ssb.ScopeBrace("try"))
             {
                 using (var c2 = ssb.ScopeBrace("for (int i = 0; i < array.Length; i++)"))
@@ -210,7 +210,7 @@ public class ArrayCoder : ITinyhandCoder
                     {
                         if (this.elementCoder == null)
                         {// use option.Resolver.GetFormatter<T>()
-                            if (this.element.Object.ObjectFlag.HasFlag(TinyhandObjectFlag.HasIStringConvertible))
+                            if (this.element.Object.ObjectFlags.HasFlag(TinyhandObjectFlags.HasIStringConvertible))
                             {
                                 if (this.element.Nullable == NullableAnnotation.NotAnnotated)
                                 {
@@ -218,7 +218,7 @@ public class ArrayCoder : ITinyhandCoder
                                 }
                                 else
                                 {
-                                    ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeObject2(ref reader, ref {element.FullObject}, options);");
+                                    ssb.AppendLine($"TinyhandSerializer.ReadStringConvertibleOrDeserializeAndReconstructObject(ref reader, ref {element.FullObject}, options);");
                                 }
                             }
                             else
@@ -235,7 +235,7 @@ public class ArrayCoder : ITinyhandCoder
                         }
                         else
                         {// use coder
-                            this.elementCoder.CodeDeserializer(ssb, info);
+                            this.elementCoder.CodeDeserialize(ssb, info);
                         }
                     }
 
@@ -268,7 +268,7 @@ public class GenericArrayCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked = false)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked = false)
     {
         if (this.nullableAnnotation != NullableAnnotation.NotAnnotated)
         {// Nullable
@@ -280,17 +280,17 @@ public class GenericArrayCoder : ITinyhandCoder
         }
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"options.Resolver.GetFormatter<{this.element.FullName}[]>().Serialize(ref writer, {ssb.FullObject}, options);");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullName}[]>().Clone({sourceObject}, options)!;");
     }

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Tinyhand.Generator;
 
 [Generator]
-public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
+public class TinyhandGenerator : IIncrementalGenerator, IGeneratorInformation
 {
     public bool AttachDebugger { get; private set; }
 
@@ -66,22 +66,22 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                 foreach (var attribute in attributeList.Attributes)
                 {
                     var name = attribute.Name.ToString();
-                    if (name.EndsWith(TinyhandGeneratorOptionAttributeMock.Name) ||
-                        name.EndsWith(TinyhandGeneratorOptionAttributeMock.SimpleName))
+                    if (name.EndsWith(TinyhandGeneratorOptionAttributeData.Name) ||
+                        name.EndsWith(TinyhandGeneratorOptionAttributeData.SimpleName))
                     {
                         return typeSyntax;
                     }
-                    else if (name.EndsWith(TinyhandGenerateMemberAttributeMock.Name) ||
-                        name.EndsWith(TinyhandGenerateMemberAttributeMock.SimpleName) ||
-                        name.EndsWith(TinyhandGenerateHashAttributeMock.Name) ||
-                        name.EndsWith(TinyhandGenerateHashAttributeMock.SimpleName))
+                    else if (name.EndsWith(TinyhandGenerateMemberAttributeData.Name) ||
+                        name.EndsWith(TinyhandGenerateMemberAttributeData.SimpleName) ||
+                        name.EndsWith(TinyhandGenerateHashAttributeData.Name) ||
+                        name.EndsWith(TinyhandGenerateHashAttributeData.SimpleName))
                     {
                         return typeSyntax;
                     }
-                    else if (name.EndsWith(TinyhandObjectAttributeMock.Name) ||
-                        name.EndsWith(TinyhandObjectAttributeMock.SimpleName) ||
-                        name.EndsWith(TinyhandUnionAttributeMock.Name) ||
-                        name.EndsWith(TinyhandUnionAttributeMock.SimpleName))
+                    else if (name.EndsWith(TinyhandObjectAttributeData.Name) ||
+                        name.EndsWith(TinyhandObjectAttributeData.SimpleName) ||
+                        name.EndsWith(TinyhandUnionAttributeData.Name) ||
+                        name.EndsWith(TinyhandUnionAttributeData.SimpleName))
                     {
                         return typeSyntax;
                     }
@@ -99,31 +99,31 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
     private void Emit(SourceProductionContext context, (Compilation Compilation, ImmutableArray<CSharpSyntaxNode?> Types) source)
     {
         var compilation = source.Compilation;
-        this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeMock.FullName);
+        this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeData.FullName);
         if (this.tinyhandObjectAttributeSymbol == null)
         {
             return;
         }
 
-        this.tinyhandUnionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandUnionAttributeMock.FullName);
+        this.tinyhandUnionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandUnionAttributeData.FullName);
         if (this.tinyhandUnionAttributeSymbol == null)
         {
             return;
         }
 
-        this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeMock.FullName);
+        this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeData.FullName);
         if (this.tinyhandGeneratorOptionAttributeSymbol == null)
         {
             return;
         }
 
-        this.tinyhandGenerateMemberAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateMemberAttributeMock.FullName);
+        this.tinyhandGenerateMemberAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateMemberAttributeData.FullName);
         if (this.tinyhandGenerateMemberAttributeSymbol == null)
         {
             return;
         }
 
-        this.tinyhandGenerateHashAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateHashAttributeMock.FullName);
+        this.tinyhandGenerateHashAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateHashAttributeData.FullName);
         if (this.tinyhandGenerateHashAttributeSymbol == null)
         {
             return;
@@ -229,8 +229,8 @@ public class TinyhandGeneratorV2 : IIncrementalGenerator, IGeneratorInformation
                 SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGeneratorOptionAttributeSymbol))
             {
                 this.generatorOptionIsSet = true;
-                var va = new VisceralAttribute(TinyhandGeneratorOptionAttributeMock.FullName, y);
-                var ta = TinyhandGeneratorOptionAttributeMock.FromArray(va.ConstructorArguments, va.NamedArguments);
+                var va = new VisceralAttribute(TinyhandGeneratorOptionAttributeData.FullName, y);
+                var ta = TinyhandGeneratorOptionAttributeData.FromArray(va.ConstructorArguments, va.NamedArguments);
 
                 this.AttachDebugger = ta.AttachDebugger;
                 this.GenerateToFile = ta.GenerateToFile;

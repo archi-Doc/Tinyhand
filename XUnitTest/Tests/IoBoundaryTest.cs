@@ -383,7 +383,7 @@ public class IoBoundaryTest
 
                 var reader = new TinyhandReader(writer);
                 CapturedText? parsed = null;
-                reader.TryReadStringConvertible(ref parsed);
+                reader.ReadStringConvertible(ref parsed);
                 Assert.Equal(Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(text)), parsed!.Text);
                 Assert.True(reader.End);
             }
@@ -392,12 +392,12 @@ public class IoBoundaryTest
         var nilReader = new TinyhandReader(new byte[] { MessagePackCode.Nil });
         CapturedText? original = new() { Text = "unchanged" };
         var instance = original;
-        nilReader.TryReadStringConvertible(ref instance);
+        nilReader.ReadStringConvertible(ref instance);
         Assert.Same(original, instance);
         Assert.True(nilReader.End);
 
         var invalidUtf8Reader = new TinyhandReader(new byte[] { 0xa2, 0xff, (byte)'a' });
-        invalidUtf8Reader.TryReadStringConvertible(ref instance);
+        invalidUtf8Reader.ReadStringConvertible(ref instance);
         Assert.Equal("\ufffda", instance!.Text);
         Assert.True(invalidUtf8Reader.End);
     }

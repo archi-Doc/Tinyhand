@@ -12,7 +12,7 @@ public class ThreadsafeTypeKeyHashTableTest
     [Fact]
     public void Test1()
     {
-        var table = new ThreadsafeTypeKeyHashtable<int>();
+        var table = new ThreadSafeTypeKeyHashtable<int>();
         table.TryAdd(typeof(int), 1);
         table.TryAdd(typeof(string), 2);
 

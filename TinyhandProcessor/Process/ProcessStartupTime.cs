@@ -38,7 +38,7 @@ public class TinyhandProcessCore_StartupTime : IProcessCore
 
     public async Task<bool> Process(Element element)
     {
-        if (element.TryGetRight_Value_Long("repeat", out var valueLong))
+        if (element.TryGetRightLongValue("repeat", out var valueLong))
         {
             if (valueLong.ValueLong < 0 || valueLong.ValueLong > this.RepeatMax)
             {
@@ -50,7 +50,7 @@ public class TinyhandProcessCore_StartupTime : IProcessCore
             }
         }
 
-        if (element is Value_String valueString)
+        if (element is StringValue valueString)
         {
             var path = this.Environment.CombinePath(PathType.SourceFolder, valueString.Utf16);
             var logpath = valueString.Utf16;

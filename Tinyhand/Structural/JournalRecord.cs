@@ -29,7 +29,7 @@ public enum JournalType : byte
 /// Represents the specific record type within a journal.<br/>
 /// It depends on the implementation of the object whether a record is processed by the current object or by a child object (according to the design philosophy of each).
 /// </summary>
-public enum JournalRecord : byte
+public enum JournalRecordType : byte
 {
     /// <summary>
     /// Represents a locator for descendant objects.

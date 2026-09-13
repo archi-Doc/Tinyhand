@@ -3,20 +3,20 @@
 using Arc.Visceral;
 using Tinyhand.Generator;
 
-namespace TinyhandGenerator.Internal;
+namespace Tinyhand.Generator.Internal;
 
 internal ref struct ValueAssignment
 {
     private ScopingStringBuilder? ssb;
     private string destObject = string.Empty;
-    private GeneratorInformation info;
+    private GenerationContext info;
     private TinyhandObject? parent;
     private TinyhandObject? @object;
 
     private ScopingStringBuilder.IScope? temporaryValue;
     private ScopingStringBuilder.IScope? braceScope;
 
-    public ValueAssignment(ScopingStringBuilder ssb, GeneratorInformation info, TinyhandObject parent, TinyhandObject @object)
+    public ValueAssignment(ScopingStringBuilder ssb, GenerationContext info, TinyhandObject parent, TinyhandObject @object)
     {
         this.ssb = ssb;
         this.destObject = this.ssb.FullObject;
@@ -48,7 +48,7 @@ internal ref struct ValueAssignment
                 if (this.@object.RefFieldDelegate is not null)
                 {// Access the backing field through its generated accessor.
                     var prefix = this.info.GeneratingStaticMethod ? (this.parent + ".") : string.Empty;
-                    this.ssb.AppendLine($"var vd = {prefix}{this.@object.RefFieldDelegate}({this.parent.InIfStruct}{this.destObject});");
+                    this.ssb.AppendLine($"var vd = {prefix}{this.@object.RefFieldDelegate}({this.parent.InModifierIfStruct}{this.destObject});");
                 }
                 else
                 {
@@ -130,7 +130,7 @@ internal ref struct ValueAssignment
             if (this.@object.RefFieldDelegate is not null)
             {// RefFieldDelegate(obj) = vd;
                 var prefix = this.info.GeneratingStaticMethod ? (this.parent.RegionalName + ".") : string.Empty;
-                this.ssb.AppendLine($"{prefix}{this.@object.RefFieldDelegate}({this.parent.InIfStruct}{this.destObject}) = vd;");
+                this.ssb.AppendLine($"{prefix}{this.@object.RefFieldDelegate}({this.parent.InModifierIfStruct}{this.destObject}) = vd;");
             }
             else if (this.@object.IsReadOnly)
             {

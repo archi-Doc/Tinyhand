@@ -26,14 +26,14 @@ internal enum TinyhandAtomType
     Modifier, // &i32, &key(1), &required
     Assignment, // =
     Comment, // // comment
-    Value_Base64, // b"Base64"
-    Value_String, // "text"
-    Value_Long, // -123(long)
-    Value_ULong, // 123(ulong)
-    Value_Double, // 1.23(double)
-    Value_Null, // null
-    Value_True, // true
-    Value_False, // false
+    Binary, // b"Base64"
+    String, // "text"
+    Long, // -123(long)
+    ULong, // 123(ulong)
+    Double, // 1.23(double)
+    Null, // null
+    True, // true
+    False, // false
 }
 
 internal enum TinyhandModifierType
@@ -208,7 +208,7 @@ internal ref struct TinyhandUtf8Reader
 
                 continue;
             }
-            else if (val == TinyhandConstants.Separator || val == TinyhandConstants.Separator2)
+            else if (val == TinyhandConstants.Separator || val == TinyhandConstants.Semicolon)
             { // Separator
                 this.AddPosition(1);
 
@@ -299,7 +299,7 @@ internal ref struct TinyhandUtf8Reader
 
         if ((this.bytePositionInLine & LineFeedFlag) == 0 &&
             this.Current != TinyhandConstants.Slash &&
-            this.Current != TinyhandConstants.Sharp)
+            this.Current != TinyhandConstants.NumberSign)
         {
             if (this.groupStack.TrySetIndent(this.bytePositionInLine - 1) is { } ex)
             {
@@ -340,8 +340,8 @@ internal ref struct TinyhandUtf8Reader
             case TinyhandConstants.Quote: // "string"
                 return this.ReadQuote(TinyhandConstants.Quote);
 
-            case TinyhandConstants.Quote2: // 'string'
-                return this.ReadQuote(TinyhandConstants.Quote2);
+            case TinyhandConstants.SingleQuote: // 'string'
+                return this.ReadQuote(TinyhandConstants.SingleQuote);
 
             case TinyhandConstants.EqualsSign: // =
                 this.AtomType = TinyhandAtomType.Assignment;
@@ -354,7 +354,7 @@ internal ref struct TinyhandUtf8Reader
                 this.ReadComment();
                 return true;
 
-            case TinyhandConstants.Sharp: // #
+            case TinyhandConstants.NumberSign: // #
                 this.AtomType = TinyhandAtomType.Comment;
                 this.ReadComment2();
                 return true;
@@ -377,7 +377,7 @@ internal ref struct TinyhandUtf8Reader
                 }
 
                 if (b == (byte)'b' && this.Remaining >= 2 &&
-                    (this.buffer[this.Position + 1] == TinyhandConstants.Quote || this.buffer[this.Position + 1] == TinyhandConstants.Quote2))
+                    (this.buffer[this.Position + 1] == TinyhandConstants.Quote || this.buffer[this.Position + 1] == TinyhandConstants.SingleQuote))
                 { // Binary: b"Base64" or b'Base64'
                     return this.ReadBinary(this.buffer[this.Position + 1]);
                 }
@@ -454,12 +454,12 @@ Unexpected_Symbol:
         {
             if (this.ValueSpan[0] == (byte)'n' && this.ValueSpan[1] == (byte)'u' && this.ValueSpan[2] == (byte)'l' && this.ValueSpan[3] == (byte)'l')
             { // null
-                this.AtomType = TinyhandAtomType.Value_Null;
+                this.AtomType = TinyhandAtomType.Null;
                 return true;
             }
             else if (this.ValueSpan[0] == (byte)'t' && this.ValueSpan[1] == (byte)'r' && this.ValueSpan[2] == (byte)'u' && this.ValueSpan[3] == (byte)'e')
             { // true
-                this.AtomType = TinyhandAtomType.Value_True;
+                this.AtomType = TinyhandAtomType.True;
                 return true;
             }
         }
@@ -467,14 +467,14 @@ Unexpected_Symbol:
         {
             if (this.ValueSpan[0] == (byte)'f' && this.ValueSpan[1] == (byte)'a' && this.ValueSpan[2] == (byte)'l' && this.ValueSpan[3] == (byte)'s' && this.ValueSpan[4] == (byte)'e')
             { // false
-                this.AtomType = TinyhandAtomType.Value_False;
+                this.AtomType = TinyhandAtomType.False;
                 return true;
             }
         }
         else if (this.ValueSpan.Length == TinyhandConstants.DoubleNaNSpan.Length &&
             this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNaNSpan))
         {// double.NaN
-            this.AtomType = TinyhandAtomType.Value_Double;
+            this.AtomType = TinyhandAtomType.Double;
             this.ValueDouble = double.NaN;
             return true;
         }
@@ -482,13 +482,13 @@ Unexpected_Symbol:
         {
             if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoublePositiveInfinitySpan))
             {// double.PositiveInfinity
-                this.AtomType = TinyhandAtomType.Value_Double;
+                this.AtomType = TinyhandAtomType.Double;
                 this.ValueDouble = double.PositiveInfinity;
                 return true;
             }
             else if (this.ValueSpan.SequenceEqual(TinyhandConstants.DoubleNegativeInfinitySpan))
             {// double.NegativeInfinity
-                this.AtomType = TinyhandAtomType.Value_Double;
+                this.AtomType = TinyhandAtomType.Double;
                 this.ValueDouble = double.NegativeInfinity;
                 return true;
             }
@@ -759,7 +759,7 @@ Unexpected_Symbol:
             this.ValueSpan = stringSpan.Slice(0, length);
 
             this.AddPosition(length + 3); // String + 3 quotes.
-            this.AtomType = TinyhandAtomType.Value_String;
+            this.AtomType = TinyhandAtomType.String;
             this.ValueLong = 1; // Triple quoted.
         }
         else
@@ -774,7 +774,7 @@ Unexpected_Symbol:
                 stringSpan.Slice(0, length);
 
             this.AddPosition(length + 1); // String + quote.
-            this.AtomType = TinyhandAtomType.Value_String;
+            this.AtomType = TinyhandAtomType.String;
         }
         return true;
     }
@@ -814,7 +814,7 @@ Unexpected_Symbol:
         }
 
         this.AddPosition(length + 1); // String + quote.
-        this.AtomType = TinyhandAtomType.Value_Base64;
+        this.AtomType = TinyhandAtomType.Binary;
 
         return true;
     }
@@ -932,7 +932,7 @@ Unexpected_Symbol:
         {
             if (Utf8Parser.TryParse(span, out double result, out var bytesConsumed) && bytesConsumed == span.Length)
             {
-                this.AtomType = TinyhandAtomType.Value_Double;
+                this.AtomType = TinyhandAtomType.Double;
                 this.ValueDouble = result;
                 this.ValueSpan = span;
                 this.AddPosition(position);
@@ -943,7 +943,7 @@ Unexpected_Symbol:
         {
             if (Utf8Parser.TryParse(span, out long longResult, out var bytesConsumed) && bytesConsumed == span.Length)
             {// long
-                this.AtomType = TinyhandAtomType.Value_Long;
+                this.AtomType = TinyhandAtomType.Long;
                 this.ValueLong = longResult;
                 this.ValueSpan = span;
                 this.AddPosition(position);
@@ -952,7 +952,7 @@ Unexpected_Symbol:
 
             if (Utf8Parser.TryParse(span, out ulong ulongResult, out bytesConsumed) && bytesConsumed == span.Length)
             {// Maybe ulong...
-                this.AtomType = TinyhandAtomType.Value_ULong;
+                this.AtomType = TinyhandAtomType.ULong;
                 this.ValueULong = ulongResult;
                 this.ValueSpan = span;
                 this.AddPosition(position);

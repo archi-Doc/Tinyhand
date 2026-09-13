@@ -32,7 +32,7 @@ public class JournalBoundaryTest
         writer.Dispose();
         Assert.False(node.TryGetJournalWriter(out _, out writer));
         writer.Dispose();
-        node.AddJournalRecord(JournalRecord.Value);
+        node.AddJournalRecord(JournalRecordType.Value);
         Assert.Equal(0, root.Submitted);
     }
 
@@ -62,12 +62,12 @@ public class JournalBoundaryTest
             {
                 Assert.Same(root, actualRoot);
                 var reader = new TinyhandReader(writer.FlushAndGetArray());
-                Assert.True(reader.TryReadJournal(out _, out var type));
+                Assert.True(reader.TryReadJournalHeader(out _, out var type));
                 Assert.Equal(JournalType.Record, type);
                 var count = includeCurrent ? depth : System.Math.Max(0, depth - 1);
                 for (var i = 0; i < count; i++)
                 {
-                    reader.Read_Key();
+                    reader.ReadKeyRecord();
                     Assert.Equal(i, reader.ReadInt32());
                 }
 
@@ -85,7 +85,7 @@ public class JournalBoundaryTest
     {
         var node = new Node();
         byte[] journal = [0, 0, 1, (byte)JournalType.Record, MessagePackCode.UInt8, 0, 0, 1, (byte)JournalType.Record, 42];
-        Assert.False(JournalHelper.ReadJournal(node, journal));
+        Assert.False(JournalHelper.ReplayJournal(node, journal));
         Assert.Equal(new[] { 42 }, node.Values);
     }
 
@@ -94,7 +94,7 @@ public class JournalBoundaryTest
     {
         var node = new Node();
         byte[] journal = [0, 0, 2, (byte)JournalType.Record, 42];
-        Assert.False(JournalHelper.ReadJournal(node, journal));
+        Assert.False(JournalHelper.ReplayJournal(node, journal));
         Assert.Empty(node.Values);
     }
 
@@ -103,10 +103,10 @@ public class JournalBoundaryTest
     {
         var node = new Node();
         byte[] journal = [0, 0, 1, 255, 0xc1, 0, 0, 1, (byte)JournalType.Record, 42];
-        Assert.True(JournalHelper.ReadJournal(node, journal));
+        Assert.True(JournalHelper.ReplayJournal(node, journal));
         Assert.Equal(new[] { 42 }, node.Values);
-        Assert.False(JournalHelper.ReadJournal(node, new byte[] { 0, 0, 1 }));
-        Assert.True(JournalHelper.ReadJournal(node, System.Array.Empty<byte>()));
+        Assert.False(JournalHelper.ReplayJournal(node, new byte[] { 0, 0, 1 }));
+        Assert.True(JournalHelper.ReplayJournal(node, System.Array.Empty<byte>()));
     }
 
     private sealed class Node : IStructuralObject

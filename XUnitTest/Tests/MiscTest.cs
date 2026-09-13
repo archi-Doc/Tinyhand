@@ -26,7 +26,7 @@ public class ThreadsafeTypeKeyHashtableTest2
     public void ResizeKeepsAllEntries()
     {
         var types = CreateTypes(64);
-        var table = new ThreadsafeTypeKeyHashtable<int>();
+        var table = new ThreadSafeTypeKeyHashtable<int>();
 
         for (var i = 0; i < types.Length; i++)
         {
@@ -53,7 +53,7 @@ public class ThreadsafeTypeKeyHashtableTest2
     public void GetOrAddReturnsExistingValue()
     {
         var types = CreateTypes(32);
-        var table = new ThreadsafeTypeKeyHashtable<int>();
+        var table = new ThreadSafeTypeKeyHashtable<int>();
 
         for (var i = 0; i < types.Length; i++)
         {

@@ -163,7 +163,7 @@ public ref struct ByteBufferWriter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref byte GetPointer(int sizeHint)
+    public ref byte GetReference(int sizeHint)
     {
         if (this.span.Length < sizeHint)
         {

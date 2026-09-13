@@ -58,14 +58,14 @@ public static partial class TinyhandTreeConverter
         table[0x0C] = CharClass.WhiteSpace;
         table[0x0D] = CharClass.WhiteSpace;
         table[TinyhandConstants.Separator] = CharClass.Separator;
-        table[TinyhandConstants.Separator2] = CharClass.Separator;
+        table[TinyhandConstants.Semicolon] = CharClass.Separator;
         table[TinyhandConstants.OpenBrace] = CharClass.OpenBrace;
         table[TinyhandConstants.CloseBrace] = CharClass.CloseBrace;
         table[TinyhandConstants.Quote] = CharClass.Quote;
-        table[TinyhandConstants.Quote2] = CharClass.Quote2;
+        table[TinyhandConstants.SingleQuote] = CharClass.Quote2;
         table[TinyhandConstants.EqualsSign] = CharClass.Equals2;
         table[TinyhandConstants.Slash] = CharClass.Slash;
-        table[TinyhandConstants.Sharp] = CharClass.Sharp;
+        table[TinyhandConstants.NumberSign] = CharClass.Sharp;
         for (var i = '0'; i <= '9'; i++)
         {
             table[i] = CharClass.Digit;
@@ -507,7 +507,7 @@ Dispatch:
                         }
 
                         var quote = Unsafe.Add(ref src, p + 1);
-                        if (quote != TinyhandConstants.Quote && quote != TinyhandConstants.Quote2)
+                        if (quote != TinyhandConstants.Quote && quote != TinyhandConstants.SingleQuote)
                         {
                             goto RawToken;
                         }

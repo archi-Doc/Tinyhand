@@ -244,11 +244,11 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
                 break;
             }
 
-            if (x.TryGetLeft_IdentifierUtf8(out var identifier))
+            if (x.TryGetLeftIdentifierUtf8(out var identifier))
             { // identifier = "value"
                 if (identifier.SequenceEqual(ModeIdentifier))
                 { // "mode"
-                    if (x.TryGetRight_Value_String(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString))
+                    if (x.TryGetRightStringValue(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString))
                     { // "process"
                         this.IsProcessMode = true;
                     }
@@ -351,14 +351,14 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
         var isProcessMode = false;
         foreach (var x in this.rootGroup)
         {
-            if (!x.TryGetLeft_IdentifierUtf8(out var identifier))
+            if (!x.TryGetLeftIdentifierUtf8(out var identifier))
             {
                 continue;
             }
 
             if (identifier.SequenceEqual(ModeIdentifier))
             {
-                isProcessMode = x.TryGetRight_Value_String(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString);
+                isProcessMode = x.TryGetRightStringValue(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString);
                 continue;
             }
 
@@ -506,7 +506,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void IdentifierTable_process(Element element)
     { // "process"
-        if (element.TryGetRight_Value_String(out var valueString))
+        if (element.TryGetRightStringValue(out var valueString))
         { // Get ProcessCore.
             if (this.ProcessCore.TryGetValue(valueString.Utf16, out var info))
             { // Get an instance.
@@ -527,7 +527,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void IdentifierTable_root(Element element)
     { // "root"
-        if (element.TryGetRight_Value_String(out var valueString))
+        if (element.TryGetRightStringValue(out var valueString))
         {
             if (Path.IsPathRooted(valueString.Utf16))
             {
@@ -542,7 +542,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void IdentifierTable_source(Element element)
     { // "source"
-        if (element.TryGetRight_Value_String(out var valueString))
+        if (element.TryGetRightStringValue(out var valueString))
         {
             if (Path.IsPathRooted(valueString.Utf16))
             {
@@ -557,7 +557,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void IdentifierTable_destination(Element element)
     { // "destination"
-        if (element.TryGetRight_Value_String(out var valueString))
+        if (element.TryGetRightStringValue(out var valueString))
         {
             if (Path.IsPathRooted(valueString.Utf16))
             {
@@ -576,8 +576,8 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void ReadLoggerSettings(Element element, LoggerSettings settings)
     { // Read the logger settings.
-        Value_String? stringValue;
-        if (!element.TryGetRightGroup_Value_String(null, out stringValue))
+        StringValue? stringValue;
+        if (!element.TryGetStringValueInRightGroup(null, out stringValue))
         {
             return;
         }
@@ -591,7 +591,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
             string path = string.Empty;
             var consoleFlag = false;
 
-            if (element.TryGetRightGroup_Value_String("path", out var pathValue))
+            if (element.TryGetStringValueInRightGroup("path", out var pathValue))
             {
                 path = pathValue.Utf16;
                 if (!Path.IsPathRooted(path))
@@ -605,7 +605,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
                 }
             }
 
-            if (element.TryGetRightGroup_Value("console", out var consoleValue))
+            if (element.TryGetValueInRightGroup("console", out var consoleValue))
             {
                 consoleFlag = consoleValue.IsTrue();
             }
@@ -637,7 +637,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
             return;
         }
 
-        if (element.TryGetRightGroup_Value_String("format", out var formatValue))
+        if (element.TryGetStringValueInRightGroup("format", out var formatValue))
         {
             if (Enum.TryParse<ProcessLogFormat>(formatValue.Utf16, out var f))
             {

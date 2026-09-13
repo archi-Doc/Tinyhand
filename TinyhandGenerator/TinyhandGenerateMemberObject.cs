@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis;
 namespace Tinyhand.Generator;
 
 [Flags]
-public enum TinyhandGenerateMemberObjectFlag
+public enum TinyhandGenerateMemberObjectFlags
 {
     Configured = 1 << 0,
     RelationConfigured = 1 << 1,
@@ -29,7 +29,7 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
 
     public new TinyhandGenerateMemberBody Body => (TinyhandGenerateMemberBody)((VisceralObjectBase<TinyhandGenerateMemberObject>)this).Body;
 
-    public TinyhandGenerateMemberObjectFlag ObjectFlag { get; private set; }
+    public TinyhandGenerateMemberObjectFlags ObjectFlags { get; private set; }
 
     public List<Item>? Items { get; private set; }
 
@@ -39,22 +39,22 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
 
     public void Configure()
     {
-        if (this.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.Configured))
+        if (this.ObjectFlags.HasFlag(TinyhandGenerateMemberObjectFlags.Configured))
         {
             return;
         }
 
-        this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.Configured;
+        this.ObjectFlags |= TinyhandGenerateMemberObjectFlags.Configured;
 
         foreach (var x in this.AllAttributes)
         {
-            if (x.FullName == TinyhandGenerateMemberAttributeMock.FullName)
+            if (x.FullName == TinyhandGenerateMemberAttributeData.FullName)
             {// TinyhandGenerateMember
                 try
                 {
-                    var attribute = TinyhandGenerateMemberAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                    var attribute = TinyhandGenerateMemberAttributeData.FromArray(x.ConstructorArguments, x.NamedArguments);
                     var item = new Item(x.Location, attribute.TinyhandPath, false);
-                    this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.TinyhandGenerateMember;
+                    this.ObjectFlags |= TinyhandGenerateMemberObjectFlags.TinyhandGenerateMember;
 
                     if (x.SyntaxReference is { } syntaxReferencee)
                     {
@@ -66,16 +66,16 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
                 }
                 catch (InvalidCastException)
                 {
-                    this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                    this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyTypeMismatch, x.Location);
                 }
             }
-            else if (x.FullName == TinyhandGenerateHashAttributeMock.FullName)
+            else if (x.FullName == TinyhandGenerateHashAttributeData.FullName)
             {// TinyhandGenerateMember
                 try
                 {
-                    var attribute = TinyhandGenerateHashAttributeMock.FromArray(x.ConstructorArguments, x.NamedArguments);
+                    var attribute = TinyhandGenerateHashAttributeData.FromArray(x.ConstructorArguments, x.NamedArguments);
                     var item = new Item(x.Location, attribute.TinyhandPath, true);
-                    this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.TinyhandGenerateHash;
+                    this.ObjectFlags |= TinyhandGenerateMemberObjectFlags.TinyhandGenerateHash;
 
                     if (x.SyntaxReference is { } syntaxReferencee)
                     {
@@ -87,7 +87,7 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
                 }
                 catch (InvalidCastException)
                 {
-                    this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyError, x.Location);
+                    this.Body.AddDiagnostic(TinyhandBody.Error_AttributePropertyTypeMismatch, x.Location);
                 }
             }
         }
@@ -102,12 +102,12 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
 
     public void ConfigureRelation()
     {// Create an object tree.
-        if (this.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.RelationConfigured))
+        if (this.ObjectFlags.HasFlag(TinyhandGenerateMemberObjectFlags.RelationConfigured))
         {
             return;
         }
 
-        this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.RelationConfigured;
+        this.ObjectFlags |= TinyhandGenerateMemberObjectFlags.RelationConfigured;
 
         if (!this.Kind.IsType())
         {// Not type
@@ -156,12 +156,12 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
 
     public void Check()
     {
-        if (this.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.Checked))
+        if (this.ObjectFlags.HasFlag(TinyhandGenerateMemberObjectFlags.Checked))
         {
             return;
         }
 
-        this.ObjectFlag |= TinyhandGenerateMemberObjectFlag.Checked;
+        this.ObjectFlags |= TinyhandGenerateMemberObjectFlags.Checked;
 
         if (this.Items != null)
         {// Generate member
@@ -211,7 +211,7 @@ internal class TinyhandGenerateMemberObject : VisceralObjectBase<TinyhandGenerat
         this.Group.Process(this.Body, item.Location, element, item.GenerateHash);
     }
 
-    internal void Generate(ScopingStringBuilder ssb, GeneratorInformation info)
+    internal void Generate(ScopingStringBuilder ssb, GenerationContext info)
     {
         this.Group.Generate(this, ssb, string.Empty);
     }

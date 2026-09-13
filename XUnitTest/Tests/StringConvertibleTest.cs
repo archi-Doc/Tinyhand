@@ -124,9 +124,9 @@ public class StringConvertibleTest
         tc.Equals(tc2).IsTrue();
         var st2 = TinyhandSerializer.SerializeToString(tc, options);
 
-        tc2 = TinyhandSerializer.TryParseOrDeserializeFromString<StringConvertibleTestClass>(st, options);
+        tc2 = TinyhandSerializer.ParseOrDeserializeFromStringOrDefault<StringConvertibleTestClass>(st, options);
         tc.Equals(tc2).IsTrue();
-        tc2 = TinyhandSerializer.TryParseOrDeserializeFromString<StringConvertibleTestClass>(st2, options);
+        tc2 = TinyhandSerializer.ParseOrDeserializeFromStringOrDefault<StringConvertibleTestClass>(st2, options);
         tc.Equals(tc2).IsTrue();
 
         var typeIdentifier = TinyhandTypeIdentifier.GetTypeIdentifier<StringConvertibleTestClass>();

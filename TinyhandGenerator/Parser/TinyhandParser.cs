@@ -198,7 +198,7 @@ internal static class TinyhandParser
 
                 case TinyhandAtomType.Identifier: // objectA
                 case TinyhandAtomType.SpecialIdentifier: // @mode
-                    var identifier = new Value_Identifier(reader.AtomType == TinyhandAtomType.SpecialIdentifier, reader.ValueSpan.ToArray());
+                    var identifier = new IdentifierValue(reader.AtomType == TinyhandAtomType.SpecialIdentifier, reader.ValueSpan.ToArray());
                     return identifier;
 
                 case TinyhandAtomType.Modifier: // i32: key(1): required
@@ -211,40 +211,40 @@ internal static class TinyhandParser
                 case TinyhandAtomType.Comment: // // comment
                     return parseContextualInformation ? new Comment(reader.ValueSpan.ToArray()) : null;
 
-                case TinyhandAtomType.Value_Base64: // b"Base64"
-                    var valueBinary = new Value_Binary(reader.ValueBinary);
+                case TinyhandAtomType.Binary: // b"Base64"
+                    var valueBinary = new BinaryValue(reader.ValueBinary);
                     return valueBinary;
 
-                case TinyhandAtomType.Value_String: // "text"
-                    var valueString = new Value_String(reader.ValueSpan.ToArray());
+                case TinyhandAtomType.String: // "text"
+                    var valueString = new StringValue(reader.ValueSpan.ToArray());
                     valueString.IsTripleQuoted = reader.ValueLong != 0;
                     return valueString;
 
-                case TinyhandAtomType.Value_Long: // -123(long)
-                    var valueLong = new Value_Long();
+                case TinyhandAtomType.Long: // -123(long)
+                    var valueLong = new LongValue();
                     valueLong.ValueLong = reader.ValueLong;
                     return valueLong;
 
-                case TinyhandAtomType.Value_ULong: // 123(ulong)
-                    var valueULong = new Value_ULong();
+                case TinyhandAtomType.ULong: // 123(ulong)
+                    var valueULong = new ULongValue();
                     valueULong.ValueULong = reader.ValueULong;
                     return valueULong;
 
-                case TinyhandAtomType.Value_Double: // 1.23(double)
-                    var valueDouble = new Value_Double();
+                case TinyhandAtomType.Double: // 1.23(double)
+                    var valueDouble = new DoubleValue();
                     valueDouble.ValueDouble = reader.ValueDouble;
                     return valueDouble;
 
-                case TinyhandAtomType.Value_Null: // null
-                    return new Value_Null();
+                case TinyhandAtomType.Null: // null
+                    return new NullValue();
 
-                case TinyhandAtomType.Value_True: // true
-                    var valueTrue = new Value_Bool();
+                case TinyhandAtomType.True: // true
+                    var valueTrue = new BoolValue();
                     valueTrue.ValueBool = true;
                     return valueTrue;
 
-                case TinyhandAtomType.Value_False: // false
-                    var valueFalse = new Value_Bool();
+                case TinyhandAtomType.False: // false
+                    var valueFalse = new BoolValue();
                     valueFalse.ValueBool = false;
                     return valueFalse;
 

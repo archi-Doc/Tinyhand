@@ -4,11 +4,11 @@ using System.Linq;
 using Arc.Visceral;
 using Tinyhand.Generator;
 
-namespace TinyhandGenerator;
+namespace Tinyhand.Generator;
 
 internal static class JournalShared
 {
-    public static void GenerateValue_MaxLength(ScopingStringBuilder ssb, TinyhandObject x, MaxLengthAttributeMock attribute)
+    public static void GenerateValue_MaxLength(ScopingStringBuilder ssb, TinyhandObject x, MaxLengthAttributeData attribute)
     {
         if (x.TypeObject is not { } typeObject)
         {
@@ -105,7 +105,7 @@ internal static class JournalShared
 
         foreach (var x in obj.AllAttributes)
         {
-            if (x.FullName == KeyAttributeMock.FullName)
+            if (x.FullName == KeyAttributeData.FullName)
             {// KeyAttribute
                 var val = x.ConstructorArguments[0];
                 if (val is int i)
@@ -119,7 +119,7 @@ internal static class JournalShared
                     break;
                 }
             }
-            else if (x.FullName == MemberNameAsKeyAttributeMock.FullName)
+            else if (x.FullName == MemberNameAsKeyAttributeData.FullName)
             {// KeyAsNameAttribute
                 stringKey = obj.SimpleName;
                 break;
@@ -142,13 +142,13 @@ internal static class JournalShared
 
     public static void CodeJournal(this TinyhandObject obj, ScopingStringBuilder ssb, TinyhandObject? locator)
     {
-        using (var journalScope = ssb.ScopeBrace($"if ((({TinyhandBody.IStructuralObject})this).TryGetJournalWriter(out var root, out var writer, true))"))
+        using (var journalScope = ssb.ScopeBrace($"if ((({TinyhandBody.IStructuralObjectName})this).TryGetJournalWriter(out var root, out var writer, true))"))
         {
             if (obj.ContainingObject is { } containingObject)
             {
-                if (!containingObject.IsSealed || containingObject.AllInterfaces.Any(x => x == TinyhandBody.ITinyhandCustomJournalFull))
+                if (!containingObject.IsSealed || containingObject.AllInterfaces.Any(x => x == TinyhandBody.ITinyhandCustomJournalFullName))
                 {// Custom locator
-                    using (var customScope = ssb.ScopeBrace($"if (this is {TinyhandBody.ITinyhandCustomJournalFull} custom)"))
+                    using (var customScope = ssb.ScopeBrace($"if (this is {TinyhandBody.ITinyhandCustomJournalFullName} custom)"))
                     {
                         ssb.AppendLine("custom.WriteCustomLocator(ref writer);");
                     }
@@ -159,7 +159,7 @@ internal static class JournalShared
             if (locator is not null &&
                 obj.CodeWriter($"this.{locator.SimpleName}") is { } writeLocator)
             {
-                ssb.AppendLine("writer.Write_Locator();");
+                ssb.AppendLine("writer.WriteLocatorRecord();");
                 ssb.AppendLine(writeLocator);
             }
 
@@ -167,7 +167,7 @@ internal static class JournalShared
             var writeKey = obj.CodeWriteKey();
             if (writeKey is not null)
             {
-                ssb.AppendLine("writer.Write_Key();");
+                ssb.AppendLine("writer.WriteKeyRecord();");
                 ssb.AppendLine(writeKey);
             }
 
@@ -175,7 +175,7 @@ internal static class JournalShared
             var writeValue = obj.CodeWriter("value"); // ssb.FullObject "this.id" -> "value"
             if (writeValue is not null)
             {
-                ssb.AppendLine("writer.Write_Value();");
+                ssb.AppendLine("writer.WriteValueRecord();");
                 ssb.AppendLine(writeValue);
             }
 
@@ -211,7 +211,7 @@ internal static class JournalShared
             return coder;
         }
 
-        if (obj.AllAttributes.Any(x => x.FullName == TinyhandObjectAttributeMock.FullName))
+        if (obj.AllAttributes.Any(x => x.FullName == TinyhandObjectAttributeData.FullName))
         {// TinyhandObject
             return $"TinyhandSerializer.DeserializeAndReconstructObject<{obj.FullName}>(ref reader)";
         }
@@ -254,7 +254,7 @@ internal static class JournalShared
             }
         }
 
-        if (obj.AllAttributes.Any(x => x.FullName == TinyhandObjectAttributeMock.FullName))
+        if (obj.AllAttributes.Any(x => x.FullName == TinyhandObjectAttributeData.FullName))
         {// TinyhandObject
             return $"TinyhandSerializer.SerializeObject(ref writer, {valueString});";
         }

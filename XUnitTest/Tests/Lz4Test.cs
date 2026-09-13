@@ -167,7 +167,7 @@ public class Lz4Test
         var writer = new TinyhandWriter(new byte[64]);
         writer.WriteArrayHeader(2);
         writer.WriteExtensionFormatHeader(new ExtensionHeader(MessagePackExtensionCodes.Lz4BlockArray, lengths.Length));
-        writer.WriteSpan(lengths);
+        writer.WriteRaw(lengths);
         writer.Write(block.AsSpan());
         return writer.FlushAndGetArray();
     }

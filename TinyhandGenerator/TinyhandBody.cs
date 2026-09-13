@@ -27,24 +27,24 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public static readonly int MaxStringKeySizeInBytes = 512;
     public static readonly string SetMembersMethod = "SetMembers";
     public static readonly string Namespace = "Tinyhand";
-    public static readonly string ITinyhandDefault = "ITinyhandDefault";
+    public static readonly string ITinyhandDefaultName = "ITinyhandDefault";
     // public static readonly string SetDefaultValueMethod = "SetDefaultValue";
     public static readonly string CanSkipSerializationMethod = "CanSkipSerialization";
-    public static readonly string LockObject = "__lockObject__";
-    public static readonly string LockTaken = "__lockTaken__";
-    public static readonly string SemaphoreLockName = "Arc.Threading.SemaphoreLock";
-    public static readonly string LockName = "System.Threading.Lock";
-    public static readonly string IStructuralRoot = "IStructuralRoot";
-    public static readonly string IStructuralObject = "IStructuralObject";
-    public static readonly string SetupStructure = "SetupStructure";
-    public static readonly string ITinyhandCustomJournal = "ITinyhandCustomJournal";
-    public static readonly string ITinyhandCustomJournalFull = "Tinyhand.ITinyhandCustomJournal";
-    public static readonly string ValueLinkUpdate = "__gen_cl_update_";
-    public static readonly string IStringConvertible = "Arc.IStringConvertible<";
-    public static readonly string IIntegralityObject = "ValueLink.Integrality.IIntegralityObject";
+    public static readonly string LockObjectVariable = "__lockObject__";
+    public static readonly string LockTakenVariable = "__lockTaken__";
+    public static readonly string SemaphoreLockFullName = "Arc.Threading.SemaphoreLock";
+    public static readonly string LockFullName = "System.Threading.Lock";
+    public static readonly string IStructuralRootName = "IStructuralRoot";
+    public static readonly string IStructuralObjectName = "IStructuralObject";
+    public static readonly string SetupStructureMethod = "SetupStructure";
+    public static readonly string ITinyhandCustomJournalName = "ITinyhandCustomJournal";
+    public static readonly string ITinyhandCustomJournalFullName = "Tinyhand.ITinyhandCustomJournal";
+    public static readonly string ValueLinkUpdateMethodPrefix = "__gen_cl_update_";
+    public static readonly string IStringConvertiblePrefix = "Arc.IStringConvertible<";
+    public static readonly string IIntegralityObjectFullName = "ValueLink.Integrality.IIntegralityObject";
     public static readonly string UnsafeConstructorName = "UnsafeConstructor";
-    public static readonly string UnsafeEnumName = "__UnsafeEnum__";
-    public static readonly string BackingField = "<{0}>k__BackingField";
+    public static readonly string UnsafeEnumName = "UnsafeEnumPlaceholder";
+    public static readonly string BackingFieldFormat = "<{0}>k__BackingField";
     public static readonly string StoragePointName = "CrystalData.StoragePoint<TData>";
     public static readonly string ImmutableClassName = "Immutable";
     public static readonly string UnderlyingObjectName = "underlyingObject";
@@ -97,7 +97,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG011", title: "String key null", messageFormat: "String key cannot contain null character",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_IntKeyConflicted = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Error_IntKeyConflict = new DiagnosticDescriptor(
         id: "TG012", title: "Int Key conflict", messageFormat: "Integer keys with the same number were detected",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
@@ -117,15 +117,15 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG016", title: "Key attribute required", messageFormat: "Member to be serialized must have TinyhandObjectAttribute '{0}'",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_AttributePropertyError = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Error_AttributePropertyTypeMismatch = new DiagnosticDescriptor(
         id: "TG017", title: "Attribute property type error", messageFormat: "The specified argument does not match the property type",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_KeyAttributeError = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Error_InvalidKeyAttribute = new DiagnosticDescriptor(
         id: "TG018", title: "Key attribute error", messageFormat: "KeyAttribute requires a valid int key or string key",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Warning_Circular = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Warning_CircularDependency = new DiagnosticDescriptor(
         id: "TG019", title: "Circular dependency", messageFormat: "Circular dependency detected '{0}'",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
@@ -169,11 +169,11 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG029", title: "Union type", messageFormat: "Union can only be interface or abstract class",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_SubtypeConflicted = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Error_SubtypeConflict = new DiagnosticDescriptor(
         id: "TG030", title: "Subtype conflict", messageFormat: "Same subtype has found",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_UnionTargetError = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Error_UnionTargetNotTinyhandObject = new DiagnosticDescriptor(
         id: "TG031", title: "Union target error", messageFormat: "Union target type must have TinyhandObject attribute",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
@@ -225,15 +225,15 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG043", title: "Parse Tinyhand", messageFormat: "Could not parse tinyhand file '{0}'",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Warning_InvalidIdentifier2 = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Warning_InvalidGenerateMemberIdentifier = new DiagnosticDescriptor(
         id: "TG044", title: "Invalid identifier", messageFormat: "'{0}' is not valid identifier ({1})",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Warning_MaxLengthAttribute = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Warning_MaxLengthUnsupportedType = new DiagnosticDescriptor(
         id: "TG045", title: "Max length", messageFormat: "MaxLengthAttribute is valid only for string, array, List<T>",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_AddProperty = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Error_PropertyNameRequiresField = new DiagnosticDescriptor(
         id: "TG046", title: "Add property", messageFormat: "You can only add properties to fields",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
@@ -241,32 +241,32 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG047", title: "Duplicate keyword", messageFormat: "The type '{0}' already contains a definition for '{1}'",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Warning_MaxLengthAttribute2 = new DiagnosticDescriptor(
-        id: "TG048", title: "Max length2", messageFormat: "To enable MaxLengthAttribute, AddProperty must be specified",
+    public static readonly DiagnosticDescriptor Warning_MaxLengthRequiresPropertyName = new DiagnosticDescriptor(
+        id: "TG048", title: "Max length", messageFormat: "To enable MaxLengthAttribute, PropertyName must be specified",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_LockObject = new DiagnosticDescriptor(
-        id: "TG049", title: "LockObject", messageFormat: "Member specified in LockObject is not found",
+    public static readonly DiagnosticDescriptor Error_LockObjectNotFound = new DiagnosticDescriptor(
+        id: "TG049", title: "LockMemberName", messageFormat: "Member specified in LockMemberName is not found",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_LockObject2 = new DiagnosticDescriptor(
-        id: "TG050", title: "LockObject2", messageFormat: "Member specified in LockObject must be a reference type",
+    public static readonly DiagnosticDescriptor Error_LockObjectNotReferenceType = new DiagnosticDescriptor(
+        id: "TG050", title: "LockMemberName", messageFormat: "Member specified in LockMemberName must be a reference type",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_LockObject3 = new DiagnosticDescriptor(
-        id: "TG051", title: "LockObject3", messageFormat: "Member specified in LockObject is not accessible",
+    public static readonly DiagnosticDescriptor Error_LockObjectNotAccessible = new DiagnosticDescriptor(
+        id: "TG051", title: "LockMemberName", messageFormat: "Member specified in LockMemberName is not accessible",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Warning_ConvertToString = new DiagnosticDescriptor(
         id: "TG052", title: "IStringConvertible", messageFormat: "IStringConvertible is required to convert to string",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_CallbackMetohd = new DiagnosticDescriptor(
-        id: "TG053", title: "CallbackMetohd", messageFormat: "Callback function must be an instance method with no arguments",
+    public static readonly DiagnosticDescriptor Error_CallbackMethod = new DiagnosticDescriptor(
+        id: "TG053", title: "TinyhandCallbackMethod", messageFormat: "Callback function must be an instance method with no arguments",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_CallbackAttribute = new DiagnosticDescriptor(
-        id: "TG054", title: "CallbackMetohd", messageFormat: "Callback attributes are exclusive",
+    public static readonly DiagnosticDescriptor Error_CallbackAttributeConflict = new DiagnosticDescriptor(
+        id: "TG054", title: "CallbackAttribute", messageFormat: "Callback attributes are exclusive",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
     public static readonly DiagnosticDescriptor Error_UnionUnboundType = new DiagnosticDescriptor(
@@ -277,11 +277,11 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG056", title: "Structural required", messageFormat: "'{0}' contains members that implement IStructuralObject, and Structural must be enabled for it to function correctly",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Warning_LockObject4 = new DiagnosticDescriptor(
-        id: "TG057", title: "LockObject4", messageFormat: "Since the implementation of IStructuralObject functions requires mutual exclusion in code that contains await, consider using SemaphoreLock",
+    public static readonly DiagnosticDescriptor Warning_LockObjectSemaphoreLockRecommended = new DiagnosticDescriptor(
+        id: "TG057", title: "LockMemberName", messageFormat: "Since the implementation of IStructuralObject functions requires mutual exclusion in code that contains await, consider using SemaphoreLock",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Error_AddImmutable = new DiagnosticDescriptor(
+    public static readonly DiagnosticDescriptor Error_AddImmutableNotClass = new DiagnosticDescriptor(
         id: "TG058", title: "Immutable class", messageFormat: "Immutable can only be added to classes",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
@@ -289,8 +289,8 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         id: "TG059", title: "Unsafe required", messageFormat: "Since Tinyhand uses unsafe code, please enable AllowUnsafeBlocks in the project settings",
         category: GeneratorName, DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor Warning_InvalidDualKey = new DiagnosticDescriptor(
-        id: "TG060", title: "Invalid dual key", messageFormat: "If a string key is specified, the dual key option becomes invalid",
+    public static readonly DiagnosticDescriptor Warning_InvalidAlternateKey = new DiagnosticDescriptor(
+        id: "TG060", title: "Invalid alternate key", messageFormat: "If a string key is specified, the alternate key option becomes invalid",
         category: GeneratorName, DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
     internal bool RequiresUnsafeBlocks = false;
@@ -320,7 +320,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
     public void Generate(IGeneratorInformation generator, CancellationToken cancellationToken)
     {
         ScopingStringBuilder ssb = new();
-        GeneratorInformation info = new(generator.AssemblyName);
+        GenerationContext info = new(generator.AssemblyName);
 
         // Namespace - Primary TinyhandObjects
         foreach (var x in this.Namespaces)
@@ -424,16 +424,16 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         ssb.AppendLine();
     }
 
-    private void GenerateLoader(IGeneratorInformation generator, GeneratorInformation info)
+    private void GenerateLoader(IGeneratorInformation generator, GenerationContext info)
     {
         var ssb = new ScopingStringBuilder();
         this.GenerateHeader(ssb);
 
         using (var scopeFormatter = ssb.ScopeNamespace("Tinyhand.Formatters"))
         {
-            using (var methods = ssb.ScopeBrace("static class " + info.GeneratedMethodName))
+            using (var methods = ssb.ScopeBrace("static class " + info.GeneratedClassName))
             {
-                info.FinalizeBlock(ssb);
+                info.AppendBlocks(ssb);
 
                 using (var method = ssb.ScopeBrace("internal static void __gen__th()"))
                 {
@@ -460,7 +460,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
         }
     }
 
-    private void GenerateInitializer(IGeneratorInformation generator, ScopingStringBuilder ssb, GeneratorInformation info)
+    private void GenerateInitializer(IGeneratorInformation generator, ScopingStringBuilder ssb, GenerationContext info)
     {
         var ns = "Tinyhand"; // Namespace
         var assemblyId = string.Empty; // Assembly ID
@@ -477,7 +477,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
             }
         }
 
-        info.ModuleInitializerClass.Add(info.GeneratedMethod);
+        info.ModuleInitializerClasses.Add(info.GeneratedClassFullName);
 
         ssb.AppendLine();
         using (var scopeTinyhand = ssb.ScopeNamespace(ns!))
@@ -493,7 +493,7 @@ public class TinyhandBody : VisceralBody<TinyhandObject>
                 ssb.AppendLine($"Initialized = true;");
                 ssb.AppendLine();
 
-                foreach (var x in info.ModuleInitializerClass)
+                foreach (var x in info.ModuleInitializerClasses)
                 {
                     ssb.Append(x, true);
                     ssb.AppendLine(".__gen__th();", false);

@@ -60,7 +60,7 @@ public ref partial struct TinyhandReader
     /// </summary>
     /// <param name="span">Span.</param>
     /// <returns>The new reader.</returns>
-    public TinyhandReader Clone(ReadOnlySpan<byte> span) => new TinyhandReader(span)
+    public TinyhandReader CreateSubReader(ReadOnlySpan<byte> span) => new TinyhandReader(span)
     {
         Depth = this.Depth,
     };
@@ -151,7 +151,7 @@ public ref partial struct TinyhandReader
     /// </summary>
     /// <param name="count">The nonnegative number of bytes to rewind.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Reverse(int count)
+    public void Rewind(int count)
     {
         ThrowInsufficientBufferUnless((uint)count <= (uint)this.Consumed);
         this.remaining += count;
@@ -263,7 +263,7 @@ public ref partial struct TinyhandReader
                 case MessagePackCode.Bin8:
                 case MessagePackCode.Bin16:
                 case MessagePackCode.Bin32:
-                    success = this.TryGetBytesLength(out length) && this.TryAdvance(length);
+                    success = this.TryReadBinHeader(out length) && this.TryAdvance(length);
                     break;
                 case MessagePackCode.FixExt1:
                 case MessagePackCode.FixExt2:
@@ -465,9 +465,9 @@ public ref partial struct TinyhandReader
     /// </exception>
     /// <exception cref="TinyhandException">Thrown if a code other than a map header is encountered.</exception>
     /// <remarks>Returns 0 if the next code is an empty array.</remarks>
-    public int ReadMapHeader2()
+    public int ReadMapHeaderOrEmptyArray()
     {
-        ThrowInsufficientBufferUnless(this.TryReadMapHeader2(out int count));
+        ThrowInsufficientBufferUnless(this.TryReadMapHeaderOrEmptyArray(out int count));
 
         // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
         // We allow for each primitive to be the minimal 1 byte in size, and we have a key=value map, so that's 2 bytes.
@@ -544,7 +544,7 @@ public ref partial struct TinyhandReader
     /// When this method returns <c>false</c> the position of the reader is left in an undefined position.
     /// The caller is expected to recreate the reader (presumably with a longer sequence to read from) before continuing.
     /// </remarks>
-    public bool TryReadMapHeader2(out int count)
+    public bool TryReadMapHeaderOrEmptyArray(out int count)
     {
         count = -1;
         if (!this.TryRead(out byte code))
@@ -893,7 +893,7 @@ public ref partial struct TinyhandReader
             return false;
         }
 
-        var length = this.GetBytesLength();
+        var length = this.ReadBinHeader();
         ThrowInsufficientBufferUnless((uint)length <= (uint)this.remaining);
         span = this.ReadRaw(length);
         return true;
@@ -910,7 +910,7 @@ public ref partial struct TinyhandReader
             return Array.Empty<byte>();
         }
 
-        var length = this.GetBytesLength();
+        var length = this.ReadBinHeader();
         ThrowInsufficientBufferUnless((uint)length <= (uint)this.remaining);
         var span = this.ReadRaw(length);
         return span.ToArray();
@@ -927,7 +927,7 @@ public ref partial struct TinyhandReader
             return null;
         }
 
-        var length = this.GetBytesLength();
+        var length = this.ReadBinHeader();
         ThrowInsufficientBufferUnless((uint)length <= (uint)this.remaining);
         var span = this.ReadRaw(length);
         return span.ToArray();
@@ -944,7 +944,7 @@ public ref partial struct TinyhandReader
             return default;
         }
 
-        var length = this.GetBytesLength();
+        var length = this.ReadBinHeader();
         ThrowInsufficientBufferUnless((uint)length <= (uint)this.remaining);
         var span = this.ReadRaw(length);
 
@@ -1016,7 +1016,7 @@ public ref partial struct TinyhandReader
     /// </summary>
     /// <returns>The decoded string, or null without advancing for other codes.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe string? TryReadString()
+    public unsafe string? ReadStringIfPresent()
     {
         var code = this.NextCode;
         if (code == MessagePackCode.Ext32 ||
@@ -1202,7 +1202,7 @@ public ref partial struct TinyhandReader
     /// <typeparam name="T">The string-convertible type.</typeparam>
     /// <param name="instance">Receives the parsed value; nil leaves the instance unchanged.</param>
     [SkipLocalsInit]
-    public void TryReadStringConvertible<T>(ref T? instance)
+    public void ReadStringConvertible<T>(ref T? instance)
         where T : IStringConvertible<T>
     {
         if (this.TryReadNil())
@@ -1240,13 +1240,13 @@ public ref partial struct TinyhandReader
     /// <exception cref="TinyhandUnexpectedCodeException">
     /// Thrown when the next MessagePack code does not represent a binary value.
     /// </exception>
-    public int GetBytesLength()
+    public int ReadBinHeader()
     {
-        ThrowInsufficientBufferUnless(this.TryGetBytesLength(out int length));
+        ThrowInsufficientBufferUnless(this.TryReadBinHeader(out int length));
         return length;
     }
 
-    /*public T? TryReadStringConvertible<T>()
+    /*public T? ReadStringConvertible<T>()
         where T : IStringConvertible<T>
     {
         var st = this.ReadString();
@@ -1292,7 +1292,7 @@ public ref partial struct TinyhandReader
             expected);
     }
 
-    private bool TryGetBytesLength(out int length)
+    private bool TryReadBinHeader(out int length)
     {
         if (!this.TryRead(out byte code))
         {

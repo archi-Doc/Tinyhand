@@ -32,12 +32,12 @@ internal class TinyhandGenerateMemberGroup
         {
             if (x is Assignment assignment)
             {
-                if (assignment.LeftElement is Value_Identifier i)
+                if (assignment.LeftElement is IdentifierValue i)
                 {// Get the left element [Identifier]
                     var identifier = i.Utf16;
                     if (!VisceralHelper.IsValidIdentifier(identifier))
                     {// Invalid identifier
-                        body.AddDiagnostic(TinyhandBody.Warning_InvalidIdentifier2, location, identifier, i.GetLinePositionString());
+                        body.AddDiagnostic(TinyhandBody.Warning_InvalidGenerateMemberIdentifier, location, identifier, i.GetLinePositionString());
                         continue;
                     }
 
@@ -51,7 +51,7 @@ internal class TinyhandGenerateMemberGroup
 
                         g.Process(body, location, subgroup, generateHash);
                     }
-                    else // if (assignment.RightElement is Value_String valueString)
+                    else // if (assignment.RightElement is StringValue valueString)
                     {
                         this.Items.Add(new(generateHash, identifier, assignment.RightElement));
                     }
@@ -270,20 +270,20 @@ internal class TinyhandGenerateMemberGroup
 
     private (string? Type, string? Value) ElementToTypeValue(Element? element)
     {
-        if (element is Value_Bool valueBool)
+        if (element is BoolValue valueBool)
         {// bool
             return ("bool", valueBool.ValueBool ? "true" : "false");
         }
-        else if (element is Value_String valueString)
+        else if (element is StringValue valueString)
         {// string
             return ("string", valueString.Utf16);
         }
-        else if (element is Value_Long valueLong)
+        else if (element is LongValue valueLong)
         {// long
             // return ("long", "0x" + valueLong.ValueLong.ToString("x"));
             return ("long", valueLong.ValueLong.ToString(CultureInfo.InvariantCulture));
         }
-        else if (element is Value_Double valueDouble)
+        else if (element is DoubleValue valueDouble)
         {// long
             var value = valueDouble.ValueDouble;
             return ("double", double.IsNaN(value) ? "double.NaN" :

@@ -10,7 +10,7 @@ namespace Tinyhand;
 
 public delegate void ByRefAction<T1, T2>(in T1 arg1, T2 arg2); // For struct setter.
 
-public delegate void ByRefFunc<T1, T2>(in T1 arg1, T2 arg2); // For struct getter.
+public delegate TResult ByRefFunc<T1, TResult>(in T1 arg1); // For struct getter.
 
 /// <summary>
 /// Specifies the accessibility of the generated property.
@@ -134,7 +134,7 @@ public sealed class TinyhandObjectAttribute : Attribute
     /// <summary>
     /// Gets or sets the name of the member used to lock serialization and deserialization. An empty string disables locking.
     /// </summary>
-    public string LockObject { get; set; } = string.Empty;
+    public string LockMemberName { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets a value indicating whether enum members are serialized by name. The default is false.
@@ -222,12 +222,12 @@ public class KeyAttribute : Attribute
     /// <summary>
     /// Gets or sets the name of the property generated for this field. An empty string disables property generation.
     /// </summary>
-    public string AddProperty { get; set; } = string.Empty;
+    public string PropertyName { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the alternate string key when AddAlternateKey is enabled. An empty string uses the member name.
     /// </summary>
-    public string Alternate { get; set; } = string.Empty;
+    public string AlternateKey { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the accessor visibility of the property generated for this field.
@@ -239,14 +239,14 @@ public class KeyAttribute : Attribute
     /// </summary>
     public bool IgnoreKeyReservation { get; set; } = false;
 
-    public KeyAttribute(int x)
+    public KeyAttribute(int key)
     {
-        this.IntKey = x;
+        this.IntKey = key;
     }
 
-    public KeyAttribute(string x)
+    public KeyAttribute(string key)
     {
-        this.StringKey = x;
+        this.StringKey = key;
     }
 }
 

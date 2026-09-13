@@ -8,7 +8,7 @@ internal record TinyhandParserOptions
 
     public static TinyhandParserOptions ContextualInformation { get; } = Standard with { ParseContextualInformation = true, };
 
-    public static TinyhandParserOptions TextSerialization { get; } = Standard with { TextSerializationMode = true, };
+    public static TinyhandParserOptions TextSerialization { get; } = Standard with { IsTextSerializationMode = true, };
 
     /// <summary>
     /// Gets a value indicating whether or not to parse contextual information (comment, line feed).
@@ -18,5 +18,5 @@ internal record TinyhandParserOptions
     /// <summary>
     /// Gets a value indicating whether text serialization mode is active (the left element of the assigment is converted to an identifier).
     /// </summary>
-    public bool TextSerializationMode { get; private set; } = false;
+    public bool IsTextSerializationMode { get; private set; } = false;
 }

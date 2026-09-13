@@ -11,7 +11,7 @@ namespace Tinyhand.Generator;
 public enum ReconstructCondition
 {
     None,
-    Can,
+    Reconstructable,
     CircularDependency,
     NoDefaultConstructor,
     NotReferenceType,
@@ -28,7 +28,7 @@ internal static class TinyhandReconstruct
         }
         else if (typeObject.Kind == VisceralObjectKind.Error)
         {// Error type
-            return ReconstructCondition.Can;
+            return ReconstructCondition.Reconstructable;
         }
 
         if (typeObject.Kind == VisceralObjectKind.Interface && typeObject.ObjectAttribute != null)
@@ -45,13 +45,13 @@ internal static class TinyhandReconstruct
 
             if (typeObject.ObjectAttribute != null)
             {// TinyhandObject
-                return ReconstructCondition.Can;
+                return ReconstructCondition.Reconstructable;
             }
         }
 
         if (obj.TypeObjectWithNullable != null && obj.Body.CoderResolver.TryGetCoder(obj.TypeObjectWithNullable) != null)
         {// Coder found
-            return ReconstructCondition.Can;
+            return ReconstructCondition.Reconstructable;
         }
 
         if (typeObject.Kind.IsReferenceType())
@@ -62,11 +62,11 @@ internal static class TinyhandReconstruct
                 return ReconstructCondition.NoDefaultConstructor;
             }
 
-            return ReconstructCondition.Can;
+            return ReconstructCondition.Reconstructable;
         }
         else if (typeObject.Kind.IsValueType())
         {// Value type
-            return ReconstructCondition.Can;
+            return ReconstructCondition.Reconstructable;
         }
 
         return ReconstructCondition.NotReferenceType;

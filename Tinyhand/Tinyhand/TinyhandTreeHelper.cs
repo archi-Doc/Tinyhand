@@ -24,16 +24,16 @@ public static class TinyhandTreeHelper
     {
         switch (element)
         {
-            case Value_Bool b:
+            case BoolValue b:
                 return b.ValueBool;
 
-            case Value_Double d:
+            case DoubleValue d:
                 return d.ValueDouble > 0;
 
-            case Value_Long l:
+            case LongValue l:
                 return l.ValueLong > 0;
 
-            case Value_String s:
+            case StringValue s:
                 var c = s.Utf8;
                 if (c.Length == 4 && (c[0] == (byte)'t' || c[0] == (byte)'T') &&
                     (c[1] == (byte)'r' || c[1] == (byte)'R') &&
@@ -54,16 +54,16 @@ public static class TinyhandTreeHelper
     {
         switch (element)
         {
-            case Value_Bool b:
+            case BoolValue b:
                 return !b.ValueBool;
 
-            case Value_Double d:
+            case DoubleValue d:
                 return d.ValueDouble == 0;
 
-            case Value_Long l:
+            case LongValue l:
                 return l.ValueLong == 0;
 
-            case Value_String s:
+            case StringValue s:
                 var c = s.Utf8;
                 if (c.Length == 5 && (c[0] == (byte)'f' || c[0] == (byte)'F') &&
                     (c[1] == (byte)'a' || c[1] == (byte)'A') &&
@@ -81,12 +81,12 @@ public static class TinyhandTreeHelper
         }
     }
 
-    public static bool TryGetLeft_IdentifierUtf8(this Element element, [MaybeNullWhen(false)] out byte[] identifier)
+    public static bool TryGetLeftIdentifierUtf8(this Element element, [MaybeNullWhen(false)] out byte[] identifier)
     { // identifier = right : get identifier
         if (element is Assignment assignment)
         {
             var left = assignment.LeftElement;
-            if (left is Value_Identifier i)
+            if (left is IdentifierValue i)
             {
                 identifier = i.Utf8;
                 return true;
@@ -97,12 +97,12 @@ public static class TinyhandTreeHelper
         return false;
     }
 
-    public static bool TryGetLeft_IdentifierUtf16(this Element element, [MaybeNullWhen(false)] out string identifier)
+    public static bool TryGetLeftIdentifierUtf16(this Element element, [MaybeNullWhen(false)] out string identifier)
     { // identifier = right : get identifier
         if (element is Assignment assignment)
         {
             var left = assignment.LeftElement;
-            if (left is Value_Identifier i)
+            if (left is IdentifierValue i)
             {
                 identifier = i.Utf16;
                 return true;
@@ -113,35 +113,35 @@ public static class TinyhandTreeHelper
         return false;
     }
 
-    public static bool TryGetRight_Group(this Element element, [MaybeNullWhen(false)] out Group value)
+    public static bool TryGetRightGroup(this Element element, [MaybeNullWhen(false)] out Group value)
     { // left = group : Get group
         value = (element as Assignment)?.RightElement as Group;
         return value != null;
     }
 
-    public static bool TryGetRight_Value(this Element element, [MaybeNullWhen(false)] out Value value)
+    public static bool TryGetRightValue(this Element element, [MaybeNullWhen(false)] out Value value)
     { // left = value : Get value
         value = (element as Assignment)?.RightElement as Value;
         return value != null;
     }
 
-    public static bool TryGetRight_Value_String(this Element element, [MaybeNullWhen(false)] out Value_String v)
+    public static bool TryGetRightStringValue(this Element element, [MaybeNullWhen(false)] out StringValue value)
     { // left = "valueString" : Get valueString
-        v = (element as Assignment)?.RightElement as Value_String;
-        return v != null;
+        value = (element as Assignment)?.RightElement as StringValue;
+        return value != null;
     }
 
-    public static bool TryGetRight_Value_Long(this Element element, [MaybeNullWhen(false)] out Value_Long v)
+    public static bool TryGetRightLongValue(this Element element, [MaybeNullWhen(false)] out LongValue value)
     { // left = "valueString" : Get valueString
-        v = (element as Assignment)?.RightElement as Value_Long;
-        return v != null;
+        value = (element as Assignment)?.RightElement as LongValue;
+        return value != null;
     }
 
-    public static bool TryGetRight_Value(this Element element, string identifier, [MaybeNullWhen(false)] out Value value)
+    public static bool TryGetRightValue(this Element element, string identifier, [MaybeNullWhen(false)] out Value value)
     { // identifier = value : Get value if the identifiers are identical.
         if (element is Assignment assignment)
         {
-            if (assignment.LeftElement is Value_Identifier i)
+            if (assignment.LeftElement is IdentifierValue i)
             {
                 if (identifier == i.Utf16)
                 {
@@ -155,43 +155,43 @@ public static class TinyhandTreeHelper
         return false;
     }
 
-    public static bool TryGetRight_Value_String(this Element element, string identifier, [MaybeNullWhen(false)] out Value_String v)
+    public static bool TryGetRightStringValue(this Element element, string identifier, [MaybeNullWhen(false)] out StringValue value)
     { // identifier = "valueString" : Get value if the identifiers are identical.
-        v = null;
-        if (element.TryGetRight_Value(identifier, out var v2))
+        value = null;
+        if (element.TryGetRightValue(identifier, out var v))
         {
-            v = v2 as Value_String;
+            value = v as StringValue;
         }
 
-        return v != null;
+        return value != null;
     }
 
-    public static bool TryGetRight_Value_Long(this Element element, string identifier, [MaybeNullWhen(false)] out Value_Long v)
+    public static bool TryGetRightLongValue(this Element element, string identifier, [MaybeNullWhen(false)] out LongValue value)
     { // identifier = "valueString" : Get value if the identifiers are identical.
-        v = null;
-        if (element.TryGetRight_Value(identifier, out var v2))
+        value = null;
+        if (element.TryGetRightValue(identifier, out var v))
         {
-            v = v2 as Value_Long;
+            value = v as LongValue;
         }
 
-        return v != null;
+        return value != null;
     }
 
-    public static bool TryGetRightGroup_Value_String(this Element element, string? identifier, [MaybeNullWhen(false)] out Value_String valueString)
+    public static bool TryGetStringValueInRightGroup(this Element element, string? identifier, [MaybeNullWhen(false)] out StringValue value)
     { // left = { identifier = "valueString"} : Get valueString
         // left = "valueString" or left = {"valueString"} : If identifier is null.
-        if (TryGetRightGroup_Value(element, identifier, out var v))
+        if (TryGetValueInRightGroup(element, identifier, out var v))
         {
-            return (valueString = v as Value_String) != null;
+            return (value = v as StringValue) != null;
         }
         else
         {
-            valueString = null;
+            value = null;
             return false;
         }
     }
 
-    public static bool TryGetRightGroup_Value(this Element element, string? identifier, [MaybeNullWhen(false)] out Value value)
+    public static bool TryGetValueInRightGroup(this Element element, string? identifier, [MaybeNullWhen(false)] out Value value)
     { // left = { identifier = value} : Get value
         // left = value or left = {value} : If identifier is null.
         value = null;
@@ -238,7 +238,7 @@ public static class TinyhandTreeHelper
         {
             foreach (var x in group)
             {
-                if (x.TryGetRight_Value(identifier, out value))
+                if (x.TryGetRightValue(identifier, out value))
                 {
                     return true;
                 }

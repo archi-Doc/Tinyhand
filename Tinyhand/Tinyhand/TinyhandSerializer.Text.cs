@@ -322,7 +322,7 @@ public static partial class TinyhandSerializer
     /// <param name="utf16">The string (UTF-16) to deserialize from.</param>
     /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <returns>The deserialized value, or the default value of <typeparamref name="T"/> if deserialization fails.</returns>
-    public static T? TryDeserializeFromString<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
+    public static T? DeserializeFromStringOrDefault<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
     {
         try
         {
@@ -334,7 +334,7 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static T? TryParseOrDeserializeFromString<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
+    public static T? ParseOrDeserializeFromStringOrDefault<T>(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>, IStringConvertible<T>
     {
         if (utf16.Length >= 2 &&

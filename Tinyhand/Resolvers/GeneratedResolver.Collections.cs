@@ -33,11 +33,11 @@ public sealed partial class GeneratedResolver
     public static void RegisterReadOnlyCollectionFormatter<T1>()
         => Register<ReadOnlyCollection<T1>, ReadOnlyCollectionFormatter<T1>>();
 
-    public static void RegisterInterfaceListFormatter2<T1>()
-        => Register<IList<T1>, InterfaceListFormatter2<T1>>();
+    public static void RegisterInterfaceListFormatter<T1>()
+        => Register<IList<T1>, InterfaceListFormatter<T1>>();
 
-    public static void RegisterInterfaceCollectionFormatter2<T1>()
-        => Register<ICollection<T1>, InterfaceCollectionFormatter2<T1>>();
+    public static void RegisterInterfaceCollectionFormatter<T1>()
+        => Register<ICollection<T1>, InterfaceCollectionFormatter<T1>>();
 
     public static void RegisterInterfaceEnumerableFormatter<T1>()
         => Register<IEnumerable<T1>, InterfaceEnumerableFormatter<T1>>();
@@ -254,11 +254,11 @@ public sealed partial class GeneratedResolver
 
     public static void RegisterArray<T>() => Register<T[], ArrayFormatter<T>>();
 
-    public static void RegisterArray2<T>() => Register<T[,], TwoDimensionalArrayFormatter<T>>();
+    public static void RegisterTwoDimensionalArray<T>() => Register<T[,], TwoDimensionalArrayFormatter<T>>();
 
-    public static void RegisterArray3<T>() => Register<T[,,], ThreeDimensionalArrayFormatter<T>>();
+    public static void RegisterThreeDimensionalArray<T>() => Register<T[,,], ThreeDimensionalArrayFormatter<T>>();
 
-    public static void RegisterArray4<T>() => Register<T[,,,], FourDimensionalArrayFormatter<T>>();
+    public static void RegisterFourDimensionalArray<T>() => Register<T[,,,], FourDimensionalArrayFormatter<T>>();
 
     public static void RegisterEnum<T>()
         where T : struct, Enum

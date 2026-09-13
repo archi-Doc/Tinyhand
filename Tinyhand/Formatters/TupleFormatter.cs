@@ -39,7 +39,7 @@ internal sealed class TupleFormatter<T1> : ITinyhandFormatter<Tuple<T1>>
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
@@ -100,7 +100,7 @@ internal sealed class TupleFormatter<T1, T2> : ITinyhandFormatter<Tuple<T1, T2>>
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
@@ -164,7 +164,7 @@ internal sealed class TupleFormatter<T1, T2, T3> : ITinyhandFormatter<Tuple<T1, 
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
@@ -231,7 +231,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4> : ITinyhandFormatter<Tuple<
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
@@ -301,7 +301,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5> : ITinyhandFormatter<Tu
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
@@ -374,7 +374,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : ITinyhandFormatte
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
@@ -450,7 +450,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : ITinyhandForm
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);
@@ -530,7 +530,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : ITinyh
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var item1 = resolver.GetFormatter<T1>().Deserialize(ref reader, options);

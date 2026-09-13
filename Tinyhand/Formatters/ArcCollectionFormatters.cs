@@ -55,7 +55,7 @@ internal sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<Ord
         var keyFormatter = options.Resolver.GetFormatter<TKey>();
         var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
-        var count = reader.ReadMapHeader2();
+        var count = reader.ReadMapHeaderOrEmptyArray();
         if (value is null)
         {
             value = new();
@@ -65,7 +65,7 @@ internal sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<Ord
             value.Clear();
         }
 
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             for (var i = 0; i < count; i++)
@@ -148,7 +148,7 @@ internal sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
             value.Clear();
         }
 
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             for (var i = 0; i < count; i++)
@@ -225,7 +225,7 @@ internal sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatte
         var keyFormatter = options.Resolver.GetFormatter<TKey>();
         var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
-        var count = reader.ReadMapHeader2();
+        var count = reader.ReadMapHeaderOrEmptyArray();
         if (value is null)
         {
             value = new();
@@ -235,7 +235,7 @@ internal sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatte
             value.Clear();
         }
 
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             for (var i = 0; i < count; i++)
@@ -324,7 +324,7 @@ internal sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMu
             value.Clear();
         }
 
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             for (var i = 0; i < count; i++)
@@ -401,7 +401,7 @@ internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<U
         var keyFormatter = options.Resolver.GetFormatter<TKey>();
         var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
-        var count = reader.ReadMapHeader2();
+        var count = reader.ReadMapHeaderOrEmptyArray();
         if (value is null)
         {
             value = new();
@@ -411,7 +411,7 @@ internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<U
             value.Clear();
         }
 
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             for (var i = 0; i < count; i++)
@@ -500,7 +500,7 @@ internal sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet
             value.Clear();
         }
 
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             for (var i = 0; i < count; i++)
@@ -564,7 +564,7 @@ internal sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T
 
             var len = reader.ReadArrayHeader();
             value ??= new OrderedList<T>((int)len);
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (var i = 0; i < len; i++)
@@ -638,7 +638,7 @@ internal sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedLi
 
             var len = reader.ReadArrayHeader();
             value ??= new UnorderedList<T>((int)len);
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (var i = 0; i < len; i++)
@@ -712,7 +712,7 @@ internal sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unord
 
             var len = reader.ReadArrayHeader();
             value ??= new UnorderedLinkedList<T>();
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (var i = 0; i < len; i++)

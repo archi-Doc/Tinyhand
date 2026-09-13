@@ -192,7 +192,7 @@ public class TinyhandSecurity
     /// this should wrap *calls* to these methods. They need not appear in pure "thunk" methods that simply delegate the deserialization to another formatter.
     /// In this way, we can avoid repeatedly incrementing and decrementing the counter when deserializing each element of a collection.
     /// </remarks>
-    public void DepthStep(ref TinyhandReader reader)
+    public void IncrementDepth(ref TinyhandReader reader)
     {
         if (reader.Depth >= this.MaximumObjectGraphDepth)
         {

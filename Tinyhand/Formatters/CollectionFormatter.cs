@@ -42,10 +42,10 @@ internal sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hasht
         else
         {
             ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
-            var count = reader.ReadMapHeader2();
+            var count = reader.ReadMapHeaderOrEmptyArray();
             value ??= new();
 
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (var i = 0; i < count; i++)
@@ -119,7 +119,7 @@ internal sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
 
             var len = reader.ReadArrayHeader();
             value = len == 0 ? Array.Empty<T>() : new T[len];
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int i = 0; i < value.Length; i++)
@@ -322,7 +322,7 @@ internal sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnl
         writer.WriteBinHeader(checked((int)value.Length));
         foreach (ReadOnlyMemory<byte> segment in value)
         {
-            writer.WriteSpan(segment.Span);
+            writer.WriteRaw(segment.Span);
         }
     }
 
@@ -523,7 +523,7 @@ internal sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
 
             var len = reader.ReadArrayHeader();
             value ??= new List<T>((int)len);
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int i = 0; i < len; i++)
@@ -608,7 +608,7 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
                 }
                 else
                 {
-                    var scratchWriter = writer.Clone();
+                    var scratchWriter = writer.CreateWithSameSettings();
                     try
                     {
                         var count = 0;
@@ -622,7 +622,7 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
                         }
 
                         writer.WriteArrayHeader(count);
-                        writer.WriteSequence(scratchWriter.FlushAndGetReadOnlySequence());
+                        writer.WriteRaw(scratchWriter.FlushAndGetReadOnlySequence());
                     }
                     finally
                     {
@@ -645,7 +645,7 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
             var len = reader.ReadArrayHeader();
 
             TIntermediate list = this.Create(len, options);
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int i = 0; i < len; i++)
@@ -911,7 +911,7 @@ internal sealed class ReadOnlyCollectionFormatter<T> : CollectionFormatterBase<T
     }
 }
 
-internal sealed class InterfaceListFormatter2<T> : CollectionFormatterBase<T, List<T>, IList<T>>
+internal sealed class InterfaceListFormatter<T> : CollectionFormatterBase<T, List<T>, IList<T>>
 {
     protected override void Add(List<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -929,7 +929,7 @@ internal sealed class InterfaceListFormatter2<T> : CollectionFormatterBase<T, Li
     }
 }
 
-internal sealed class InterfaceCollectionFormatter2<T> : CollectionFormatterBase<T, List<T>, ICollection<T>>
+internal sealed class InterfaceCollectionFormatter<T> : CollectionFormatterBase<T, List<T>, ICollection<T>>
 {
     protected override void Add(List<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -996,7 +996,7 @@ internal sealed class InterfaceGroupingFormatter<TKey, TElement> : ITinyhandForm
                 throw new TinyhandException("Invalid Grouping format.");
             }
 
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 var key = options.Resolver.GetFormatter<TKey>().Deserialize(ref reader, options);

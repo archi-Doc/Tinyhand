@@ -134,7 +134,7 @@ public static partial class TinyhandSerializerExtensions
                 {
                     if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
                     {
-                        var r = reader.Clone(byteSequence.ToReadOnlySpan());
+                        var r = reader.CreateSubReader(byteSequence.ToReadOnlySpan());
                         value.Deserialize(ref r, options);
                     }
                     else

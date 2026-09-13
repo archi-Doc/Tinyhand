@@ -10,7 +10,7 @@ namespace Tinyhand;
 /// <summary>
 /// Deserializes values with the selected resolver and reconstructs null results.
 /// </summary>
-public static class TinyhandSerializerOptionsExtension
+public static class TinyhandSerializerOptionsExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T DeserializeAndReconstruct<T>(this TinyhandSerializerOptions options, ref TinyhandReader reader)
@@ -76,7 +76,7 @@ public record TinyhandSerializerOptions
     }
 
     [Flags]
-    public enum SerializationFlag
+    public enum SerializationFlags
     {
         /// <summary>
         /// Compress the data using the Lz4 algorithm.
@@ -91,7 +91,7 @@ public record TinyhandSerializerOptions
 
     public static TinyhandSerializerOptions Standard { get; } = new TinyhandSerializerOptions(StandardResolver.Instance);
 
-    public static TinyhandSerializerOptions Lz4 { get; } = Standard with { Flags = SerializationFlag.Lz4Compress, };
+    public static TinyhandSerializerOptions Lz4 { get; } = Standard with { Flags = SerializationFlags.Lz4Compress, };
 
     public static TinyhandSerializerOptions Exclude { get; } = Standard with { SerializationMode = Mode.Exclude, };
 
@@ -99,11 +99,11 @@ public record TinyhandSerializerOptions
 
     public static TinyhandSerializerOptions Special { get; } = Standard with { SerializationMode = Mode.Special, };
 
-    public static TinyhandSerializerOptions ConvertToString { get; } = Standard with { Flags = SerializationFlag.ConvertToString, };
+    public static TinyhandSerializerOptions ConvertToString { get; } = Standard with { Flags = SerializationFlags.ConvertToString, };
 
-    public static TinyhandSerializerOptions ConvertToSimpleString { get; } = Standard with { Flags = SerializationFlag.ConvertToString, Compose = TinyhandComposeOption.Simple, };
+    public static TinyhandSerializerOptions ConvertToSimpleString { get; } = Standard with { Flags = SerializationFlags.ConvertToString, Compose = TinyhandComposeOption.Simple, };
 
-    public static TinyhandSerializerOptions ConvertToStrictString { get; } = Standard with { Flags = SerializationFlag.ConvertToString, Compose = TinyhandComposeOption.Strict, };
+    public static TinyhandSerializerOptions ConvertToStrictString { get; } = Standard with { Flags = SerializationFlags.ConvertToString, Compose = TinyhandComposeOption.Strict, };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandSerializerOptions"/> class.
@@ -124,7 +124,7 @@ public record TinyhandSerializerOptions
     /// <summary>
     /// Gets the serialization flags.
     /// </summary>
-    public SerializationFlag Flags { get; init; }
+    public SerializationFlags Flags { get; init; }
 
     /// <summary>
     /// Gets the security policy for deserializing Tinyhand binary data.
@@ -160,11 +160,11 @@ public record TinyhandSerializerOptions
     /// <summary>
     /// Gets a value indicating whether this instance uses the standard formatter resolver.
     /// </summary>
-    public bool IsStandardResolver => this.Resolver == StandardResolver.Instance;
+    public bool UsesStandardResolver => this.Resolver == StandardResolver.Instance;
 
     /// <summary>Gets a value indicating whether LZ4 compression is enabled.</summary>
-    public bool HasLz4CompressFlag => (this.Flags & SerializationFlag.Lz4Compress) != 0;
+    public bool HasLz4CompressFlag => (this.Flags & SerializationFlags.Lz4Compress) != 0;
 
     /// <summary>Gets a value indicating whether string-convertible types use their text representation.</summary>
-    public bool HasConvertToStringFlag => (this.Flags & SerializationFlag.ConvertToString) != 0;
+    public bool HasConvertToStringFlag => (this.Flags & SerializationFlags.ConvertToString) != 0;
 }

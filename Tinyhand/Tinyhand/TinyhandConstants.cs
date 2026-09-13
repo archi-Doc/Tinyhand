@@ -25,13 +25,13 @@ public static class TinyhandConstants
     public const byte LineFeed = (byte)'\n';
     public const byte Tab = (byte)'\t';
     public const byte Separator = (byte)',';
-    public const byte Separator2 = (byte)';';
+    public const byte Semicolon = (byte)';';
     public const byte Quote = (byte)'"';
-    public const byte Quote2 = (byte)'\'';
+    public const byte SingleQuote = (byte)'\'';
     public const byte BackSlash = (byte)'\\';
     public const byte Slash = (byte)'/';
-    public const byte Sharp = (byte)'#';
-    public const byte BackSpace = (byte)'\b';
+    public const byte NumberSign = (byte)'#';
+    public const byte Backspace = (byte)'\b';
     public const byte FormFeed = (byte)'\f';
     public const byte Asterisk = (byte)'*';
     public const byte Colon = (byte)':';

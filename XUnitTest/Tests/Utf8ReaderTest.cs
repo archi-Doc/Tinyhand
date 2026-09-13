@@ -19,7 +19,7 @@ public class Utf8ReaderTest
         var list = new List<Atom>();
         while (reader.Read())
         {
-            list.Add(new(reader.AtomType, reader.ValueSpanToString, reader.AtomLineNumber));
+            list.Add(new(reader.AtomType, reader.ValueString, reader.AtomLineNumber));
         }
 
         return list;
@@ -32,8 +32,8 @@ public class Utf8ReaderTest
         var utf8 = Encoding.UTF8.GetBytes("\"no escapes here\"");
         var reader = new TinyhandUtf8Reader(utf8);
         reader.Read().IsTrue();
-        reader.AtomType.Is(TinyhandAtomType.Value_String);
-        reader.ValueSpanToString.Is("no escapes here");
+        reader.AtomType.Is(TinyhandAtomType.String);
+        reader.ValueString.Is("no escapes here");
         reader.ValueSpan.Overlaps(utf8).IsTrue();
     }
 
@@ -42,7 +42,7 @@ public class Utf8ReaderTest
     {
         var atoms = ReadAll("\"a\\nb\\tc\\\"d\\\\e\\u0041\"");
         atoms.Count.Is(1);
-        atoms[0].Type.Is(TinyhandAtomType.Value_String);
+        atoms[0].Type.Is(TinyhandAtomType.String);
         atoms[0].Value.Is("a\nb\tc\"d\\eA");
     }
 
@@ -127,11 +127,11 @@ public class Utf8ReaderTest
     public void Numbers()
     {
         var atoms = ReadAll("1 -2 3000000000 18446744073709551615 1.5 -2.5e3 0");
-        atoms[0].Type.Is(TinyhandAtomType.Value_Long);
-        atoms[2].Type.Is(TinyhandAtomType.Value_Long);
-        atoms[3].Type.Is(TinyhandAtomType.Value_ULong);
-        atoms[4].Type.Is(TinyhandAtomType.Value_Double);
-        atoms[5].Type.Is(TinyhandAtomType.Value_Double);
+        atoms[0].Type.Is(TinyhandAtomType.Long);
+        atoms[2].Type.Is(TinyhandAtomType.Long);
+        atoms[3].Type.Is(TinyhandAtomType.ULong);
+        atoms[4].Type.Is(TinyhandAtomType.Double);
+        atoms[5].Type.Is(TinyhandAtomType.Double);
 
         var utf8 = Encoding.UTF8.GetBytes("1 -2 3000000000 18446744073709551615 1.5 -2.5e3 0");
         var reader = new TinyhandUtf8Reader(utf8);
@@ -178,9 +178,9 @@ public class Utf8ReaderTest
     public void Keywords()
     {
         var atoms = ReadAll("null true false");
-        atoms[0].Type.Is(TinyhandAtomType.Value_Null);
-        atoms[1].Type.Is(TinyhandAtomType.Value_True);
-        atoms[2].Type.Is(TinyhandAtomType.Value_False);
+        atoms[0].Type.Is(TinyhandAtomType.Null);
+        atoms[1].Type.Is(TinyhandAtomType.True);
+        atoms[2].Type.Is(TinyhandAtomType.False);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class Utf8ReaderTest
         var utf8 = Encoding.UTF8.GetBytes("b\"AQIDBA\"");
         var reader = new TinyhandUtf8Reader(utf8);
         reader.Read().IsTrue();
-        reader.AtomType.Is(TinyhandAtomType.Value_Base64);
+        reader.AtomType.Is(TinyhandAtomType.Binary);
         reader.ValueBinary!.SequenceEqual(new byte[] { 1, 2, 3, 4, }).IsTrue();
     }
 
@@ -220,7 +220,7 @@ public class Utf8ReaderTest
         var utf8 = new byte[] { 0xEF, 0xBB, 0xBF, (byte)'a', };
         var reader = new TinyhandUtf8Reader(utf8);
         reader.Read().IsTrue();
-        reader.ValueSpanToString.Is("a");
+        reader.ValueString.Is("a");
     }
 
     [Fact]

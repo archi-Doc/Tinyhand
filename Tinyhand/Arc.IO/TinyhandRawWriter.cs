@@ -63,7 +63,7 @@ public ref struct TinyhandRawWriter
     public void Ensure(int sizeHint)
         => this.writer.Ensure(sizeHint);
 
-    public void WriteSpan(scoped ReadOnlySpan<byte> span)
+    public void WriteRaw(scoped ReadOnlySpan<byte> span)
         => this.writer.Write(span);
 
     public void WriteEscapedUtf8(ReadOnlySpan<byte> utf8)
@@ -100,7 +100,7 @@ public ref struct TinyhandRawWriter
                 default:
                     if (utf8[i] < 0x20)
                     {
-                        this.WriteSpan(utf8.Slice(from, i - from));
+                        this.WriteRaw(utf8.Slice(from, i - from));
                         from = i + 1;
                         var escaped = this.writer.GetSpan(6);
                         "\\u00"u8.CopyTo(escaped);
@@ -112,7 +112,7 @@ public ref struct TinyhandRawWriter
                     continue;
             }
 
-            this.WriteSpan(utf8.Slice(from, i - from));
+            this.WriteRaw(utf8.Slice(from, i - from));
             from = i + 1;
             this.WriteUInt8((byte)'\\');
             this.WriteUInt8(escapeChar);
@@ -120,7 +120,7 @@ public ref struct TinyhandRawWriter
 
         if (from != utf8.Length)
         {
-            this.WriteSpan(utf8.Slice(from, utf8.Length - from));
+            this.WriteRaw(utf8.Slice(from, utf8.Length - from));
         }
     }
 
@@ -180,9 +180,9 @@ public ref struct TinyhandRawWriter
         this.writer.Advance(8);
     }
 
-    public void WriteLF() => this.WriteUInt8(0x0A);
+    public void WriteLineFeed() => this.WriteUInt8(0x0A);
 
-    public bool WriteStringInt64(long value)
+    public bool TryWriteInt64Text(long value)
     {
         Span<byte> span = this.writer.GetSpan(20);
         if (Utf8Formatter.TryFormat(value, span, out var written))
@@ -195,7 +195,7 @@ public ref struct TinyhandRawWriter
         return false;
     }
 
-    public bool WriteStringUInt64(ulong value)
+    public bool TryWriteUInt64Text(ulong value)
     {
         Span<byte> span = this.writer.GetSpan(20);
         if (Utf8Formatter.TryFormat(value, span, out var written))
@@ -208,21 +208,21 @@ public ref struct TinyhandRawWriter
         return false;
     }
 
-    public bool WriteStringSingle(float value)
+    public bool TryWriteSingleText(float value)
     {
         if (float.IsNaN(value))
         {
-            this.WriteSpan(TinyhandConstants.DoubleNaNSpan);
+            this.WriteRaw(TinyhandConstants.DoubleNaNSpan);
             return true;
         }
         else if (float.IsPositiveInfinity(value))
         {
-            this.WriteSpan(TinyhandConstants.DoublePositiveInfinitySpan);
+            this.WriteRaw(TinyhandConstants.DoublePositiveInfinitySpan);
             return true;
         }
         else if (float.IsNegativeInfinity(value))
         {
-            this.WriteSpan(TinyhandConstants.DoubleNegativeInfinitySpan);
+            this.WriteRaw(TinyhandConstants.DoubleNegativeInfinitySpan);
             return true;
         }
 
@@ -237,21 +237,21 @@ public ref struct TinyhandRawWriter
         return false;
     }
 
-    public bool WriteStringDouble(double value)
+    public bool TryWriteDoubleText(double value)
     {
         if (double.IsNaN(value))
         {
-            this.WriteSpan(TinyhandConstants.DoubleNaNSpan);
+            this.WriteRaw(TinyhandConstants.DoubleNaNSpan);
             return true;
         }
         else if (double.IsPositiveInfinity(value))
         {
-            this.WriteSpan(TinyhandConstants.DoublePositiveInfinitySpan);
+            this.WriteRaw(TinyhandConstants.DoublePositiveInfinitySpan);
             return true;
         }
         else if (double.IsNegativeInfinity(value))
         {
-            this.WriteSpan(TinyhandConstants.DoubleNegativeInfinitySpan);
+            this.WriteRaw(TinyhandConstants.DoubleNegativeInfinitySpan);
             return true;
         }
 
@@ -266,7 +266,7 @@ public ref struct TinyhandRawWriter
         return false;
     }
 
-    public void MessagePackInt32(int value)
+    public void WriteMessagePackInt32(int value)
     {
         Span<byte> span = this.writer.GetSpan(5);
         span[0] = 0xd2;

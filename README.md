@@ -135,7 +135,7 @@ Generated types and their containing types must be `partial` where the generator
 
 ### Generated properties and length limits
 
-`Key.AddProperty` generates a property over a field. `Key.PropertyAccessibility` selects a public setter, protected setter, or getter-only wrapper. Tinyhand also implements keyed partial properties.
+`Key.PropertyName` generates a property over a field. `Key.PropertyAccessibility` selects a public setter, protected setter, or getter-only wrapper. Tinyhand also implements keyed partial properties.
 
 `[MaxLength]` truncates strings, arrays, and lists during deserialization and in generated setters. Its second argument limits supported child strings or arrays; a negative limit leaves that dimension unrestricted. Direct writes to backing fields or ordinary setters do not apply this check.
 
@@ -143,7 +143,7 @@ Generated types and their containing types must be `partial` where the generator
 [TinyhandObject]
 public partial class LimitedValues
 {
-    [Key(0, AddProperty = "Name")]
+    [Key(0, PropertyName = "Name")]
     [MaxLength(20)]
     private string name = string.Empty;
 
@@ -221,10 +221,10 @@ Set `TinyhandSerializer.ServiceProvider` before deserialization or reconstructio
 
 Annotate parameterless instance methods with `TinyhandOnSerializing`, `TinyhandOnSerialized`, `TinyhandOnDeserializing`, `TinyhandOnDeserialized`, or `TinyhandOnReconstructed`. Callbacks are not inherited by derived classes.
 
-Set `LockObject` to the name of a lock member to synchronize serialization and deserialization. Their callbacks execute while that lock is held.
+Set `LockMemberName` to the name of a lock member to synchronize serialization and deserialization. Their callbacks execute while that lock is held.
 
 ```csharp
-[TinyhandObject(LockObject = nameof(syncObject))]
+[TinyhandObject(LockMemberName = nameof(syncObject))]
 public partial class Counter
 {
     private readonly object syncObject = new();
@@ -281,13 +281,13 @@ Serialize with the declared union type, for example `TinyhandSerializer.Serializ
 
 ### Alternate keys and enum names
 
-`AddAlternateKey = true` keeps integer keys for ordinary binary serialization and adds string keys for text serialization. Names default to member names; `Key.Alternate` supplies a stable alternative.
+`AddAlternateKey = true` keeps integer keys for ordinary binary serialization and adds string keys for text serialization. Names default to member names; `Key.AlternateKey` supplies a stable alternative.
 
 ```csharp
 [TinyhandObject(AddAlternateKey = true)]
 public partial class NamedValue
 {
-    [Key(0, Alternate = "value")]
+    [Key(0, AlternateKey = "value")]
     public int Value { get; set; }
 }
 ```
@@ -416,7 +416,7 @@ Person? copy = TinyhandSerializer.Deserialize<Person>(bytes, options);
 
 This policy rejects hash-based collections with `object` keys, including `Dictionary<object, ...>`, `HashSet<object>`, `ILookup<object, ...>`, and maps read through `object`, even when their keys happen to be strings. Use supported concrete keys such as `string` or `int`. Object scalars and arrays without nested maps remain supported.
 
-Custom formatters that read nested values should call `options.Security.DepthStep(ref reader)` and decrement `reader.Depth` in a `finally` block. Depth and comparer policies do not impose a total input-size limit; bound input sizes in the calling application.
+Custom formatters that read nested values should call `options.Security.IncrementDepth(ref reader)` and decrement `reader.Depth` in a `finally` block. Depth and comparer policies do not impose a total input-size limit; bound input sizes in the calling application.
 
 ## Custom serialization and formatters
 
@@ -501,13 +501,13 @@ See [NativeAOT setup and migration notes](doc/NativeAOT.md) for diagnostics, pub
 
 `[TinyhandGenerateMember("data.tinyhand")]` generates initialized members and nested classes from a text file. `[TinyhandGenerateHash("strings.tinyhand")]` generates identifier hash constants. Apply these attributes to partial types; relative paths are resolved from the declaring source file.
 
-`HashedString` loads localized strings from files, streams, or embedded resources and retrieves them by identifier or hash. Use `SetDefaultCulture` and `ChangeCulture` to select tables; lookups fall back to the default culture. `GetOrEmpty` and `GetOrAlternative` control missing-string behavior.
+`HashedString` loads localized strings from files, streams, or embedded resources and retrieves them by identifier or hash. Use `SetDefaultCulture` and `TrySetCurrentCulture` to select tables; lookups fall back to the default culture. `GetOrEmpty` and `GetOrAlternative` control missing-string behavior.
 
 ## Structural objects and journaling
 
 `[TinyhandObject(Structural = true)]` generates `IStructuralObject` support for parent-child links and journal operations. Generated setters can record changes through an attached `IStructuralRoot`; direct backing-field writes bypass those setters.
 
-The host supplies journal storage and save scheduling through `IStructuralRoot`. `ITinyhandCustomJournal` handles custom records, `JournalHelper.ReadJournal` replays records, and `JournalTester` provides an in-memory root for tests. See [journal examples](XUnitTest/Tests/JournalTest.cs).
+The host supplies journal storage and save scheduling through `IStructuralRoot`. `ITinyhandCustomJournal` handles custom records, `JournalHelper.ReplayJournal` replays records, and `JournalTester` provides an in-memory root for tests. See [journal examples](XUnitTest/Tests/JournalTest.cs).
 
 ## Tinyhand Processor
 
