@@ -18,16 +18,16 @@ public enum CallbackKind
     OnReconstructed,
 }
 
-public class CallbackMethod
+public class TinyhandCallbackMethod
 {
-    public static CallbackMethod? TryCreate(TinyhandObject method)
+    public static TinyhandCallbackMethod? TryCreate(TinyhandObject method)
     {
         var kind = CallbackKind.None;
         var error = false;
         foreach (var y in method.AllAttributes)
         {
             var currentKind = CallbackKind.None;
-            if (y.FullName == TinyhandOnSerializingAttributeMock.FullName)
+            if (y.FullName == TinyhandOnSerializingAttributeData.FullName)
             {// OnSerializing
                 if (!method.IsStatic && method.Method_Parameters.Length == 0)
                 {
@@ -35,11 +35,11 @@ public class CallbackMethod
                 }
                 else
                 {
-                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMetohd, method.Location);
+                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMethod, method.Location);
                     error = true;
                 }
             }
-            else if (y.FullName == TinyhandOnSerializedAttributeMock.FullName)
+            else if (y.FullName == TinyhandOnSerializedAttributeData.FullName)
             {// OnSerialized
                 if (!method.IsStatic && method.Method_Parameters.Length == 0)
                 {
@@ -47,11 +47,11 @@ public class CallbackMethod
                 }
                 else
                 {
-                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMetohd, method.Location);
+                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMethod, method.Location);
                     error = true;
                 }
             }
-            else if (y.FullName == TinyhandOnDeserializingAttributeMock.FullName)
+            else if (y.FullName == TinyhandOnDeserializingAttributeData.FullName)
             {// OnDeserializing
                 if (!method.IsStatic && method.Method_Parameters.Length == 0)
                 {
@@ -59,11 +59,11 @@ public class CallbackMethod
                 }
                 else
                 {
-                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMetohd, method.Location);
+                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMethod, method.Location);
                     error = true;
                 }
             }
-            else if (y.FullName == TinyhandOnDeserializedAttributeMock.FullName)
+            else if (y.FullName == TinyhandOnDeserializedAttributeData.FullName)
             {// OnDeserialized
                 if (!method.IsStatic && method.Method_Parameters.Length == 0)
                 {
@@ -71,11 +71,11 @@ public class CallbackMethod
                 }
                 else
                 {
-                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMetohd, method.Location);
+                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMethod, method.Location);
                     error = true;
                 }
             }
-            else if (y.FullName == TinyhandOnReconstructedAttributeMock.FullName)
+            else if (y.FullName == TinyhandOnReconstructedAttributeData.FullName)
             {// OnReconstructed
                 if (!method.IsStatic && method.Method_Parameters.Length == 0)
                 {
@@ -83,7 +83,7 @@ public class CallbackMethod
                 }
                 else
                 {
-                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMetohd, method.Location);
+                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackMethod, method.Location);
                     error = true;
                 }
             }
@@ -96,7 +96,7 @@ public class CallbackMethod
                 }
                 else
                 {
-                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackAttribute, y.Location);
+                    method.Body.ReportDiagnostic(TinyhandBody.Error_CallbackAttributeConflict, y.Location);
                     error = true;
                 }
             }
@@ -110,7 +110,7 @@ public class CallbackMethod
         return new(kind, method);
     }
 
-    private CallbackMethod(CallbackKind kind, TinyhandObject method)
+    private TinyhandCallbackMethod(CallbackKind kind, TinyhandObject method)
     {
         this.Kind = kind;
         this.Method = method;

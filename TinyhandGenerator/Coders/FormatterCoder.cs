@@ -92,8 +92,8 @@ public sealed class FormatterResolver : ICoderResolver
 
         this.AddFormatter(typeof(System.Net.IPAddress));
         this.AddFormatter(typeof(System.Net.IPEndPoint));
-        // this.AddFormatter("Arc.Collections.BytePool.RentMemory");
-        // this.AddFormatter("Arc.Collections.BytePool.RentReadOnlyMemory");
+        // this.AddFormatter("Arc.Collections.BytePool.RentedMemory");
+        // this.AddFormatter("Arc.Collections.BytePool.RentedReadOnlyMemory");
         this.AddFormatter("Arc.Struct128");
         this.AddFormatter("Arc.Struct256");
 
@@ -298,12 +298,12 @@ internal class FormatterCoder : ITinyhandCoder
 
     public bool NonNullableReference { get; }
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Serialize(ref writer, {ssb.FullObject}, options);");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         if (!this.NonNullableReference)
         {// Value type or Nullable reference type
@@ -315,12 +315,12 @@ internal class FormatterCoder : ITinyhandCoder
         }
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Reconstruct(options);");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.FullNameWithNullable}>().Clone({sourceObject}, options)!;");
     }

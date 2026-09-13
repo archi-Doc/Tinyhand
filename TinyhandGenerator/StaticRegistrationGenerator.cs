@@ -407,7 +407,15 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
                 this.Add(array.ElementType);
                 if (array.Rank <= 4)
                 {
-                    this.registrations.Add((type, $"{Resolver}.RegisterArray{(array.Rank == 1 ? string.Empty : array.Rank.ToString())}<{Name(array.ElementType)}>();"));
+                    var method = array.Rank switch
+                    {
+                        1 => "RegisterArray",
+                        2 => "RegisterTwoDimensionalArray",
+                        3 => "RegisterThreeDimensionalArray",
+                        _ => "RegisterFourDimensionalArray",
+                    };
+
+                    this.registrations.Add((type, $"{Resolver}.{method}<{Name(array.ElementType)}>();"));
                 }
 
                 return;

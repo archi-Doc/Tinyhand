@@ -1,10 +1,9 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
 using Arc.Visceral;
-using Tinyhand.Coders;
 using Tinyhand.Generator;
 
-namespace Tinyhand;
+namespace Tinyhand.Coders;
 
 /// <summary>
 /// Allows querying for a coder for serializing or deserializing a particular <see cref="TinyhandObject" />.

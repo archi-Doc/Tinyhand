@@ -37,10 +37,10 @@ public class TypeIdentifierTest
         TinyhandTypeIdentifier.TryDeserialize(typeIdentifier, r.RentMemory.Span).Equals(tc).IsTrue();
 
         var reader = new TinyhandReader(r.RentMemory.Span);
-        TinyhandTypeIdentifier.TryDeserializeReader(typeIdentifier, ref reader).Equals(tc).IsTrue();
+        TinyhandTypeIdentifier.TryDeserialize(typeIdentifier, ref reader).Equals(tc).IsTrue();
 
         var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
-        TinyhandTypeIdentifier.TrySerializeWriter(ref writer, typeIdentifier, tc).IsTrue();
+        TinyhandTypeIdentifier.TrySerialize(ref writer, typeIdentifier, tc).IsTrue();
         var bin = writer.FlushAndGetArray();
         bin.AsSpan().SequenceEqual(r.RentMemory.Span).IsTrue();
 

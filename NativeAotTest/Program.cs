@@ -34,9 +34,9 @@ Check(TinyhandTypeIdentifier.TryReconstruct(identifier) is Item, "identifier rec
 var writer = TinyhandWriter.CreateFromThreadStaticBuffer();
 try
 {
-    Check(TinyhandTypeIdentifier.TrySerializeWriter(ref writer, identifier, item), "writer adapter");
+    Check(TinyhandTypeIdentifier.TrySerialize(ref writer, identifier, item), "writer adapter");
     var reader = new TinyhandReader(writer.FlushAndGetArray());
-    Check(TinyhandTypeIdentifier.TryDeserializeReader(identifier, ref reader) is Item { Number: 42 }, "reader adapter");
+    Check(TinyhandTypeIdentifier.TryDeserialize(identifier, ref reader) is Item { Number: 42 }, "reader adapter");
 }
 finally
 {

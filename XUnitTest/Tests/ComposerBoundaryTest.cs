@@ -16,9 +16,9 @@ public class ComposerBoundaryTest
     public void AllAsciiControlCharactersRoundTrip(int repeat)
     {
         var value = "prefix" + new string(Enumerable.Range(0, 32 * repeat).Select(x => (char)(x % 32)).ToArray()) + "日本語\"\\suffix";
-        var bytes = TinyhandComposer.Compose(new Value_String(value));
+        var bytes = TinyhandComposer.Compose(new StringValue(value));
         var parsed = (Group)TinyhandParser.Parse(bytes);
-        Assert.Equal(value, Assert.IsType<Value_String>(Assert.Single(parsed.ElementList)).Utf16);
+        Assert.Equal(value, Assert.IsType<StringValue>(Assert.Single(parsed.ElementList)).Utf16);
         Assert.Equal(value, TinyhandSerializer.DeserializeFromString<string>(TinyhandSerializer.SerializeToString(value)));
     }
 

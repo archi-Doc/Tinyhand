@@ -6,7 +6,7 @@ using Tinyhand;
 
 namespace XUnitTest.Tests;
 
-[TinyhandObject(LockObject = "syncObject")]
+[TinyhandObject(LockMemberName = "syncObject")]
 public partial class LockObjectClass
 {
     [Key(0)]
@@ -15,7 +15,7 @@ public partial class LockObjectClass
     protected object syncObject = new();
 }
 
-[TinyhandObject(LockObject = "syncObject")]
+[TinyhandObject(LockMemberName = "syncObject")]
 public partial class LockObjectClass2 : LockObjectClass
 {
     public LockObjectClass2()
@@ -49,7 +49,7 @@ public partial class LockObjectCollection
     public LockObjectClass2b Class2b { get; set; } = default!;
 }
 
-[TinyhandObject(LockObject = "syncObject")]
+[TinyhandObject(LockMemberName = "syncObject")]
 public partial struct LockObjectStruct
 {
     public LockObjectStruct()
@@ -62,7 +62,7 @@ public partial struct LockObjectStruct
     private object syncObject = new();
 }
 
-[TinyhandObject(Structural = true, LockObject = "semaphore")]
+[TinyhandObject(Structural = true, LockMemberName = "semaphore")]
 public partial class LockObjectClass3
 {
     [Key(0)]
@@ -74,7 +74,7 @@ public partial class LockObjectClass3
     protected SemaphoreLock semaphore = new();
 }
 
-[TinyhandObject(LockObject = "semaphore")]
+[TinyhandObject(LockMemberName = "semaphore")]
 public partial class LockObjectClass4
 {
     [Key(0)]
@@ -88,7 +88,7 @@ public partial class LockObjectClass5 : LockObjectClass4
 {
 }
 
-[TinyhandObject(LockObject = "lockObject")]
+[TinyhandObject(LockMemberName = "lockObject")]
 public partial class LockObjectClass6
 {
     [Key(0)]

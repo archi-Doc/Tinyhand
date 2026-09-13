@@ -165,7 +165,7 @@ public static partial class TinyhandSerializer
         T.Serialize(ref writer, ref Unsafe.AsRef(in value), options);
     }
 
-    public static BytePool.RentMemory SerializeObjectToRentMemory<T>(in T? value, TinyhandSerializerOptions? options = null)
+    public static BytePool.RentedMemory SerializeObjectToRentMemory<T>(in T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>
     {
         options = options ?? TinyhandSerializer.DefaultOptions;
@@ -188,7 +188,7 @@ public static partial class TinyhandSerializer
     public static void ReadStringConvertibleOrDeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>, IStringConvertible<T>
     {
-        var st = reader.TryReadString();
+        var st = reader.ReadStringIfPresent();
         if (st is not null)
         {
             T.TryParse(st, out value, out _);
@@ -199,10 +199,10 @@ public static partial class TinyhandSerializer
         }
     }
 
-    public static void ReadStringConvertibleOrDeserializeObject2<T>(ref TinyhandReader reader, scoped ref T value, TinyhandSerializerOptions? options = null)
+    public static void ReadStringConvertibleOrDeserializeAndReconstructObject<T>(ref TinyhandReader reader, scoped ref T value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>, ITinyhandReconstructable<T>, IStringConvertible<T>
     {
-        var st = reader.TryReadString();
+        var st = reader.ReadStringIfPresent();
         if (st is not null)
         {
             T.TryParse(st, out value!, out _);
@@ -338,13 +338,13 @@ public static partial class TinyhandSerializer
     /// <summary>
     /// Reconstructs a Tinyhand object through its static reconstruction method.
     /// </summary>
-    /// <param name="obj">The object to reconstruct.</param>
+    /// <param name="value">The object to reconstruct.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
-    public static void ReconstructObject<T>([NotNull] scoped ref T? obj, TinyhandSerializerOptions? options = null)
+    public static void ReconstructObject<T>([NotNull] scoped ref T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandReconstructable<T>
     {
         options = options ?? DefaultOptions;
-        T.Reconstruct(ref obj, options);
+        T.Reconstruct(ref value, options);
     }
 
     public static T ReconstructObject<T>(TinyhandSerializerOptions? options = null)
@@ -359,15 +359,15 @@ public static partial class TinyhandSerializer
     /// <summary>
     /// Creates a deep copy of the object.
     /// </summary>
-    /// <param name="obj">The object to clone.</param>
+    /// <param name="value">The object to clone.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The cloned value, or null if the input is null.</returns>
-    [return: NotNullIfNotNull(nameof(obj))]
-    public static T? CloneObject<T>(in T? obj, TinyhandSerializerOptions? options = null)
+    [return: NotNullIfNotNull(nameof(value))]
+    public static T? CloneObject<T>(in T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandCloneable<T>
     {
         options = options ?? DefaultOptions;
-        return T.Clone(ref Unsafe.AsRef(in obj), options);
+        return T.Clone(ref Unsafe.AsRef(in value), options);
     }
 
     #endregion
@@ -404,14 +404,14 @@ public static partial class TinyhandSerializer
     /// <summary>
     /// Creates a deep copy of the object.
     /// </summary>
-    /// <param name="obj">The object to clone.</param>
+    /// <param name="value">The object to clone.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The cloned value, or null if the input is null.</returns>
-    [return: NotNullIfNotNull(nameof(obj))]
-    public static T? Clone<T>(T? obj, TinyhandSerializerOptions? options = null)
+    [return: NotNullIfNotNull(nameof(value))]
+    public static T? Clone<T>(T? value, TinyhandSerializerOptions? options = null)
     {
         options = options ?? DefaultOptions;
-        return options.Resolver.GetFormatter<T>().Clone(obj, options);
+        return options.Resolver.GetFormatter<T>().Clone(value, options);
     }
 
     /// <summary>
@@ -489,13 +489,13 @@ public static partial class TinyhandSerializer
     }
 
     /// <summary>
-    /// Serializes a given value to a <see cref="BytePool.RentMemory"/>.
+    /// Serializes a given value to a <see cref="BytePool.RentedMemory"/>.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The options. Set <see langword="null"/> to use default options.</param>
     /// <returns>The serialized bytes. Return the memory to its pool after use.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during serialization.</exception>
-    public static BytePool.RentMemory SerializeToRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
+    public static BytePool.RentedMemory SerializeToRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
     {
         options = options ?? DefaultOptions;
         var writer = TinyhandWriter.CreateFromBytePool();
@@ -786,7 +786,7 @@ public static partial class TinyhandSerializer
                 {
                     if (TryDecompress(ref reader, byteSequence))
                     {
-                        var r = reader.Clone(byteSequence.ToReadOnlySpan());
+                        var r = reader.CreateSubReader(byteSequence.ToReadOnlySpan());
                         return options.Resolver.GetFormatter<T>().Deserialize(ref r, options);
                     }
                     else
@@ -931,7 +931,7 @@ public static partial class TinyhandSerializer
                     throw new TinyhandException("Invalid LZ4 block length metadata.");
                 }
 
-                var lengthReader = reader.Clone(reader.ReadRaw(checked((int)header.Length)));
+                var lengthReader = reader.CreateSubReader(reader.ReadRaw(checked((int)header.Length)));
                 var uncompressedLengths = ArrayPool<int>.Shared.Rent(sequenceCount);
                 try
                 {

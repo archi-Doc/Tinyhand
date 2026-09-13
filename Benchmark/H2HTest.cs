@@ -173,7 +173,7 @@ public class H2HBenchmark
     }
 
     [Benchmark]
-    public BytePool.RentMemory SerializeTinyhandRentMemory()
+    public BytePool.RentedMemory SerializeTinyhandRentMemory()
     {
         var rentMemory = TinyhandSerializer.SerializeObjectToRentMemory(this.h2h);
         rentMemory.Return();

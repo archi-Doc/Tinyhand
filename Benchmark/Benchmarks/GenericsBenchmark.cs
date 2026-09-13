@@ -112,7 +112,7 @@ public partial class CustomIntClass : ITinyhandSerializable<CustomIntClass>
 
         value ??= new();
         var numberOfData = reader.ReadArrayHeader();
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             if (numberOfData-- > 0 && !reader.TryReadNil())

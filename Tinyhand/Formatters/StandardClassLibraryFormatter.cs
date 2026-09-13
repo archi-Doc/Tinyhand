@@ -174,7 +174,7 @@ internal sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<K
         }
 
         IFormatterResolver resolver = options.Resolver;
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             var key = resolver.GetFormatter<TKey>().Deserialize(ref reader, options);
@@ -235,9 +235,9 @@ internal sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<K
             var keyFormatter = options.Resolver.GetFormatter<TKey>();
             var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
-            var count = reader.ReadMapHeader2();
+            var count = reader.ReadMapHeaderOrEmptyArray();
             value ??= new KeyValueList<TKey, TValue>(count);
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int i = 0; i < count; i++)
@@ -450,7 +450,7 @@ internal sealed class LazyFormatter<[DynamicallyAccessedMembers(DynamicallyAcces
     {
         if (!reader.TryReadNil())
         {
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 // deserialize immediately(no delay, because capture byte[] causes memory leak)

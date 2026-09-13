@@ -77,14 +77,14 @@ public class TreeConverterElementTest
         var group = (Group)element;
         group.ElementList.Count.Is(10);
 
-        ((Value)group.ElementList[0]).ValueType.Is(ValueElementType.Value_Long);
-        ((Value)group.ElementList[1]).ValueType.Is(ValueElementType.Value_Long);
-        ((Value)group.ElementList[2]).ValueType.Is(ValueElementType.Value_Long);
-        ((Value)group.ElementList[3]).ValueType.Is(ValueElementType.Value_Double);
-        ((Value)group.ElementList[4]).ValueType.Is(ValueElementType.Value_Bool);
-        ((Value)group.ElementList[6]).ValueType.Is(ValueElementType.Value_Null);
-        ((Value)group.ElementList[7]).ValueType.Is(ValueElementType.Value_String);
-        ((Value)group.ElementList[8]).ValueType.Is(ValueElementType.Value_Binary);
+        ((Value)group.ElementList[0]).ValueType.Is(ValueElementType.Long);
+        ((Value)group.ElementList[1]).ValueType.Is(ValueElementType.Long);
+        ((Value)group.ElementList[2]).ValueType.Is(ValueElementType.Long);
+        ((Value)group.ElementList[3]).ValueType.Is(ValueElementType.Double);
+        ((Value)group.ElementList[4]).ValueType.Is(ValueElementType.Bool);
+        ((Value)group.ElementList[6]).ValueType.Is(ValueElementType.Null);
+        ((Value)group.ElementList[7]).ValueType.Is(ValueElementType.String);
+        ((Value)group.ElementList[8]).ValueType.Is(ValueElementType.Binary);
         group.ElementList[9].Type.Is(ElementType.Group);
 
         // The tree keeps the values, but the integers are rewritten in the most compact encoding

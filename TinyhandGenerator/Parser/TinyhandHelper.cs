@@ -104,7 +104,7 @@ internal static class TinyhandHelper
                         break;
 
                     case (byte)'b':
-                        destination[written++] = TinyhandConstants.BackSpace;
+                        destination[written++] = TinyhandConstants.Backspace;
                         break;
                     case (byte)'f':
                         destination[written++] = TinyhandConstants.FormFeed;

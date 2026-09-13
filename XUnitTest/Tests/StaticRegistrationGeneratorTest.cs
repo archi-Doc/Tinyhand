@@ -301,7 +301,7 @@ public partial class StaticRegistrationGeneratorTest
             var options = new CSharpParseOptions(LanguageVersion.Preview);
             var compilation = CSharpCompilation.Create("ParallelGenerators", new[] { CSharpSyntaxTree.ParseText(source, options, cancellationToken: cancellationToken) }, References,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
-            var result = CSharpGeneratorDriver.Create(new[] { new TinyhandGeneratorV2().AsSourceGenerator(), new StaticRegistrationGenerator().AsSourceGenerator() }, parseOptions: options)
+            var result = CSharpGeneratorDriver.Create(new[] { new TinyhandGenerator().AsSourceGenerator(), new StaticRegistrationGenerator().AsSourceGenerator() }, parseOptions: options)
                 .RunGeneratorsAndUpdateCompilation(compilation, out var output, out _, cancellationToken).GetRunResult();
             Assert.DoesNotContain(result.Diagnostics, x => x.Severity == DiagnosticSeverity.Error || x.Id == "CS8785");
             Assert.DoesNotContain(output.GetDiagnostics(cancellationToken), x => x.Severity == DiagnosticSeverity.Error);

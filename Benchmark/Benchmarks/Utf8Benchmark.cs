@@ -99,7 +99,7 @@ public class Utf8Benchmark
     {
         var reader = new TinyhandReader(this.stringConvertibleData);
         var value = default(StringConvertibleValue);
-        reader.TryReadStringConvertible(ref value);
+        reader.ReadStringConvertible(ref value);
         return value.Value;
     }*/
 

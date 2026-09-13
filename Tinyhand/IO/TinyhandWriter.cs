@@ -72,7 +72,7 @@ public ref struct TinyhandWriter
     /// Initializes a new instance of the <see cref="TinyhandWriter"/> struct with a rented buffer.
     /// </summary>
     /// <param name="array">The rented buffer managed by this writer.</param>
-    public TinyhandWriter(BytePool.RentArray array)
+    public TinyhandWriter(BytePool.RentedArray array)
     {
         this.writer = new ByteBufferWriter(array);
     }
@@ -107,7 +107,7 @@ public ref struct TinyhandWriter
     /// </summary>
     /// <param name="writer">The writer to use for the new instance.</param>
     /// <returns>The new writer.</returns>
-    public TinyhandWriter Clone(IBufferWriter<byte> writer) => new TinyhandWriter(writer)
+    public TinyhandWriter CreateWithSameSettings(IBufferWriter<byte> writer) => new TinyhandWriter(writer)
     {
         Level = this.Level,
     };
@@ -118,7 +118,7 @@ public ref struct TinyhandWriter
     /// </summary>
     /// <param name="initialBuffer">The buffer to use for the new instance.</param>
     /// <returns>The new writer.</returns>
-    public TinyhandWriter Clone(byte[] initialBuffer) => new TinyhandWriter(initialBuffer)
+    public TinyhandWriter CreateWithSameSettings(byte[] initialBuffer) => new TinyhandWriter(initialBuffer)
     {
         Level = this.Level,
     };
@@ -128,7 +128,7 @@ public ref struct TinyhandWriter
     /// with the same settings as this one, but with its own buffer writer.
     /// </summary>
     /// <returns>The new writer.</returns>
-    public TinyhandWriter Clone() => new TinyhandWriter()
+    public TinyhandWriter CreateWithSameSettings() => new TinyhandWriter()
     {
         Level = this.Level,
     };
@@ -174,7 +174,7 @@ public ref struct TinyhandWriter
     /// Flushes and obtains the written data as rented memory.
     /// </summary>
     /// <returns>The memory, which the caller must return.</returns>
-    public BytePool.RentMemory FlushAndGetRentMemory()
+    public BytePool.RentedMemory FlushAndGetRentMemory()
         => this.writer.FlushAndGetRentMemory();
 
     /// <summary>
@@ -219,13 +219,13 @@ public ref struct TinyhandWriter
     /// Copies bytes directly into the message pack writer.
     /// </summary>
     /// <param name="span">The span of bytes to copy from.</param>
-    public void WriteSpan(scoped ReadOnlySpan<byte> span) => this.writer.Write(span);
+    public void WriteRaw(scoped ReadOnlySpan<byte> span) => this.writer.Write(span);
 
     /// <summary>
     /// Copies bytes directly into the message pack writer.
     /// </summary>
     /// <param name="sequence">The span of bytes to copy from.</param>
-    public void WriteSequence(scoped in ReadOnlySequence<byte> sequence)
+    public void WriteRaw(scoped in ReadOnlySequence<byte> sequence)
     {
         foreach (ReadOnlyMemory<byte> segment in sequence)
         {
@@ -349,7 +349,7 @@ public ref struct TinyhandWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe void WriteNil()
     {
-        /*fixed (byte* b = &this.writer.GetPointer(1))
+        /*fixed (byte* b = &this.writer.GetReference(1))
         {
             b[0] = MessagePackCode.Nil;
         }*/
@@ -1058,7 +1058,7 @@ public ref struct TinyhandWriter
     /// <param name="length">The length of bytes that will be written next.</param>
     /// <remarks>
     /// <para>
-    /// The caller should use <see cref="WriteSequence(in ReadOnlySequence{byte})"/> or <see cref="WriteSpan(ReadOnlySpan{byte})"/>
+    /// The caller should use <see cref="WriteRaw(in ReadOnlySequence{byte})"/> or <see cref="WriteRaw(ReadOnlySpan{byte})"/>
     /// after calling this method to actually write the content.
     /// Alternatively a single call to <see cref="Write(ReadOnlySpan{byte})"/> or <see cref="Write(in ReadOnlySequence{byte})"/> will take care of the header and content in one call.
     /// </para>
@@ -1107,13 +1107,13 @@ public ref struct TinyhandWriter
     /// <see cref="MessagePackCode.Str16"/>, or
     /// <see cref="MessagePackCode.Str32"/>.
     /// </summary>
-    /// <param name="utf8stringBytes">The bytes to write.</param>
-    public void WriteString(in ReadOnlySequence<byte> utf8stringBytes)
+    /// <param name="utf8Bytes">The bytes to write.</param>
+    public void WriteString(in ReadOnlySequence<byte> utf8Bytes)
     {
-        var length = checked((int)utf8stringBytes.Length);
+        var length = checked((int)utf8Bytes.Length);
         this.WriteStringHeader(length);
         Span<byte> span = this.writer.GetSpan(length);
-        utf8stringBytes.CopyTo(span);
+        utf8Bytes.CopyTo(span);
         this.writer.Advance(length);
     }
 
@@ -1124,13 +1124,13 @@ public ref struct TinyhandWriter
     /// <see cref="MessagePackCode.Str16"/>, or
     /// <see cref="MessagePackCode.Str32"/>.
     /// </summary>
-    /// <param name="utf8stringBytes">The bytes to write.</param>
-    public void WriteString(ReadOnlySpan<byte> utf8stringBytes)
+    /// <param name="utf8Bytes">The bytes to write.</param>
+    public void WriteString(ReadOnlySpan<byte> utf8Bytes)
     {
-        var length = utf8stringBytes.Length;
+        var length = utf8Bytes.Length;
         this.WriteStringHeader(length);
         Span<byte> span = this.writer.GetSpan(length);
-        utf8stringBytes.CopyTo(span);
+        utf8Bytes.CopyTo(span);
         this.writer.Advance(length);
     }
 
@@ -1143,7 +1143,7 @@ public ref struct TinyhandWriter
     /// </summary>
     /// <param name="byteCount">The number of bytes in the string that will follow this header.</param>
     /// <remarks>
-    /// The caller should use <see cref="WriteSequence(in ReadOnlySequence{byte})"/> or <see cref="WriteSpan(ReadOnlySpan{byte})"/>
+    /// The caller should use <see cref="WriteRaw(in ReadOnlySequence{byte})"/> or <see cref="WriteRaw(ReadOnlySpan{byte})"/>
     /// after calling this method to actually write the content.
     /// Alternatively a single call to <see cref="WriteString(ReadOnlySpan{byte})"/> or <see cref="WriteString(in ReadOnlySequence{byte})"/> will take care of the header and content in one call.
     /// </remarks>
@@ -1324,7 +1324,7 @@ public ref struct TinyhandWriter
     public void WriteExtensionFormat(ExtensionResult extensionData)
     {
         this.WriteExtensionFormatHeader(extensionData.Header);
-        this.WriteSequence(extensionData.Data);
+        this.WriteRaw(extensionData.Data);
     }
 
     /// <summary>
@@ -1468,7 +1468,7 @@ public ref struct TinyhandWriter
 
         // ensure buffer by MaxByteCount(faster than GetByteCount)
         bufferSize = checked(Encoding.UTF8.GetMaxByteCount(characterLength) + 5);
-        ref byte buffer = ref this.writer.GetPointer(bufferSize);
+        ref byte buffer = ref this.writer.GetReference(bufferSize);
 
         int useOffset;
         if (characterLength <= MessagePackRange.MaxFixStringLength)

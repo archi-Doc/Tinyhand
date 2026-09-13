@@ -26,7 +26,7 @@ public interface IFormatterResolver
 /// <summary>
 /// Retrieves required formatters and reports missing registrations.
 /// </summary>
-public static class ResolverExtensions
+public static class FormatterResolverExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ITinyhandFormatter<T> GetFormatter<T>(this IFormatterResolver resolver)

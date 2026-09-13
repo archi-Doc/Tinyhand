@@ -133,7 +133,7 @@ public class GeneratedSerializerOptimizationTest
             [CSharpSyntaxTree.ParseText(source, parseOptions, cancellationToken: cancellationToken)], References,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true, optimizationLevel: OptimizationLevel.Release, nullableContextOptions: NullableContextOptions.Enable));
         var result = CSharpGeneratorDriver.Create(
-            [new TinyhandGeneratorV2().AsSourceGenerator(), new StaticRegistrationGenerator().AsSourceGenerator()], parseOptions: parseOptions)
+            [new TinyhandGenerator().AsSourceGenerator(), new StaticRegistrationGenerator().AsSourceGenerator()], parseOptions: parseOptions)
             .RunGeneratorsAndUpdateCompilation(compilation, out var output, out _, cancellationToken).GetRunResult();
         Assert.DoesNotContain(result.Diagnostics, x => x.Severity == DiagnosticSeverity.Error || x.Id == "CS8785");
         using var stream = new MemoryStream();

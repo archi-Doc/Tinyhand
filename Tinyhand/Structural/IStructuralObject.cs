@@ -97,7 +97,7 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
     /// </summary>
     /// <param name="record">The journal record to add.</param>
     /// <param name="includeCurrent">Whether to include the current object in the locator path.</param>
-    public void AddJournalRecord(JournalRecord record, bool includeCurrent = true)
+    public void AddJournalRecord(JournalRecordType record, bool includeCurrent = true)
     {
         if (this.TryGetJournalWriter(out var root, out var writer, includeCurrent))
         {
@@ -120,7 +120,7 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
     {
         if (this.StructuralKey >= 0)
         {
-            writer.Write_Key();
+            writer.WriteKeyRecord();
             writer.Write(this.StructuralKey);
         }
         else

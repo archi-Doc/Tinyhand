@@ -5,24 +5,24 @@ using Arc.Visceral;
 
 namespace Tinyhand.Generator;
 
-public class GeneratorInformation
+public class GenerationContext
 {
-    public GeneratorInformation(string? assemblyName)
+    public GenerationContext(string? assemblyName)
     {
         var assemblyId = string.IsNullOrEmpty(assemblyName) ? string.Empty : VisceralHelper.AssemblyNameToIdentifier("_" + assemblyName);
-        this.GeneratedMethodName = "Generated" + assemblyId;
-        this.GeneratedMethod = "global::Tinyhand.Formatters." + this.GeneratedMethodName;
+        this.GeneratedClassName = "Generated" + assemblyId;
+        this.GeneratedClassFullName = "global::Tinyhand.Formatters." + this.GeneratedClassName;
     }
 
-    public string GeneratedMethod { get; }
+    public string GeneratedClassFullName { get; }
 
-    public string GeneratedMethodName { get; }
+    public string GeneratedClassName { get; }
 
-    public Queue<TinyhandObject> FormatterGeneration { get; } = new();
+    public Queue<TinyhandObject> FormatterGenerationQueue { get; } = new();
 
     public int FormatterCount { get; set; } = 0;
 
-    public List<string> ModuleInitializerClass { get; } = new();
+    public List<string> ModuleInitializerClasses { get; } = new();
 
     public bool GeneratingStaticMethod { get; set; }
 
@@ -30,7 +30,7 @@ public class GeneratorInformation
 
     public bool TryGetBlock(string blockKey, out GeneratorBlock block) => this.keyToBlock.TryGetValue(blockKey, out block);
 
-    public bool CreateBlock(string blockKey, out GeneratorBlock block)
+    public bool GetOrCreateBlock(string blockKey, out GeneratorBlock block)
     {
         if (this.TryGetBlock(blockKey, out block))
         {// Already exists.
@@ -43,11 +43,11 @@ public class GeneratorInformation
         return true;
     }
 
-    public void FinalizeBlock(ScopingStringBuilder ssb)
+    public void AppendBlocks(ScopingStringBuilder ssb)
     {
         foreach (var x in this.keyToBlock.Values)
         {
-            ssb.Append(x.SSB);
+            ssb.Append(x.Ssb);
         }
     }
 
@@ -61,12 +61,12 @@ public class GeneratorBlock
 
     public int SerialNumber { get; }
 
-    public ScopingStringBuilder SSB { get; }
+    public ScopingStringBuilder Ssb { get; }
 
     public GeneratorBlock(string blockKey, int serialNumber)
     {
         this.BlockKey = blockKey;
         this.SerialNumber = serialNumber;
-        this.SSB = new();
+        this.Ssb = new();
     }
 }

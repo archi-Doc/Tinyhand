@@ -33,7 +33,7 @@ public class JournalTester : IStructuralRoot, IStructuralObject
         }
     }
 
-    public bool TryGetJournalWriter(JournalType recordType, out TinyhandWriter writer)
+    public bool TryGetJournalWriter(JournalType journalType, out TinyhandWriter writer)
     {
         if (initialBuffer == null)
         {
@@ -42,7 +42,7 @@ public class JournalTester : IStructuralRoot, IStructuralObject
 
         writer = new(initialBuffer);
         writer.Advance(3); // Size(0-16MB): byte[3]
-        writer.WriteRawUInt8(Unsafe.As<JournalType, byte>(ref recordType)); // JournalRecordType: byte
+        writer.WriteRawUInt8(Unsafe.As<JournalType, byte>(ref journalType)); // JournalRecordType: byte
 
         return true;
     }

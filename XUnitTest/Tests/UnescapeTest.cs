@@ -54,6 +54,6 @@ public class UnescapeTest
         var element = TinyhandParser.Parse("a = \"\\u0041BC\"");
         var group = (Group)element;
         var assignment = (Assignment)group.ElementList[0];
-        ((Value_String)assignment.RightElement!).Utf16.Is("ABC");
+        ((StringValue)assignment.RightElement!).Utf16.Is("ABC");
     }
 }

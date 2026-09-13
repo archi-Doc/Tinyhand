@@ -9,13 +9,13 @@ namespace Tinyhand;
 /// <summary>
 /// Adds a return-value deserialization overload to Tinyhand formatters.
 /// </summary>
-public static class ITinyhandFormatterExtension
+public static class TinyhandFormatterExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T? Deserialize<T>(this ITinyhandFormatter<T> f, ref TinyhandReader reader, TinyhandSerializerOptions options)
+    public static T? Deserialize<T>(this ITinyhandFormatter<T> formatter, ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
         T? value = default;
-        f.Deserialize(ref reader, ref value, options);
+        formatter.Deserialize(ref reader, ref value, options);
         return value;
     }
 }

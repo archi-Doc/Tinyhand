@@ -11,7 +11,7 @@ public record TinyhandParserOptions
 
     public static TinyhandParserOptions ContextualInformation { get; } = Standard with { ParseContextualInformation = true, };
 
-    public static TinyhandParserOptions TextSerialization { get; } = Standard with { TextSerializationMode = true, };
+    public static TinyhandParserOptions TextSerialization { get; } = Standard with { IsTextSerializationMode = true, };
 
     /// <summary>
     /// Gets a value indicating whether comments and line breaks are retained in the syntax tree.
@@ -21,5 +21,5 @@ public record TinyhandParserOptions
     /// <summary>
     /// Gets a value indicating whether string assignment keys are converted to identifiers for text serialization.
     /// </summary>
-    public bool TextSerializationMode { get; init; } = false;
+    public bool IsTextSerializationMode { get; init; } = false;
 }

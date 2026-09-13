@@ -22,7 +22,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
     #endregion
 
-    public BytePool.RentMemory ToRentMemory()
+    public BytePool.RentedMemory ToRentMemory()
     {
         if (this.firstVault == null)
         {
@@ -187,13 +187,13 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
 
     private class ByteVault : ReadOnlySequenceSegment<byte>
     {
-        public ByteVault(BytePool.RentArray rentArray)
+        public ByteVault(BytePool.RentedArray rentArray)
         {
             this.RentArray = rentArray;
             this.Memory = rentArray.Array;
         }
 
-        internal BytePool.RentArray RentArray { get; set; }
+        internal BytePool.RentedArray RentArray { get; set; }
 
         internal int Size { get; set; }
 

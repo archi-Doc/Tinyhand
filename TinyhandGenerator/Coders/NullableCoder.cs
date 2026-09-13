@@ -46,7 +46,7 @@ public class NullableCoder : ITinyhandCoder
 
     public bool RequiresRefValue => true;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"if (!{ssb.FullObject}.HasValue) writer.WriteNil();");
         using (var scopeElse = ssb.ScopeBrace("else"))
@@ -58,12 +58,12 @@ public class NullableCoder : ITinyhandCoder
             }
             else
             {// use Coder
-                this.elementCoder.CodeSerializer(ssb, info);
+                this.elementCoder.CodeSerialize(ssb, info);
             }
         }
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         if (nilChecked)
         {// Nil already checked.
@@ -92,17 +92,17 @@ public class NullableCoder : ITinyhandCoder
             }
             else
             {// use Coder
-                this.elementCoder.CodeDeserializer(ssb, info);
+                this.elementCoder.CodeDeserialize(ssb, info);
             }*/
         }
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         // ssb.AppendLine($"{ssb.FullObject} = default;");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = options.Resolver.GetFormatter<{this.element.FullNameWithNullable}?>().Clone({sourceObject}, options)!;");
     }

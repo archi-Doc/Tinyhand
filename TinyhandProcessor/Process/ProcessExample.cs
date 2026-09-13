@@ -30,15 +30,15 @@ public class TinyhandProcessCore_Example : IProcessCore
 
     public async Task<bool> Process(Element element)
     {
-        if (element.TryGetRight_Value_Long("number", out var valueLong))
+        if (element.TryGetRightLongValue("number", out var valueLong))
         {
             this.number = (int)valueLong.ValueLong;
         }
-        else if (element.TryGetRight_Value_String("file", out var valueFile))
+        else if (element.TryGetRightStringValue("file", out var valueFile))
         {
             this.file = valueFile.Utf16;
         }
-        else if (element is Value_String valueString)
+        else if (element is StringValue valueString)
         {
             /*var path = this.Environment.CombinePath(PathType.SourceFolder, valueString.ValueStringUtf16);
             var logpath = valueString.ValueStringUtf16;

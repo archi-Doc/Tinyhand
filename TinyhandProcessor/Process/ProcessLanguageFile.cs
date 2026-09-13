@@ -30,9 +30,9 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
 
     public async Task<bool> Process(Element element)
     {
-        if (element.TryGetRight_Value("reference", out var value))
+        if (element.TryGetRightValue("reference", out var value))
         {
-            if (value is Value_String s)
+            if (value is StringValue s)
             {
                 return this.ProcessReference(s);
             }
@@ -42,7 +42,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
                 return false;
             }
         }
-        else if (element is Value_String s)
+        else if (element is StringValue s)
         {
             return this.ProcessTarget(s);
         }
@@ -54,7 +54,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
 
     private Group? referenceGroup;
 
-    private bool ProcessReference(Value_String valueString)
+    private bool ProcessReference(StringValue valueString)
     {
         this.referenceGroup = null;
         var referencePath = Path.Combine(this.Environment.GetPath(PathType.SourceFolder), valueString.Utf16);
@@ -78,7 +78,7 @@ public class TinyhandProcessCore_LanguageFile : IProcessCore
         return true;
     }
 
-    private bool ProcessTarget(Value_String targetElement)
+    private bool ProcessTarget(StringValue targetElement)
     {
         if (this.referenceGroup == null)
         {
@@ -143,20 +143,20 @@ AddToTable:
 
         foreach (var x in group)
         {
-            if (x.TryGetLeft_IdentifierUtf8(out var identifier))
+            if (x.TryGetLeftIdentifierUtf8(out var identifier))
             {
-                if (x.TryGetRight_Value(out var value))
+                if (x.TryGetRightValue(out var value))
                 {// Value
-                    if (value is Value_String valueString)
+                    if (value is StringValue valueString)
                     { // String
                         table.TryAdd(groupIdentifier.Concat(identifier).ToArray(), valueString.Utf8);
                     }
-                    else if (value is Value_Null)
+                    else if (value is NullValue)
                     {
                         table.TryAdd(groupIdentifier.Concat(identifier).ToArray(), null);
                     }
                 }
-                else if (x.TryGetRight_Group(out var g))
+                else if (x.TryGetRightGroup(out var g))
                 {// Group
                     this.ProcessTarget(table, groupIdentifier.Concat(identifier).ToArray(), g);
                 }
@@ -173,16 +173,16 @@ AddToTable:
 
         foreach (var x in group)
         {
-            if (x.TryGetLeft_IdentifierUtf8(out var identifier))
+            if (x.TryGetLeftIdentifierUtf8(out var identifier))
             {
                 var assignment = (Assignment)x;
-                if (assignment.RightElement is Value_String valueString)
+                if (assignment.RightElement is StringValue valueString)
                 {// Right is string
                     if (table.TryGetValue(groupIdentifier.Concat(identifier).ToArray(), out var targetUtf8))
                     { // Found.
                         if (targetUtf8 is null)
                         { // null
-                            assignment.RightElement = new Value_Null(assignment.RightElement);
+                            assignment.RightElement = new NullValue(assignment.RightElement);
                         }
                         else
                         { // "string"
@@ -194,10 +194,10 @@ AddToTable:
                         // valueString.ValueStringUtf8 = Array.Empty<byte>();
 
                         // assignment.RightElement?.MoveContextualChainTo(assignment);
-                        // assignment.RightElement = null; // new Value_Null(assignment.RightElement);
+                        // assignment.RightElement = null; // new NullValue(assignment.RightElement);
                     }
                 }
-                else if (assignment.RightElement is Value_Null)
+                else if (assignment.RightElement is NullValue)
                 {// Right is null
                     if (table.TryGetValue(groupIdentifier.Concat(identifier).ToArray(), out var targetUtf8))
                     { // Found.
@@ -206,14 +206,14 @@ AddToTable:
                         }
                         else
                         { // "string"
-                            assignment.RightElement = new Value_String(assignment.RightElement, targetUtf8);
+                            assignment.RightElement = new StringValue(assignment.RightElement, targetUtf8);
                         }
                     }
                     else
                     { // Not found.
                     }
                 }
-                else if (x.TryGetRight_Group(out var g))
+                else if (x.TryGetRightGroup(out var g))
                 {// Group
                     this.ProcessCloned(table, groupIdentifier.Concat(identifier).ToArray(), g);
                 }

@@ -275,7 +275,7 @@ internal sealed class PrimitiveObjectFormatter : ITinyhandFormatter<object>
 
                     ITinyhandFormatter<object> objectFormatter = resolver.GetFormatter<object>();
                     var array = new object[length];
-                    options.Security.DepthStep(ref reader);
+                    options.Security.IncrementDepth(ref reader);
                     try
                     {
                         for (int i = 0; i < length; i++)
@@ -294,9 +294,9 @@ internal sealed class PrimitiveObjectFormatter : ITinyhandFormatter<object>
 
             case MessagePackType.Map:
                 {
-                    var length = reader.ReadMapHeader2();
+                    var length = reader.ReadMapHeaderOrEmptyArray();
 
-                    options.Security.DepthStep(ref reader);
+                    options.Security.IncrementDepth(ref reader);
                     try
                     {
                         value = DeserializeMap(ref reader, length, options);

@@ -78,10 +78,10 @@ internal abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEn
             var keyFormatter = resolver.GetFormatter<TKey>();
             var valueFormatter = resolver.GetFormatter<TValue>();
 
-            var len = reader.ReadMapHeader2();
+            var len = reader.ReadMapHeaderOrEmptyArray();
 
             TIntermediate dict = this.Create(value, len, options);
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int i = 0; i < len; i++)

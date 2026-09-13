@@ -370,11 +370,11 @@ public partial record MaxLengthClass
     [MaxLength(3)] // The maximum length of Name property.
     public partial string Name { get; set; } = string.Empty;
 
-    [Key(1, AddProperty = "Ids")]
+    [Key(1, PropertyName = "Ids")]
     [MaxLength(2)]
     private int[] id = default!;
 
-    [Key(2, AddProperty = "Tags")]
+    [Key(2, PropertyName = "Tags")]
     [MaxLength(2, 3)] // The maximum length of an array and length of a string.
     private string[] tags = default!;
 

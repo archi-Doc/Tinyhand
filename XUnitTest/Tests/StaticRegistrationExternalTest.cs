@@ -21,7 +21,7 @@ public partial class StaticRegistrationGeneratorTest
     public void ExternalDeclarationsDoNotRequireAnImplementation(string declaration, string settings = "")
     {
         var result = Generate($"using Tinyhand; [TinyhandObject(External = true{settings})] " + declaration,
-            out var output, new TinyhandGeneratorV2().AsSourceGenerator());
+            out var output, new TinyhandGenerator().AsSourceGenerator());
         AssertSuccessfulCompilation(result, output);
         var registration = RegistrationSource(result);
         Assert.DoesNotContain("RegisterObject<global::Model", registration);
@@ -38,7 +38,7 @@ public partial class StaticRegistrationGeneratorTest
             [TinyhandObject] public partial struct Value { }
             [TinyhandUnion(0, typeof(ModelUnion))] public partial interface IUnion { }
             [TinyhandObject] public partial class ModelUnion : IUnion { }
-            """, out var output, new TinyhandGeneratorV2().AsSourceGenerator());
+            """, out var output, new TinyhandGenerator().AsSourceGenerator());
         AssertSuccessfulCompilation(result, output);
         var registration = RegistrationSource(result);
         foreach (var name in new[] { "Model", "Value", "IUnion", "ModelUnion", "ImmutableModel.Immutable" })
@@ -85,7 +85,7 @@ public partial class StaticRegistrationGeneratorTest
                 public Dictionary<string, T[]> Map { get; set; } = new();
             }
             public class Consumer { public Model<int> Value = new(); }
-            """, out var output, new TinyhandGeneratorV2().AsSourceGenerator());
+            """, out var output, new TinyhandGenerator().AsSourceGenerator());
         AssertSuccessfulCompilation(result, output);
         var registration = RegistrationSource(result);
         Assert.DoesNotContain("RegisterObject<global::Model<int>>()", registration);
@@ -101,7 +101,7 @@ public partial class StaticRegistrationGeneratorTest
             using Tinyhand;
             [assembly: TinyhandRegister(typeof(Model<int>))]
             [TinyhandObject(External = true)] public partial class Model<T> { public T[] Values = []; }
-            """, out var output, new TinyhandGeneratorV2().AsSourceGenerator());
+            """, out var output, new TinyhandGenerator().AsSourceGenerator());
         AssertSuccessfulCompilation(result, output);
         var diagnostic = Assert.Single(result.Diagnostics);
         Assert.Equal("THAOT004", diagnostic.Id);
@@ -129,7 +129,7 @@ public partial class StaticRegistrationGeneratorTest
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true));
         if (immutable)
         {
-            var generated = CSharpGeneratorDriver.Create(new[] { new TinyhandGeneratorV2().AsSourceGenerator(), new StaticRegistrationGenerator().AsSourceGenerator() }, parseOptions: options)
+            var generated = CSharpGeneratorDriver.Create(new[] { new TinyhandGenerator().AsSourceGenerator(), new StaticRegistrationGenerator().AsSourceGenerator() }, parseOptions: options)
                 .RunGeneratorsAndUpdateCompilation(library, out library, out _, TestContext.Current.CancellationToken).GetRunResult();
             AssertSuccessfulCompilation(generated, library);
         }

@@ -30,7 +30,7 @@ internal class TinyhandGenerateMemberBody : VisceralBody<TinyhandGenerateMemberO
         }
 
         ScopingStringBuilder ssb = new();
-        GeneratorInformation info = new(generator.AssemblyName);
+        GenerationContext info = new(generator.AssemblyName);
 
         // Namespace - Objects
         foreach (var x in this.Namespaces)
@@ -83,8 +83,8 @@ internal class TinyhandGenerateMemberBody : VisceralBody<TinyhandGenerateMemberO
         }
 
         array = this.FullNameToObject.Where(x =>
-        x.Value.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.TinyhandGenerateMember) ||
-        x.Value.ObjectFlag.HasFlag(TinyhandGenerateMemberObjectFlag.TinyhandGenerateHash)).ToArray();
+        x.Value.ObjectFlags.HasFlag(TinyhandGenerateMemberObjectFlags.TinyhandGenerateMember) ||
+        x.Value.ObjectFlags.HasFlag(TinyhandGenerateMemberObjectFlags.TinyhandGenerateHash)).ToArray();
         foreach (var x in array)
         {
             x.Value.ConfigureRelation();

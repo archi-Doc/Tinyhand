@@ -16,7 +16,7 @@ public class ByteArrayPoolTest
         var initialBuffer = new byte[4];
         byte[] destination;
         byte[] destination2;
-        BytePool.RentMemory rentMemory;
+        BytePool.RentedMemory rentMemory;
 
         using (var w = new TinyhandWriter(initialBuffer))
         {

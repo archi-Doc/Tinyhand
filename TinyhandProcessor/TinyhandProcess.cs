@@ -81,21 +81,21 @@ public class TinyhandProcessCore_None : IProcessCore
 /// <summary>
 /// The file logger options of <see cref="IProcessEnvironment.Result"/>.<br/>
 /// A distinct options type is required so that the result file logger can use a path and a format
-/// of its own, independent of <see cref="FileLoggerOptions"/> used by <see cref="IProcessEnvironment.Log"/>.
+/// of its own, independent of <see cref="FileLogOutputOptions"/> used by <see cref="IProcessEnvironment.Log"/>.
 /// </summary>
-public record ResultFileLoggerOptions : FileLoggerOptions
+public record ResultFileLogOutputOptions : FileLogOutputOptions
 {
 }
 
 /// <summary>
-/// Writes to both the console and the result file (<see cref="ConsoleAndFileLogger"/> for <see cref="ResultFileLoggerOptions"/>).
+/// Writes to both the console and the result file (<see cref="ConsoleAndFileLogOutput"/> for <see cref="ResultFileLogOutputOptions"/>).
 /// </summary>
 public class ConsoleAndResultFileLogger : ILogOutput
 {
-    private readonly ConsoleLogger consoleLogger;
-    private readonly FileLogger<ResultFileLoggerOptions> fileLogger;
+    private readonly ConsoleLogOutput consoleLogger;
+    private readonly FileLogOutput<ResultFileLogOutputOptions> fileLogger;
 
-    public ConsoleAndResultFileLogger(ConsoleLogger consoleLogger, FileLogger<ResultFileLoggerOptions> fileLogger)
+    public ConsoleAndResultFileLogger(ConsoleLogOutput consoleLogger, FileLogOutput<ResultFileLogOutputOptions> fileLogger)
     {
         this.consoleLogger = consoleLogger;
         this.fileLogger = fileLogger;
@@ -151,7 +151,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
         this.product = this.BuildUnit();
         var logService = this.product.Context.ServiceProvider.GetRequiredService<ILogService>();
-        this.Log = logService.GetLogger<DefaultLog>();
+        this.Log = logService.GetLogger<DefaultLogSource>();
         this.Result = logService.GetLogger<ResultLog>();
         foreach (var (level, element, message) in this.pendingMessages)
         {
@@ -244,11 +244,11 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
                 break;
             }
 
-            if (x.TryGetLeft_IdentifierUtf8(out var identifier))
+            if (x.TryGetLeftIdentifierUtf8(out var identifier))
             { // identifier = "value"
                 if (identifier.SequenceEqual(ModeIdentifier))
                 { // "mode"
-                    if (x.TryGetRight_Value_String(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString))
+                    if (x.TryGetRightStringValue(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString))
                     { // "process"
                         this.IsProcessMode = true;
                     }
@@ -297,7 +297,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
         // Clear
         this.Root = Group.Empty;
-        await this.product.Context.ServiceProvider.GetRequiredService<LogUnit>().Flush().ConfigureAwait(false);
+        await this.product.Context.ServiceProvider.GetRequiredService<LogUnit>().FlushAsync().ConfigureAwait(false);
         return !this.FatalStatus;
     }
 
@@ -351,14 +351,14 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
         var isProcessMode = false;
         foreach (var x in this.rootGroup)
         {
-            if (!x.TryGetLeft_IdentifierUtf8(out var identifier))
+            if (!x.TryGetLeftIdentifierUtf8(out var identifier))
             {
                 continue;
             }
 
             if (identifier.SequenceEqual(ModeIdentifier))
             {
-                isProcessMode = x.TryGetRight_Value_String(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString);
+                isProcessMode = x.TryGetRightStringValue(out var valueString) && valueString.Utf8.SequenceEqual(ProcessString);
                 continue;
             }
 
@@ -405,33 +405,33 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
             services.AddSingleton<ExecutionRoot>();
             services.AddSingleton<IConsoleService, ConsoleService>();
             services.AddSingleton<LogUnit>();
-            services.AddSingleton<EmptyLogger>();
-            services.AddSingleton<ConsoleLogger>();
-            services.AddSingleton<FileLogger<FileLoggerOptions>>();
-            services.AddSingleton<FileLogger<ResultFileLoggerOptions>>();
-            services.AddSingleton<ConsoleAndFileLogger>();
+            services.AddSingleton<EmptyLogOutput>();
+            services.AddSingleton<ConsoleLogOutput>();
+            services.AddSingleton<FileLogOutput<FileLogOutputOptions>>();
+            services.AddSingleton<FileLogOutput<ResultFileLogOutputOptions>>();
+            services.AddSingleton<ConsoleAndFileLogOutput>();
             services.AddSingleton<ConsoleAndResultFileLogger>();
-            services.AddScoped<ILogger<DefaultLog>, StaticLogger<DefaultLog>>();
+            services.AddScoped<ILogger<DefaultLogSource>, StaticLogger<DefaultLogSource>>();
             services.AddScoped<ILogger<ResultLog>, StaticLogger<ResultLog>>();
 
             // Register option instances directly, avoiding reflective field copies.
-            services.AddSingleton(new FileLoggerOptions
+            services.AddSingleton(new FileLogOutputOptions
             {
-                Path = this.logSettings.Path,
+                FilePath = this.logSettings.Path,
                 ClearLogsAtStartup = true,
                 FormatterOptions = CreateFormatterOptions(this.logSettings.Format, enableColor: false),
             });
-            services.AddSingleton(new ResultFileLoggerOptions
+            services.AddSingleton(new ResultFileLogOutputOptions
             {
-                Path = this.resultSettings.Path,
+                FilePath = this.resultSettings.Path,
                 ClearLogsAtStartup = true,
                 FormatterOptions = CreateFormatterOptions(this.resultSettings.Format, enableColor: false),
             });
-            services.AddSingleton(new ConsoleLoggerOptions
+            services.AddSingleton(new ConsoleLogOutputOptions
             {
                 FormatterOptions = CreateFormatterOptions(this.logSettings.Format, enableColor: true),
             });
-            context.AddLoggerResolver(x =>
+            context.AddLogOutputResolver(x =>
             {
                 if (x.LogSourceType == typeof(ResultLog))
                 {
@@ -456,22 +456,22 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
         public LogWriter? GetWriter(LogLevel logLevel = LogLevel.Information) => this.service.GetWriter<T>(logLevel);
     }
 
-    private static void SetOutput(LoggerResolverContext context, ProcessLogOutput output, bool result)
+    private static void SetOutput(LogOutputResolverContext context, ProcessLogOutput output, bool result)
     {
         switch (output)
         {
             case ProcessLogOutput.Console:
-                context.SetOutput<ConsoleLogger>();
+                context.SetOutput<ConsoleLogOutput>();
                 break;
 
             case ProcessLogOutput.File:
                 if (result)
                 {
-                    context.SetOutput<FileLogger<ResultFileLoggerOptions>>();
+                    context.SetOutput<FileLogOutput<ResultFileLogOutputOptions>>();
                 }
                 else
                 {
-                    context.SetOutput<FileLogger<FileLoggerOptions>>();
+                    context.SetOutput<FileLogOutput<FileLogOutputOptions>>();
                 }
 
                 break;
@@ -483,13 +483,13 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
                 }
                 else
                 {
-                    context.SetOutput<ConsoleAndFileLogger>();
+                    context.SetOutput<ConsoleAndFileLogOutput>();
                 }
 
                 break;
 
             default:
-                context.SetOutput<EmptyLogger>();
+                context.SetOutput<EmptyLogOutput>();
                 break;
         }
     }
@@ -506,7 +506,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void IdentifierTable_process(Element element)
     { // "process"
-        if (element.TryGetRight_Value_String(out var valueString))
+        if (element.TryGetRightStringValue(out var valueString))
         { // Get ProcessCore.
             if (this.ProcessCore.TryGetValue(valueString.Utf16, out var info))
             { // Get an instance.
@@ -527,7 +527,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void IdentifierTable_root(Element element)
     { // "root"
-        if (element.TryGetRight_Value_String(out var valueString))
+        if (element.TryGetRightStringValue(out var valueString))
         {
             if (Path.IsPathRooted(valueString.Utf16))
             {
@@ -542,7 +542,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void IdentifierTable_source(Element element)
     { // "source"
-        if (element.TryGetRight_Value_String(out var valueString))
+        if (element.TryGetRightStringValue(out var valueString))
         {
             if (Path.IsPathRooted(valueString.Utf16))
             {
@@ -557,7 +557,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void IdentifierTable_destination(Element element)
     { // "destination"
-        if (element.TryGetRight_Value_String(out var valueString))
+        if (element.TryGetRightStringValue(out var valueString))
         {
             if (Path.IsPathRooted(valueString.Utf16))
             {
@@ -576,8 +576,8 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
 
     private void ReadLoggerSettings(Element element, LoggerSettings settings)
     { // Read the logger settings.
-        Value_String? stringValue;
-        if (!element.TryGetRightGroup_Value_String(null, out stringValue))
+        StringValue? stringValue;
+        if (!element.TryGetStringValueInRightGroup(null, out stringValue))
         {
             return;
         }
@@ -591,7 +591,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
             string path = string.Empty;
             var consoleFlag = false;
 
-            if (element.TryGetRightGroup_Value_String("path", out var pathValue))
+            if (element.TryGetStringValueInRightGroup("path", out var pathValue))
             {
                 path = pathValue.Utf16;
                 if (!Path.IsPathRooted(path))
@@ -605,7 +605,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
                 }
             }
 
-            if (element.TryGetRightGroup_Value("console", out var consoleValue))
+            if (element.TryGetValueInRightGroup("console", out var consoleValue))
             {
                 consoleFlag = consoleValue.IsTrue();
             }
@@ -637,7 +637,7 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
             return;
         }
 
-        if (element.TryGetRightGroup_Value_String("format", out var formatValue))
+        if (element.TryGetStringValueInRightGroup("format", out var formatValue))
         {
             if (Enum.TryParse<ProcessLogFormat>(formatValue.Utf16, out var f))
             {

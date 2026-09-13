@@ -125,7 +125,7 @@ public static class TinyhandComposer
                 case ElementType.LineFeed:
                     if (this.useContextualInformation)
                     {
-                        writer.WriteLF();
+                        writer.WriteLineFeed();
                         this.atLineStart = true;
                         this.requireIndentation = true;
                         // this.requireDelimiter = false;
@@ -140,7 +140,7 @@ public static class TinyhandComposer
                             writer.WriteUInt8(TinyhandConstants.Space);
                         }
                         this.ComposeIndent(ref writer);
-                        writer.WriteSpan(((Comment)element).CommentUtf8);
+                        writer.WriteRaw(((Comment)element).Utf8);
                         if (element.contextualChain?.Type != ElementType.LineFeed)
                         {
                             writer.WriteUInt8(TinyhandConstants.Space);
@@ -177,7 +177,7 @@ public static class TinyhandComposer
 
             if (!this.useContextualInformation)
             {
-                writer.WriteLF();
+                writer.WriteLineFeed();
             }
 
             this.requireIndentation = true;
@@ -192,7 +192,7 @@ public static class TinyhandComposer
                 this.requireIndentation = false;
                 for (var i = 0; i < this.indent; i++)
                 {
-                    writer.WriteSpan(TinyhandConstants.IndentSpan);
+                    writer.WriteRaw(TinyhandConstants.IndentSpan);
                 }
             }
         }
@@ -200,7 +200,7 @@ public static class TinyhandComposer
         private void ComposeModifier(ref TinyhandRawWriter writer, Modifier element)
         {
             writer.WriteUInt8(TinyhandConstants.ModifierPrefix);
-            writer.WriteSpan(element.Utf8);
+            writer.WriteRaw(element.Utf8);
         }
 
         private void ComposeValue(ref TinyhandRawWriter writer, Value element)
@@ -209,25 +209,25 @@ public static class TinyhandComposer
             {
                 case ValueElementType.Identifier:
                 case ValueElementType.SpecialIdentifier:
-                    var i = (Value_Identifier)element;
+                    var i = (IdentifierValue)element;
                     if (i.IsSpecial)
                     {
                         writer.WriteUInt8(TinyhandConstants.IdentifierPrefix);
                     }
-                    writer.WriteSpan(i.Utf8);
+                    writer.WriteRaw(i.Utf8);
                     break;
 
-                case ValueElementType.Value_Binary:
-                    var binary = (Value_Binary)element;
+                case ValueElementType.Binary:
+                    var binary = (BinaryValue)element;
                     writer.WriteUInt8((byte)'b');
                     writer.WriteUInt8(TinyhandConstants.Quote);
 
-                    var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(binary.ValueBinary.Length);
+                    var encodedLength = Arc.Crypto.FastBase64Url.GetEncodedLength(binary.ValueBinary.Length);
                     var spanowner = new SpanOwner<byte>(stackalloc byte[BaseHelper.StackallocThreshold], encodedLength);
                     try
                     {
-                        Arc.Crypto.Base64Url.Encode(binary.ValueBinary, spanowner.Span);
-                        writer.WriteSpan(spanowner.Span);
+                        Arc.Crypto.FastBase64Url.Encode(binary.ValueBinary, spanowner.Span);
+                        writer.WriteRaw(spanowner.Span);
                     }
                     finally
                     {
@@ -237,8 +237,8 @@ public static class TinyhandComposer
                     writer.WriteUInt8(TinyhandConstants.Quote);
                     break;
 
-                case ValueElementType.Value_String:
-                    var s = (Value_String)element;
+                case ValueElementType.String:
+                    var s = (StringValue)element;
                     if (!s.IsTripleQuoted || s.HasTripleQuote())
                     { // Escape.
                         writer.WriteUInt8(TinyhandConstants.Quote);
@@ -247,41 +247,41 @@ public static class TinyhandComposer
                     }
                     else
                     { // """string"""
-                        writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
-                        writer.WriteSpan(s.Utf8);
-                        writer.WriteSpan(TinyhandConstants.TripleQuotesSpan);
+                        writer.WriteRaw(TinyhandConstants.TripleQuotesSpan);
+                        writer.WriteRaw(s.Utf8);
+                        writer.WriteRaw(TinyhandConstants.TripleQuotesSpan);
                     }
                     break;
 
-                case ValueElementType.Value_Long:
-                    var l = (Value_Long)element;
-                    writer.WriteStringInt64(l.ValueLong);
+                case ValueElementType.Long:
+                    var l = (LongValue)element;
+                    writer.TryWriteInt64Text(l.ValueLong);
                     break;
 
-                case ValueElementType.Value_ULong:
-                    var ul = (Value_ULong)element;
-                    writer.WriteStringUInt64(ul.ValueULong);
+                case ValueElementType.ULong:
+                    var ul = (ULongValue)element;
+                    writer.TryWriteUInt64Text(ul.ValueULong);
                     break;
 
-                case ValueElementType.Value_Double:
-                    var d = (Value_Double)element;
-                    writer.WriteStringDouble(d.ValueDouble);
+                case ValueElementType.Double:
+                    var d = (DoubleValue)element;
+                    writer.TryWriteDoubleText(d.ValueDouble);
                     // writer.WriteUInt8(TinyhandConstants.DoubleSuffix);
                     break;
 
-                case ValueElementType.Value_Null:
-                    writer.WriteSpan(TinyhandConstants.NullSpan);
+                case ValueElementType.Null:
+                    writer.WriteRaw(TinyhandConstants.NullSpan);
                     break;
 
-                case ValueElementType.Value_Bool:
-                    var b = (Value_Bool)element;
+                case ValueElementType.Bool:
+                    var b = (BoolValue)element;
                     if (b.ValueBool)
                     {
-                        writer.WriteSpan(TinyhandConstants.TrueSpan);
+                        writer.WriteRaw(TinyhandConstants.TrueSpan);
                     }
                     else
                     {
-                        writer.WriteSpan(TinyhandConstants.FalseSpan);
+                        writer.WriteRaw(TinyhandConstants.FalseSpan);
                     }
                     break;
             }
@@ -294,7 +294,7 @@ public static class TinyhandComposer
                 this.Compose(ref writer, element.LeftElement);
             }
 
-            // writer.WriteSpan(TinyhandConstants.AssignmentSpan);
+            // writer.WriteRaw(TinyhandConstants.AssignmentSpan);
             writer.WriteUInt8(TinyhandConstants.EqualsSign);
 
             // this.requireDelimiter = true;
@@ -359,7 +359,7 @@ public static class TinyhandComposer
                 this.Compose(ref writer, element.ElementList[i]);
                 if (i == element.ElementList.Count - 1)
                 {
-                    // writer.WriteLF();
+                    // writer.WriteLineFeed();
                     break;
                 }
 

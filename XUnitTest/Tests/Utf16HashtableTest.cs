@@ -14,8 +14,8 @@ public class Utf16HashtableTest
     {
         var table = new Utf16Hashtable<int>();
 
-        table.Add("One", 0);
-        table.Add("One", 1);
+        table.AddOrUpdate("One", 0);
+        table.AddOrUpdate("One", 1);
         table.TryAdd("Two", 2);
         table.GetOrAdd("Three", x => 3);
 

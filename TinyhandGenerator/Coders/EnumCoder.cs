@@ -79,7 +79,7 @@ public class EnumCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         if (info.EnumAsString)
         {// Serialize as string
@@ -93,7 +93,7 @@ public class EnumCoder : ITinyhandCoder
         }
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         if (info.EnumAsString)
         {
@@ -105,12 +105,12 @@ public class EnumCoder : ITinyhandCoder
         }
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} = default;");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
     }

@@ -7,20 +7,20 @@ namespace Tinyhand.Tests;
 [TinyhandObject]
 public partial class PropertyAccessibilityClass
 {
-    [Key(0, AddProperty = "A", PropertyAccessibility = PropertyAccessibility.PublicSetter)]
+    [Key(0, PropertyName = "A", PropertyAccessibility = PropertyAccessibility.PublicSetter)]
     private int _a;
 
-    [Key(1, AddProperty = "B", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
+    [Key(1, PropertyName = "B", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
     private int _b;
 
-    [Key(2, AddProperty = "C", PropertyAccessibility = PropertyAccessibility.GetterOnly)]
+    [Key(2, PropertyName = "C", PropertyAccessibility = PropertyAccessibility.GetterOnly)]
     private int _c = 3;
 
-    [Key(3, AddProperty = "X")]
+    [Key(3, PropertyName = "X")]
     [MaxLength(10)]
     private string _x = string.Empty;
 
-    [Key(4, AddProperty = "Y", PropertyAccessibility = PropertyAccessibility.GetterOnly)]
+    [Key(4, PropertyName = "Y", PropertyAccessibility = PropertyAccessibility.GetterOnly)]
     [MaxLength(10)] // This attribute is invalid because the property is getter-only.
     private string _y = string.Empty;
 
@@ -30,7 +30,7 @@ public partial class PropertyAccessibilityClass
 [TinyhandObject]
 public sealed partial class PropertyAccessibilityClass2
 {
-    [Key(0, AddProperty = "A", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
+    [Key(0, PropertyName = "A", PropertyAccessibility = PropertyAccessibility.ProtectedSetter)]
     private int _a;
 }
 

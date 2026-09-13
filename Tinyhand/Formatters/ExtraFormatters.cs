@@ -75,9 +75,9 @@ public sealed class Struct256Formatter : ITinyhandFormatter<Struct256>
 }
 
 /// <summary>
-/// BytePool.RentMemory formatter.
+/// BytePool.RentedMemory formatter.
 /// </summary>
-internal sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemory>
+internal sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentedMemory>
 {
     public static readonly RentMemoryFormatter Instance = new();
 
@@ -85,22 +85,22 @@ internal sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemo
     {
     }
 
-    public void Serialize(ref TinyhandWriter writer, BytePool.RentMemory value, TinyhandSerializerOptions options)
+    public void Serialize(ref TinyhandWriter writer, BytePool.RentedMemory value, TinyhandSerializerOptions options)
     {
         writer.Write(value.Span);
     }
 
-    public void Deserialize(ref TinyhandReader reader, ref BytePool.RentMemory value, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref BytePool.RentedMemory value, TinyhandSerializerOptions options)
     {
         value = reader.ReadBytesToRentMemory();
     }
 
-    public BytePool.RentMemory Reconstruct(TinyhandSerializerOptions options)
+    public BytePool.RentedMemory Reconstruct(TinyhandSerializerOptions options)
     {
         return default;
     }
 
-    public BytePool.RentMemory Clone(BytePool.RentMemory value, TinyhandSerializerOptions options)
+    public BytePool.RentedMemory Clone(BytePool.RentedMemory value, TinyhandSerializerOptions options)
     {
         var rentMemory = BytePool.Default.Rent(value.Length).AsMemory();
         value.Span.CopyTo(rentMemory.Span);
@@ -109,9 +109,9 @@ internal sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentMemo
 }
 
 /// <summary>
-/// BytePool.RentReadOnlyMemory formatter.
+/// BytePool.RentedReadOnlyMemory formatter.
 /// </summary>
-internal sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.RentReadOnlyMemory>
+internal sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.RentedReadOnlyMemory>
 {
     public static readonly RentReadOnlyMemoryFormatter Instance = new();
 
@@ -119,22 +119,22 @@ internal sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.
     {
     }
 
-    public void Serialize(ref TinyhandWriter writer, BytePool.RentReadOnlyMemory value, TinyhandSerializerOptions options)
+    public void Serialize(ref TinyhandWriter writer, BytePool.RentedReadOnlyMemory value, TinyhandSerializerOptions options)
     {
         writer.Write(value.Span);
     }
 
-    public void Deserialize(ref TinyhandReader reader, ref BytePool.RentReadOnlyMemory value, TinyhandSerializerOptions options)
+    public void Deserialize(ref TinyhandReader reader, ref BytePool.RentedReadOnlyMemory value, TinyhandSerializerOptions options)
     {
         value = reader.ReadBytesToRentMemory().ReadOnly;
     }
 
-    public BytePool.RentReadOnlyMemory Reconstruct(TinyhandSerializerOptions options)
+    public BytePool.RentedReadOnlyMemory Reconstruct(TinyhandSerializerOptions options)
     {
         return default;
     }
 
-    public BytePool.RentReadOnlyMemory Clone(BytePool.RentReadOnlyMemory value, TinyhandSerializerOptions options)
+    public BytePool.RentedReadOnlyMemory Clone(BytePool.RentedReadOnlyMemory value, TinyhandSerializerOptions options)
     {
         var rentMemory = BytePool.Default.Rent(value.Length).AsMemory();
         value.Span.CopyTo(rentMemory.Span);

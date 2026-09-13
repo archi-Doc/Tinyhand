@@ -56,13 +56,13 @@ public enum ValueElementType
 {
     Identifier, // objectA
     SpecialIdentifier, // @mode
-    Value_Binary, // b"Base64"
-    Value_String, // "text"
-    Value_Long, // -123(long)
-    Value_ULong, // 123(ulong)
-    Value_Double, // 1.23(double)
-    Value_Null, // null
-    Value_Bool, // true/false
+    Binary, // b"Base64"
+    String, // "text"
+    Long, // -123(long)
+    ULong, // 123(ulong)
+    Double, // 1.23(double)
+    Null, // null
+    Bool, // true/false
 }
 
 /// <summary>
@@ -147,14 +147,14 @@ public class Element
         return instance;
     }
 
-    public void MoveContextualChainTo(Element to, bool first = false)
+    public void MoveContextualChainTo(Element destination, bool prepend = false)
     {
         if (this.contextualChain == null)
         {
             return;
         }
 
-        if (first)
+        if (prepend)
         { // Add to the first chain.
             var last = this.contextualChain;
             while (last.contextualChain != null)
@@ -162,16 +162,16 @@ public class Element
                 last = last.contextualChain;
             }
 
-            last.contextualChain = to.contextualChain;
-            to.contextualChain = this.contextualChain;
+            last.contextualChain = destination.contextualChain;
+            destination.contextualChain = this.contextualChain;
             this.contextualChain = null;
         }
         else
         { // Add to the last chain.
-            var last = to.contextualChain;
+            var last = destination.contextualChain;
             if (last == null)
             {
-                to.contextualChain = this.contextualChain;
+                destination.contextualChain = this.contextualChain;
                 this.contextualChain = null;
                 return;
             }
@@ -255,7 +255,7 @@ public class Comment : Element
 
     private byte[]? commentUtf8;
 
-    public byte[] CommentUtf8
+    public byte[] Utf8
     {
         get => this.commentUtf8 ??= Encoding.UTF8.GetBytes(this.commentUtf16!);
         set
@@ -265,11 +265,11 @@ public class Comment : Element
         }
     }
 
-    public override string ToString() => "Comment: " + this.CommentUtf16;
+    public override string ToString() => "Comment: " + this.Utf16;
 
     private string? commentUtf16;
 
-    public string CommentUtf16
+    public string Utf16
     {
         get => this.commentUtf16 ??= Encoding.UTF8.GetString(this.commentUtf8!);
         set
@@ -283,9 +283,9 @@ public class Comment : Element
 /// <summary>
 /// Represents a regular or special identifier in Tinyhand text.
 /// </summary>
-public class Value_Identifier : Value
+public class IdentifierValue : Value
 {
-    public Value_Identifier(bool isSpecial, byte[] identifierUtf8)
+    public IdentifierValue(bool isSpecial, byte[] identifierUtf8)
         : base(ValueElementType.Identifier)
     {
         this.IsSpecial = isSpecial;
@@ -294,7 +294,7 @@ public class Value_Identifier : Value
 
     public override object DeepCopy()
     {
-        var instance = (Value_Identifier)base.DeepCopy();
+        var instance = (IdentifierValue)base.DeepCopy();
         instance.utf8 = (byte[]?)this.utf8?.Clone();
         return instance;
     }
@@ -331,14 +331,14 @@ public class Value_Identifier : Value
 /// <summary>
 /// Represents a Boolean value in a Tinyhand syntax tree.
 /// </summary>
-public class Value_Bool : Value
+public class BoolValue : Value
 {
-    public Value_Bool()
-        : base(ValueElementType.Value_Bool)
+    public BoolValue()
+        : base(ValueElementType.Bool)
     {
     }
 
-    public Value_Bool(bool valueBool)
+    public BoolValue(bool valueBool)
         : this()
     {
         this.ValueBool = valueBool;
@@ -352,15 +352,15 @@ public class Value_Bool : Value
 /// <summary>
 /// Represents a null value in a Tinyhand syntax tree.
 /// </summary>
-public class Value_Null : Value
+public class NullValue : Value
 {
-    public Value_Null()
-        : base(ValueElementType.Value_Null)
+    public NullValue()
+        : base(ValueElementType.Null)
     {
     }
 
-    public Value_Null(Element? original)
-        : base(ValueElementType.Value_Null)
+    public NullValue(Element? original)
+        : base(ValueElementType.Null)
     {
         this.contextualChain = (Element?)original?.contextualChain?.DeepCopy();
     }
@@ -371,14 +371,14 @@ public class Value_Null : Value
 /// <summary>
 /// Represents a signed 64-bit integer in a Tinyhand syntax tree.
 /// </summary>
-public class Value_Long : Value
+public class LongValue : Value
 {
-    public Value_Long()
-        : base(ValueElementType.Value_Long)
+    public LongValue()
+        : base(ValueElementType.Long)
     {
     }
 
-    public Value_Long(long valueLong)
+    public LongValue(long valueLong)
         : this()
     {
         this.ValueLong = valueLong;
@@ -392,14 +392,14 @@ public class Value_Long : Value
 /// <summary>
 /// Represents an unsigned 64-bit integer in a Tinyhand syntax tree.
 /// </summary>
-public class Value_ULong : Value
+public class ULongValue : Value
 {
-    public Value_ULong()
-        : base(ValueElementType.Value_ULong)
+    public ULongValue()
+        : base(ValueElementType.ULong)
     {
     }
 
-    public Value_ULong(ulong valueULong)
+    public ULongValue(ulong valueULong)
         : this()
     {
         this.ValueULong = valueULong;
@@ -413,14 +413,14 @@ public class Value_ULong : Value
 /// <summary>
 /// Represents a double-precision floating-point value in a Tinyhand syntax tree.
 /// </summary>
-public class Value_Double : Value
+public class DoubleValue : Value
 {
-    public Value_Double()
-        : base(ValueElementType.Value_Double)
+    public DoubleValue()
+        : base(ValueElementType.Double)
     {
     }
 
-    public Value_Double(double valueDouble)
+    public DoubleValue(double valueDouble)
         : this()
     {
         this.ValueDouble = valueDouble;
@@ -434,35 +434,35 @@ public class Value_Double : Value
 /// <summary>
 /// Represents a string with UTF-8 and UTF-16 accessors in a Tinyhand syntax tree.
 /// </summary>
-public class Value_String : Value
+public class StringValue : Value
 {
-    public Value_String()
+    public StringValue()
         : this(Array.Empty<byte>())
     {
     }
 
-    public Value_String(byte[] valueStringUtf8)
-        : base(ValueElementType.Value_String)
+    public StringValue(byte[] valueStringUtf8)
+        : base(ValueElementType.String)
     {
         this.utf8 = valueStringUtf8;
     }
 
-    public Value_String(Element original, byte[] valueStringUtf8)
-        : base(ValueElementType.Value_String)
+    public StringValue(Element original, byte[] valueStringUtf8)
+        : base(ValueElementType.String)
     {
         this.contextualChain = (Element?)original?.contextualChain?.DeepCopy();
         this.utf8 = valueStringUtf8;
     }
 
-    public Value_String(string valueStringUtf16)
-        : base(ValueElementType.Value_String)
+    public StringValue(string valueStringUtf16)
+        : base(ValueElementType.String)
     {
         this.utf16 = valueStringUtf16;
     }
 
     public override object DeepCopy()
     {
-        var instance = (Value_String)base.DeepCopy();
+        var instance = (StringValue)base.DeepCopy();
         instance.utf8 = (byte[]?)this.utf8?.Clone();
         return instance;
     }
@@ -530,22 +530,22 @@ public class Value_String : Value
 /// <summary>
 /// Represents binary data in a Tinyhand syntax tree.
 /// </summary>
-public class Value_Binary : Value
+public class BinaryValue : Value
 {
-    public Value_Binary()
+    public BinaryValue()
         : this(null)
     {
     }
 
-    public Value_Binary(byte[]? valueBinary)
-        : base(ValueElementType.Value_Binary)
+    public BinaryValue(byte[]? valueBinary)
+        : base(ValueElementType.Binary)
     {
         this.ValueBinary = valueBinary ?? Array.Empty<byte>();
     }
 
     public override object DeepCopy()
     {
-        var instance = (Value_Binary)base.DeepCopy();
+        var instance = (BinaryValue)base.DeepCopy();
         instance.ValueBinary = (byte[])this.ValueBinary.Clone();
         return instance;
     }

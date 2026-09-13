@@ -32,15 +32,15 @@ public class HashedStringTest
         HashedString.Get("b").Is("BB");
         HashedString.Get("c").Is("CCC");
         HashedString.Get("d").Is("DDDD");
-        HashedString.Get("e").Is(HashedString.ErrorMessage);
+        HashedString.Get("e").Is(HashedString.NotFoundMessage);
 
         HashedString.LoadStream("en", ms2, true);
         ms2.Position = 0;
 
         HashedString.Get("a").Is("A");
-        HashedString.Get("b").Is(HashedString.ErrorMessage);
+        HashedString.Get("b").Is(HashedString.NotFoundMessage);
         HashedString.Get("c").Is("111");
-        HashedString.Get("d").Is(HashedString.ErrorMessage);
+        HashedString.Get("d").Is(HashedString.NotFoundMessage);
         HashedString.Get("e").Is("22222");
 
         HashedString.LoadStream("en", ms1, true);
@@ -56,7 +56,7 @@ public class HashedStringTest
 
         HashedString.LoadStream("ja", ms3);
         ms3.Position = 0;
-        HashedString.ChangeCulture("ja");
+        HashedString.TrySetCurrentCulture("ja");
 
         HashedString.Get("a").Is("あ"); // Overwritten
         HashedString.Get("b").Is("BB");

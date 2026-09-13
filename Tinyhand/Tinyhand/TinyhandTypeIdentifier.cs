@@ -19,7 +19,7 @@ namespace Tinyhand;
 public static class TinyhandTypeIdentifier
 {
     private static readonly ConcurrentDictionary<uint, MethodClass> Methods = new();
-    private static readonly ThreadsafeTypeKeyHashtable<uint> TypeToTypeIdentifier = new();
+    private static readonly ThreadSafeTypeKeyHashtable<uint> TypeToTypeIdentifier = new();
 
     static TinyhandTypeIdentifier()
     {
@@ -34,7 +34,7 @@ public static class TinyhandTypeIdentifier
 
         public abstract byte[] Serialize(object value, TinyhandSerializerOptions? options);
 
-        public abstract BytePool.RentMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options);
+        public abstract BytePool.RentedMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options);
 
         public abstract void SerializeWriter(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options);
 
@@ -59,7 +59,7 @@ public static class TinyhandTypeIdentifier
 
         public override byte[] Serialize(object value, TinyhandSerializerOptions? options) => TinyhandSerializer.Serialize((T)value, options);
 
-        public override BytePool.RentMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options) => TinyhandSerializer.SerializeToRentMemory((T)value, options);
+        public override BytePool.RentedMemory SerializeRentMemory(object value, TinyhandSerializerOptions? options) => TinyhandSerializer.SerializeToRentMemory((T)value, options);
 
         public override void SerializeWriter(ref TinyhandWriter writer, object value, TinyhandSerializerOptions? options) => TinyhandSerializer.Serialize(ref writer, (T)value, options);
 
@@ -67,12 +67,12 @@ public static class TinyhandTypeIdentifier
 
         public override object? DeserializeReader(ref TinyhandReader reader, TinyhandSerializerOptions? options) => TinyhandSerializer.Deserialize<T>(ref reader, options);
 
-        public override object? TryDeserializeFromString(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options) => TinyhandSerializer.TryDeserializeFromString<T>(utf16, options);
+        public override object? TryDeserializeFromString(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options) => TinyhandSerializer.DeserializeFromStringOrDefault<T>(utf16, options);
 
         public override object? TryParseOrDeserializeFromString(ReadOnlySpan<char> utf16, TinyhandSerializerOptions? options)
         {
             var parser = Volatile.Read(ref this.Parser);
-            return parser is null ? TinyhandSerializer.TryDeserializeFromString<T>(utf16, options) : parser(utf16, options);
+            return parser is null ? TinyhandSerializer.DeserializeFromStringOrDefault<T>(utf16, options) : parser(utf16, options);
         }
 
         public override object? Reconstruct(TinyhandSerializerOptions? options) => TinyhandSerializer.Reconstruct<T>(options);
@@ -207,9 +207,9 @@ public static class TinyhandTypeIdentifier
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
     /// <returns>
-    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentMemory" />, or the default tuple if serialization fails.
+    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentedMemory" />, or the default tuple if serialization fails.
     /// </returns>
-    public static (uint TypeIdentifier, BytePool.RentMemory RentMemory) TrySerializeRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
+    public static (uint TypeIdentifier, BytePool.RentedMemory RentMemory) TrySerializeRentMemory<T>(T value, TinyhandSerializerOptions? options = null)
     {
         if (!IsRegistered<T>())
         {
@@ -234,9 +234,9 @@ public static class TinyhandTypeIdentifier
     /// <param name="value">The value to serialize.</param>
     /// <param name="options">The serializer options. Set <see langword="null"/> to use default options.</param>
     /// <returns>
-    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentMemory" />, or the default tuple if serialization fails.
+    /// A tuple containing the type identifier and the serialized <see cref="BytePool.RentedMemory" />, or the default tuple if serialization fails.
     /// </returns>
-    public static (uint TypeIdentifier, BytePool.RentMemory RentMemory) TrySerializeRentMemory(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
+    public static (uint TypeIdentifier, BytePool.RentedMemory RentMemory) TrySerializeRentMemory(uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
     {
         if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
@@ -264,7 +264,7 @@ public static class TinyhandTypeIdentifier
     /// <returns>
     /// <c>true</c> if the value was successfully serialized; otherwise, <c>false</c>.
     /// </returns>
-    public static bool TrySerializeWriter(ref TinyhandWriter writer, uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
+    public static bool TrySerialize(ref TinyhandWriter writer, uint typeIdentifier, object value, TinyhandSerializerOptions? options = null)
     {
         if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
@@ -346,7 +346,7 @@ public static class TinyhandTypeIdentifier
     /// <returns>
     /// The deserialized object, or <c>null</c> if deserialization fails.
     /// </returns>
-    public static object? TryDeserializeReader(uint typeIdentifier, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
+    public static object? TryDeserialize(uint typeIdentifier, ref TinyhandReader reader, TinyhandSerializerOptions? options = null)
     {
         if (!Methods.TryGetValue(typeIdentifier, out var methodClass))
         {
@@ -412,7 +412,7 @@ public static class TinyhandTypeIdentifier
         where T : ITinyhandSerializable<T>, IStringConvertible<T>
     {
         Register<T>();
-        Volatile.Write(ref MethodClass<T>.Instance.Parser, TinyhandSerializer.TryParseOrDeserializeFromString<T>);
+        Volatile.Write(ref MethodClass<T>.Instance.Parser, TinyhandSerializer.ParseOrDeserializeFromStringOrDefault<T>);
     }
 
     /// <summary>

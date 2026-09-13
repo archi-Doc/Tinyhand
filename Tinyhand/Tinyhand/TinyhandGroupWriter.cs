@@ -41,9 +41,9 @@ public ref struct TinyhandGroupWriter
         this.enableIndent = composeOption == TinyhandComposeOption.Standard || composeOption == TinyhandComposeOption.UseContextualInformation;
     }
 
-    public bool EnableIndent => this.enableIndent;
+    public bool IsIndentEnabled => this.enableIndent;
 
-    public int Indents => this.indents;
+    public int IndentLevel => this.indents;
 
     /// <summary>
     /// Gets a value indicating whether <see cref="Flush(ref TinyhandRawWriter)"/> has something to write.
@@ -51,7 +51,7 @@ public ref struct TinyhandGroupWriter
     internal bool HasPending => (this.closes | this.opens | this.lfCount) != 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void AddLF()
+    public void AddLineFeed()
     {
         this.lfCount++;
     }

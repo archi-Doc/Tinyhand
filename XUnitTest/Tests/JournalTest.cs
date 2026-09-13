@@ -49,7 +49,7 @@ public partial class JournalClass
     public readonly int Id3;
 }
 
-[TinyhandObject(Structural = true, LockObject = "semaphore")]
+[TinyhandObject(Structural = true, LockMemberName = "semaphore")]
 public sealed partial class JournalClass2
 {
     public JournalClass2()
@@ -74,7 +74,7 @@ public sealed partial class JournalClass2
     [MemberNameAsKey]
     public int X6 { get; set; }
 
-    [Key("X7", AddProperty = "X7")]
+    [Key("X7", PropertyName = "X7")]
     private int x7;
 
     private SemaphoreLock semaphore = new();
@@ -90,16 +90,16 @@ public partial class JournalClass2B
     public JournalTestClass Class2 { get; set; } = new();
 }
 
-[TinyhandObject(Structural = true, LockObject = "syncObject")]
+[TinyhandObject(Structural = true, LockMemberName = "syncObject")]
 public partial class JournalClass3 : ITinyhandCustomJournal
 {
     [Key(0)]
     public int X0 { get; set; }
 
-    [Key(1, AddProperty = "X1")]
+    [Key(1, PropertyName = "X1")]
     private int x1;
 
-    [Key(2, AddProperty = "X2")]
+    [Key(2, PropertyName = "X2")]
     private JournalIdentifier x2;
 
     private object syncObject = new();
@@ -127,10 +127,10 @@ public partial class JournalTestClass
         this.name = name;
     }
 
-    [Key(0, AddProperty = "Id")]
+    [Key(0, PropertyName = "Id")]
     private int id;
 
-    [Key(1, AddProperty = "Name")]
+    [Key(1, PropertyName = "Name")]
     private string name = string.Empty;
 }
 
@@ -149,7 +149,7 @@ public class JournalTest
 
         var journal = tester.GetJournal();
         var c2 = new JournalTestClass();
-        JournalHelper.ReadJournal(c2, journal).IsTrue();
+        JournalHelper.ReplayJournal(c2, journal).IsTrue();
 
         c2.IsStructuralEqual(c);
     }
@@ -167,7 +167,7 @@ public class JournalTest
 
         var journal = tester.GetJournal();
         var c2 = TinyhandSerializer.Reconstruct<JournalClass2B>();
-        JournalHelper.ReadJournal(c2, journal).IsTrue();
+        JournalHelper.ReplayJournal(c2, journal).IsTrue();
 
         c.Class1.X7.Is(c2.Class1.X7);
         c.Class2.Id.Is(c2.Class2.Id);

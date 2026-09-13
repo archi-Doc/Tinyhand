@@ -9,12 +9,12 @@ using Tinyhand.Generator;
 
 namespace Tinyhand.Coders;
 
-public sealed class BuiltinCoder : ICoderResolver
+public sealed class BuiltinResolver : ICoderResolver
 {
     /// <summary>
     /// The singleton instance that can be used.
     /// </summary>
-    public static readonly BuiltinCoder Instance = new BuiltinCoder();
+    public static readonly BuiltinResolver Instance = new BuiltinResolver();
 
     public readonly Dictionary<string, ITinyhandCoder> NameToCoder = new()
     {
@@ -172,22 +172,22 @@ public sealed class Struct128Coder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject}.AsSpan());");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = Tinyhand.Formatters.Struct128Formatter.DeserializeValue(ref reader, options);");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} = default;");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
     }
@@ -203,22 +203,22 @@ public sealed class Struct256Coder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject}.AsSpan());");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = Tinyhand.Formatters.Struct256Formatter.DeserializeValue(ref reader, options);");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} = default;");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
     }
@@ -234,22 +234,22 @@ public sealed class StringCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject});");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = reader.ReadString() ?? string.Empty;");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= string.Empty;");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject}!;");
     }
@@ -265,22 +265,22 @@ public sealed class NullableStringCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject});");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = reader.ReadString();");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         // ssb.AppendLine($"{ssb.FullObject} ??= string.Empty;");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject};");
     }
@@ -296,22 +296,22 @@ public sealed class StringArrayCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeStringArray(ref writer, {ssb.FullObject});");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader) ?? [];");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneStringArray({sourceObject})!;");
     }
@@ -327,22 +327,22 @@ public sealed class NullableStringArrayCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeNullableStringArray(ref writer, {ssb.FullObject});");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeNullableStringArray(ref reader);");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         // ssb.AppendLine($"{ssb.FullObject} = new string[0];");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneStringArray({sourceObject});");
     }
@@ -358,22 +358,22 @@ public sealed class StringListCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeStringList(ref writer, {ssb.FullObject});");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeStringList(ref reader) ?? [];");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<string>({sourceObject});");
     }
@@ -389,22 +389,22 @@ public sealed class NullableStringListCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"global::Tinyhand.Formatters.Builtin.SerializeStringList(ref writer, {ssb.FullObject});");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.DeserializeStringList(ref reader);");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         // ssb.AppendLine($"{ssb.FullObject} = new List<string>();");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<string>({sourceObject});");
     }
@@ -420,22 +420,22 @@ public sealed class UInt8ArrayCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject});");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToArray();");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneUInt8Array({sourceObject})!;");
     }
@@ -451,22 +451,22 @@ public sealed class NullableUInt8ArrayCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"writer.Write({ssb.FullObject});");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToNullableArray();");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         // ssb.AppendLine($"{ssb.FullObject} = Array.Empty<byte>();");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = global::Tinyhand.Formatters.Builtin.CloneUInt8Array({sourceObject});");
     }
@@ -482,22 +482,22 @@ public sealed class Utf8StringCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"writer.WriteString({ssb.FullObject}.Value);");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = new(reader.ReadBytesToArray());");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= new();");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = new(global::Tinyhand.Formatters.Builtin.CloneUInt8Array({sourceObject}.Value)!);");
     }
@@ -513,22 +513,22 @@ public sealed class NullableUtf8StringCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"if ({ssb.FullObject} is null) writer.WriteNil(); else writer.WriteString({ssb.FullObject}.Value!.Value);");
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         ssb.AppendLine($"{ssb.FullObject} = reader.ReadBytesToNullableArray() is {{}} array ? new(array) : null;");
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         // ssb.AppendLine($"{ssb.FullObject} = new();");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"if ({sourceObject} is null) {ssb.FullObject} = null; else {ssb.FullObject} = new Utf8String({sourceObject}.Value!);");
     }
@@ -544,7 +544,7 @@ public sealed class UInt8ListCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
         {
@@ -557,7 +557,7 @@ public sealed class UInt8ListCoder : ITinyhandCoder
         }
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         if (nilChecked)
         {
@@ -577,12 +577,12 @@ public sealed class UInt8ListCoder : ITinyhandCoder
         }
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         ssb.AppendLine($"{ssb.FullObject} ??= [];");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null! : new List<byte>({sourceObject});");
     }
@@ -598,7 +598,7 @@ public sealed class NullableUInt8ListCoder : ITinyhandCoder
 
     public bool RequiresRefValue => false;
 
-    public void CodeSerializer(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeSerialize(ScopingStringBuilder ssb, GenerationContext info)
     {
         using (var b = ssb.ScopeBrace($"if ({ssb.FullObject} == null)"))
         {
@@ -611,7 +611,7 @@ public sealed class NullableUInt8ListCoder : ITinyhandCoder
         }
     }
 
-    public void CodeDeserializer(ScopingStringBuilder ssb, GeneratorInformation info, bool nilChecked)
+    public void CodeDeserialize(ScopingStringBuilder ssb, GenerationContext info, bool nilChecked)
     {
         if (nilChecked)
         {
@@ -631,12 +631,12 @@ public sealed class NullableUInt8ListCoder : ITinyhandCoder
         }
     }
 
-    public void CodeReconstruct(ScopingStringBuilder ssb, GeneratorInformation info)
+    public void CodeReconstruct(ScopingStringBuilder ssb, GenerationContext info)
     {
         // ssb.AppendLine($"{ssb.FullObject} = new List<byte>();");
     }
 
-    public void CodeClone(ScopingStringBuilder ssb, GeneratorInformation info, string sourceObject)
+    public void CodeClone(ScopingStringBuilder ssb, GenerationContext info, string sourceObject)
     {
         ssb.AppendLine($"{ssb.FullObject} = {sourceObject} == null ? null : new List<byte>({sourceObject});");
     }

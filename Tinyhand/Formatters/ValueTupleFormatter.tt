@@ -52,7 +52,7 @@ internal sealed class ValueTupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t 
             }
 
             var resolver = options.Resolver;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
 <# for(var j = 1; j <= i; j++) { #>

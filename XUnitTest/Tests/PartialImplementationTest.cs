@@ -52,7 +52,7 @@ public readonly partial struct PartialImplementationStruct
     {
         if (reader.TryReadNil()) throw new TinyhandException("Data is Nil, struct can not be null.");
         var numberOfData = reader.ReadArrayHeader();
-        options.Security.DepthStep(ref reader);
+        options.Security.IncrementDepth(ref reader);
         try
         {
             if (numberOfData-- > 0) reader.Skip();

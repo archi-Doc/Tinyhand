@@ -40,7 +40,7 @@ public class TinyhandProcessCore_TextToTinyhand : IProcessCore
 
     public async Task<bool> Process(Element element)
     {
-        if (element.TryGetRight_Value_String("format", out var valueFile))
+        if (element.TryGetRightStringValue("format", out var valueFile))
         {
             this.format = valueFile.Utf16 switch
             {
@@ -49,7 +49,7 @@ public class TinyhandProcessCore_TextToTinyhand : IProcessCore
                 _ => Format.Compressed,
             };
         }
-        else if (element is Value_String valueString)
+        else if (element is StringValue valueString)
         {
             var path = this.Environment.CombinePath(PathType.SourceFolder, valueString.Utf16);
             if (!File.Exists(path))

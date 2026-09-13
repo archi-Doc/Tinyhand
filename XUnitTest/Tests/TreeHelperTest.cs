@@ -39,7 +39,7 @@ public class TreeHelperTest
         {
             foreach (var x in group)
             {
-                if (x.TryGetRight_Value(identifier, out var v))
+                if (x.TryGetRightValue(identifier, out var v))
                 {
                     return v;
                 }
@@ -76,17 +76,17 @@ public class TreeHelperTest
         var group = Parse("name = \"value\"");
         var element = group.ElementList[0];
 
-        element.TryGetLeft_IdentifierUtf16(out var utf16).IsTrue();
+        element.TryGetLeftIdentifierUtf16(out var utf16).IsTrue();
         utf16.Is("name");
 
-        element.TryGetLeft_IdentifierUtf8(out var utf8).IsTrue();
+        element.TryGetLeftIdentifierUtf8(out var utf8).IsTrue();
         Encoding.UTF8.GetString(utf8!).Is("name");
 
         // A value that is not an assignment has no left identifier.
-        Parse("1").ElementList[0].TryGetLeft_IdentifierUtf16(out _).IsFalse();
+        Parse("1").ElementList[0].TryGetLeftIdentifierUtf16(out _).IsFalse();
 
         // A quoted left side is a string, not an identifier.
-        Parse("\"name\" = 1").ElementList[0].TryGetLeft_IdentifierUtf16(out _).IsFalse();
+        Parse("\"name\" = 1").ElementList[0].TryGetLeftIdentifierUtf16(out _).IsFalse();
     }
 
     [Fact]
@@ -97,23 +97,23 @@ public class TreeHelperTest
         var n = group.ElementList[1];
         var g = group.ElementList[2];
 
-        s.TryGetRight_Value(out var value).IsTrue();
-        value.ValueType.Is(ValueElementType.Value_String);
+        s.TryGetRightValue(out var value).IsTrue();
+        value.ValueType.Is(ValueElementType.String);
 
-        s.TryGetRight_Value_String(out var valueString).IsTrue();
+        s.TryGetRightStringValue(out var valueString).IsTrue();
         valueString.Utf16.Is("text");
-        s.TryGetRight_Value_Long(out _).IsFalse();
+        s.TryGetRightLongValue(out _).IsFalse();
 
-        n.TryGetRight_Value_Long(out var valueLong).IsTrue();
+        n.TryGetRightLongValue(out var valueLong).IsTrue();
         valueLong.ValueLong.Is(123L);
-        n.TryGetRight_Value_String(out _).IsFalse();
+        n.TryGetRightStringValue(out _).IsFalse();
 
-        g.TryGetRight_Group(out var innerGroup).IsTrue();
+        g.TryGetRightGroup(out var innerGroup).IsTrue();
         innerGroup.ElementList.Count.Is(1);
-        g.TryGetRight_Value(out _).IsFalse();
+        g.TryGetRightValue(out _).IsFalse();
 
         // A non-assignment element has no right side.
-        Parse("1").ElementList[0].TryGetRight_Value(out _).IsFalse();
+        Parse("1").ElementList[0].TryGetRightValue(out _).IsFalse();
     }
 
     [Fact]
@@ -123,17 +123,17 @@ public class TreeHelperTest
         var s = group.ElementList[0];
         var n = group.ElementList[1];
 
-        s.TryGetRight_Value("s", out var value).IsTrue();
-        ((Value_String)value).Utf16.Is("text");
-        s.TryGetRight_Value("other", out _).IsFalse();
+        s.TryGetRightValue("s", out var value).IsTrue();
+        ((StringValue)value).Utf16.Is("text");
+        s.TryGetRightValue("other", out _).IsFalse();
 
-        s.TryGetRight_Value_String("s", out var valueString).IsTrue();
+        s.TryGetRightStringValue("s", out var valueString).IsTrue();
         valueString.Utf16.Is("text");
-        s.TryGetRight_Value_Long("s", out _).IsFalse();
+        s.TryGetRightLongValue("s", out _).IsFalse();
 
-        n.TryGetRight_Value_Long("n", out var valueLong).IsTrue();
+        n.TryGetRightLongValue("n", out var valueLong).IsTrue();
         valueLong.ValueLong.Is(123L);
-        n.TryGetRight_Value_String("n", out _).IsFalse();
+        n.TryGetRightStringValue("n", out _).IsFalse();
     }
 
     [Fact]
@@ -141,28 +141,28 @@ public class TreeHelperTest
     {
         // left = { identifier = value }
         var nested = Parse("outer = { inner = \"text\", number = 1 }").ElementList[0];
-        nested.TryGetRightGroup_Value("inner", out var value).IsTrue();
-        ((Value_String)value).Utf16.Is("text");
-        nested.TryGetRightGroup_Value_String("inner", out var valueString).IsTrue();
+        nested.TryGetValueInRightGroup("inner", out var value).IsTrue();
+        ((StringValue)value).Utf16.Is("text");
+        nested.TryGetStringValueInRightGroup("inner", out var valueString).IsTrue();
         valueString.Utf16.Is("text");
-        nested.TryGetRightGroup_Value("missing", out _).IsFalse();
+        nested.TryGetValueInRightGroup("missing", out _).IsFalse();
 
         // A null identifier accepts a bare value or the first value inside the group.
         var bare = Parse("outer = \"text\"").ElementList[0];
-        bare.TryGetRightGroup_Value(null, out var bareValue).IsTrue();
-        ((Value_String)bareValue).Utf16.Is("text");
-        bare.TryGetRightGroup_Value_String(null, out var bareString).IsTrue();
+        bare.TryGetValueInRightGroup(null, out var bareValue).IsTrue();
+        ((StringValue)bareValue).Utf16.Is("text");
+        bare.TryGetStringValueInRightGroup(null, out var bareString).IsTrue();
         bareString.Utf16.Is("text");
 
         var wrapped = Parse("outer = { \"text\" }").ElementList[0];
-        wrapped.TryGetRightGroup_Value(null, out var wrappedValue).IsTrue();
-        ((Value_String)wrappedValue).Utf16.Is("text");
+        wrapped.TryGetValueInRightGroup(null, out var wrappedValue).IsTrue();
+        ((StringValue)wrappedValue).Utf16.Is("text");
 
         // The identifier is required when it is not null, even for a bare value.
-        bare.TryGetRightGroup_Value("inner", out _).IsFalse();
+        bare.TryGetValueInRightGroup("inner", out _).IsFalse();
 
         // A non-assignment element has no right group.
-        Parse("1").ElementList[0].TryGetRightGroup_Value(null, out _).IsFalse();
+        Parse("1").ElementList[0].TryGetValueInRightGroup(null, out _).IsFalse();
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public class TreeHelperTest
 
         // The original still composes to the same text as before the copy was modified.
         var a = group.ElementList[0];
-        a.TryGetRight_Value_Long("a", out var valueLong).IsTrue();
+        a.TryGetRightLongValue("a", out var valueLong).IsTrue();
         valueLong.ValueLong.Is(1L);
     }
 

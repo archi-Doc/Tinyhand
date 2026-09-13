@@ -27,7 +27,7 @@ public static class HashedString
     /// <returns>The matched string. If no string is found, the return value is the error message.</returns>
     public static string FromEnum<T>(T enumValue)
         where T : Enum
-        => GetOrAlternative($"{typeof(T).Name}.{enumValue.ToString()}", ErrorMessage);
+        => GetOrAlternative($"{typeof(T).Name}.{enumValue.ToString()}", NotFoundMessage);
 
     public static ulong IdentifierToHash(string identifier) => Arc.Crypto.FarmHash.Hash64(identifier);
 
@@ -50,7 +50,7 @@ public static class HashedString
         cultureTable.TryAdd(currentCultureInfo.Name, table);
     }
 
-    public static string ErrorMessage { get; set; } = "No KeyString"; // Error message.
+    public static string NotFoundMessage { get; set; } = "No KeyString"; // Error message.
 
     public static CultureInfo CurrentCulture => currentCultureInfo;
 
@@ -96,34 +96,34 @@ public static class HashedString
     /// </summary>
     /// <param name="hash"><see cref="ulong"/> hash.</param>
     /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
-    public static string Get(ulong hash) => GetInternal(hash, ErrorMessage);
+    public static string Get(ulong hash) => GetInternal(hash, NotFoundMessage);
 
     /// <summary>
     /// Get(hash) + <see cref="string.Format(string, object)"/>.
     /// </summary>
     /// <param name="hash"><see cref="ulong"/> hash.</param>
-    /// <param name="obj1">The object to format.</param>
+    /// <param name="arg0">The object to format.</param>
     /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
-    public static string Get(ulong hash, object obj1) => string.Format(GetInternal(hash, ErrorMessage), obj1);
+    public static string Get(ulong hash, object arg0) => string.Format(GetInternal(hash, NotFoundMessage), arg0);
 
     /// <summary>
     /// Get(hash) + <see cref="string.Format(string, object)"/>.
     /// </summary>
     /// <param name="hash"><see cref="ulong"/> hash.</param>
-    /// <param name="obj1">The object to format.</param>
-    /// <param name="obj2">The object to format2.</param>
+    /// <param name="arg0">The object to format.</param>
+    /// <param name="arg1">The second object to format.</param>
     /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
-    public static string Get(ulong hash, object obj1, object obj2) => string.Format(GetInternal(hash, ErrorMessage), obj1, obj2);
+    public static string Get(ulong hash, object arg0, object arg1) => string.Format(GetInternal(hash, NotFoundMessage), arg0, arg1);
 
     /// <summary>
     /// Get(hash) + <see cref="string.Format(string, object)"/>.
     /// </summary>
     /// <param name="hash"><see cref="ulong"/> hash.</param>
-    /// <param name="obj1">The object to format.</param>
-    /// <param name="obj2">The object to format2.</param>
-    /// <param name="obj3">The object to format3.</param>
+    /// <param name="arg0">The object to format.</param>
+    /// <param name="arg1">The second object to format.</param>
+    /// <param name="arg2">The third object to format.</param>
     /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
-    public static string Get(ulong hash, object obj1, object obj2, object obj3) => string.Format(GetInternal(hash, ErrorMessage), obj1, obj2, obj3);
+    public static string Get(ulong hash, object arg0, object arg1, object arg2) => string.Format(GetInternal(hash, NotFoundMessage), arg0, arg1, arg2);
 
     /// <summary>
     /// Get a string that matches the identifier.<br/>
@@ -148,7 +148,7 @@ public static class HashedString
     /// </summary>
     /// <param name="identifier">The identifier.</param>
     /// <returns>Returns a string. If no string is found, the return value is the error message.</returns>
-    public static string Get(string identifier) => GetInternal(IdentifierToHash(identifier), ErrorMessage);
+    public static string Get(string identifier) => GetInternal(IdentifierToHash(identifier), NotFoundMessage);
 
     /// <summary>
     /// Get a string that matches the identifier.<br/>
@@ -191,7 +191,7 @@ public static class HashedString
             if (!cultureTable.TryGetValue(cultureName, out table))
             {
                 table = new();
-                cultureTable.TryAdd(cultureName, table); // Register it so that ChangeCulture()/Load() see the same table.
+                cultureTable.TryAdd(cultureName, table); // Register it so that TrySetCurrentCulture()/LoadFile() see the same table.
             }
 
             Volatile.Write(ref defaultCultureTable, table);
@@ -203,7 +203,7 @@ public static class HashedString
     /// </summary>
     /// <param name="cultureName">The culture name.</param>
     /// <returns><see langword="true" /> if the culture change was successfully done.</returns>
-    public static bool ChangeCulture(string cultureName)
+    public static bool TrySetCurrentCulture(string cultureName)
     {
         cultureName = ShortNameToCultureName(cultureName);
         if (cultureName == CurrentCulture.Name)
@@ -244,7 +244,7 @@ public static class HashedString
     /// <param name="culture">The target culture (null for default culture).</param>
     /// <param name="tinyhandPath">The path of the tinyhand file.</param>
     /// <param name="reset"><see langword="true"/> to reset key/string data before loading.</param>
-    public static void Load(string? culture, string tinyhandPath, bool reset = false)
+    public static void LoadFile(string? culture, string tinyhandPath, bool reset = false)
     {
         using (var fs = File.OpenRead(tinyhandPath))
         {
@@ -337,7 +337,7 @@ public static class HashedString
         {
             if (x is Assignment assignment)
             {
-                if (assignment.LeftElement is Value_Identifier valueIdentifier)
+                if (assignment.LeftElement is IdentifierValue valueIdentifier)
                 {// Identifier = ?
                     string identifier;
                     if (string.IsNullOrEmpty(groupName))
@@ -349,7 +349,7 @@ public static class HashedString
                         identifier = groupName + "." + valueIdentifier.Utf16;
                     }
 
-                    if (assignment.RightElement is Value_String valueString)
+                    if (assignment.RightElement is StringValue valueString)
                     {// Identifier = "String"
                         if (valueString.Utf16.Length <= MaxStringLength)
                         {

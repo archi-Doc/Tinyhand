@@ -64,7 +64,7 @@ internal sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
 
             var i = 0;
             var j = -1;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int loop = 0; loop < maxLen; loop++)
@@ -185,7 +185,7 @@ internal sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,
             var i = 0;
             var j = 0;
             var k = -1;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int loop = 0; loop < maxLen; loop++)
@@ -324,7 +324,7 @@ internal sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,
             var j = 0;
             var k = 0;
             var l = -1;
-            options.Security.DepthStep(ref reader);
+            options.Security.IncrementDepth(ref reader);
             try
             {
                 for (int loop = 0; loop < maxLen; loop++)

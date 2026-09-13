@@ -39,11 +39,11 @@ public enum ValueLinkAccessibility
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = true)]
-public sealed class ValueLinkObjectAttributeMock : Attribute
+public sealed class ValueLinkObjectAttributeData : Attribute
 {
     public static readonly string SimpleName = "ValueLinkObject";
-    public static readonly string StandardName = SimpleName + "Attribute";
-    public static readonly string FullName = "ValueLink." + StandardName;
+    public static readonly string Name = SimpleName + "Attribute";
+    public static readonly string FullName = "ValueLink." + Name;
 
     public string GoshujinClass { get; set; } = string.Empty;
 
@@ -57,13 +57,13 @@ public sealed class ValueLinkObjectAttributeMock : Attribute
 
     public bool Integrality { get; set; } = false;
 
-    public ValueLinkObjectAttributeMock()
+    public ValueLinkObjectAttributeData()
     {
     }
 
-    public static ValueLinkObjectAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static ValueLinkObjectAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new ValueLinkObjectAttributeMock();
+        var attribute = new ValueLinkObjectAttributeData();
         object? val;
 
         val = VisceralHelper.GetValue(-1, nameof(GoshujinClass), constructorArguments, namedArguments);

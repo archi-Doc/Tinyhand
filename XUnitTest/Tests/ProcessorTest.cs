@@ -47,12 +47,12 @@ public class ProcessorTest : IDisposable
             """));
 
         var output = (Group)TinyhandParser.ParseFile(Path.Combine(this.directory, "output", "target.tinyhand"));
-        Assert.Equal("\0", Assert.IsType<Value_String>(Assert.IsType<Assignment>(output.ElementList[0]).RightElement).Utf16);
-        Assert.Equal("\0", Assert.IsType<Value_String>(Assert.IsType<Assignment>(output.ElementList[1]).RightElement).Utf16);
-        Assert.IsType<Value_Null>(Assert.IsType<Assignment>(output.ElementList[2]).RightElement);
+        Assert.Equal("\0", Assert.IsType<StringValue>(Assert.IsType<Assignment>(output.ElementList[0]).RightElement).Utf16);
+        Assert.Equal("\0", Assert.IsType<StringValue>(Assert.IsType<Assignment>(output.ElementList[1]).RightElement).Utf16);
+        Assert.IsType<NullValue>(Assert.IsType<Assignment>(output.ElementList[2]).RightElement);
         var nested = Assert.IsType<Group>(Assert.IsType<Assignment>(output.ElementList[3]).RightElement);
-        Assert.Equal("翻訳", Assert.IsType<Value_String>(Assert.IsType<Assignment>(nested.ElementList[0]).RightElement).Utf16);
-        Assert.Equal("unchanged", Assert.IsType<Value_String>(Assert.IsType<Assignment>(nested.ElementList[1]).RightElement).Utf16);
+        Assert.Equal("翻訳", Assert.IsType<StringValue>(Assert.IsType<Assignment>(nested.ElementList[0]).RightElement).Utf16);
+        Assert.Equal("unchanged", Assert.IsType<StringValue>(Assert.IsType<Assignment>(nested.ElementList[1]).RightElement).Utf16);
     }
 
     [Fact]

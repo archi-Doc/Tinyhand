@@ -11,14 +11,14 @@ namespace Tinyhand.IO;
 /// </summary>
 public static class JournalHelper
 {
-    public static bool ReadJournal(IStructuralObject journalObject, ReadOnlyMemory<byte> data)
+    public static bool ReplayJournal(IStructuralObject target, ReadOnlyMemory<byte> data)
     {
         var reader = new TinyhandReader(data.Span);
         var success = true;
 
         while (reader.Consumed < data.Length)
         {
-            if (!reader.TryReadJournal(out var length, out var journalType))
+            if (!reader.TryReadJournalHeader(out var length, out var journalType))
             {
                 return false;
             }
@@ -28,12 +28,12 @@ public static class JournalHelper
                 return false;
             }
 
-            var recordReader = reader.Clone(reader.ReadRaw(length));
+            var recordReader = reader.CreateSubReader(reader.ReadRaw(length));
             try
             {
                 if (journalType == JournalType.Record)
                 {
-                    if (!journalObject.ProcessJournalRecord(ref recordReader))
+                    if (!target.ProcessJournalRecord(ref recordReader))
                     {// Failure
                         success = false;
                     }
@@ -49,7 +49,7 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryReadJournal(this ref TinyhandReader reader, out int length, out JournalType journalType)
+    public static bool TryReadJournalHeader(this ref TinyhandReader reader, out int length, out JournalType journalType)
     {
         if (reader.Remaining < 4)
         {
@@ -68,48 +68,48 @@ public static class JournalHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write(ref this TinyhandWriter writer, JournalRecord journalRecord)
+    public static void Write(ref this TinyhandWriter writer, JournalRecordType journalRecord)
         => writer.Write((byte)journalRecord);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Locator(ref this TinyhandWriter writer)
-        => writer.Write((byte)JournalRecord.Locator);
+    public static void WriteLocatorRecord(ref this TinyhandWriter writer)
+        => writer.Write((byte)JournalRecordType.Locator);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Key(ref this TinyhandWriter writer)
-        => writer.Write((byte)JournalRecord.Key);
+    public static void WriteKeyRecord(ref this TinyhandWriter writer)
+        => writer.Write((byte)JournalRecordType.Key);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Write_Value(ref this TinyhandWriter writer)
-        => writer.Write((byte)JournalRecord.Value);
+    public static void WriteValueRecord(ref this TinyhandWriter writer)
+        => writer.Write((byte)JournalRecordType.Value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryReadJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    public static bool TryReadJournalRecord(ref this TinyhandReader reader, out JournalRecordType journalRecord)
     {
         var result = reader.TryRead(out byte b);
-        journalRecord = (JournalRecord)b;
+        journalRecord = (JournalRecordType)b;
         return result;
     }
 
     /*/// <summary>
     /// Attempts to peek at the next journal record in the reader and determines if it should be processed by this object or delegated to descendant objects.<br/>
-    /// If the next record is <see cref="JournalRecord.Value"/> or <see cref="JournalRecord.Delete"/>, advances the reader by one byte, sets <paramref name="journalRecord"/>, and returns <c>false</c>.<br/>
+    /// If the next record is <see cref="JournalRecordType.Value"/> or <see cref="JournalRecordType.Delete"/>, advances the reader by one byte, sets <paramref name="journalRecord"/>, and returns <c>false</c>.<br/>
     /// Otherwise, sets <paramref name="journalRecord"/> and returns <c>true</c>.<br/>
-    /// If there are no remaining bytes, sets <paramref name="journalRecord"/> to <see cref="JournalRecord.Invalid"/> and returns <c>false</c>.
+    /// If there are no remaining bytes, sets <paramref name="journalRecord"/> to <see cref="JournalRecordType.Invalid"/> and returns <c>false</c>.
     /// </summary>
     /// <param name="reader">The <see cref="TinyhandReader"/> to read from.</param>
-    /// <param name="journalRecord">When this method returns, contains the journal record that was peeked or <see cref="JournalRecord.Invalid"/> if none was found.</param>
+    /// <param name="journalRecord">When this method returns, contains the journal record that was peeked or <see cref="JournalRecordType.Invalid"/> if none was found.</param>
     /// <returns>
     /// <c>true</c> if the next journal record is intended to be processed by descendant objects; <c>false</c> if it is intended to be processed by this object or if no record is found.
     /// </returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryReadJournalRecord_PeekIDelegated(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    public static bool TryReadJournalRecord_PeekIDelegated(ref this TinyhandReader reader, out JournalRecordType journalRecord)
     {
         if (reader.Remaining > 0)
         {
-            journalRecord = (JournalRecord)reader.NextCode;
-            if (journalRecord == JournalRecord.Value ||
-                journalRecord == JournalRecord.Delete)
+            journalRecord = (JournalRecordType)reader.NextCode;
+            if (journalRecord == JournalRecordType.Value ||
+                journalRecord == JournalRecordType.Delete)
             {// Journal is intended to be processed by this object.
                 reader.Advance(1);
                 return false;
@@ -120,61 +120,61 @@ public static class JournalHelper
             }
         }
 
-        journalRecord = JournalRecord.Invalid;
+        journalRecord = JournalRecordType.Invalid;
         return false;
     }*/
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool TryPeekJournalRecord(ref this TinyhandReader reader, out JournalRecord journalRecord)
+    public static bool TryPeekJournalRecord(ref this TinyhandReader reader, out JournalRecordType journalRecord)
     {
         if (reader.Remaining > 0)
         {
-            journalRecord = (JournalRecord)reader.NextCode;
+            journalRecord = (JournalRecordType)reader.NextCode;
             return true;
         }
         else
         {
-            journalRecord = JournalRecord.Invalid;
+            journalRecord = JournalRecordType.Invalid;
             return false;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Read_Locator(ref this TinyhandReader reader)
+    public static void ReadLocatorRecord(ref this TinyhandReader reader)
     {
-        if (!reader.TryReadJournalRecord(out JournalRecord record) || record != JournalRecord.Locator)
+        if (!reader.TryReadJournalRecord(out JournalRecordType record) || record != JournalRecordType.Locator)
         {
             throw new InvalidDataException();
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Read_Key(ref this TinyhandReader reader)
+    public static void ReadKeyRecord(ref this TinyhandReader reader)
     {
-        if (!reader.TryReadJournalRecord(out JournalRecord record) || record != JournalRecord.Key)
+        if (!reader.TryReadJournalRecord(out JournalRecordType record) || record != JournalRecordType.Key)
         {
             throw new InvalidDataException();
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Read_Value(ref this TinyhandReader reader)
+    public static void ReadValueRecord(ref this TinyhandReader reader)
     {
-        if (!reader.TryReadJournalRecord(out JournalRecord record) || record != JournalRecord.Value)
+        if (!reader.TryReadJournalRecord(out JournalRecordType record) || record != JournalRecordType.Value)
         {
             throw new InvalidDataException();
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNext_Key(ref this TinyhandReader reader)
+    public static bool IsNextKeyRecord(ref this TinyhandReader reader)
     {
-        return reader.Remaining > 0 && reader.NextCode == (byte)JournalRecord.Key;
+        return reader.Remaining > 0 && reader.NextCode == (byte)JournalRecordType.Key;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsNext_NonValue(ref this TinyhandReader reader)
+    public static bool IsNextNonValueRecord(ref this TinyhandReader reader)
     {
-        return reader.Remaining > 0 && reader.NextCode != (byte)JournalRecord.Value;
+        return reader.Remaining > 0 && reader.NextCode != (byte)JournalRecordType.Value;
     }
 }

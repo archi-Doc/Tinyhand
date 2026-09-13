@@ -19,7 +19,7 @@ public enum PropertyAccessibility
 public enum LockObjectType
 {
     // No lock object.
-    NoLock,
+    None,
 
     /// <summary>
     /// Object.
@@ -37,50 +37,50 @@ public enum LockObjectType
     SemaphoreLock,
 }
 
-public sealed class TinyhandOnSerializingAttributeMock
+public sealed class TinyhandOnSerializingAttributeData
 {
     public static readonly string SimpleName = "TinyhandOnSerializing";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 }
 
-public sealed class TinyhandOnSerializedAttributeMock
+public sealed class TinyhandOnSerializedAttributeData
 {
     public static readonly string SimpleName = "TinyhandOnSerialized";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 }
 
-public sealed class TinyhandOnDeserializingAttributeMock
+public sealed class TinyhandOnDeserializingAttributeData
 {
     public static readonly string SimpleName = "TinyhandOnDeserializing";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 }
 
-public sealed class TinyhandOnDeserializedAttributeMock
+public sealed class TinyhandOnDeserializedAttributeData
 {
     public static readonly string SimpleName = "TinyhandOnDeserialized";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 }
 
-public sealed class TinyhandOnReconstructedAttributeMock
+public sealed class TinyhandOnReconstructedAttributeData
 {
     public static readonly string SimpleName = "TinyhandOnReconstructed";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 }
 
-public sealed class TinyhandObjectAttributeMock
+public sealed class TinyhandObjectAttributeData
 {
     public static readonly string SimpleName = "TinyhandObject";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
-    public static TinyhandObjectAttributeMock ExternalObject { get; }
+    public static TinyhandObjectAttributeData ExternalObject { get; }
 
-    static TinyhandObjectAttributeMock()
+    static TinyhandObjectAttributeData()
     {
         ExternalObject = new();
         ExternalObject.External = true;
@@ -102,7 +102,7 @@ public sealed class TinyhandObjectAttributeMock
 
     public int ReservedKeyCount { get; set; } = 0;
 
-    public string LockObject { get; set; } = string.Empty;
+    public string LockMemberName { get; set; } = string.Empty;
 
     public bool EnumAsString { get; set; } = false;
 
@@ -118,7 +118,7 @@ public sealed class TinyhandObjectAttributeMock
 
     public bool AddAlternateKey { get; set; } = false;
 
-    public TinyhandObjectAttributeMock()
+    public TinyhandObjectAttributeData()
     {
     }
 
@@ -128,9 +128,9 @@ public sealed class TinyhandObjectAttributeMock
     /// <param name="constructorArguments">Constructor arguments.</param>
     /// <param name="namedArguments">Named arguments.</param>
     /// <returns>A new attribute instance.</returns>
-    public static TinyhandObjectAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static TinyhandObjectAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new TinyhandObjectAttributeMock();
+        var attribute = new TinyhandObjectAttributeData();
 
         object? val;
         val = VisceralHelper.GetValue(-1, nameof(ImplicitMemberNameAsKey), constructorArguments, namedArguments);
@@ -181,10 +181,10 @@ public sealed class TinyhandObjectAttributeMock
             attribute.ReservedKeyCount = (int)val;
         }
 
-        val = VisceralHelper.GetValue(-1, nameof(LockObject), constructorArguments, namedArguments);
+        val = VisceralHelper.GetValue(-1, nameof(LockMemberName), constructorArguments, namedArguments);
         if (val != null)
         {
-            attribute.LockObject = (string)val;
+            attribute.LockMemberName = (string)val;
         }
 
         val = VisceralHelper.GetValue(-1, nameof(EnumAsString), constructorArguments, namedArguments);
@@ -235,7 +235,7 @@ public sealed class TinyhandObjectAttributeMock
     public LockObjectType LockObjectType { get; set; }
 }
 
-public class KeyAttributeMock
+public class KeyAttributeData
 {
     public const int DefaultLevel = int.MinValue;
     public static readonly string SimpleName = "Key";
@@ -250,31 +250,31 @@ public class KeyAttributeMock
 
     public bool Exclude { get; set; } = false;
 
-    public string AddProperty { get; set; } = string.Empty;
+    public string PropertyName { get; set; } = string.Empty;
 
     public PropertyAccessibility PropertyAccessibility { get; set; } = PropertyAccessibility.PublicSetter;
 
     public bool IgnoreKeyReservation { get; set; } = false;
 
-    public string Alternate { get; set; } = string.Empty;
+    public string AlternateKey { get; set; } = string.Empty;
 
     // public bool ConvertToString { get; set; } = false;
 
     // public bool Utf8String { get; set; } = false;
 
-    public KeyAttributeMock(int x)
+    public KeyAttributeData(int key)
     {
-        this.IntKey = x;
+        this.IntKey = key;
     }
 
-    public KeyAttributeMock(string x)
+    public KeyAttributeData(string key)
     {
-        this.StringKey = x;
+        this.StringKey = key;
     }
 
-    public static KeyAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static KeyAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new KeyAttributeMock(null!);
+        var attribute = new KeyAttributeData(null!);
 
         if (constructorArguments.Length > 0)
         {
@@ -306,10 +306,10 @@ public class KeyAttributeMock
             attribute.Exclude = (bool)v;
         }
 
-        v = VisceralHelper.GetValue(-1, nameof(AddProperty), constructorArguments, namedArguments);
+        v = VisceralHelper.GetValue(-1, nameof(PropertyName), constructorArguments, namedArguments);
         if (v != null)
         {
-            attribute.AddProperty = (string)v;
+            attribute.PropertyName = (string)v;
         }
 
         v = VisceralHelper.GetValue(-1, nameof(PropertyAccessibility), constructorArguments, namedArguments);
@@ -324,10 +324,10 @@ public class KeyAttributeMock
             attribute.IgnoreKeyReservation = (bool)v;
         }
 
-        v = VisceralHelper.GetValue(-1, nameof(Alternate), constructorArguments, namedArguments);
+        v = VisceralHelper.GetValue(-1, nameof(AlternateKey), constructorArguments, namedArguments);
         if (v != null)
         {
-            attribute.Alternate = (string)v;
+            attribute.AlternateKey = (string)v;
         }
 
         /*v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);
@@ -345,14 +345,14 @@ public class KeyAttributeMock
         return attribute;
     }
 
-    public void SetKey(string x)
+    public void SetKey(string key)
     {
         this.IntKey = null;
-        this.StringKey = x;
+        this.StringKey = key;
     }
 }
 
-public class MemberNameAsKeyAttributeMock
+public class MemberNameAsKeyAttributeData
 {
     public static readonly string SimpleName = "MemberNameAsKey";
     public static readonly string Name = SimpleName + "Attribute";
@@ -360,9 +360,9 @@ public class MemberNameAsKeyAttributeMock
 
     // public bool ConvertToString { get; set; } = false;
 
-    public static MemberNameAsKeyAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static MemberNameAsKeyAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new MemberNameAsKeyAttributeMock();
+        var attribute = new MemberNameAsKeyAttributeData();
 
         /*var v = VisceralHelper.GetValue(-1, nameof(ConvertToString), constructorArguments, namedArguments);
         if (v != null)
@@ -374,21 +374,21 @@ public class MemberNameAsKeyAttributeMock
     }
 }
 
-public class IgnoreMemberAttributeMock
+public class IgnoreMemberAttributeData
 {
     public static readonly string SimpleName = "IgnoreMember";
     public static readonly string Name = SimpleName + "Attribute";
     public static readonly string FullName = "Tinyhand." + Name;
 
-    public static IgnoreMemberAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static IgnoreMemberAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new IgnoreMemberAttributeMock();
+        var attribute = new IgnoreMemberAttributeData();
 
         return attribute;
     }
 }
 
-public class ReconstructAttributeMock
+public class ReconstructAttributeData
 {
     public static readonly string SimpleName = "Reconstruct";
     public static readonly string Name = SimpleName + "Attribute";
@@ -396,14 +396,14 @@ public class ReconstructAttributeMock
 
     public bool Reconstruct { get; set; }
 
-    public ReconstructAttributeMock(bool reconstruct)
+    public ReconstructAttributeData(bool reconstruct)
     {
         this.Reconstruct = reconstruct;
     }
 
-    public static ReconstructAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static ReconstructAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new ReconstructAttributeMock(true);
+        var attribute = new ReconstructAttributeData(true);
 
         object? val;
         val = VisceralHelper.GetValue(0, nameof(Reconstruct), constructorArguments, namedArguments);
@@ -416,7 +416,7 @@ public class ReconstructAttributeMock
     }
 }
 
-public class ReuseAttributeMock
+public class ReuseAttributeData
 {
     public static readonly string SimpleName = "Reuse";
     public static readonly string Name = SimpleName + "Attribute";
@@ -424,14 +424,14 @@ public class ReuseAttributeMock
 
     public bool ReuseInstance { get; set; }
 
-    public ReuseAttributeMock(bool reuseInstance)
+    public ReuseAttributeData(bool reuseInstance)
     {
         this.ReuseInstance = reuseInstance;
     }
 
-    public static ReuseAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static ReuseAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new ReuseAttributeMock(false);
+        var attribute = new ReuseAttributeData(false);
 
         object? val;
         val = VisceralHelper.GetValue(0, nameof(ReuseInstance), constructorArguments, namedArguments);
@@ -444,7 +444,7 @@ public class ReuseAttributeMock
     }
 }
 
-public class MaxLengthAttributeMock
+public class MaxLengthAttributeData
 {
     public static readonly string SimpleName = "MaxLength";
     public static readonly string Name = SimpleName + "Attribute";
@@ -454,13 +454,13 @@ public class MaxLengthAttributeMock
 
     public int MaxChildLength { get; private set; } = -1;
 
-    public MaxLengthAttributeMock()
+    public MaxLengthAttributeData()
     {
     }
 
-    public static MaxLengthAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static MaxLengthAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new MaxLengthAttributeMock();
+        var attribute = new MaxLengthAttributeData();
 
         object? val;
         val = VisceralHelper.GetValue(0, nameof(MaxLength), constructorArguments, namedArguments);
@@ -479,7 +479,7 @@ public class MaxLengthAttributeMock
     }
 }
 
-public sealed class TinyhandGeneratorOptionAttributeMock
+public sealed class TinyhandGeneratorOptionAttributeData
 {
     public static readonly string SimpleName = "TinyhandGeneratorOption";
     public static readonly string Name = SimpleName + "Attribute";
@@ -491,9 +491,9 @@ public sealed class TinyhandGeneratorOptionAttributeMock
 
     public string? CustomNamespace { get; set; }
 
-    public static TinyhandGeneratorOptionAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static TinyhandGeneratorOptionAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new TinyhandGeneratorOptionAttributeMock();
+        var attribute = new TinyhandGeneratorOptionAttributeData();
 
         object? val;
         val = VisceralHelper.GetValue(-1, nameof(AttachDebugger), constructorArguments, namedArguments);
@@ -518,7 +518,7 @@ public sealed class TinyhandGeneratorOptionAttributeMock
     }
 }
 
-public class TinyhandUnionAttributeMock
+public class TinyhandUnionAttributeData
 {
     public static readonly string SimpleName = "TinyhandUnion";
     public static readonly string Name = SimpleName + "Attribute";
@@ -537,21 +537,21 @@ public class TinyhandUnionAttributeMock
     /// </summary>
     public ISymbol? SubType { get; private set; }
 
-    public TinyhandUnionAttributeMock(Microsoft.CodeAnalysis.Location location)
+    public TinyhandUnionAttributeData(Microsoft.CodeAnalysis.Location location)
     {
         this.Location = location;
     }
 
-    public TinyhandUnionAttributeMock(int key, ISymbol subType, Microsoft.CodeAnalysis.Location location)
+    public TinyhandUnionAttributeData(int key, ISymbol subType, Microsoft.CodeAnalysis.Location location)
     {
         this.IntKey = key;
         this.SubType = subType;
         this.Location = location;
     }
 
-    public static TinyhandUnionAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments, Microsoft.CodeAnalysis.Location location)
+    public static TinyhandUnionAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments, Microsoft.CodeAnalysis.Location location)
     {
-        var attribute = new TinyhandUnionAttributeMock(location);
+        var attribute = new TinyhandUnionAttributeData(location);
 
         if (constructorArguments.Length > 0)
         {
@@ -579,7 +579,7 @@ public class TinyhandUnionAttributeMock
     }
 }
 
-/*public class TinyhandUnionToAttributeMock
+/*public class TinyhandUnionToAttributeData
 {
     public static readonly string SimpleName = "TinyhandUnionTo";
     public static readonly string Name = SimpleName + "Attribute";
@@ -602,14 +602,14 @@ public class TinyhandUnionAttributeMock
     /// </summary>
     public ISymbol? SubType { get; private set; }
 
-    public TinyhandUnionToAttributeMock(Microsoft.CodeAnalysis.Location location)
+    public TinyhandUnionToAttributeData(Microsoft.CodeAnalysis.Location location)
     {
         this.Location = location;
     }
 
-    public static TinyhandUnionToAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments, Microsoft.CodeAnalysis.Location location)
+    public static TinyhandUnionToAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments, Microsoft.CodeAnalysis.Location location)
     {
-        var attribute = new TinyhandUnionToAttributeMock(location);
+        var attribute = new TinyhandUnionToAttributeData(location);
 
         if (constructorArguments.Length > 2)
         {
@@ -636,7 +636,7 @@ public class TinyhandUnionAttributeMock
     }
 }*/
 
-public sealed class TinyhandGenerateMemberAttributeMock
+public sealed class TinyhandGenerateMemberAttributeData
 {
     public static readonly string SimpleName = "TinyhandGenerateMember";
     public static readonly string Name = SimpleName + "Attribute";
@@ -646,9 +646,9 @@ public sealed class TinyhandGenerateMemberAttributeMock
 
     public string TinyhandPath { get; set; } = string.Empty;
 
-    public static TinyhandGenerateMemberAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static TinyhandGenerateMemberAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new TinyhandGenerateMemberAttributeMock();
+        var attribute = new TinyhandGenerateMemberAttributeData();
 
         object? val;
         val = VisceralHelper.GetValue(0, nameof(TinyhandPath), constructorArguments, namedArguments);
@@ -661,7 +661,7 @@ public sealed class TinyhandGenerateMemberAttributeMock
     }
 }
 
-public sealed class TinyhandGenerateHashAttributeMock
+public sealed class TinyhandGenerateHashAttributeData
 {
     public static readonly string SimpleName = "TinyhandGenerateHash";
     public static readonly string Name = SimpleName + "Attribute";
@@ -671,9 +671,9 @@ public sealed class TinyhandGenerateHashAttributeMock
 
     public string TinyhandPath { get; set; } = string.Empty;
 
-    public static TinyhandGenerateHashAttributeMock FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
+    public static TinyhandGenerateHashAttributeData FromArray(object?[] constructorArguments, KeyValuePair<string, object?>[] namedArguments)
     {
-        var attribute = new TinyhandGenerateHashAttributeMock();
+        var attribute = new TinyhandGenerateHashAttributeData();
 
         object? val;
         val = VisceralHelper.GetValue(0, nameof(TinyhandPath), constructorArguments, namedArguments);

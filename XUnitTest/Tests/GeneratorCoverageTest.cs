@@ -21,7 +21,7 @@ public partial class StaticRegistrationGeneratorTest
             public sealed class KnownTypesAttribute(params Type[] types) : Attribute { public Type[]? More { get; set; } }
             [TinyhandObject, KnownTypes({{arguments}})]
             public partial class Model { }
-            """, out var output, new TinyhandGeneratorV2().AsSourceGenerator());
+            """, out var output, new TinyhandGenerator().AsSourceGenerator());
         AssertSuccessfulCompilation(result, output);
         if (arguments.StartsWith("typeof", System.StringComparison.Ordinal))
         {
@@ -57,7 +57,7 @@ public partial class StaticRegistrationGeneratorTest
                 [Key(2)] public {{type}}[] Values { get; set; } = [];
                 [Key(3)] public System.Collections.Generic.List<{{type}}> Items { get; set; } = new();
             }
-            """, out var output, new TinyhandGeneratorV2().AsSourceGenerator());
+            """, out var output, new TinyhandGenerator().AsSourceGenerator());
         AssertSuccessfulCompilation(result, output);
     }
 
@@ -69,21 +69,21 @@ public partial class StaticRegistrationGeneratorTest
         var result = Generate($$"""
             using Tinyhand;
             public enum State { First, Second }
-            [TinyhandObject(EnumAsString = {{enumAsString.ToString().ToLowerInvariant()}}, LockObject = nameof(sync))]
+            [TinyhandObject(EnumAsString = {{enumAsString.ToString().ToLowerInvariant()}}, LockMemberName = nameof(sync))]
             public partial class Model
             {
                 private readonly object sync = new();
                 [Key(0)] public State Value { get; set; } = State.Second;
                 [Key(1)] public State? Optional { get; set; }
                 [Key(2)] public State[] Values { get; set; } = [];
-                [Key(3, AddProperty = "Name"), MaxLength(10)] private string name = "default";
+                [Key(3, PropertyName = "Name"), MaxLength(10)] private string name = "default";
                 [TinyhandOnSerializing] private void Serializing() { }
                 [TinyhandOnSerialized] private void Serialized() { }
                 [TinyhandOnDeserializing] private void Deserializing() { }
                 [TinyhandOnDeserialized] private void Deserialized() { }
                 [TinyhandOnReconstructed] private void Reconstructed() { }
             }
-            """, out var output, new TinyhandGeneratorV2().AsSourceGenerator());
+            """, out var output, new TinyhandGenerator().AsSourceGenerator());
         AssertSuccessfulCompilation(result, output);
     }
 }

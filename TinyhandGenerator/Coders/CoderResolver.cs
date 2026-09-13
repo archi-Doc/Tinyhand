@@ -14,7 +14,7 @@ public sealed class CoderResolver : ICoderResolver
     {
         this.resolvers = new ICoderResolver[]
         {
-            BuiltinCoder.Instance,
+            BuiltinResolver.Instance,
             NullableResolver.Instance,
             ArrayResolver.Instance,
             ListResolver.Instance,
@@ -41,7 +41,7 @@ public sealed class CoderResolver : ICoderResolver
             return true;
         }
 
-        if (BuiltinCoder.Instance.TryGetCoder(withNullable) != null)
+        if (BuiltinResolver.Instance.TryGetCoder(withNullable) != null)
         {
             return true;
         }

@@ -58,7 +58,7 @@ public static partial class TinyhandTreeConverter
         var table = new byte[256];
         table[TinyhandConstants.Quote] = TinyhandConstants.Quote;
         table[TinyhandConstants.BackSlash] = TinyhandConstants.BackSlash;
-        table[TinyhandConstants.BackSpace] = (byte)'b';
+        table[TinyhandConstants.Backspace] = (byte)'b';
         table[TinyhandConstants.FormFeed] = (byte)'f';
         table[TinyhandConstants.LineFeed] = (byte)'n';
         table[TinyhandConstants.CarriageReturn] = (byte)'r';
@@ -191,7 +191,7 @@ public static partial class TinyhandTreeConverter
         var p = sourcePosition;
 
         var compose = groupWriter.ComposeOption;
-        var indent = groupWriter.EnableIndent;
+        var indent = groupWriter.IsIndentEnabled;
         var keyToIdentifier = compose != TinyhandComposeOption.Simple;
         var commaBetweenPairs = compose == TinyhandComposeOption.Simple || compose == TinyhandComposeOption.Strict;
 
@@ -428,11 +428,11 @@ Bin:
                 p += n;
                 FlushGroup(ref writer, ref destination, ref destinationPosition, ref groupWriter);
 
-                var encodedLength = Arc.Crypto.Base64Url.GetEncodedLength(n);
+                var encodedLength = Arc.Crypto.FastBase64Url.GetEncodedLength(n);
                 Ensure(ref writer, ref destination, ref destinationPosition, encodedLength + 3);
                 destination[destinationPosition] = (byte)'b';
                 destination[destinationPosition + 1] = TinyhandConstants.Quote;
-                Arc.Crypto.Base64Url.Encode(binary, destination.Slice(destinationPosition + 2, encodedLength));
+                Arc.Crypto.FastBase64Url.Encode(binary, destination.Slice(destinationPosition + 2, encodedLength));
                 destinationPosition += encodedLength + 2;
                 destination[destinationPosition++] = TinyhandConstants.Quote;
 
@@ -617,7 +617,7 @@ AfterElement:
                             }
                             else
                             {
-                                groupWriter.AddLF();
+                                groupWriter.AddLineFeed();
                             }
 
                             toIdentifier = keyToIdentifier;
@@ -634,7 +634,7 @@ AfterElement:
                         }
                         else
                         {
-                            groupWriter.AddLF();
+                            groupWriter.AddLineFeed();
                         }
 
                         toIdentifier = false;
@@ -1146,7 +1146,7 @@ AfterElement:
         try
         {
             FromUtf8ToBinaryFast(utf8, omitTopLevelBracket, ref buffer);
-            writer.WriteSpan(buffer.Span);
+            writer.WriteRaw(buffer.Span);
         }
         finally
         {
@@ -1225,7 +1225,7 @@ AfterElement:
                         break;
 
                     case TinyhandAtomType.Identifier: // objectA
-                    case TinyhandAtomType.Value_String: // "text"
+                    case TinyhandAtomType.String: // "text"
                         {
                             positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                             var value = reader.ValueSpan;
@@ -1266,14 +1266,14 @@ AfterElement:
 
                         break;
 
-                    case TinyhandAtomType.Value_Base64: // b"Base64"
+                    case TinyhandAtomType.Binary: // b"Base64"
                         {
                             positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                             var base64 = reader.ValueSpan;
-                            var decodedLength = Arc.Crypto.Base64Url.GetDecodedLength(base64);
+                            var decodedLength = Arc.Crypto.FastBase64Url.GetDecodedLength(base64);
                             array = EnsureCapacity(ref buffer, array, position, decodedLength + 5);
                             position = WriteBinHeader(array, position, decodedLength);
-                            if (!Arc.Crypto.Base64Url.TryDecode(base64, array.AsSpan(position, decodedLength), out var written) ||
+                            if (!Arc.Crypto.FastBase64Url.TryDecode(base64, array.AsSpan(position, decodedLength), out var written) ||
                                 written != decodedLength)
                             {
                                 reader.ThrowBase64Exception();
@@ -1288,7 +1288,7 @@ AfterElement:
                             break;
                         }
 
-                    case TinyhandAtomType.Value_Long: // -123(long)
+                    case TinyhandAtomType.Long: // -123(long)
                         positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                         array = EnsureCapacity(ref buffer, array, position, 9);
                         position = WriteInt64(array, position, reader.ValueLong);
@@ -1299,7 +1299,7 @@ AfterElement:
 
                         break;
 
-                    case TinyhandAtomType.Value_ULong: // 123(ulong)
+                    case TinyhandAtomType.ULong: // 123(ulong)
                         positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                         array = EnsureCapacity(ref buffer, array, position, 9);
                         position = WriteUInt64(array, position, reader.ValueULong);
@@ -1310,7 +1310,7 @@ AfterElement:
 
                         break;
 
-                    case TinyhandAtomType.Value_Double: // 1.23(double)
+                    case TinyhandAtomType.Double: // 1.23(double)
                         positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                         array = EnsureCapacity(ref buffer, array, position, 9);
                         array[position] = MessagePackCode.Float64;
@@ -1323,7 +1323,7 @@ AfterElement:
 
                         break;
 
-                    case TinyhandAtomType.Value_Null: // null
+                    case TinyhandAtomType.Null: // null
                         positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                         array = EnsureCapacity(ref buffer, array, position, 1);
                         array[position++] = MessagePackCode.Nil;
@@ -1334,7 +1334,7 @@ AfterElement:
 
                         break;
 
-                    case TinyhandAtomType.Value_True: // true
+                    case TinyhandAtomType.True: // true
                         positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                         array = EnsureCapacity(ref buffer, array, position, 1);
                         array[position++] = MessagePackCode.True;
@@ -1345,7 +1345,7 @@ AfterElement:
 
                         break;
 
-                    case TinyhandAtomType.Value_False: // false
+                    case TinyhandAtomType.False: // false
                         positions?.Add(new(position, reader.AtomLineNumber, reader.AtomBytePositionInLine));
                         array = EnsureCapacity(ref buffer, array, position, 1);
                         array[position++] = MessagePackCode.False;
@@ -1662,43 +1662,43 @@ Done:
             Value v = (Value)element;
             switch (v.ValueType)
             {
-                case ValueElementType.Value_Binary:
-                    writer.Write(((Value_Binary)v).ValueBinary);
+                case ValueElementType.Binary:
+                    writer.Write(((BinaryValue)v).ValueBinary);
                     break;
 
-                case ValueElementType.Value_Bool:
-                    writer.Write(((Value_Bool)v).ValueBool);
+                case ValueElementType.Bool:
+                    writer.Write(((BoolValue)v).ValueBool);
                     break;
 
-                case ValueElementType.Value_Double:
-                    writer.Write(((Value_Double)v).ValueDouble);
+                case ValueElementType.Double:
+                    writer.Write(((DoubleValue)v).ValueDouble);
                     break;
 
-                case ValueElementType.Value_Long:
-                    writer.Write(((Value_Long)v).ValueLong);
+                case ValueElementType.Long:
+                    writer.Write(((LongValue)v).ValueLong);
                     break;
 
-                case ValueElementType.Value_ULong:
-                    writer.Write(((Value_ULong)v).ValueULong);
+                case ValueElementType.ULong:
+                    writer.Write(((ULongValue)v).ValueULong);
                     break;
 
-                case ValueElementType.Value_Null:
+                case ValueElementType.Null:
                     writer.WriteNil();
                     break;
 
-                case ValueElementType.Value_String:
-                    writer.WriteString(((Value_String)v).Utf8);
+                case ValueElementType.String:
+                    writer.WriteString(((StringValue)v).Utf8);
                     break;
 
                 case ValueElementType.Identifier:
-                    writer.WriteString(((Value_Identifier)v).Utf8);
+                    writer.WriteString(((IdentifierValue)v).Utf8);
                     break;
 
                 case ValueElementType.SpecialIdentifier:
-                    var utf8 = ((Value_Identifier)v).Utf8;
+                    var utf8 = ((IdentifierValue)v).Utf8;
                     writer.WriteStringHeader(utf8.Length + 1);
                     writer.WriteRawUInt8(TinyhandConstants.IdentifierPrefix);
-                    writer.WriteSpan(utf8);
+                    writer.WriteRaw(utf8);
                     break;
             }
         }
@@ -1777,7 +1777,7 @@ Done:
         {
             if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
             {
-                var r = reader.Clone(byteSequence.ToReadOnlySpan());
+                var r = reader.CreateSubReader(byteSequence.ToReadOnlySpan());
                 FromReaderToElement(ref r, out element, options);
             }
             else
@@ -1810,24 +1810,24 @@ Done:
             case MessagePackType.Integer:
                 if (MessagePackCode.IsSignedInteger(reader.NextCode))
                 {
-                    return new Value_Long(reader.ReadInt64());
+                    return new LongValue(reader.ReadInt64());
                 }
                 else
                 {
-                    return new Value_Long((long)reader.ReadUInt64());
+                    return new LongValue((long)reader.ReadUInt64());
                 }
 
             case MessagePackType.Boolean:
-                return new Value_Bool(reader.ReadBoolean());
+                return new BoolValue(reader.ReadBoolean());
 
             case MessagePackType.Float:
                 if (reader.NextCode == MessagePackCode.Float32)
                 {
-                    return new Value_Double(reader.ReadSingle());
+                    return new DoubleValue(reader.ReadSingle());
                 }
                 else
                 {
-                    return new Value_Double(reader.ReadDouble());
+                    return new DoubleValue(reader.ReadDouble());
                 }
 
             case MessagePackType.String:
@@ -1837,26 +1837,26 @@ Done:
                 {
                     if (IsValidIdentifier(utf8))
                     {
-                        return new Value_Identifier(false, utf8);
+                        return new IdentifierValue(false, utf8);
                     }
                     else
                     {
-                        return new Value_String(utf8);
+                        return new StringValue(utf8);
                     }
                 }
                 else
                 {
-                    return new Value_String(utf8);
+                    return new StringValue(utf8);
                 }
 
             case MessagePackType.Binary:
-                return new Value_Binary(reader.ReadBytesToArray());
+                return new BinaryValue(reader.ReadBytesToArray());
 
             case MessagePackType.Array:
                 {
                     Group group;
                     int length = reader.ReadArrayHeader();
-                    options.Security.DepthStep(ref reader);
+                    options.Security.IncrementDepth(ref reader);
                     try
                     {
                         group = new Group(length);
@@ -1877,7 +1877,7 @@ Done:
                 {
                     Group group;
                     int length = reader.ReadMapHeader();
-                    options.Security.DepthStep(ref reader);
+                    options.Security.IncrementDepth(ref reader);
                     try
                     {
                         group = new Group(length);
@@ -1901,22 +1901,22 @@ Done:
                 if (extHeader.TypeCode == MessagePackExtensionCodes.DateTime)
                 {// DateTime
                     var dt = reader.ReadDateTime(extHeader);
-                    return new Value_String(dt.ToString("o", CultureInfo.InvariantCulture));
+                    return new StringValue(dt.ToString("o", CultureInfo.InvariantCulture));
                 }
                 else if (extHeader.TypeCode == MessagePackExtensionCodes.Identifier)
                 {// Identifier
                     var identifier = reader.ReadRaw((int)extHeader.Length);
-                    return new Value_Identifier(false, identifier.ToArray());
+                    return new IdentifierValue(false, identifier.ToArray());
                 }
                 else
                 {
                     var data = reader.ReadRaw((int)extHeader.Length);
-                    return new Value_String("[" + extHeader.TypeCode + ",\"" + Convert.ToBase64String(data.ToArray()) + "\"]");
+                    return new StringValue("[" + extHeader.TypeCode + ",\"" + Convert.ToBase64String(data.ToArray()) + "\"]");
                 }
 
             case MessagePackType.Nil:
                 reader.Skip();
-                return new Value_Null();
+                return new NullValue();
 
             default:
                 throw new TinyhandException($"code is invalid. code: {reader.NextCode} format: {MessagePackCode.ToFormatName(reader.NextCode)}");
