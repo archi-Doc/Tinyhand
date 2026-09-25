@@ -27,6 +27,18 @@ public class UnescapeTest
     }
 
     [Fact]
+    public void OtherEscapesStandForTheCharacter()
+    {
+        // \' is needed inside 'single quoted' strings; other unknown escapes must not drop the character either.
+        Unescape("it\\'s").Is("it's");
+        Unescape("a\\qb").Is("aqb");
+        Unescape("\\あ").Is("あ");
+
+        var group = (Group)TinyhandParser.Parse("a = 'it\\'s'");
+        ((StringValue)((Assignment)group.ElementList[0]).RightElement!).Utf16.Is("it's");
+    }
+
+    [Fact]
     public void TrailingBackSlashDoesNotThrow()
     {
         // A source ending with a lone back slash must not read past the end.

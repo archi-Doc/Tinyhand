@@ -126,8 +126,47 @@ public partial struct DefaultTestStructDouble : ITinyhandDefault
     public EmptyClass EmptyClass { get; set; }
 }
 
+[TinyhandObject]
+public partial struct DefaultValueStruct
+{
+    [Key(0)]
+    public int X = 5;
+
+    [Key(1)]
+    public string Name = "n";
+
+    public DefaultValueStruct()
+    {
+    }
+}
+
+[TinyhandObject]
+public partial class DefaultValueStructHolder
+{
+    [Key(0)]
+    public DefaultValueStruct Inner;
+
+    [Key(1)]
+    public DefaultValueStruct[] Array = [];
+}
+
 public partial class DefaultValueTest
 {
+    [Fact]
+    public void StructKeepsInitializedValues()
+    {
+        // A struct is deserialized from default(T), so values equal to its initializers must still be written.
+        var s = TinyhandSerializer.Deserialize<DefaultValueStruct>(TinyhandSerializer.Serialize(new DefaultValueStruct()));
+        s.X.Is(5);
+        s.Name.Is("n");
+
+        var h = TinyhandSerializer.Deserialize<DefaultValueStructHolder>(TinyhandSerializer.Serialize(new DefaultValueStructHolder { Inner = new(), Array = [new()], }))!;
+        h.Inner.X.Is(5);
+        h.Inner.Name.Is("n");
+        h.Array[0].X.Is(5);
+        h.Array[0].Name.Is("n");
+    }
+
     [Fact]
     public void TestClass()
     {

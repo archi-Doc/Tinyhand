@@ -163,7 +163,7 @@ internal sealed class StringFormatter : ITinyhandFormatter<string>
 
     public void Deserialize(ref TinyhandReader reader, ref string? value, TinyhandSerializerOptions options)
     {
-        value ??= reader.ReadString(); // ?? string.Empty;
+        value = reader.ReadString(); // Always consume the value, even when an existing value is passed (same as the generated code).
     }
 
     public string Reconstruct(TinyhandSerializerOptions options)

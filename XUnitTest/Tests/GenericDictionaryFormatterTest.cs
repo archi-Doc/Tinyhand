@@ -52,10 +52,11 @@ public class GenericDictionaryFormatterTest
 
         options.Resolver.GetFormatter<ComparerDictionary<long>>().Deserialize(ref reader, ref result, options);
 
+        // The instance is reused, but its entries are replaced by the deserialized ones.
         Assert.Same(original, result);
         Assert.Equal(5, result!.InitialCapacity);
         Assert.Equal(2, result.Count);
-        Assert.Equal(100, result[1]);
+        Assert.Equal(10, result[1]);
         Assert.Equal(20, result[2]);
     }
 

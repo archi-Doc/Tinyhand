@@ -112,7 +112,7 @@ internal sealed class UriFormatter : ITinyhandFormatter<Uri>
         return new Uri("about:blank");
     }
 
-    public Uri? Clone(Uri? value, TinyhandSerializerOptions options) => value == null ? null : new Uri(value.OriginalString);
+    public Uri? Clone(Uri? value, TinyhandSerializerOptions options) => value; // Uri is immutable (and a relative Uri cannot be recreated from its string alone).
 }
 
 internal sealed class VersionFormatter : ITinyhandFormatter<Version>
@@ -236,7 +236,15 @@ internal sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<K
             var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
             var count = reader.ReadMapHeaderOrEmptyArray();
-            value ??= new KeyValueList<TKey, TValue>(count);
+            if (value is null)
+            {
+                value = new KeyValueList<TKey, TValue>(count);
+            }
+            else
+            {
+                value.Clear();
+            }
+
             options.Security.IncrementDepth(ref reader);
             try
             {
@@ -477,5 +485,15 @@ internal sealed class LazyFormatter<[DynamicallyAccessedMembers(DynamicallyAcces
         return new Lazy<T>(() => options.Resolver.GetFormatter<T>().Reconstruct(options));
     }
 
-    public Lazy<T>? Clone(Lazy<T>? value, TinyhandSerializerOptions options) => value == null ? null : new Lazy<T>(() => options.Resolver.GetFormatter<T>().Clone(value.Value, options)!);
+    public Lazy<T>? Clone(Lazy<T>? value, TinyhandSerializerOptions options)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        // Clone now: a deferred clone would copy the value as it is at the first access, not at the time of cloning.
+        var v = options.Resolver.GetFormatter<T>().Clone(value.Value, options)!;
+        return new Lazy<T>(() => v);
+    }
 }

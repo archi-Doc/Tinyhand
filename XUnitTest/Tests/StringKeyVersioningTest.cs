@@ -1,5 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using Tinyhand.IO;
 using Xunit;
 
 namespace Tinyhand.Tests;
@@ -107,5 +108,32 @@ public class StringKeyVersioningTest
         c4.Id.Is(1);
         c4.Id2.Is(0);
         c4.Id3.Is(0);
+    }
+
+    [Fact]
+    public void NilAndEmptyKeysAreSkippedWithTheirValues()
+    {
+        // {nil: 1, "": 2, "Id": 3, "Id3": 4}: the unknown keys must not shift the following pairs.
+        var writer = TinyhandWriter.CreateFromBytePool();
+        try
+        {
+            writer.WriteMapHeader(4);
+            writer.WriteNil();
+            writer.Write(1);
+            writer.Write(string.Empty);
+            writer.Write(2);
+            writer.Write("Id");
+            writer.Write(3);
+            writer.Write("Id3");
+            writer.Write(4);
+
+            var c = TinyhandSerializer.Deserialize<StringKeyVersioningTestClass>(writer.FlushAndGetArray())!;
+            c.Id.Is(3);
+            c.Id3.Is(4);
+        }
+        finally
+        {
+            writer.Dispose();
+        }
     }
 }

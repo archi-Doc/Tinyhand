@@ -84,6 +84,12 @@ public class NullableCoder : ITinyhandCoder
 
         void CodeDeserializerCore()
         {
+            if (this.elementCoder is EnumCoder)
+            {// The enum coder writes the value (a name with EnumAsString), so it reads the value as well.
+                this.elementCoder.CodeDeserialize(ssb, info, true);
+                return;
+            }
+
             ssb.AppendLine($"options.Resolver.GetFormatter<{this.element.FullNameWithNullable}?>().Deserialize(ref reader, ref {ssb.FullObject}, options);");
 
             /*if (this.elementCoder == null)

@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Tinyhand;
+using Tinyhand.Tree;
 using Xunit;
 
 namespace XUnitTest.Tests;
@@ -111,6 +113,34 @@ public class TextRoundTripTest
             Array = [1, 2, 3, -4],
             Bool = true,
         });
+    }
+
+    [Fact]
+    public void NegativeZeroKeepsItsSign()
+    {
+        // "-0" would be read back as the integer 0.
+        double.IsNegative(TinyhandSerializer.DeserializeFromString<double>(TinyhandSerializer.SerializeToString(-0d))).IsTrue();
+        float.IsNegative(TinyhandSerializer.DeserializeFromString<float>(TinyhandSerializer.SerializeToString(-0f))).IsTrue();
+        var c = TinyhandSerializer.DeserializeFromUtf8<TextRoundTripClass>(TinyhandSerializer.SerializeToUtf8(new TextRoundTripClass { Double = -0d, }))!;
+        double.IsNegative(c.Double).IsTrue();
+
+        TinyhandTreeConverter.FromBinaryToElement(TinyhandSerializer.Serialize(-0d), out var element, TinyhandSerializerOptions.Standard);
+        var parsed = Assert.Single(((Group)TinyhandParser.Parse(TinyhandComposer.Compose(element))).ElementList);
+        double.IsNegative(TinyhandSerializer.DeserializeFromElement<double>(parsed)).IsTrue();
+    }
+
+    [Fact]
+    public void MapKeysThatAreNotIdentifiersAreQuoted()
+    {
+        // Unquoted, these keys would be read back as numbers, modifiers, special identifiers, strings, binaries, special values, or would not parse.
+        var keys = new[] { "-5", "+5", "-1e3", "-", "+", "double.NaN", "double.PositiveInfinity", "b'AAAA'", "'x'", "it's", "&key", "&", "@", "@x", "@1abc", "\u0001x", "null", "i32", "x", };
+        var c = new TextRoundTripClass { Map = keys.Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i), };
+        RoundTrip(c);
+
+        // The composer writes the keys of an element tree with the same rule.
+        TinyhandTreeConverter.FromBinaryToElement(TinyhandSerializer.Serialize(c), out var element, TinyhandSerializerOptions.Standard);
+        var c2 = TinyhandSerializer.DeserializeFromElement<TextRoundTripClass>(TinyhandParser.Parse(TinyhandComposer.Compose(element)));
+        c.IsStructuralEqual(c2);
     }
 
     [Fact]

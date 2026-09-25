@@ -945,10 +945,14 @@ public static partial class TinyhandSerializer
                         throw new TinyhandException("Invalid LZ4 block length metadata.");
                     }
 
+                    // The blocks are validated and their lengths are summed first, so that the data is decoded into one contiguous span
+                    // (a buffer made of several segments would be copied once more to be read as a span).
+                    var blockReader = reader.Fork();
+                    long totalLength = 0;
                     for (int i = 0; i < sequenceCount; i++)
                     {
                         var uncompressedLength = uncompressedLengths[i];
-                        if (!reader.TryReadBytes(out var span))
+                        if (!blockReader.TryReadBytes(out var span))
                         {
                             throw new TinyhandException("Invalid LZ4 block.");
                         }
@@ -960,10 +964,25 @@ public static partial class TinyhandSerializer
                             throw new TinyhandException("Invalid LZ4 block length.");
                         }
 
-                        var uncompressedSpan = writer.GetSpan(uncompressedLength).Slice(0, uncompressedLength);
-                        var actualUncompressedLength = LZ4Codec.Decode(span, uncompressedSpan);
-                        Debug.Assert(actualUncompressedLength == uncompressedLength, "Unexpected length of uncompressed data.");
-                        writer.Advance(actualUncompressedLength);
+                        totalLength += uncompressedLength;
+                    }
+
+                    if (totalLength > Array.MaxLength)
+                    {
+                        throw new TinyhandException("Invalid LZ4 block length.");
+                    }
+
+                    if (totalLength > 0)
+                    {
+                        var destination = writer.GetSpan((int)totalLength);
+                        var written = 0;
+                        for (int i = 0; i < sequenceCount; i++)
+                        {
+                            reader.TryReadBytes(out var span); // Validated above.
+                            written += LZ4Codec.Decode(span, destination.Slice(written, uncompressedLengths[i])); // Decodes exactly the given length, or throws.
+                        }
+
+                        writer.Advance(written);
                     }
 
                     return true;

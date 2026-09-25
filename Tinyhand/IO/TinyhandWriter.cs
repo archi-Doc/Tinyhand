@@ -1415,6 +1415,12 @@ public ref struct TinyhandWriter
         }
     }
 
+    /// <summary>
+    /// Gets the written bytes without committing them (see <see cref="ByteBufferWriter.PeekWrittenSpan"/>).
+    /// </summary>
+    /// <returns>The written data, valid until the writer is reused or disposed.</returns>
+    internal readonly ReadOnlySpan<byte> PeekWrittenSpan() => this.writer.PeekWrittenSpan();
+
     private static void WriteBigEndian(short value, Span<byte> span) => WriteBigEndian(unchecked((ushort)value), span);
 
     private static void WriteBigEndian(int value, Span<byte> span) => WriteBigEndian(unchecked((uint)value), span);

@@ -192,7 +192,7 @@ TinyhandSerializer.DeserializeObject(bytes, ref existing);
 
 This overload calls the type's static deserializer directly. Use the regular `Deserialize<T>` APIs when compression handling is required.
 
-Low-level formatter overloads that accept `ref T` may preserve existing values on nil or merge collection contents. For example, dictionary reuse keeps existing entries when an incoming key already exists. Use the return-value `Deserialize<T>` APIs, or pass a default value to a formatter, when a fresh result is required.
+Low-level formatter overloads that accept `ref T` may preserve existing values on nil. A reused collection instance is cleared first, so its contents are replaced by the deserialized elements (an initializer's entries never survive a round trip); the instance itself, and for example its comparer, is kept. Use the return-value `Deserialize<T>` APIs, or pass a default value to a formatter, when a fresh result is required.
 
 ### Constructors and service providers
 

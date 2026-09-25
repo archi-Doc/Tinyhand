@@ -241,7 +241,7 @@ public class TinyhandSecurity
     {
         internal static new readonly SingleEqualityComparer Instance = new SingleEqualityComparer();
 
-        public override unsafe int GetHashCode(float value)
+        public override int GetHashCode(float value)
         {
             // Special check for 0.0 so that the hash of 0.0 and -0.0 will equal.
             if (value == 0.0f)
@@ -255,8 +255,7 @@ public class TinyhandSecurity
                 value = float.NaN;
             }
 
-            long l = *(long*)&value;
-            return HashCode.Combine((int)(l >> 32), unchecked((int)l));
+            return HashCode.Combine(BitConverter.SingleToInt32Bits(value));
         }
     }
 
@@ -264,7 +263,7 @@ public class TinyhandSecurity
     {
         internal static new readonly DoubleEqualityComparer Instance = new DoubleEqualityComparer();
 
-        public override unsafe int GetHashCode(double value)
+        public override int GetHashCode(double value)
         {
             // Special check for 0.0 so that the hash of 0.0 and -0.0 will equal.
             if (value == 0.0)
@@ -278,7 +277,7 @@ public class TinyhandSecurity
                 value = double.NaN;
             }
 
-            long l = *(long*)&value;
+            var l = BitConverter.DoubleToInt64Bits(value);
             return HashCode.Combine((int)(l >> 32), unchecked((int)l));
         }
     }
@@ -314,13 +313,14 @@ public class TinyhandSecurity
     {
         internal static new readonly DateTimeEqualityComparer Instance = new DateTimeEqualityComparer();
 
-        public override unsafe int GetHashCode(DateTime value) => HashCode.Combine((int)(value.Ticks >> 32), unchecked((int)value.Ticks), value.Kind);
+        // DateTime.Equals ignores Kind, so the hash must ignore it as well.
+        public override int GetHashCode(DateTime value) => HashCode.Combine((int)(value.Ticks >> 32), unchecked((int)value.Ticks));
     }
 
     private class DateTimeOffsetEqualityComparer : CollisionResistantHasher<DateTimeOffset>
     {
         internal static new readonly DateTimeOffsetEqualityComparer Instance = new DateTimeOffsetEqualityComparer();
 
-        public override unsafe int GetHashCode(DateTimeOffset value) => HashCode.Combine((int)(value.UtcTicks >> 32), unchecked((int)value.UtcTicks));
+        public override int GetHashCode(DateTimeOffset value) => HashCode.Combine((int)(value.UtcTicks >> 32), unchecked((int)value.UtcTicks));
     }
 }

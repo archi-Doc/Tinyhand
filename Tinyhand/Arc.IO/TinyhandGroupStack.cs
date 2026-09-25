@@ -16,7 +16,7 @@ internal struct TinyhandGroupStack
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ThrowIndentationDepthException()
     {
-        throw new InvalidOperationException("The maximum indentation depth has been reached.");
+        throw new TinyhandException($"The maximum indentation depth ({MaxDepth}) has been reached.");
     }
 
     [FieldOffset(0)]

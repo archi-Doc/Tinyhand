@@ -140,276 +140,47 @@ public interface IStructuralObject // TinyhandGenerator, ValueLinkGenerator
     /// <returns>True if a journal writer was successfully obtained; otherwise, false.</returns>
     public bool TryGetJournalWriter([NotNullWhen(true)] out IStructuralRoot? root, out TinyhandWriter writer, bool includeCurrent = true)
     {
-        var p = this.StructuralParent;
-        if (p == null)
+        // The top object (the one without a parent) belongs to the root, and the objects below it are located by their keys from the top down.
+        var top = this;
+        while (top.StructuralParent is { } parent)
         {
-            if (this.StructuralRoot is null)
-            {
-                root = null;
-                writer = default;
-                return false;
-            }
-            else
-            {
-                root = this.StructuralRoot;
-                return root.TryGetJournalWriter(JournalType.Record, out writer);
-            }
+            top = parent;
         }
-        else
+
+        root = top.StructuralRoot;
+        if (root is null)
         {
-            var p2 = p.StructuralParent;
-            if (p2 is null)
+            writer = default;
+            return false;
+        }
+        else if (!root.TryGetJournalWriter(JournalType.Record, out writer))
+        {
+            return false;
+        }
+
+        if (this.StructuralParent is { } p)
+        {
+            WriteLocators(p, ref writer);
+            if (includeCurrent)
             {
-                if (p.StructuralRoot is null)
-                {
-                    root = null;
-                    writer = default;
-                    return false;
-                }
-                else
-                {
-                    root = p.StructuralRoot;
-                    if (!root.TryGetJournalWriter(JournalType.Record, out writer))
-                    {
-                        return false;
-                    }
-                }
-
-                if (includeCurrent)
-                {
-                    this.WriteKeyOrLocator(ref writer);
-                }
-
-                return true;
-            }
-            else
-            {
-                var p3 = p2.StructuralParent;
-                if (p3 is null)
-                {
-                    if (p2.StructuralRoot is null)
-                    {
-                        root = null;
-                        writer = default;
-                        return false;
-                    }
-                    else
-                    {
-                        root = p2.StructuralRoot;
-                        if (!root.TryGetJournalWriter(JournalType.Record, out writer))
-                        {
-                            return false;
-                        }
-                    }
-
-                    p.WriteKeyOrLocator(ref writer);
-                    if (includeCurrent)
-                    {
-                        this.WriteKeyOrLocator(ref writer);
-                    }
-
-                    return true;
-                }
-                else
-                {
-                    var p4 = p3.StructuralParent;
-                    if (p4 is null)
-                    {
-                        if (p3.StructuralRoot is null)
-                        {
-                            root = null;
-                            writer = default;
-                            return false;
-                        }
-                        else
-                        {
-                            root = p3.StructuralRoot;
-                            if (!root.TryGetJournalWriter(JournalType.Record, out writer))
-                            {
-                                return false;
-                            }
-                        }
-
-                        p2.WriteKeyOrLocator(ref writer);
-                        p.WriteKeyOrLocator(ref writer);
-                        if (includeCurrent)
-                        {
-                            this.WriteKeyOrLocator(ref writer);
-                        }
-
-                        return true;
-                    }
-                    else
-                    {
-                        var p5 = p4.StructuralParent;
-                        if (p5 is null)
-                        {
-                            if (p4.StructuralRoot is null)
-                            {
-                                root = null;
-                                writer = default;
-                                return false;
-                            }
-                            else
-                            {
-                                root = p4.StructuralRoot;
-                                if (!root.TryGetJournalWriter(JournalType.Record, out writer))
-                                {
-                                    return false;
-                                }
-                            }
-
-                            p3.WriteKeyOrLocator(ref writer);
-                            p2.WriteKeyOrLocator(ref writer);
-                            p.WriteKeyOrLocator(ref writer);
-                            if (includeCurrent)
-                            {
-                                this.WriteKeyOrLocator(ref writer);
-                            }
-
-                            return true;
-                        }
-                        else
-                        {
-                            var p6 = p5.StructuralParent;
-                            if (p6 is null)
-                            {
-                                if (p5.StructuralRoot is null)
-                                {
-                                    root = null;
-                                    writer = default;
-                                    return false;
-                                }
-                                else
-                                {
-                                    root = p5.StructuralRoot;
-                                    if (!root.TryGetJournalWriter(JournalType.Record, out writer))
-                                    {
-                                        return false;
-                                    }
-                                }
-
-                                p4.WriteKeyOrLocator(ref writer);
-                                p3.WriteKeyOrLocator(ref writer);
-                                p2.WriteKeyOrLocator(ref writer);
-                                p.WriteKeyOrLocator(ref writer);
-                                if (includeCurrent)
-                                {
-                                    this.WriteKeyOrLocator(ref writer);
-                                }
-
-                                return true;
-                            }
-                            else
-                            {
-                                var p7 = p6.StructuralParent;
-                                if (p7 is null)
-                                {
-                                    if (p6.StructuralRoot is null)
-                                    {
-                                        root = null;
-                                        writer = default;
-                                        return false;
-                                    }
-                                    else
-                                    {
-                                        root = p6.StructuralRoot;
-                                        if (!root.TryGetJournalWriter(JournalType.Record, out writer))
-                                        {
-                                            return false;
-                                        }
-                                    }
-
-                                    p5.WriteKeyOrLocator(ref writer);
-                                    p4.WriteKeyOrLocator(ref writer);
-                                    p3.WriteKeyOrLocator(ref writer);
-                                    p2.WriteKeyOrLocator(ref writer);
-                                    p.WriteKeyOrLocator(ref writer);
-                                    if (includeCurrent)
-                                    {
-                                        this.WriteKeyOrLocator(ref writer);
-                                    }
-
-                                    return true;
-                                }
-                                else
-                                {
-                                    var p8 = p7.StructuralParent;
-                                    if (p8 is null)
-                                    {
-                                        if (p7.StructuralRoot is null)
-                                        {
-                                            root = null;
-                                            writer = default;
-                                            return false;
-                                        }
-                                        else
-                                        {
-                                            root = p7.StructuralRoot;
-                                            if (!root.TryGetJournalWriter(JournalType.Record, out writer))
-                                            {
-                                                return false;
-                                            }
-                                        }
-
-                                        p6.WriteKeyOrLocator(ref writer);
-                                        p5.WriteKeyOrLocator(ref writer);
-                                        p4.WriteKeyOrLocator(ref writer);
-                                        p3.WriteKeyOrLocator(ref writer);
-                                        p2.WriteKeyOrLocator(ref writer);
-                                        p.WriteKeyOrLocator(ref writer);
-                                        if (includeCurrent)
-                                        {
-                                            this.WriteKeyOrLocator(ref writer);
-                                        }
-
-                                        return true;
-                                    }
-                                    else
-                                    {
-                                        var p9 = p8.StructuralParent;
-                                        if (p9 is null)
-                                        {
-                                            if (p8.StructuralRoot is null)
-                                            {
-                                                root = null;
-                                                writer = default;
-                                                return false;
-                                            }
-                                            else
-                                            {
-                                                root = p8.StructuralRoot;
-                                                if (!root.TryGetJournalWriter(JournalType.Record, out writer))
-                                                {
-                                                    return false;
-                                                }
-                                            }
-
-                                            p7.WriteKeyOrLocator(ref writer);
-                                            p6.WriteKeyOrLocator(ref writer);
-                                            p5.WriteKeyOrLocator(ref writer);
-                                            p4.WriteKeyOrLocator(ref writer);
-                                            p3.WriteKeyOrLocator(ref writer);
-                                            p2.WriteKeyOrLocator(ref writer);
-                                            p.WriteKeyOrLocator(ref writer);
-                                            if (includeCurrent)
-                                            {
-                                                this.WriteKeyOrLocator(ref writer);
-                                            }
-
-                                            return true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                this.WriteKeyOrLocator(ref writer);
             }
         }
 
-        root = null;
-        writer = default;
-        return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Writes the keys or locators of the object and its ancestors, except the top object, from the top down.
+    /// </summary>
+    /// <param name="obj">The object.</param>
+    /// <param name="writer">The writer to write to.</param>
+    private static void WriteLocators(IStructuralObject obj, ref TinyhandWriter writer)
+    {
+        if (obj.StructuralParent is { } parent)
+        {
+            WriteLocators(parent, ref writer);
+            obj.WriteKeyOrLocator(ref writer);
+        }
     }
 }

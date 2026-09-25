@@ -97,12 +97,6 @@ internal static class TinyhandHelper
 
                 switch (b)
                 {
-                    case TinyhandConstants.Quote:
-                    case TinyhandConstants.Slash:
-                    case TinyhandConstants.BackSlash:
-                        destination[written++] = b;
-                        break;
-
                     case (byte)'b':
                         destination[written++] = TinyhandConstants.Backspace;
                         break;
@@ -129,6 +123,10 @@ internal static class TinyhandHelper
 
                         i += consumed;
                         i--; // i++ in for loop.
+                        break;
+
+                    default: // \" \' \/ \\ and any other escaped character stand for the character itself.
+                        destination[written++] = b;
                         break;
                 }
             }

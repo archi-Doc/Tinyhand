@@ -13,6 +13,41 @@ namespace Tinyhand.Tests;
 public class TinyhandSecurityTest
 {
     [Fact]
+    public void CollisionResistantHashesAgreeWithEquality()
+    {
+        var security = TinyhandSecurity.UntrustedData;
+
+        // The hash of a float must depend on its four bytes only.
+        var floats = security.GetEqualityComparer<float>();
+        var floatSet = new HashSet<float>(floats);
+        for (var i = 0; i < 1000; i++)
+        {
+            floatSet.Add(i * 1.5f);
+        }
+
+        for (var i = 0; i < 1000; i++)
+        {
+            Assert.Contains(i * 1.5f, floatSet);
+            Assert.Equal(floats.GetHashCode(i * 1.5f), floats.GetHashCode(i * 1.5f));
+        }
+
+        Assert.Equal(floats.GetHashCode(0f), floats.GetHashCode(-0f));
+        Assert.Equal(floats.GetHashCode(float.NaN), floats.GetHashCode(BitConverter.Int32BitsToSingle(-1)));
+
+        var doubles = security.GetEqualityComparer<double>();
+        Assert.Equal(doubles.GetHashCode(0d), doubles.GetHashCode(-0d));
+        Assert.Equal(doubles.GetHashCode(1.5d), doubles.GetHashCode(1.5d));
+
+        // DateTime.Equals ignores Kind, so the hash must ignore it too.
+        var dateTimes = security.GetEqualityComparer<DateTime>();
+        var utc = new DateTime(2024, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+        var local = DateTime.SpecifyKind(utc, DateTimeKind.Local);
+        Assert.True(dateTimes.Equals(utc, local));
+        Assert.Equal(dateTimes.GetHashCode(utc), dateTimes.GetHashCode(local));
+        Assert.Contains(local, new HashSet<DateTime>(new[] { utc }, dateTimes));
+    }
+
+    [Fact]
     public void CollisionResistanceRejectsObjectComparers()
     {
         foreach (var security in new[]

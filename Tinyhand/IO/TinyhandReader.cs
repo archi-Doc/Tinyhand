@@ -43,7 +43,8 @@ public ref partial struct TinyhandReader
     public TinyhandReader(TinyhandWriter writer)
         : this()
     {
-        writer.FlushAndGetReadOnlySpan(out var span, out _);
+        // The writer is a copy: committing its pending bytes here would make the caller's writer commit them again.
+        var span = writer.PeekWrittenSpan();
         this.b = ref MemoryMarshal.GetReference(span);
         this.remaining = span.Length;
         this.length = span.Length;
@@ -814,8 +815,8 @@ public ref partial struct TinyhandReader
     public DateTime ReadDateTime()
     {
         if (this.NextMessagePackType == MessagePackType.String)
-        {
-            return DateTime.Parse(this.ReadString() ?? string.Empty, CultureInfo.InvariantCulture).ToUniversalTime();
+        {// A string without an offset is UTC, so the result does not depend on the local time zone.
+            return DateTime.Parse(this.ReadString() ?? string.Empty, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
         }
 
         return this.ReadDateTime(this.ReadExtensionFormatHeader());
@@ -1139,15 +1140,18 @@ public ref partial struct TinyhandReader
     /// <summary>
     /// Reads UTF-8 string bytes without allocating.
     /// </summary>
-    /// <returns>The payload, or an empty span for nil; nil is not consumed.</returns>
+    /// <returns>The payload, or an empty span for nil.</returns>
+    /// <remarks>Nil is consumed like any other string, so a caller that skips the value of an empty or nil map key stays aligned.</remarks>
     public ReadOnlySpan<byte> ReadStringSpan()
     {
-        if (!this.TryReadStringSpan(out ReadOnlySpan<byte> result))
+        if (this.TryReadNil())
         {
             return default;
         }
 
-        return result;
+        int length = this.GetStringLengthInBytes();
+        ThrowInsufficientBufferUnless((uint)length <= (uint)this.remaining);
+        return this.ReadRaw(length);
     }
 
     /// <summary>
