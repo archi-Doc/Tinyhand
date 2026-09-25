@@ -10,7 +10,7 @@
     <CompilerGeneratedFilesOutputPath>obj/generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="ValueLink" Version="0.119.0" />
+    <PackageReference Include="ValueLink" Version="0.121.0" />
     <ProjectReference Include="../Tinyhand/Tinyhand.csproj" />
     <ProjectReference Include="../TinyhandGenerator/TinyhandGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
