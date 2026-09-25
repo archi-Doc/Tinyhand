@@ -19,6 +19,9 @@ public class JournalBoundaryTest
     [InlineData(6)]
     [InlineData(7)]
     [InlineData(8)]
+    [InlineData(9)]
+    [InlineData(10)]
+    [InlineData(32)]
     public void DisabledJournalDoesNotWriteLocatorsOrSubmitRecords(int depth)
     {
         var root = new DisabledRoot();
@@ -46,6 +49,9 @@ public class JournalBoundaryTest
     [InlineData(6)]
     [InlineData(7)]
     [InlineData(8)]
+    [InlineData(9)]
+    [InlineData(10)]
+    [InlineData(32)]
     public void JournalLocatorsFollowRootToLeafOrder(int depth)
     {
         var root = new JournalTester();

@@ -75,6 +75,30 @@ public static class TinyhandComposer
         core.Compose(ref writer, element);
     }
 
+    /// <summary>
+    /// Determines whether the text can be written as a """literal""" (<see cref="StringValue.HasTripleQuote"/> is checked separately).<br/>
+    /// A trailing quote would merge with the closing quotes, and the only control characters allowed are \t \n \v \f \r.
+    /// </summary>
+    /// <param name="utf8">The text.</param>
+    /// <returns><see langword="true"/> if the text can be written as it is.</returns>
+    private static bool CanBeTripleQuoted(ReadOnlySpan<byte> utf8)
+    {
+        if (utf8.Length > 0 && utf8[utf8.Length - 1] == TinyhandConstants.Quote)
+        {
+            return false;
+        }
+
+        foreach (var b in utf8)
+        {
+            if (b < 0x20 && (b < 0x09 || b > 0x0D))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     internal class ComposerCore
     {
         private TinyhandComposeOption option;
@@ -239,7 +263,7 @@ public static class TinyhandComposer
 
                 case ValueElementType.String:
                     var s = (StringValue)element;
-                    if (!s.IsTripleQuoted || s.HasTripleQuote())
+                    if (!s.IsTripleQuoted || s.HasTripleQuote() || !CanBeTripleQuoted(s.Utf8))
                     { // Escape.
                         writer.WriteUInt8(TinyhandConstants.Quote);
                         writer.WriteEscapedUtf8(s.Utf8);

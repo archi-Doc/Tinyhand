@@ -97,6 +97,20 @@ public class TinyhandGenerator : IIncrementalGenerator, IGeneratorInformation
     }
 
     private void Emit(SourceProductionContext context, (Compilation Compilation, ImmutableArray<CSharpSyntaxNode?> Types) source)
+    {// The generated code must not depend on the culture of the compiler process (e.g. U+2212 as the negative sign of an interpolated number).
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+        try
+        {
+            this.EmitCore(context, source);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = culture;
+        }
+    }
+
+    private void EmitCore(SourceProductionContext context, (Compilation Compilation, ImmutableArray<CSharpSyntaxNode?> Types) source)
     {
         var compilation = source.Compilation;
         this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeData.FullName);
@@ -141,7 +155,12 @@ public class TinyhandGenerator : IIncrementalGenerator, IGeneratorInformation
         var processed = new HashSet<INamedTypeSymbol?>();
 #pragma warning restore RS1024 // Symbols should be compared for equality
 
+        // The generator instance is reused, so the options of a previous run (e.g. a removed TinyhandGeneratorOption) must not remain.
         this.generatorOptionIsSet = false;
+        this.AttachDebugger = false;
+        this.GenerateToFile = false;
+        this.CustomNamespace = null;
+        this.TargetFolder = null;
         var generics = new VisceralGenerics();
         foreach (var x in source.Types)
         {

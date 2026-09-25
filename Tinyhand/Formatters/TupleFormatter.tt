@@ -72,7 +72,7 @@ internal sealed class TupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>><#
 
     public <#= t #> Reconstruct(TinyhandSerializerOptions options)
     {
-        return new Tuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => "default!")) #>);
+        return new Tuple<<#= ts #>>(<#= string.Join(", ", Enumerable.Range(1, i).Select(x => x == 8 ? "options.Resolver.GetFormatter<TRest>().Reconstruct(options)" : "default!")) #>);
     }
 
     public <#= t #>? Clone(<#= t #>? value, TinyhandSerializerOptions options)

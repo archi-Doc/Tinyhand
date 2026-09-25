@@ -162,6 +162,29 @@ public class IoBoundaryTest
         Assert.Throws<TinyhandUnexpectedCodeException>(() => new TinyhandReader(bytes).ReadIdentifierUtf16());
     }
 
+    [Theory]
+    [InlineData(100)]
+    [InlineData(40_000)]
+    [InlineData(100_000)]
+    public void ReaderFromWriterKeepsTheWriterConsistent(int length)
+    {
+        // The reader receives a copy of the writer; the pending bytes must not be committed twice.
+        var data = new byte[length];
+        new Random(length).NextBytes(data);
+        using var writer = TinyhandWriter.CreateFromBytePool(16);
+        writer.WriteRaw(data);
+
+        var reader = new TinyhandReader(writer);
+        Assert.Equal(length, reader.Remaining);
+        Assert.True(reader.ReadRaw(length).SequenceEqual(data));
+
+        writer.WriteRaw(new byte[] { 0xAB });
+        var array = writer.FlushAndGetArray();
+        Assert.Equal(length + 1, array.Length);
+        Assert.True(array.AsSpan(0, length).SequenceEqual(data));
+        Assert.Equal(0xAB, array[length]);
+    }
+
     [Fact]
     public void PooledBinaryHasExactLength()
     {

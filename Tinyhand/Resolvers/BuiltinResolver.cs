@@ -164,6 +164,12 @@ internal sealed class BuiltinResolver : IFormatterResolver
         TinyhandTypeIdentifier.Register<DateTime?>();
         TinyhandTypeIdentifier.Register<Int128>();
         TinyhandTypeIdentifier.Register<UInt128>();
+        TinyhandTypeIdentifier.Register<Int128?>();
+        TinyhandTypeIdentifier.Register<UInt128?>();
+        TinyhandTypeIdentifier.Register<Int128[]>();
+        TinyhandTypeIdentifier.Register<UInt128[]>();
+        TinyhandTypeIdentifier.Register<List<Int128>>();
+        TinyhandTypeIdentifier.Register<List<UInt128>>();
         TinyhandTypeIdentifier.Register<byte[]>();
         TinyhandTypeIdentifier.Register<sbyte[]>();
         TinyhandTypeIdentifier.Register<ushort[]>();

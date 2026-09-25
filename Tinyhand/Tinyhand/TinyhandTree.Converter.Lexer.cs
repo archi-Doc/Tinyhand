@@ -89,7 +89,8 @@ public static partial class TinyhandTreeConverter
     /// It recognizes exactly the same syntax as <see cref="TinyhandUtf8Reader"/> (and throws the same exceptions),
     /// but keeps all of its state in local variables, does not materialize atoms it does not need
     /// (separators, comments, modifiers) and writes the values straight into the output buffer.<br/>
-    /// The line and byte position are only needed for error messages, so they are tracked with a single store per line feed.
+    /// The line and byte position are only needed for error messages, so they are tracked with a single store per line feed
+    /// (line breaks in """literals""" are not counted; <see cref="FromUtf8ToBinary(ReadOnlySpan{byte}, bool, ref BinaryBuffer)"/> takes the exact position of an error from the reader).
     /// </summary>
     private static void FromUtf8ToBinaryFast(ReadOnlySpan<byte> utf8, bool omitTopLevelBracket, ref BinaryBuffer buffer)
     {
@@ -383,7 +384,7 @@ Dispatch:
                         }
                         else if (c == TinyhandConstants.Asterisk)
                         { // Multi line comment.
-                            var i = p;
+                            var i = p + 1; // Skip asterisk, so that "/*/" does not close the comment.
                             while (i < length)
                             {
                                 var v = Unsafe.Add(ref src, i);

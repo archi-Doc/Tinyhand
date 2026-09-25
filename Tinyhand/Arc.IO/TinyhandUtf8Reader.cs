@@ -672,6 +672,7 @@ Unexpected_Symbol:
         }
         else if (localBuffer[this.Position] == TinyhandConstants.Asterisk)
         { // Multi line comment.
+            this.AddPosition(1); // Skip asterisk, so that "/*/" does not close the comment.
             for (var remaining = localBuffer.Length - this.Position; remaining > 0;)
             {
                 var val = localBuffer[this.Position];
@@ -864,6 +865,25 @@ Unexpected_Symbol:
             this.ValueSpan = stringSpan.Slice(0, length);
 
             this.AddPosition(length + 3); // String + 3 quotes.
+
+            // Count the line breaks in the literal so that the positions of the following atoms stay correct.
+            var lineStart = 0;
+            for (var i = 0; i < length; i++)
+            {
+                var lineBreak = stringSpan[i] == TinyhandConstants.LineFeed ? 1 :
+                    (stringSpan[i] == 0xE2 && i + 2 < length && stringSpan[i + 1] == 0x80 && (stringSpan[i + 2] == 0xA8 || stringSpan[i + 2] == 0xA9)) ? 3 : 0;
+                if (lineBreak != 0)
+                {// \n or U+2028- U+2029, E2 80 A8 to E2 80 A9
+                    i += lineBreak - 1;
+                    lineStart = i + 1;
+                    this.lineNumber++;
+                }
+            }
+
+            if (lineStart != 0)
+            {// The literal is a value within a line, so the line feed flag (the indentation of the line is already processed) is kept.
+                this.bytePositionInLine = (this.bytePositionInLine & LineFeedFlag) | (InitialLinePosition + length - lineStart + 3);
+            }
             this.AtomType = TinyhandAtomType.String;
             this.ValueLong = 1; // Triple quoted.
         }

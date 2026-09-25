@@ -553,7 +553,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : ITinyh
 
     public Tuple<T1, T2, T3, T4, T5, T6, T7, TRest> Reconstruct(TinyhandSerializerOptions options)
     {
-        return new Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>(default!, default!, default!, default!, default!, default!, default!, default!);
+        return new Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>(default!, default!, default!, default!, default!, default!, default!, options.Resolver.GetFormatter<TRest>().Reconstruct(options));
     }
 
     public Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? Clone(Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? value, TinyhandSerializerOptions options)

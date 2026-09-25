@@ -43,7 +43,14 @@ internal sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hasht
         {
             ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
             var count = reader.ReadMapHeaderOrEmptyArray();
-            value ??= new();
+            if (value is null)
+            {
+                value = new();
+            }
+            else
+            {
+                value.Clear();
+            }
 
             options.Security.IncrementDepth(ref reader);
             try
@@ -522,7 +529,15 @@ internal sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            value ??= new List<T>((int)len);
+            if (value is null)
+            {
+                value = new List<T>((int)len);
+            }
+            else
+            {
+                value.Clear();
+            }
+
             options.Security.IncrementDepth(ref reader);
             try
             {
@@ -580,7 +595,7 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
             ITinyhandFormatter<TElement> formatter = options.Resolver.GetFormatter<TElement>();
 
             // Optimize iteration(array is fastest)
-            if (value is TElement[] array)
+            if ((value as TElement[] ?? this.GetSnapshot(value)) is { } array)
             {
                 writer.WriteArrayHeader(array.Length);
 
@@ -678,10 +693,10 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
 
         TIntermediate list;
         int length;
-        if (value is TElement[] array)
+        if ((value as TElement[] ?? this.GetSnapshot(value)) is { } array)
         {
             length = array.Length;
-            list = this.Create(length, options);
+            list = this.CreateForClone(value, length, options);
             for (int i = 0; i < length; i++)
             {
                 this.Add(list, i, formatter.Clone(array[i], options)!, options);
@@ -707,7 +722,7 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
             }
 
             // Unity's foreach struct enumerator causes boxing so iterate manually.
-            list = this.Create(length, options);
+            list = this.CreateForClone(value, length, options);
             var i = 0;
             using (var e = this.GetSourceEnumerator(value))
             {
@@ -740,6 +755,12 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
 
         return null;
     }
+
+    // A concurrent collection can change between reading its count and enumerating it, so it provides an atomic snapshot instead.
+    protected virtual TElement[]? GetSnapshot(TCollection sequence) => null;
+
+    // A clone keeps the comparer of the source collection.
+    protected virtual TIntermediate CreateForClone(TCollection source, int count, TinyhandSerializerOptions options) => this.Create(count, options);
 
     // Some collections can use struct iterator, this is optimization path
     protected abstract TEnumerator GetSourceEnumerator(TCollection source);
@@ -885,6 +906,12 @@ internal sealed class HashSetFormatter<T> : CollectionFormatterBase<T, HashSet<T
     protected override HashSet<T> Create(int count, TinyhandSerializerOptions options)
     {
         return new HashSet<T>(options.Security.GetEqualityComparer<T>());
+    }
+
+    protected override HashSet<T> CreateForClone(HashSet<T> source, int count, TinyhandSerializerOptions options)
+    {
+        options.Security.GetEqualityComparer<T>(); // Rejects unsupported keys of untrusted data, as Create() does.
+        return new HashSet<T>(count, source.Comparer);
     }
 
     protected override HashSet<T>.Enumerator GetSourceEnumerator(HashSet<T> source)
@@ -1206,10 +1233,7 @@ internal sealed class InterfaceSetFormatter<T> : CollectionFormatterBase<T, Hash
 
 internal sealed class ConcurrentBagFormatter<T> : CollectionFormatterBase<T, System.Collections.Concurrent.ConcurrentBag<T>>
 {
-    protected override int? GetCount(ConcurrentBag<T> sequence)
-    {
-        return sequence.Count;
-    }
+    protected override T[]? GetSnapshot(ConcurrentBag<T> sequence) => sequence.ToArray();
 
     protected override void Add(ConcurrentBag<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -1224,10 +1248,7 @@ internal sealed class ConcurrentBagFormatter<T> : CollectionFormatterBase<T, Sys
 
 internal sealed class ConcurrentQueueFormatter<T> : CollectionFormatterBase<T, System.Collections.Concurrent.ConcurrentQueue<T>>
 {
-    protected override int? GetCount(ConcurrentQueue<T> sequence)
-    {
-        return sequence.Count;
-    }
+    protected override T[]? GetSnapshot(ConcurrentQueue<T> sequence) => sequence.ToArray();
 
     protected override void Add(ConcurrentQueue<T> collection, int index, T value, TinyhandSerializerOptions options)
     {
@@ -1242,10 +1263,7 @@ internal sealed class ConcurrentQueueFormatter<T> : CollectionFormatterBase<T, S
 
 internal sealed class ConcurrentStackFormatter<T> : CollectionFormatterBase<T, T[], ConcurrentStack<T>>
 {
-    protected override int? GetCount(ConcurrentStack<T> sequence)
-    {
-        return sequence.Count;
-    }
+    protected override T[]? GetSnapshot(ConcurrentStack<T> sequence) => sequence.ToArray(); // Top first, the same order as the enumerator.
 
     protected override void Add(T[] collection, int index, T value, TinyhandSerializerOptions options)
     {

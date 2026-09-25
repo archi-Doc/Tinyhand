@@ -147,6 +147,12 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
 
     public int IntKey_IncludedCount;
 
+    /// <summary>
+    /// Gets a value indicating whether members equal to their default values are written as nil.<br/>
+    /// A struct is deserialized from default(T) rather than from its constructor, so its initializers could not restore a skipped value.
+    /// </summary>
+    public bool SkipDefaultValues => this.ObjectAttribute?.SkipDefaultValues == true && !this.Kind.IsValueType();
+
     internal VisceralTrieString<TinyhandObject>? StringTrie;
 
     internal int StringTrieReconstructNumber = 0;
@@ -585,8 +591,9 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
             var rawValue = equalsSyntax.Value.ToString();
 
             if (typeObject.Kind == VisceralObjectKind.Enum)
-            {// Enum
-                return rawValue;
+            {// Enum: the initializer text may depend on the using directives of its source file, so the constant is cast instead.
+                var enumConstant = this.Body.Compilation.GetSemanticModel(syntaxTree).GetConstantValue(equalsSyntax.Value);
+                return enumConstant.Value is IFormattable enumValue ? $"(({typeObject.FullName})({enumValue.ToString(null, CultureInfo.InvariantCulture)}))" : default;
             }
             else if (!typeObject.IsPrimitive &&
                 typeObject.Kind == VisceralObjectKind.Struct)
@@ -668,17 +675,20 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 return valueObject.ToString();
             }*/
 
+            // The literal is C# code, so it must not depend on the current culture (e.g. U+2212 as the negative sign).
             return valueObject switch
             {
-                char c => "'" + c.ToString() + "'",
-                string s => "\"" + VisceralDefaultValue.GetEscapedString(s) + "\"",
-                uint u => u.ToString() + "u",
-                long l => l.ToString() + "L",
-                ulong ul => ul.ToString() + "ul",
+                bool => default, // Same as the true and false literals above.
+                char c => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(c, true),
+                string s => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(s, true),
+                uint u => u.ToString(CultureInfo.InvariantCulture) + "u",
+                long l => l.ToString(CultureInfo.InvariantCulture) + "L",
+                ulong ul => ul.ToString(CultureInfo.InvariantCulture) + "ul",
                 float f => FloatToDefaultString(f),
                 double d => DoubleToDefaultString(d),
                 decimal m => m.ToString(CultureInfo.InvariantCulture) + "m",
-                _ => valueObject.ToString(),
+                IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture), // sbyte, byte, short, ushort, int
+                _ => default,
             };
 
             static string FloatToDefaultString(float f)
@@ -697,7 +707,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 }
                 else
                 {
-                    return f.ToString(CultureInfo.InvariantCulture) + "f";
+                    return f.ToString("R", CultureInfo.InvariantCulture) + "f";
                 }
             }
 
@@ -717,7 +727,7 @@ public class TinyhandObject : VisceralObjectBase<TinyhandObject>
                 }
                 else
                 {
-                    return d.ToString(CultureInfo.InvariantCulture) + "d";
+                    return d.ToString("R", CultureInfo.InvariantCulture) + "d";
                 }
             }
         }
@@ -3823,7 +3833,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         if (x.ObjectFlags.HasFlag(TinyhandObjectFlags.HiddenMember) &&
             x.ContainingObject is not null)
         {// ((BaseClass)v).Member
-            var name = $"(({x.ContainingObject.SimpleName}){ssb.FullObject}).{x.SimpleNameOrAddedProperty}";
+            var name = $"(({x.ContainingObject.FullName}){ssb.FullObject}).{x.SimpleNameOrAddedProperty}";
             return ssb.ScopeFullObject(name);
         }
         else
@@ -3837,7 +3847,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         if (x.ObjectFlags.HasFlag(TinyhandObjectFlags.HiddenMember) &&
             x.ContainingObject is not null)
         {// ((BaseClass)v).Member
-            var name = $"(({x.ContainingObject.SimpleName}){ssb.FullObject}).{x.SimpleName}";
+            var name = $"(({x.ContainingObject.FullName}){ssb.FullObject}).{x.SimpleName}";
             return ssb.ScopeFullObject(name);
         }
         else
@@ -3851,7 +3861,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         if (x.ObjectFlags.HasFlag(TinyhandObjectFlags.HiddenMember) &&
             x.ContainingObject is not null)
         {// ((BaseClass)v).Member
-            return $"(({x.ContainingObject.SimpleName}){sourceObject}).{x.SimpleNameOrAddedProperty}";
+            return $"(({x.ContainingObject.FullName}){sourceObject}).{x.SimpleNameOrAddedProperty}";
         }
         else
         {// v.Member
@@ -4536,19 +4546,19 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
             }
         }
         else
-        {
-            ssb.AppendLine($"if (options.IsDefaultMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
-            ssb.AppendLine($"else if (options.IsExcludeMode) writer.WriteArrayHeader({this.IntKey_IncludedCount});");
+        {// Excluded members are omitted in exclude mode (the deserializer does not read them); every other mode except signature writes all keys.
+            ssb.AppendLine($"if (options.IsExcludeMode) writer.WriteArrayHeader({this.IntKey_IncludedCount});");
+            ssb.AppendLine($"else if (!options.IsSignatureMode) writer.WriteArrayHeader({this.IntKey_Array.Length});");
         }
 
-        var skipDefaultValue = this.ObjectAttribute?.SkipDefaultValues == true;
+        var skipDefaultValue = this.SkipDefaultValues;
         foreach (var x in this.IntKey_Array)
         {
-            this.GenerateSerializerKey(ssb, info, x, skipDefaultValue, convertToStringMode);
+            this.GenerateSerializerKey(ssb, info, x, skipDefaultValue, convertToStringMode, true);
         }
     }
 
-    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GenerationContext info, TinyhandObject? x, bool skipDefaultValue, ConvertToStringMode convertToStringMode)
+    internal void GenerateSerializerKey(ScopingStringBuilder ssb, GenerationContext info, TinyhandObject? x, bool skipDefaultValue, ConvertToStringMode convertToStringMode, bool intKey)
     {
         var exclude = x?.KeyAttribute?.Exclude == true ? true : false;
         bool decrease = false;
@@ -4596,7 +4606,14 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         if (scopeIf is not null)
         {
             scopeIf.Dispose();
-            ssb.AppendLine($"else if (!options.IsSignatureMode) writer.WriteNil();");
+            if (exclude && intKey)
+            {// An excluded int-key member is omitted in exclude mode, and the others write nil to keep the positions.
+                ssb.AppendLine($"else if (!options.IsSignatureMode && !options.IsExcludeMode) writer.WriteNil();");
+            }
+            else
+            {// Nil keeps the position of an int-key member, or completes the key-value pair of a string-key member.
+                ssb.AppendLine($"else if (!options.IsSignatureMode) writer.WriteNil();");
+            }
         }
     }
 
@@ -4614,7 +4631,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         }
 
         ssb.AppendLine($"writer.WriteMapHeader({this.StringTrie.NodeList.Count});");
-        var skipDefaultValue = this.ObjectAttribute?.SkipDefaultValues == true;
+        var skipDefaultValue = this.SkipDefaultValues;
         foreach (var x in this.StringTrie.NodeList)
         {
             // Include the MessagePack header in the constant span to write each key in one operation.
@@ -4626,7 +4643,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
             ssb.AppendLine($"writer.WriteRaw([{string.Join(", ", header.Concat(utf8))}]);");
             if (x.Member is not null)
             {
-                this.GenerateSerializerKey(ssb, info, x.Member, skipDefaultValue, convertToStringMode);
+                this.GenerateSerializerKey(ssb, info, x.Member, skipDefaultValue, convertToStringMode, false);
             }
         }
     }

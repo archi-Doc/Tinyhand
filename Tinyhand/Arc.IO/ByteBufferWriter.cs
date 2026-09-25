@@ -352,6 +352,26 @@ public ref struct ByteBufferWriter
     }
 
     /// <summary>
+    /// Gets the written data without committing the pending bytes, so that a copy of this writer can read it
+    /// while the original keeps a consistent state.
+    /// </summary>
+    /// <returns>The written data, valid until the writer is reused or disposed.</returns>
+    internal readonly ReadOnlySpan<byte> PeekWrittenSpan()
+    {
+        if (this.bufferWriter == null)
+        { // Initial Buffer
+            return this.initialBuffer.AsSpan(0, this.spanSize);
+        }
+
+        if (this.byteSequence == null)
+        {
+            throw new InvalidOperationException("Reading the written data is not supported for external IBufferWriter<byte>.");
+        }
+
+        return this.byteSequence.ToReadOnlySpan(this.spanSize);
+    }
+
+    /// <summary>
     /// Notifies that data is written to the output span.
     /// </summary>
     /// <param name="count">The number of bytes written to the current span.</param>

@@ -818,6 +818,13 @@ AfterElement:
         Ensure(ref writer, ref destination, ref destinationPosition, MaxFormattedNumberLength);
         if (float.IsFinite(value))
         {
+            if (value == 0 && float.IsNegative(value))
+            {// "-0" would be read back as the integer 0.
+                TinyhandConstants.NegativeZeroSpan.CopyTo(destination.Slice(destinationPosition));
+                destinationPosition += TinyhandConstants.NegativeZeroSpan.Length;
+                return;
+            }
+
             Utf8Formatter.TryFormat(value, destination.Slice(destinationPosition), out var written);
             destinationPosition += written;
         }
@@ -832,6 +839,13 @@ AfterElement:
         Ensure(ref writer, ref destination, ref destinationPosition, MaxFormattedNumberLength);
         if (double.IsFinite(value))
         {
+            if (value == 0 && double.IsNegative(value))
+            {// "-0" would be read back as the integer 0.
+                TinyhandConstants.NegativeZeroSpan.CopyTo(destination.Slice(destinationPosition));
+                destinationPosition += TinyhandConstants.NegativeZeroSpan.Length;
+                return;
+            }
+
             Utf8Formatter.TryFormat(value, destination.Slice(destinationPosition), out var written);
             destinationPosition += written;
         }
@@ -980,13 +994,20 @@ AfterElement:
             return false;
         }
 
-        if (TinyhandHelper.IsDigit(s[0]))
-        {// Number
+        var first = s[0];
+        if (TinyhandHelper.IsDigit(first) || first == (byte)'+' || first == (byte)'-' ||
+            first == TinyhandConstants.ModifierPrefix || first == TinyhandConstants.IdentifierPrefix || first < 0x20)
+        {// A number, a modifier, a special identifier or a control character would not be read back as the same identifier.
             return false;
         }
 
-        if (TinyhandUtf8Reader.HasDelimiter(s))
-        {// Has delimiter
+        if (TinyhandUtf8Reader.HasDelimiter(s) || s.IndexOf(TinyhandConstants.SingleQuote) >= 0)
+        {// Has delimiter, or a quote ('string' or b'binary').
+            return false;
+        }
+
+        if (s.StartsWith("double."u8))
+        {// double.NaN, double.PositiveInfinity, double.NegativeInfinity
             return false;
         }
 
@@ -1145,7 +1166,7 @@ AfterElement:
         var buffer = BinaryBuffer.Acquire();
         try
         {
-            FromUtf8ToBinaryFast(utf8, omitTopLevelBracket, ref buffer);
+            FromUtf8ToBinary(utf8, omitTopLevelBracket, ref buffer);
             writer.WriteRaw(buffer.Span);
         }
         finally
@@ -1161,7 +1182,19 @@ AfterElement:
     /// <param name="omitTopLevelBracket"><see langword="true"/> if the input omits its outer group delimiters.</param>
     /// <param name="buffer">The buffer that receives the binary.</param>
     internal static void FromUtf8ToBinary(ReadOnlySpan<byte> utf8, bool omitTopLevelBracket, ref BinaryBuffer buffer)
-        => FromUtf8ToBinaryFast(utf8, omitTopLevelBracket, ref buffer);
+    {
+        try
+        {
+            FromUtf8ToBinaryFast(utf8, omitTopLevelBracket, ref buffer);
+        }
+        catch (TinyhandException)
+        {// The specialized lexer keeps its loop lean and does not count the line breaks in """literals""",
+            // so the reader, which recognizes the same syntax, reports the error with the exact position.
+            // If the reader accepts the text, the lexer disagrees with it, and its own exception is rethrown.
+            FromUtf8ToBinaryWithReader(utf8, omitTopLevelBracket, ref buffer, null);
+            throw;
+        }
+    }
 
     /// <summary>
     /// The text to binary conversion built on <see cref="TinyhandUtf8Reader"/>.<br/>
@@ -1813,8 +1846,9 @@ Done:
                     return new LongValue(reader.ReadInt64());
                 }
                 else
-                {
-                    return new LongValue((long)reader.ReadUInt64());
+                {// A value above long.MaxValue needs ULongValue.
+                    var u = reader.ReadUInt64();
+                    return u <= long.MaxValue ? new LongValue((long)u) : new ULongValue(u);
                 }
 
             case MessagePackType.Boolean:
@@ -1901,6 +1935,11 @@ Done:
                 if (extHeader.TypeCode == MessagePackExtensionCodes.DateTime)
                 {// DateTime
                     var dt = reader.ReadDateTime(extHeader);
+                    if (dt.Kind != DateTimeKind.Utc)
+                    {// Same as the UTF-8 path: the text is always UTC, so it reads back the same on any machine.
+                        dt = dt.ToUniversalTime();
+                    }
+
                     return new StringValue(dt.ToString("o", CultureInfo.InvariantCulture));
                 }
                 else if (extHeader.TypeCode == MessagePackExtensionCodes.Identifier)

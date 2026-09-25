@@ -94,7 +94,15 @@ internal sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<Ord
             return null;
         }
 
-        return new(value, value.Comparer, value.IsReversed);
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
+        var newValue = new OrderedMap<TKey, TValue>(value.Comparer, value.IsReversed);
+        foreach (var x in value)
+        {
+            newValue.Add(keyFormatter.Clone(x.Key, options)!, valueFormatter.Clone(x.Value, options)!);
+        }
+
+        return newValue;
     }
 }
 
@@ -176,7 +184,14 @@ internal sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
             return null;
         }
 
-        return new(value, value.Comparer, value.IsReversed);
+        var formatter = options.Resolver.GetFormatter<T>();
+        var newValue = new OrderedSet<T>(value.Comparer, value.IsReversed);
+        foreach (var x in value)
+        {
+            newValue.Add(formatter.Clone(x, options)!);
+        }
+
+        return newValue;
     }
 }
 
@@ -264,10 +279,12 @@ internal sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatte
             return null;
         }
 
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
         var newValue = new OrderedMultiMap<TKey, TValue>(value.Comparer, value.IsReversed);
         foreach (var x in value)
         {
-            newValue.Add(x.Key, x.Value);
+            newValue.Add(keyFormatter.Clone(x.Key, options)!, valueFormatter.Clone(x.Value, options)!);
         }
 
         return newValue;
@@ -352,7 +369,14 @@ internal sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMu
             return null;
         }
 
-        return new(value, value.Comparer, value.IsReversed);
+        var formatter = options.Resolver.GetFormatter<T>();
+        var newValue = new OrderedMultiSet<T>(value.Comparer, value.IsReversed);
+        foreach (var x in value)
+        {
+            newValue.Add(formatter.Clone(x, options)!);
+        }
+
+        return newValue;
     }
 }
 
@@ -440,10 +464,12 @@ internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<U
             return null;
         }
 
+        var keyFormatter = options.Resolver.GetFormatter<TKey>();
+        var valueFormatter = options.Resolver.GetFormatter<TValue>();
         var newValue = new UnorderedMap<TKey, TValue>(value.Capacity, value.Comparer, value.AllowDuplicates);
         foreach (var x in value)
         {
-            newValue.Add(x.Key, x.Value);
+            newValue.Add(keyFormatter.Clone(x.Key, options)!, valueFormatter.Clone(x.Value, options)!);
         }
 
         return newValue;
@@ -528,7 +554,14 @@ internal sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet
             return null;
         }
 
-        return new(value, value.Comparer, value.AllowDuplicates);
+        var formatter = options.Resolver.GetFormatter<T>();
+        var newValue = new UnorderedSet<T>(value.Capacity, value.Comparer, value.AllowDuplicates);
+        foreach (var x in value)
+        {
+            newValue.Add(formatter.Clone(x, options)!);
+        }
+
+        return newValue;
     }
 }
 
@@ -563,7 +596,15 @@ internal sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            value ??= new OrderedList<T>((int)len);
+            if (value is null)
+            {
+                value = new OrderedList<T>((int)len);
+            }
+            else
+            {
+                value.Clear();
+            }
+
             options.Security.IncrementDepth(ref reader);
             try
             {
@@ -637,7 +678,15 @@ internal sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedLi
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            value ??= new UnorderedList<T>((int)len);
+            if (value is null)
+            {
+                value = new UnorderedList<T>((int)len);
+            }
+            else
+            {
+                value.Clear();
+            }
+
             options.Security.IncrementDepth(ref reader);
             try
             {
@@ -711,7 +760,15 @@ internal sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unord
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            value ??= new UnorderedLinkedList<T>();
+            if (value is null)
+            {
+                value = new UnorderedLinkedList<T>();
+            }
+            else
+            {
+                value.Clear();
+            }
+
             options.Security.IncrementDepth(ref reader);
             try
             {
@@ -769,7 +826,13 @@ internal sealed class OrderedKeyValueListFormatter<TKey, TValue> : DictionaryFor
 
     protected override OrderedKeyValueList<TKey, TValue> Create(OrderedKeyValueList<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
-        return reuse ?? new OrderedKeyValueList<TKey, TValue>();
+        if (reuse is not null)
+        {
+            reuse.Clear();
+            return reuse;
+        }
+
+        return new OrderedKeyValueList<TKey, TValue>();
     }
 
     protected override OrderedKeyValueList<TKey, TValue>.Enumerator GetSourceEnumerator(OrderedKeyValueList<TKey, TValue> source)

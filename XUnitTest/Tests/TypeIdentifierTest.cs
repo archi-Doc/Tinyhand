@@ -18,6 +18,9 @@ public class TypeIdentifierTest
     [InlineData(typeof(int?))]
     [InlineData(typeof(string))]
     [InlineData(typeof(byte[]))]
+    [InlineData(typeof(Int128?))]
+    [InlineData(typeof(UInt128[]))]
+    [InlineData(typeof(System.Collections.Generic.List<Int128>))]
     public void BuiltinTypesAreRegistered(Type type)
     {
         Assert.True(TinyhandTypeIdentifier.IsRegistered(type));

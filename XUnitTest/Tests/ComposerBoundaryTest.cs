@@ -22,6 +22,38 @@ public class ComposerBoundaryTest
         Assert.Equal(value, TinyhandSerializer.DeserializeFromString<string>(TinyhandSerializer.SerializeToString(value)));
     }
 
+    [Fact]
+    public void NestingDeeperThanTheLimitThrowsTinyhandException()
+    {
+        var depth = TinyhandGroupStack.MaxDepth + 2;
+        Assert.Throws<TinyhandException>(() => TinyhandParser.Parse(new string('{', depth) + new string('}', depth)));
+
+        object value = 1;
+        for (var i = 0; i < depth; i++)
+        {
+            value = new object[] { value };
+        }
+
+        Assert.Throws<TinyhandException>(() => TinyhandSerializer.SerializeToString(value));
+    }
+
+    [Theory]
+    [InlineData("he said \"hi\"")]
+    [InlineData("control\u0001character")]
+    [InlineData("contains \"\"\" quotes")]
+    [InlineData("multi\nline")]
+    public void TripleQuotedStringIsEscapedWhenNeeded(string value)
+    {
+        // A string parsed from a """literal""" keeps the style when its value is changed, unless the literal cannot represent the value.
+        var group = (Group)TinyhandParser.Parse("a = \"\"\"x\"\"\"");
+        var s = Assert.IsType<StringValue>(Assert.IsType<Assignment>(group.ElementList[0]).RightElement);
+        Assert.True(s.IsTripleQuoted);
+        s.Utf16 = value;
+
+        var parsed = (Group)TinyhandParser.Parse(TinyhandComposer.Compose(group));
+        Assert.Equal(value, Assert.IsType<StringValue>(Assert.IsType<Assignment>(parsed.ElementList[0]).RightElement).Utf16);
+    }
+
     [Theory]
     [InlineData(TinyhandComposeOption.Standard)]
     [InlineData(TinyhandComposeOption.UseContextualInformation)]

@@ -111,6 +111,29 @@ public class Utf8ReaderTest
     }
 
     [Fact]
+    public void MultiLineCommentIsNotClosedByItsOwnAsterisk()
+    {
+        // The asterisk of "/*" cannot be the first half of "*/".
+        var atoms = ReadAll("a /*/ b */ c");
+        atoms.Count.Is(3);
+        atoms[0].Value.Is("a");
+        atoms[1].Type.Is(TinyhandAtomType.Comment);
+        atoms[1].Value.Is("/*/ b */");
+        atoms[2].Value.Is("c");
+    }
+
+    [Fact]
+    public void TripleQuotedStringCountsLineFeeds()
+    {
+        // The literal is a value within a line: the following atom is on the last line of the literal
+        // and is not treated as the start of an indented line.
+        var atoms = ReadAll("a = \"\"\"x\ny\u2028z\"\"\" c\nb = 1");
+        atoms.Find(x => x.Value == "x\ny\u2028z").Line.Is(1);
+        atoms.Find(x => x.Value == "c").Line.Is(3);
+        atoms.Find(x => x.Value == "b").Line.Is(4);
+    }
+
+    [Fact]
     public void CommentAtEndOfFileKeepsItsText()
     {
         // A comment that is not terminated by a line feed must still report its text.

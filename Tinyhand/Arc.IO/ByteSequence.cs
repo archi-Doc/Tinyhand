@@ -74,21 +74,7 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
         }
     }
 
-    public ReadOnlySpan<byte> ToReadOnlySpan()
-    {
-        if (this.firstVault == null)
-        {
-            return default;
-        }
-        else if (this.firstVault == this.lastVault)
-        {// Single vault
-            return new ReadOnlySpan<byte>(this.firstVault.RentArray.Array, 0, this.firstVault.Size);
-        }
-        else
-        {// Multiple vaults
-            return new ReadOnlySequence<byte>(this.firstVault, 0, this.lastVault!, this.lastVault!.Size).ToArray();
-        }
-    }
+    public ReadOnlySpan<byte> ToReadOnlySpan() => this.ToReadOnlySpan(0);
 
     public void Advance(int count)
     {
@@ -119,6 +105,37 @@ public class ByteSequence : IBufferWriter<byte>, IDisposable
     public Memory<byte> GetMemory(int sizeHint = 0) => this.GetVault(sizeHint).RemainingMemory;
 
     public Span<byte> GetSpan(int sizeHint = 0) => this.GetVault(sizeHint).RemainingSpan;
+
+    /// <summary>
+    /// Gets the written data followed by <paramref name="pending"/> bytes that were written to the last vault but not advanced yet.
+    /// </summary>
+    /// <param name="pending">The number of bytes written after the last <see cref="Advance(int)"/>.</param>
+    /// <returns>The data; a single vault is returned without copying.</returns>
+    internal ReadOnlySpan<byte> ToReadOnlySpan(int pending)
+    {
+        if (this.firstVault == null)
+        {
+            return default;
+        }
+        else if (this.firstVault == this.lastVault)
+        {// Single vault
+            return new ReadOnlySpan<byte>(this.firstVault.RentArray.Array, 0, this.firstVault.Size + pending);
+        }
+        else
+        {// Multiple vaults
+            var lastVault = this.lastVault!;
+            var array = new byte[(int)lastVault.RunningIndex + lastVault.Size + pending];
+            var span = array.AsSpan();
+            for (var vault = this.firstVault; vault != lastVault; vault = (ByteVault)vault.Next!)
+            {
+                vault.RentArray.Array.AsSpan(0, vault.Size).CopyTo(span);
+                span = span.Slice(vault.Size);
+            }
+
+            lastVault.RentArray.Array.AsSpan(0, lastVault.Size + pending).CopyTo(span);
+            return array;
+        }
+    }
 
     private ByteVault GetVault(int sizeHint)
     {

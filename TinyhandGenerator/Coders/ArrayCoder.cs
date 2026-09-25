@@ -130,7 +130,8 @@ public class ArrayCoder : ITinyhandCoder
             key = key.TrimEnd('?');
         }*/
 
-        if (!info.GetOrCreateBlock($"Array::{key}", out this.block))
+        // The element coder depends on EnumAsString of the object being generated, so the helper is shared only among the same setting.
+        if (!info.GetOrCreateBlock(info.EnumAsString ? $"Array::{key}::EnumAsString" : $"Array::{key}", out this.block))
         {// Already exists.
             return;
         }

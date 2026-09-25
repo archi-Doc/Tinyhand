@@ -28,6 +28,29 @@ public partial class SelectionTestClass
     public int Z { get; set; }
 }
 
+[TinyhandObject]
+public partial class SelectionMiddleTestClass
+{
+    [Key(0)]
+    public int A { get; set; }
+
+    [Key(1, Exclude = true)]
+    public int B { get; set; }
+
+    [Key(2)]
+    public int C { get; set; }
+}
+
+[TinyhandObject]
+public partial class SelectionHolderTestClass
+{
+    [Key(0)]
+    public SelectionMiddleTestClass Inner { get; set; } = new();
+
+    [Key(1)]
+    public int Tail { get; set; }
+}
+
 public class SelectionTest
 {
     [Fact]
@@ -52,5 +75,20 @@ public class SelectionTest
         tc2.X.Is(1);
         tc2.Y.Is(0);
         tc2.Z.Is(0);
+    }
+
+    [Fact]
+    public void ExcludedMemberKeepsThePositionsOfTheFollowingMembers()
+    {
+        // The nested object must consume exactly its own values in every mode.
+        var h = new SelectionHolderTestClass { Inner = new() { A = 10, B = 20, C = 30, }, Tail = 77, };
+        foreach (var options in new[] { TinyhandSerializerOptions.Standard, TinyhandSerializerOptions.Exclude, TinyhandSerializerOptions.Special, })
+        {
+            var h2 = TinyhandSerializer.Deserialize<SelectionHolderTestClass>(TinyhandSerializer.Serialize(h, options), options)!;
+            h2.Inner.A.Is(10);
+            h2.Inner.B.Is(options.IsExcludeMode ? 0 : 20);
+            h2.Inner.C.Is(30);
+            h2.Tail.Is(77);
+        }
     }
 }

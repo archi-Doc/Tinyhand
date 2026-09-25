@@ -77,7 +77,12 @@ public class TinyhandUnion
         {
             if (item.HasStringKey)
             {// String key
-                if (!checker3.Add(item.StringKey!))
+                if (checker1.Count > 0)
+                {// Integer and string keys are exclusive (checked in both orders)
+                    obj.Body.ReportDiagnostic(TinyhandBody.Error_IntStringKeyConflict, item.Location);
+                    errorFlag = true;
+                }
+                else if (!checker3.Add(item.StringKey!))
                 {
                     obj.Body.ReportDiagnostic(TinyhandBody.Error_StringKeyConflict, item.Location);
                     errorFlag = true;
@@ -156,11 +161,11 @@ public class TinyhandUnion
                     if (x.HasStringKey)
                     {
                         this.HasStringKey = true;
-                        this.StringDictionary.Add($"\"{x.StringKey!}\"", obj);
+                        this.StringDictionary.Add(Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(x.StringKey!, true), obj);
                     }
                     else
                     {
-                        this.StringDictionary.Add(x.IntKey.ToString(), obj);
+                        this.StringDictionary.Add(x.IntKey.ToString(System.Globalization.CultureInfo.InvariantCulture), obj);
                     }
                 }
                 else if (this.Object.Kind == Arc.Visceral.VisceralObjectKind.Interface)

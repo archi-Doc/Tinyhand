@@ -348,6 +348,9 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
     /// </summary>
     private void PreConfigure()
     {
+        var rootFolder = this.RootFolder;
+        var sourceFolder = this.SourceFolder;
+        var destinationFolder = this.DestinationFolder;
         var isProcessMode = false;
         foreach (var x in this.rootGroup)
         {
@@ -388,6 +391,12 @@ public class ProcessEnvironment : IProcessEnvironment, IDisposable
                 this.ReadLoggerSettings(x, this.resultSettings);
             }
         }
+
+        // Process() applies the folder directives again in document order, so it must start from the initial folders;
+        // otherwise a relative source or destination placed before root would be resolved against the last root.
+        this.RootFolder = rootFolder;
+        this.SourceFolder = sourceFolder;
+        this.DestinationFolder = destinationFolder;
     }
 
     // Arc.Unit's internal service is registered by Type; retain its constructor

@@ -135,15 +135,7 @@ internal class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterB
     }
 
     protected override ImmutableDictionary<TKey, TValue>.Builder Create(ImmutableDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
-    {
-        var builder = ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
-        if (reuse is not null)
-        {
-            builder.AddRange(reuse);
-        }
-
-        return builder;
-    }
+        => ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
 
     protected override ImmutableDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(ImmutableDictionary<TKey, TValue> source)
     {
@@ -188,15 +180,7 @@ internal class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryForm
     }
 
     protected override ImmutableSortedDictionary<TKey, TValue>.Builder Create(ImmutableSortedDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
-    {
-        var builder = ImmutableSortedDictionary.CreateBuilder<TKey, TValue>();
-        if (reuse is not null)
-        {
-            builder.AddRange(reuse);
-        }
-
-        return builder;
-    }
+        => ImmutableSortedDictionary.CreateBuilder<TKey, TValue>();
 
     protected override ImmutableSortedDictionary<TKey, TValue>.Enumerator GetSourceEnumerator(ImmutableSortedDictionary<TKey, TValue> source)
     {
@@ -297,15 +281,7 @@ internal class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryF
     }
 
     protected override ImmutableDictionary<TKey, TValue>.Builder Create(IImmutableDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
-    {
-        var builder = ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
-        if (reuse is not null)
-        {
-            builder.AddRange(reuse);
-        }
-
-        return builder;
-    }
+        => ImmutableDictionary.CreateBuilder<TKey, TValue>(options.Security.GetEqualityComparer<TKey>());
 }
 
 internal class InterfaceImmutableSetFormatter<T> : CollectionFormatterBase<T, ImmutableHashSet<T>.Builder, IImmutableSet<T>>

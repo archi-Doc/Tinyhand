@@ -225,6 +225,11 @@ public ref struct TinyhandRawWriter
             this.WriteRaw(TinyhandConstants.DoubleNegativeInfinitySpan);
             return true;
         }
+        else if (value == 0 && float.IsNegative(value))
+        {// "-0" would be read back as the integer 0.
+            this.WriteRaw(TinyhandConstants.NegativeZeroSpan);
+            return true;
+        }
 
         Span<byte> span = this.writer.GetSpan(32);
         if (Utf8Formatter.TryFormat(value, span, out var written))
@@ -252,6 +257,11 @@ public ref struct TinyhandRawWriter
         else if (double.IsNegativeInfinity(value))
         {
             this.WriteRaw(TinyhandConstants.DoubleNegativeInfinitySpan);
+            return true;
+        }
+        else if (value == 0 && double.IsNegative(value))
+        {// "-0" would be read back as the integer 0.
+            this.WriteRaw(TinyhandConstants.NegativeZeroSpan);
             return true;
         }
 

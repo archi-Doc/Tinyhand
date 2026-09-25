@@ -38,6 +38,21 @@ public class TreeConverterElementTest
     private static readonly TinyhandSerializerOptions Options = TinyhandSerializerOptions.Standard;
 
     [Fact]
+    public void LargeUnsignedIntegerAndSpecialIdentifier()
+    {
+        // A value above long.MaxValue must not wrap to a negative LongValue.
+        TinyhandTreeConverter.FromBinaryToElement(TinyhandSerializer.Serialize(ulong.MaxValue), out var element, Options);
+        Assert.IsType<ULongValue>(element);
+        TinyhandSerializer.DeserializeFromElement<ulong>(element, Options).Is(ulong.MaxValue);
+        TinyhandComposer.ComposeToString(element).Is("18446744073709551615");
+
+        // @identifier keeps its prefix, as in the text path.
+        var text = "Text = @mode";
+        TinyhandSerializer.DeserializeFromElement<TreeElementClass>(TinyhandParser.Parse(text), Options)!.Text.Is("@mode");
+        TinyhandSerializer.DeserializeFromString<TreeElementClass>(text, Options)!.Text.Is("@mode");
+    }
+
+    [Fact]
     public void BinaryToElementAndBack()
     {
         var c = new TreeElementClass();

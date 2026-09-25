@@ -286,7 +286,7 @@ public class Comment : Element
 public class IdentifierValue : Value
 {
     public IdentifierValue(bool isSpecial, byte[] identifierUtf8)
-        : base(ValueElementType.Identifier)
+        : base(isSpecial ? ValueElementType.SpecialIdentifier : ValueElementType.Identifier)
     {
         this.IsSpecial = isSpecial;
         this.utf8 = identifierUtf8;

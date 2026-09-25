@@ -62,6 +62,8 @@ public static class TinyhandConstants
 
     public static ReadOnlySpan<byte> DoubleNegativeInfinitySpan => "double.NegativeInfinity"u8;
 
+    public static ReadOnlySpan<byte> NegativeZeroSpan => "-0.0"u8;
+
     /*public static ReadOnlySpan<byte> FloatNaNSpan => "float.NaN"u8;
 
     public static ReadOnlySpan<byte> FloatPositiveInfinitySpan => "float.PositiveInfinity"u8;

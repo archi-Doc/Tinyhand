@@ -86,6 +86,24 @@ public class ProcessorTest : IDisposable
         Assert.True(environment.FatalStatus);
     }
 
+    [Fact]
+    public async Task FolderDirectivesAreAppliedInDocumentOrder()
+    {
+        // A relative source placed before root is resolved against the initial root, not the later one.
+        var sourceFolder = Directory.CreateDirectory(Path.Combine(this.directory, "src")).FullName;
+        File.WriteAllText(Path.Combine(sourceFolder, "a.txt"), "line", Encoding.UTF8);
+        var otherRoot = Directory.CreateDirectory(Path.Combine(this.directory, "other")).FullName;
+        Assert.True(await this.Run($$"""
+            source = "src"
+            root = "{{otherRoot.Replace("\\", "\\\\")}}"
+            process = "text to tinyhand"
+            format = "binary"
+            "a.txt"
+            """));
+
+        Assert.True(File.Exists(Path.Combine(sourceFolder, "a.tinyhand")));
+    }
+
     [Theory]
     [InlineData("process = \"missing\"")]
     [InlineData("process = \"text to tinyhand\" \"missing.txt\"")]
