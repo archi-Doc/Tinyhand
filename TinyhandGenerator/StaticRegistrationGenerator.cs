@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -33,26 +33,13 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var usages = context.SyntaxProvider.CreateSyntaxProvider(
-            static (node, _) => node is TypeSyntax or InvocationExpressionSyntax or BaseObjectCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax or TupleExpressionSyntax or TypeDeclarationSyntax,
-            static (ctx, token) =>
-            {
-                if (ctx.Node is TypeDeclarationSyntax declaration)
-                {
-                    return new Usage(ctx.SemanticModel.GetDeclaredSymbol(declaration, token) as ITypeSymbol, null);
-                }
-
-                var type = ctx.SemanticModel.GetTypeInfo(ctx.Node, token).Type;
-                var method = ctx.Node is InvocationExpressionSyntax invocation
-                    ? ctx.SemanticModel.GetSymbolInfo(invocation, token).Symbol as IMethodSymbol
-                    : null;
-                return new Usage(type, method);
-            }).Collect();
-        context.RegisterSourceOutput(context.CompilationProvider.Combine(usages), static (ctx, source) =>
+        // Binding every type usage of the source is the main cost. A syntax provider would bind the nodes one by one on every
+        // compilation change anyway (the output depends on the whole compilation), so the output step binds the syntax trees in parallel.
+        context.RegisterSourceOutput(context.CompilationProvider, static (ctx, compilation) =>
         {
             try
             {
-                new Emitter(source.Left, ctx).Emit(source.Right);
+                new Emitter(compilation, ctx).Emit();
             }
             catch (OperationCanceledException)
             {
@@ -89,6 +76,7 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
         private readonly HashSet<IMethodSymbol> methods = new(SymbolEqualityComparer.Default);
         private readonly Queue<IMethodSymbol> pendingMethods = new();
         private readonly List<(ITypeSymbol Type, string Code)> registrations = new();
+        private readonly Dictionary<SyntaxTree, SemanticModel> models = new();
         private bool reportedDepth;
         private ITypeSymbol? currentType;
 
@@ -98,17 +86,38 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
             this.context = context;
         }
 
-        internal void Emit(ImmutableArray<Usage> usages)
+        internal void Emit()
         {
             if (this.compilation.GetTypeByMetadataName("Tinyhand.Resolvers.GeneratedResolver") is null)
             {
                 return;
             }
 
-            foreach (var usage in usages)
+            // The syntax trees are bound concurrently (unless the compilation disables concurrent builds),
+            // and the usages are processed in the order of the trees and nodes, so the output does not depend on the scheduling.
+            var trees = this.compilation.SyntaxTrees.ToArray();
+            var models = new SemanticModel[trees.Length];
+            var usages = new List<Usage>[trees.Length];
+            if (this.compilation.Options.ConcurrentBuild)
             {
-                this.Add(usage.Type);
-                this.AddMethod(usage.Method);
+                Parallel.For(0, trees.Length, new ParallelOptions { CancellationToken = this.context.CancellationToken }, i => usages[i] = this.Bind(trees[i], out models[i]));
+            }
+            else
+            {
+                for (var i = 0; i < trees.Length; i++)
+                {
+                    usages[i] = this.Bind(trees[i], out models[i]);
+                }
+            }
+
+            for (var i = 0; i < trees.Length; i++)
+            {
+                this.models[trees[i]] = models[i];
+                foreach (var usage in usages[i])
+                {
+                    this.Add(usage.Type);
+                    this.AddMethod(usage.Method);
+                }
             }
 
             // Explicit roots also cover types referenced only from other assemblies.
@@ -228,6 +237,32 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
                 Implements("Tinyhand.ITinyhandCloneable`1");
         }
 
+        /// <summary>
+        /// Binds the types and the invoked methods used in a syntax tree, in the order of the nodes.
+        /// </summary>
+        /// <param name="tree">The syntax tree.</param>
+        /// <param name="model">The semantic model of the tree, which keeps the bound nodes.</param>
+        /// <returns>The usages.</returns>
+        private List<Usage> Bind(SyntaxTree tree, out SemanticModel model)
+        {
+            var token = this.context.CancellationToken;
+            model = this.compilation.GetSemanticModel(tree);
+            var usages = new List<Usage>();
+            foreach (var node in tree.GetRoot(token).DescendantNodes())
+            {
+                if (node is TypeDeclarationSyntax declaration)
+                {
+                    usages.Add(new(model.GetDeclaredSymbol(declaration, token) as ITypeSymbol, null));
+                }
+                else if (node is TypeSyntax or InvocationExpressionSyntax or BaseObjectCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax or TupleExpressionSyntax)
+                {
+                    usages.Add(new(model.GetTypeInfo(node, token).Type, node is InvocationExpressionSyntax invocation ? model.GetSymbolInfo(invocation, token).Symbol as IMethodSymbol : null));
+                }
+            }
+
+            return usages;
+        }
+
         private bool CheckDepth(ITypeSymbol type)
         {
             // A node budget also bounds repeated branches such as Grow<Pair<T,T>>.
@@ -330,7 +365,12 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
                 var syntax = reference.GetSyntax(this.context.CancellationToken);
-                var model = this.compilation.GetSemanticModel(syntax.SyntaxTree);
+                if (!this.models.TryGetValue(syntax.SyntaxTree, out var model))
+                {// The models of the source trees already hold their bound bodies.
+                    model = this.compilation.GetSemanticModel(syntax.SyntaxTree);
+                    this.models.Add(syntax.SyntaxTree, model);
+                }
+
                 foreach (var node in syntax.DescendantNodes().OfType<TypeSyntax>())
                 {
                     this.Add(this.Substitute(model.GetTypeInfo(node, this.context.CancellationToken).Type, substitutions));

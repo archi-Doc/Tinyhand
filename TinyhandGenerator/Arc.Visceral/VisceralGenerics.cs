@@ -1,7 +1,11 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -40,16 +44,41 @@ public class VisceralGenerics
         }
     }
 
-    public void Prepare(Compilation compilation)
+    /// <summary>
+    /// Resolves the generic names.
+    /// </summary>
+    /// <param name="compilation">The compilation.</param>
+    /// <param name="isCandidate">Selects the type names to resolve; the other generic names are left <see cref="VisceralGenericsKind.NotSet"/>.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    public void Prepare(Compilation compilation, Func<string, bool>? isCandidate = null, CancellationToken cancellationToken = default)
     {
-        foreach (var x in this.ItemDictionary.Values)
+        // Binding a generic name binds its whole member body, so the names are bound with one semantic model per syntax tree
+        // (a model keeps the bound bodies), and the trees are bound concurrently unless the compilation disables concurrent builds.
+        var trees = this.ItemDictionary.Values
+            .Where(x => isCandidate is null || isCandidate(x.GenericSyntax.Identifier.ValueText))
+            .GroupBy(x => x.GenericSyntax.SyntaxTree).ToArray();
+        void Bind(IGrouping<SyntaxTree, GenericsItem> items)
         {
-            var model = compilation.GetSemanticModel(x.GenericSyntax.SyntaxTree);
-            var si = model.GetSymbolInfo(x.GenericSyntax);
-            if (si.Symbol is INamedTypeSymbol ts)
+            var model = compilation.GetSemanticModel(items.Key);
+            foreach (var x in items)
             {
-                x.TypeSymbol = ts;
-                x.GenericsKind = VisceralHelper.TypeToGenericsKind(ts);
+                if (model.GetSymbolInfo(x.GenericSyntax, cancellationToken).Symbol is INamedTypeSymbol ts)
+                {
+                    x.TypeSymbol = ts;
+                    x.GenericsKind = VisceralHelper.TypeToGenericsKind(ts);
+                }
+            }
+        }
+
+        if (compilation.Options.ConcurrentBuild)
+        {
+            Parallel.ForEach(trees, new ParallelOptions { CancellationToken = cancellationToken }, Bind);
+        }
+        else
+        {
+            foreach (var x in trees)
+            {
+                Bind(x);
             }
         }
     }

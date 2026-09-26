@@ -1,9 +1,6 @@
 ﻿// Copyright (c) All contributors. All rights reserved. Licensed under the MIT license.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Arc.Visceral;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,25 +9,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Tinyhand.Generator;
 
+/// <summary>
+/// Generates the serializers of Tinyhand objects.<br/>
+/// Roslyn shares a generator instance among runs, which may execute concurrently (e.g. for projects or target frameworks
+/// that use the same analyzer), so the generator itself has no state; each run keeps its own in <see cref="TinyhandGeneratorRun"/>.
+/// </summary>
 [Generator]
-public class TinyhandGenerator : IIncrementalGenerator, IGeneratorInformation
+public class TinyhandGenerator : IIncrementalGenerator
 {
-    public bool AttachDebugger { get; private set; }
-
-    public bool GenerateToFile { get; private set; }
-
-    public string? CustomNamespace { get; private set; }
-
-    public IAssemblySymbol AssemblySymbol { get; private set; } = default!;
-
-    public string? AssemblyName { get; private set; }
-
-    public int AssemblyId { get; private set; }
-
-    public OutputKind OutputKind { get; private set; }
-
-    public string? TargetFolder { get; private set; }
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var provider = context.CompilationProvider.Combine(
@@ -38,7 +24,7 @@ public class TinyhandGenerator : IIncrementalGenerator, IGeneratorInformation
             .CreateSyntaxProvider(static (s, _) => IsSyntaxTargetForGeneration(s), static (ctx, _) => GetSemanticTargetForGeneration(ctx))
             .Collect());
 
-        context.RegisterImplementationSourceOutput(provider, this.Emit);
+        context.RegisterImplementationSourceOutput(provider, Emit);
     }
 
     private static bool IsSyntaxTargetForGeneration(SyntaxNode node)
@@ -96,227 +82,17 @@ public class TinyhandGenerator : IIncrementalGenerator, IGeneratorInformation
         return null;
     }
 
-    private void Emit(SourceProductionContext context, (Compilation Compilation, ImmutableArray<CSharpSyntaxNode?> Types) source)
+    private static void Emit(SourceProductionContext context, (Compilation Compilation, ImmutableArray<CSharpSyntaxNode?> Types) source)
     {// The generated code must not depend on the culture of the compiler process (e.g. U+2212 as the negative sign of an interpolated number).
         var culture = System.Globalization.CultureInfo.CurrentCulture;
         System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
         try
         {
-            this.EmitCore(context, source);
+            new TinyhandGeneratorRun().Emit(context, source.Compilation, source.Types);
         }
         finally
         {
             System.Globalization.CultureInfo.CurrentCulture = culture;
         }
     }
-
-    private void EmitCore(SourceProductionContext context, (Compilation Compilation, ImmutableArray<CSharpSyntaxNode?> Types) source)
-    {
-        var compilation = source.Compilation;
-        this.tinyhandObjectAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandObjectAttributeData.FullName);
-        if (this.tinyhandObjectAttributeSymbol == null)
-        {
-            return;
-        }
-
-        this.tinyhandUnionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandUnionAttributeData.FullName);
-        if (this.tinyhandUnionAttributeSymbol == null)
-        {
-            return;
-        }
-
-        this.tinyhandGeneratorOptionAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGeneratorOptionAttributeData.FullName);
-        if (this.tinyhandGeneratorOptionAttributeSymbol == null)
-        {
-            return;
-        }
-
-        this.tinyhandGenerateMemberAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateMemberAttributeData.FullName);
-        if (this.tinyhandGenerateMemberAttributeSymbol == null)
-        {
-            return;
-        }
-
-        this.tinyhandGenerateHashAttributeSymbol = compilation.GetTypeByMetadataName(TinyhandGenerateHashAttributeData.FullName);
-        if (this.tinyhandGenerateHashAttributeSymbol == null)
-        {
-            return;
-        }
-
-        this.AssemblySymbol = compilation.Assembly;
-        this.AssemblyName = compilation.AssemblyName ?? string.Empty;
-        this.AssemblyId = this.AssemblyName.GetHashCode();
-        this.OutputKind = compilation.Options.OutputKind;
-
-        var body = new TinyhandBody(compilation, context, this.AssemblySymbol);
-        var generateMemberBody = new TinyhandGenerateMemberBody(context);
-        // receiver.Generics.Prepare(compilation);
-#pragma warning disable RS1024 // Symbols should be compared for equality
-        var processed = new HashSet<INamedTypeSymbol?>();
-#pragma warning restore RS1024 // Symbols should be compared for equality
-
-        // The generator instance is reused, so the options of a previous run (e.g. a removed TinyhandGeneratorOption) must not remain.
-        this.generatorOptionIsSet = false;
-        this.AttachDebugger = false;
-        this.GenerateToFile = false;
-        this.CustomNamespace = null;
-        this.TargetFolder = null;
-        var generics = new VisceralGenerics();
-        foreach (var x in source.Types)
-        {
-            if (x == null)
-            {
-                continue;
-            }
-            else if (x is GenericNameSyntax genericSyntax)
-            {
-                generics.Add(genericSyntax);
-                continue;
-            }
-
-            var model = compilation.GetSemanticModel(x.SyntaxTree);
-#pragma warning disable RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
-            if (model.GetDeclaredSymbol(x) is INamedTypeSymbol symbol)
-            {
-                this.ProcessSymbol(body, generateMemberBody, processed, x.SyntaxTree, symbol);
-            }
-#pragma warning restore RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
-        }
-
-        generics.Prepare(compilation);
-        foreach (var ts in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric))
-        {
-            if (ts.TypeSymbol != null)
-            {
-                this.ProcessSymbol(body, generateMemberBody, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
-            }
-        }
-
-        // this.SalvageCloseGeneric(body, generics, processed);
-
-        body.Prepare();
-        if (body.Abort)
-        {
-            return;
-        }
-
-        if (compilation.Options is CSharpCompilationOptions csharpCompilationOptions &&
-            !csharpCompilationOptions.AllowUnsafe &&
-            body.RequiresUnsafeBlocks)
-        {
-            body.ReportDiagnostic(TinyhandBody.Error_UnsafeRequired, default);
-        }
-
-        generateMemberBody.Prepare();
-        if (generateMemberBody.Abort)
-        {
-            return;
-        }
-
-        body.Generate(this, context.CancellationToken);
-        generateMemberBody.Generate(this, context.CancellationToken);
-    }
-
-    private void ProcessSymbol(TinyhandBody body, TinyhandGenerateMemberBody? generateMemberBody, HashSet<INamedTypeSymbol?> processed, SyntaxTree? syntaxTree, INamedTypeSymbol symbol)
-    {
-        if (!SymbolEqualityComparer.Default.Equals(symbol.ContainingAssembly, this.AssemblySymbol))
-        {// Different assembly
-            return;
-        }
-        else if (processed.Contains(symbol))
-        {
-            return;
-        }
-
-        processed.Add(symbol);
-        foreach (var y in symbol.GetAttributes())
-        {
-            if (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandObjectAttributeSymbol) ||
-                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandUnionAttributeSymbol))
-            { // TinyhandObject or TinyhandUnion
-                body.Add(symbol);
-                break;
-            }
-            else if (generateMemberBody != null &&
-                (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGenerateMemberAttributeSymbol) ||
-                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGenerateHashAttributeSymbol)))
-            { // TinyhandGenerateMember
-                generateMemberBody.Add(symbol);
-            }
-            else if (!this.generatorOptionIsSet &&
-                syntaxTree != null &&
-                SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandGeneratorOptionAttributeSymbol))
-            {
-                this.generatorOptionIsSet = true;
-                var va = new VisceralAttribute(TinyhandGeneratorOptionAttributeData.FullName, y);
-                var ta = TinyhandGeneratorOptionAttributeData.FromArray(va.ConstructorArguments, va.NamedArguments);
-
-                this.AttachDebugger = ta.AttachDebugger;
-                this.GenerateToFile = ta.GenerateToFile;
-                this.CustomNamespace = ta.CustomNamespace;
-                this.TargetFolder = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(syntaxTree.FilePath), "Generated");
-            }
-        }
-    }
-
-    private void SalvageCloseGeneric(TinyhandBody body, VisceralGenerics generics, HashSet<INamedTypeSymbol?> processed)
-    {
-        var stack = new Stack<INamedTypeSymbol>();
-        foreach (var x in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric))
-        {
-            SalvageCloseGenericCore(stack, x.TypeSymbol);
-        }
-
-        void SalvageCloseGenericCore(Stack<INamedTypeSymbol> stack, INamedTypeSymbol? ts)
-        {
-            if (ts == null || stack.Contains(ts))
-            {// null or already exists.
-                return;
-            }
-            else if (ts.TypeKind != TypeKind.Class && ts.TypeKind != TypeKind.Struct)
-            {// Not type
-                return;
-            }
-            else if (VisceralHelper.TypeToGenericsKind(ts) != VisceralGenericsKind.ClosedGeneric)
-            {// Not close generic
-                return;
-            }
-
-            this.ProcessSymbol(body, null, processed, null, ts);
-
-            stack.Push(ts);
-            try
-            {
-                foreach (var y in ts.GetBaseTypesAndThis().SelectMany(x => x.GetMembers()))
-                {
-                    INamedTypeSymbol? nts = null;
-                    if (y is IFieldSymbol fs)
-                    {
-                        nts = fs.Type as INamedTypeSymbol;
-                    }
-                    else if (y is IPropertySymbol ps)
-                    {
-                        nts = ps.Type as INamedTypeSymbol;
-                    }
-
-                    // not primitive
-                    if (nts != null && nts.SpecialType == SpecialType.None)
-                    {
-                        SalvageCloseGenericCore(stack, nts);
-                    }
-                }
-            }
-            finally
-            {
-                stack.Pop();
-            }
-        }
-    }
-
-    private bool generatorOptionIsSet;
-    private INamedTypeSymbol? tinyhandObjectAttributeSymbol;
-    private INamedTypeSymbol? tinyhandUnionAttributeSymbol;
-    private INamedTypeSymbol? tinyhandGeneratorOptionAttributeSymbol;
-    private INamedTypeSymbol? tinyhandGenerateMemberAttributeSymbol;
-    private INamedTypeSymbol? tinyhandGenerateHashAttributeSymbol;
 }

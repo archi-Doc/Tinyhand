@@ -46,7 +46,7 @@ public class StaticRegistrationTest
             identifier--;
         }
 
-        Assert.Equal(0, Measure(() =>
+        Assert.Equal(0, TestHelper.MeasureAllocation(() =>
         {
             _ = TinyhandTypeIdentifier.TryDeserialize(identifier, ReadOnlySpan<byte>.Empty);
             _ = TinyhandTypeIdentifier.TryDeserializeFromString(identifier, "");
@@ -57,8 +57,8 @@ public class StaticRegistrationTest
     [Fact]
     public void TypedIdentifierSerializationDoesNotBoxValues()
     {
-        var direct = Measure(() => GC.KeepAlive(TinyhandSerializer.Serialize(123)));
-        var byIdentifier = Measure(() => GC.KeepAlive(TinyhandTypeIdentifier.TrySerialize(123).ByteArray));
+        var direct = TestHelper.MeasureAllocation(() => GC.KeepAlive(TinyhandSerializer.Serialize(123)));
+        var byIdentifier = TestHelper.MeasureAllocation(() => GC.KeepAlive(TinyhandTypeIdentifier.TrySerialize(123).ByteArray));
         Assert.Equal(direct, byIdentifier);
     }
 
@@ -70,11 +70,11 @@ public class StaticRegistrationTest
         var readOnly = new ReadOnlyMemory<int>(source);
         var sequence = new ReadOnlySequence<int>(source);
         var segment = new ArraySegment<int>(source);
-        var baseline = Measure(() => GC.KeepAlive(TinyhandSerializer.Clone(source)));
-        Assert.Equal(baseline, Measure(() => CheckLength(source.Length, TinyhandSerializer.Clone(memory).Length)));
-        Assert.Equal(baseline, Measure(() => CheckLength(source.Length, TinyhandSerializer.Clone(readOnly).Length)));
-        Assert.Equal(baseline, Measure(() => CheckLength(source.Length, TinyhandSerializer.Clone(sequence).Length)));
-        Assert.Equal(baseline, Measure(() => CheckLength(source.Length, TinyhandSerializer.Clone(segment).Count)));
+        var baseline = TestHelper.MeasureAllocation(() => GC.KeepAlive(TinyhandSerializer.Clone(source)));
+        Assert.Equal(baseline, TestHelper.MeasureAllocation(() => CheckLength(source.Length, TinyhandSerializer.Clone(memory).Length)));
+        Assert.Equal(baseline, TestHelper.MeasureAllocation(() => CheckLength(source.Length, TinyhandSerializer.Clone(readOnly).Length)));
+        Assert.Equal(baseline, TestHelper.MeasureAllocation(() => CheckLength(source.Length, TinyhandSerializer.Clone(sequence).Length)));
+        Assert.Equal(baseline, TestHelper.MeasureAllocation(() => CheckLength(source.Length, TinyhandSerializer.Clone(segment).Count)));
     }
 
     [Fact]
@@ -102,33 +102,9 @@ public class StaticRegistrationTest
     public void DictionaryFactoryHasNoReflectionArgumentAllocations()
     {
         var comparer = TinyhandSecurity.TrustedData.GetEqualityComparer<long>();
-        var baseline = Measure(() => GC.KeepAlive(new GenericDictionaryFormatterTest.ComparerDictionary<long>(0, comparer)));
-        var actual = Measure(() => GC.KeepAlive(TinyhandSerializer.Reconstruct<GenericDictionaryFormatterTest.ComparerDictionary<long>>()));
+        var baseline = TestHelper.MeasureAllocation(() => GC.KeepAlive(new GenericDictionaryFormatterTest.ComparerDictionary<long>(0, comparer)));
+        var actual = TestHelper.MeasureAllocation(() => GC.KeepAlive(TinyhandSerializer.Reconstruct<GenericDictionaryFormatterTest.ComparerDictionary<long>>()));
         Assert.Equal(baseline, actual);
-    }
-
-    private static long Measure(Action action)
-    {
-        for (var i = 0; i < 100; i++)
-        {
-            action();
-        }
-
-        // Runtime bookkeeping can add a one-off allocation to either measurement.
-        // The minimum of repeated batches still exposes allocations on every invocation.
-        var minimum = long.MaxValue;
-        for (var batch = 0; batch < 3; batch++)
-        {
-            var start = GC.GetAllocatedBytesForCurrentThread();
-            for (var i = 0; i < 1000; i++)
-            {
-                action();
-            }
-
-            minimum = Math.Min(minimum, GC.GetAllocatedBytesForCurrentThread() - start);
-        }
-
-        return minimum;
     }
 
     private static void CheckLength(long expected, long actual)
