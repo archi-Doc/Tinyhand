@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Tinyhand;
 using Tinyhand.IO;
 using Tinyhand.Resolvers;
+using Tinyhand.Tests;
 using Xunit;
 
 namespace XUnitTest;
@@ -133,13 +134,13 @@ public class RuntimeAuditTest
         Assert.Equal(TinyhandSerializer.Serialize(value.ToArray()), encoded);
         Assert.Equal(value, TinyhandSerializer.Deserialize<List<byte>>(encoded));
         var destination = new ArrayBufferWriter<byte>(2048);
-        Assert.Equal(0, Measure(() =>
+        Assert.Equal(0, TestHelper.MeasureAllocation(() =>
         {
             destination.Clear();
             TinyhandSerializer.Serialize(destination, value);
         }));
-        var expectedAllocation = Measure(() => GC.KeepAlive(new List<byte>(value)));
-        Assert.Equal(expectedAllocation, Measure(() => GC.KeepAlive(TinyhandSerializer.Deserialize<List<byte>>(encoded))));
+        var expectedAllocation = TestHelper.MeasureAllocation(() => GC.KeepAlive(new List<byte>(value)));
+        Assert.Equal(expectedAllocation, TestHelper.MeasureAllocation(() => GC.KeepAlive(TinyhandSerializer.Deserialize<List<byte>>(encoded))));
     }
 
     [Fact]
@@ -147,7 +148,7 @@ public class RuntimeAuditTest
     public void BorrowingASequenceAndWritingASmallStreamDoNotAllocate()
     {
         var buffer = new byte[128];
-        Assert.Equal(0, Measure(() =>
+        Assert.Equal(0, TestHelper.MeasureAllocation(() =>
         {
             var writer = new TinyhandWriter(buffer);
             try
@@ -165,7 +166,7 @@ public class RuntimeAuditTest
             }
         }));
         using var stream = new MemoryStream(128);
-        Assert.Equal(0, Measure(() =>
+        Assert.Equal(0, TestHelper.MeasureAllocation(() =>
         {
             stream.Position = 0;
             TinyhandSerializer.Serialize(stream, 12345);
@@ -199,7 +200,7 @@ public class RuntimeAuditTest
         }
 
         using var destination = new MemoryStream(128);
-        Assert.Equal(0, Measure(() =>
+        Assert.Equal(0, TestHelper.MeasureAllocation(() =>
         {
             destination.Position = 0;
             TinyhandSerializer.Serialize(destination, 12345);
@@ -220,22 +221,6 @@ public class RuntimeAuditTest
         Assert.Same(Array.Empty<T>(), TinyhandSerializer.Reconstruct<T[]>());
         Assert.Same(Array.Empty<T>(), TinyhandSerializer.Clone(Array.Empty<T>()));
         Assert.Null(TinyhandSerializer.Clone<T[]>(null));
-    }
-
-    private static long Measure(Action action)
-    {
-        for (var i = 0; i < 32; i++)
-        {
-            action();
-        }
-
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var i = 0; i < 256; i++)
-        {
-            action();
-        }
-
-        return GC.GetAllocatedBytesForCurrentThread() - before;
     }
 
     private sealed class ChunkedStream(byte[] bytes, bool seekable) : Stream
