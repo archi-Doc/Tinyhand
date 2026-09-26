@@ -98,7 +98,21 @@ internal sealed class TinyhandGeneratorRun : IGeneratorInformation
 #pragma warning restore RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
         }
 
-        generics.Prepare(compilation);
+        // ProcessSymbol only accepts a closed generic type of this assembly with one of the attributes, and a generic name
+        // only refers to a type of the same name (aliases cannot be generic). Binding the other generic names (List<T>, Func<T>, ...)
+        // would bind their whole member bodies for nothing.
+        var genericNames = new HashSet<string>(generics.ItemDictionary.Values.Select(x => x.GenericSyntax.Identifier.ValueText));
+        var candidates = new HashSet<string>();
+        foreach (var symbol in compilation.GetSymbolsWithName(genericNames.Contains, SymbolFilter.Type, context.CancellationToken))
+        {
+            if (symbol is INamedTypeSymbol { IsGenericType: true } typeSymbol &&
+                typeSymbol.GetAttributes().Any(x => this.IsTargetAttribute(x.AttributeClass)))
+            {
+                candidates.Add(typeSymbol.Name);
+            }
+        }
+
+        generics.Prepare(compilation, candidates.Contains, context.CancellationToken);
         foreach (var ts in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric))
         {
             if (ts.TypeSymbol != null)
@@ -131,6 +145,13 @@ internal sealed class TinyhandGeneratorRun : IGeneratorInformation
         body.Generate(this, context.CancellationToken);
         generateMemberBody.Generate(this, context.CancellationToken);
     }
+
+    private bool IsTargetAttribute(INamedTypeSymbol? attributeClass)
+        => SymbolEqualityComparer.Default.Equals(attributeClass, this.tinyhandObjectAttributeSymbol) ||
+        SymbolEqualityComparer.Default.Equals(attributeClass, this.tinyhandUnionAttributeSymbol) ||
+        SymbolEqualityComparer.Default.Equals(attributeClass, this.tinyhandGenerateMemberAttributeSymbol) ||
+        SymbolEqualityComparer.Default.Equals(attributeClass, this.tinyhandGenerateHashAttributeSymbol) ||
+        SymbolEqualityComparer.Default.Equals(attributeClass, this.tinyhandGeneratorOptionAttributeSymbol);
 
     private void ProcessSymbol(TinyhandBody body, TinyhandGenerateMemberBody? generateMemberBody, HashSet<INamedTypeSymbol?> processed, SyntaxTree? syntaxTree, INamedTypeSymbol symbol)
     {
