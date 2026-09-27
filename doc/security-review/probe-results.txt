@@ -1,0 +1,23 @@
+Runtime: .NET 10.0.12
+Default: resistant=False, depth=2147483647
+Untrusted Int64: distinctKeys=4096, distinctHashes=2, largestCollisionGroup=3977
+Untrusted Double: distinctKeys=4095, distinctHashes=3, largestCollisionGroup=3975
+Untrusted Dictionary<Int64,int>: count=1024, bytes=10235, averageMs=1.716
+Untrusted Dictionary<Int64,int>: count=2048, bytes=20475, averageMs=7.468
+Untrusted Dictionary<Int64,int>: count=4096, bytes=40955, averageMs=27.235
+Arc UnorderedMap: count=1024, defaultComparer=True, distinctHashes=1
+Arc object keys accepted=True
+Arc UnorderedSet: count=1024, distinctHashes=1
+Generated DTO dictionary: count=1024, defaultComparer=True, distinctHashes=1
+ReuseMembers=false DTO dictionary: defaultComparer=True
+Nested allocation: inputBytes=8512, accepted=False, allocatedBytes=4213272
+100 nested arrays: trustedAccepted=True, depth64Accepted=False
+Iterative Skip: depth=100000, consumed=100001, end=True
+LZ4 expansion: compressedBytes=4139, resultBytes=1048576
+Trailing bytes: result=42, read=1, supplied=2
+LZ4 inner trailing bytes: result=42, outerRead=10, supplied=10
+MaxLength(3): decodedLength=3, allocatedBytes=20080
+NativeDecimal: flags=0x00FF0000, acceptedByDecimalConstructor=False
+Invalid UTF8: accepted=true, firstCodePoint=U+FFFD
+Duplicate keys: dictionaryValue=1, generatedDtoValue=2
+Failed ref deserialization: success=False, refCleared=True, retainedFirst=9, retainedSecond=2
