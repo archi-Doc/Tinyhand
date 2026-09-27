@@ -72,24 +72,28 @@ internal sealed class TinyhandGeneratorRun : IGeneratorInformation
         var body = new TinyhandBody(compilation, context, this.AssemblySymbol);
         var generateMemberBody = new TinyhandGenerateMemberBody(context);
         // receiver.Generics.Prepare(compilation);
-#pragma warning disable RS1024 // Symbols should be compared for equality
-        var processed = new HashSet<INamedTypeSymbol?>();
-#pragma warning restore RS1024 // Symbols should be compared for equality
+        var processed = new HashSet<INamedTypeSymbol?>(SymbolEqualityComparer.Default);
 
-        var generics = new VisceralGenerics();
+        var genericNames = new HashSet<string>(System.StringComparer.Ordinal);
+        var models = new Dictionary<SyntaxTree, SemanticModel>();
         foreach (var x in types)
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             if (x == null)
             {
                 continue;
             }
             else if (x is GenericNameSyntax genericSyntax)
             {
-                generics.Add(genericSyntax);
+                genericNames.Add(genericSyntax.Identifier.ValueText);
                 continue;
             }
 
-            var model = compilation.GetSemanticModel(x.SyntaxTree);
+            if (!models.TryGetValue(x.SyntaxTree, out var model))
+            {
+                model = compilation.GetSemanticModel(x.SyntaxTree);
+                models.Add(x.SyntaxTree, model);
+            }
 #pragma warning disable RS1039 // This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'
             if (model.GetDeclaredSymbol(x) is INamedTypeSymbol symbol)
             {
@@ -101,23 +105,44 @@ internal sealed class TinyhandGeneratorRun : IGeneratorInformation
         // ProcessSymbol only accepts a closed generic type of this assembly with one of the attributes, and a generic name
         // only refers to a type of the same name (aliases cannot be generic). Binding the other generic names (List<T>, Func<T>, ...)
         // would bind their whole member bodies for nothing.
-        var genericNames = new HashSet<string>(generics.ItemDictionary.Values.Select(x => x.GenericSyntax.Identifier.ValueText));
-        var candidates = new HashSet<string>();
-        foreach (var symbol in compilation.GetSymbolsWithName(genericNames.Contains, SymbolFilter.Type, context.CancellationToken))
+        var candidates = new HashSet<string>(System.StringComparer.Ordinal);
+        if (genericNames.Count > 0)
         {
-            if (symbol is INamedTypeSymbol { IsGenericType: true } typeSymbol &&
-                typeSymbol.GetAttributes().Any(x => this.IsTargetAttribute(x.AttributeClass)))
+            foreach (var symbol in compilation.GetSymbolsWithName(genericNames.Contains, SymbolFilter.Type, context.CancellationToken))
             {
-                candidates.Add(typeSymbol.Name);
+                if (symbol is INamedTypeSymbol { IsGenericType: true } typeSymbol)
+                {
+                    foreach (var attribute in typeSymbol.GetAttributes())
+                    {
+                        if (this.IsTargetAttribute(attribute.AttributeClass))
+                        {
+                            candidates.Add(typeSymbol.Name);
+                            break;
+                        }
+                    }
+                }
             }
         }
 
-        generics.Prepare(compilation, candidates.Contains, context.CancellationToken);
-        foreach (var ts in generics.ItemDictionary.Values.Where(a => a.GenericsKind == VisceralGenericsKind.ClosedGeneric))
+        // Only materialize argument strings and deduplication keys for names that can be Tinyhand types.
+        if (candidates.Count > 0)
         {
-            if (ts.TypeSymbol != null)
+            var generics = new VisceralGenerics();
+            foreach (var node in types)
             {
-                this.ProcessSymbol(body, generateMemberBody, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
+                if (node is GenericNameSyntax genericSyntax && candidates.Contains(genericSyntax.Identifier.ValueText))
+                {
+                    generics.Add(genericSyntax);
+                }
+            }
+
+            generics.Prepare(compilation, cancellationToken: context.CancellationToken);
+            foreach (var ts in generics.ItemDictionary.Values)
+            {
+                if (ts.GenericsKind == VisceralGenericsKind.ClosedGeneric && ts.TypeSymbol != null)
+                {
+                    this.ProcessSymbol(body, generateMemberBody, processed, ts.GenericSyntax.SyntaxTree, ts.TypeSymbol);
+                }
             }
         }
 
@@ -159,12 +184,11 @@ internal sealed class TinyhandGeneratorRun : IGeneratorInformation
         {// Different assembly
             return;
         }
-        else if (processed.Contains(symbol))
+        else if (!processed.Add(symbol))
         {
             return;
         }
 
-        processed.Add(symbol);
         foreach (var y in symbol.GetAttributes())
         {
             if (SymbolEqualityComparer.Default.Equals(y.AttributeClass, this.tinyhandObjectAttributeSymbol) ||

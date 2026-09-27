@@ -104,11 +104,7 @@ public class ScopingStringBuilder
 
         if (indentFlag)
         {
-            var n = this.CurrentScope.CurrentIndent < MaxIndent ? this.CurrentScope.CurrentIndent : MaxIndent;
-            while (n-- > 0)
-            {
-                this.sb.Append(this.IndentString);
-            }
+            this.AppendIndent();
         }
 
         this.sb.Append(text);
@@ -124,28 +120,41 @@ public class ScopingStringBuilder
 
         if (text != null)
         {
-            this.Append(text, indentFlag);
+            if (indentFlag)
+            {
+                this.AppendIndent();
+            }
+
+            this.sb.Append(text);
         }
 
-        this.Append("\r\n", false);
+        this.sb.Append("\r\n");
     }
 
     public void Append(ScopingStringBuilder ssb)
     {
-        var list = ssb.sb.ToString().Replace("\r\n", "\n").Split(new[] { '\n', '\r' });
-        if (list == null)
+        // Take one snapshot (also supports appending to self), without allocating a string per line.
+        var text = ssb.sb.ToString();
+        var start = 0;
+        for (var i = 0; i < text.Length; i++)
         {
-            return;
-        }
-
-        for (var i = 0; i < list.Length; i++)
-        {
-            if (i == (list.Length - 1) && list[i].Length == 0)
+            if (text[i] is not ('\r' or '\n'))
             {
-                break;
+                continue;
             }
 
-            this.AppendLine(list[i]);
+            this.AppendLineSegment(text, start, i - start);
+            if (text[i] == '\r' && i + 1 < text.Length && text[i + 1] == '\n')
+            {
+                i++;
+            }
+
+            start = i + 1;
+        }
+
+        if (start < text.Length)
+        {
+            this.AppendLineSegment(text, start, text.Length - start);
         }
     }
 
@@ -191,13 +200,38 @@ public class ScopingStringBuilder
             s.Append("\r\n");
         }
 
-        s.Append(this.sb);
+        // On netstandard2.0, Append(StringBuilder) resolves to Append(object), which copies the
+        // entire body to a temporary string. Prepend the small header instead.
+        if (s.Length > 0)
+        {
+            this.sb.Insert(0, s.ToString());
+        }
+
+        var result = this.sb.ToString();
         this.sb.Clear();
         this.header.Clear();
         this.usingSystem.Clear();
         this.usingOther.Clear();
 
-        return s.ToString();
+        return result;
+    }
+
+    private void AppendIndent()
+    {
+        var indent = Math.Min(this.CurrentScope.CurrentIndent, MaxIndent);
+        this.sb.Append(' ', indent * this.IndentSpaces);
+    }
+
+    private void AppendLineSegment(string text, int start, int length)
+    {
+        if (this.CurrentScope.IsDisposed)
+        {
+            throw new ObjectDisposedException(nameof(Scope));
+        }
+
+        this.AppendIndent();
+        this.sb.Append(text, start, length);
+        this.sb.Append("\r\n");
     }
 
     private StringBuilder sb = new StringBuilder();

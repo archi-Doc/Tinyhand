@@ -22,6 +22,7 @@ public class TinyhandGenerator : IIncrementalGenerator
         var provider = context.CompilationProvider.Combine(
             context.SyntaxProvider
             .CreateSyntaxProvider(static (s, _) => IsSyntaxTargetForGeneration(s), static (ctx, _) => GetSemanticTargetForGeneration(ctx))
+            .Where(static node => node is not null)
             .Collect());
 
         context.RegisterImplementationSourceOutput(provider, Emit);

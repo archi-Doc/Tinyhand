@@ -104,7 +104,7 @@ public class VisceralGenerics
         public override string ToString() => this.Identification.ToString();
     }
 
-    internal readonly struct GenericsIdentification
+    internal readonly struct GenericsIdentification : IEquatable<GenericsIdentification>
     {// Generics Identification
         public GenericsIdentification(GenericNameSyntax genericSyntax)
         {
@@ -135,14 +135,10 @@ public class VisceralGenerics
             }
         }
 
-        public override bool Equals(object? obj)
-        {
-            if (obj == null || obj.GetType() != typeof(GenericsIdentification))
-            {
-                return false;
-            }
+        public override bool Equals(object? obj) => obj is GenericsIdentification other && this.Equals(other);
 
-            var target = (GenericsIdentification)obj;
+        public bool Equals(GenericsIdentification target)
+        {
             if (this.TypeName != target.TypeName)
             {
                 return false;

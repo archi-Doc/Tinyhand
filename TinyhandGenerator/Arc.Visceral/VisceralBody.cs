@@ -17,6 +17,10 @@ namespace Arc.Visceral;
 public class VisceralBody<T>
     where T : VisceralObjectBase<T>, new()
 {
+    // Per-run caches: never retain symbols from another compilation or generator invocation.
+    private readonly Dictionary<ISymbol, string> fullNamePrefixes = new(SymbolEqualityComparer.Default);
+    private readonly Dictionary<ISymbol, string> regionalNamePrefixes = new(SymbolEqualityComparer.Default);
+
     public VisceralBody(GeneratorExecutionContext? context)
     {
         this.Context = context;
@@ -102,6 +106,13 @@ public class VisceralBody<T>
 
     public T? Add(ISymbol symbol)
     {
+        // Initialize rejects accessors and backing fields. Avoid formatting their names and
+        // allocating objects when enumerating the members of auto-properties and events.
+        if (symbol is IMethodSymbol { AssociatedSymbol: not null } or IFieldSymbol { AssociatedSymbol: not null })
+        {
+            return null;
+        }
+
         if (this.TryGet(symbol, out var result))
         {// Search symbol.
             return result;
@@ -365,6 +376,18 @@ public class VisceralBody<T>
             return string.Empty;
         }
 
+        var container = (ISymbol?)symbol.ContainingType ?? symbol.ContainingNamespace;
+        if (container == null)
+        {
+            return string.Empty;
+        }
+
+        var prefixes = nameFormat == NameFormat.AddNamespaceAndClass ? this.fullNamePrefixes : this.regionalNamePrefixes;
+        if (prefixes.TryGetValue(container, out var prefix))
+        {
+            return prefix;
+        }
+
         // Add Class
         var containingType = symbol.ContainingType;
         var result = string.Empty;
@@ -386,6 +409,7 @@ public class VisceralBody<T>
             }
         }
 
+        prefixes.Add(container, result);
         return result;
     }
 

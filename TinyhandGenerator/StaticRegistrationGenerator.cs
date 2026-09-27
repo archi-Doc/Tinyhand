@@ -213,13 +213,34 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
 
         // Other generators' output is not visible here. Error symbols can become valid types
         // later, and anonymous types cannot be named in registration source.
-        private static bool IsClosed(ITypeSymbol type) => type switch
+        private static bool IsClosed(ITypeSymbol type)
         {
-            ITypeParameterSymbol => false,
-            IArrayTypeSymbol array => IsClosed(array.ElementType),
-            INamedTypeSymbol named => named.TypeKind != TypeKind.Error && !named.IsExtension && !named.IsAnonymousType && !named.IsUnboundGenericType && (named.ContainingType is null || IsClosed(named.ContainingType)) && named.TypeArguments.All(IsClosed),
-            _ => type.TypeKind is not (TypeKind.Error or TypeKind.Pointer or TypeKind.FunctionPointer or TypeKind.Dynamic),
-        };
+            switch (type)
+            {
+                case ITypeParameterSymbol:
+                    return false;
+                case IArrayTypeSymbol array:
+                    return IsClosed(array.ElementType);
+                case INamedTypeSymbol named:
+                    if (named.TypeKind == TypeKind.Error || named.IsExtension || named.IsAnonymousType || named.IsUnboundGenericType ||
+                        (named.ContainingType is { } containing && !IsClosed(containing)))
+                    {
+                        return false;
+                    }
+
+                    foreach (var argument in named.TypeArguments)
+                    {
+                        if (!IsClosed(argument))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                default:
+                    return type.TypeKind is not (TypeKind.Error or TypeKind.Pointer or TypeKind.FunctionPointer or TypeKind.Dynamic);
+            }
+        }
 
         private static string MetadataName(INamedTypeSymbol type) => type.OriginalDefinition.ContainingNamespace.ToDisplayString() + "." + type.OriginalDefinition.MetadataName;
 
@@ -235,6 +256,37 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
             return Implements("Tinyhand.ITinyhandSerializable`1") &&
                 Implements("Tinyhand.ITinyhandReconstructable`1") &&
                 Implements("Tinyhand.ITinyhandCloneable`1");
+        }
+
+        private static bool WithinLimit(ITypeSymbol type, int remaining, ref int nodesRemaining)
+        {
+            if (remaining <= 0 || --nodesRemaining < 0)
+            {
+                return false;
+            }
+
+            if (type is IArrayTypeSymbol array)
+            {
+                return WithinLimit(array.ElementType, remaining - 1, ref nodesRemaining);
+            }
+
+            if (type is INamedTypeSymbol named)
+            {
+                if (named.ContainingType is { } containing && !WithinLimit(containing, remaining - 1, ref nodesRemaining))
+                {
+                    return false;
+                }
+
+                foreach (var argument in named.TypeArguments)
+                {
+                    if (!WithinLimit(argument, remaining - 1, ref nodesRemaining))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -268,14 +320,7 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
             // A node budget also bounds repeated branches such as Grow<Pair<T,T>>.
             // A depth-only check can take exponential time on these type graphs.
             var nodesRemaining = 4096;
-            bool WithinLimit(ITypeSymbol candidate, int remaining) => remaining > 0 && --nodesRemaining >= 0 && candidate switch
-            {
-                IArrayTypeSymbol array => WithinLimit(array.ElementType, remaining - 1),
-                INamedTypeSymbol named => (named.ContainingType is null || WithinLimit(named.ContainingType, remaining - 1)) && named.TypeArguments.All(x => WithinLimit(x, remaining - 1)),
-                _ => true,
-            };
-
-            if (WithinLimit(type, 64))
+            if (WithinLimit(type, 64, ref nodesRemaining))
             {
                 return true;
             }
@@ -321,8 +366,33 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
 
         private void AddMethod(IMethodSymbol? method)
         {
-            if (method is null || !this.CheckDepth(method.ContainingType) || !method.TypeArguments.All(this.CheckDepth) ||
-                !IsClosed(method.ContainingType) || !method.TypeArguments.All(IsClosed) || !this.methods.Add(method))
+            if (method is null || !this.CheckDepth(method.ContainingType))
+            {
+                return;
+            }
+
+            foreach (var argument in method.TypeArguments)
+            {
+                if (!this.CheckDepth(argument))
+                {
+                    return;
+                }
+            }
+
+            if (!IsClosed(method.ContainingType))
+            {
+                return;
+            }
+
+            foreach (var argument in method.TypeArguments)
+            {
+                if (!IsClosed(argument))
+                {
+                    return;
+                }
+            }
+
+            if (!this.methods.Add(method))
             {
                 return;
             }
