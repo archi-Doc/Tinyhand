@@ -111,6 +111,12 @@ internal class VisceralTrieString<TObject>
     {
         context.Ssb.AppendLine($"ulong {context.Key};");
         context.Ssb.AppendLine($"var {context.Utf8} = reader.ReadStringSpan();");
+        if (this.NodeList.Any(x => x.Utf8Name!.Length % 8 != 0))
+        {
+            // ReadKey zero-pads partial fragments, so matching those leaves also requires the original byte length.
+            context.Ssb.AppendLine($"var keyLength = {context.Utf8}.Length;");
+        }
+
         using (var c = context.Ssb.ScopeBrace($"if ({context.Utf8}.Length == 0)"))
         {
             // context.Ssb.AppendLine($"goto {context.NoMatchingKey};");
@@ -263,7 +269,8 @@ internal class VisceralTrieString<TObject>
         var firstFlag = true;
         foreach (var x in valueNexts)
         {
-            var condition = firstFlag ? string.Format("if (key == 0x{0:X})", x.Key) : string.Format("else if (key == 0x{0:X})", x.Key);
+            var lengthCondition = x.Utf8Name!.Length % 8 == 0 ? string.Empty : $" && keyLength == {x.Utf8Name.Length}";
+            var condition = firstFlag ? string.Format("if (key == 0x{0:X}{1})", x.Key, lengthCondition) : string.Format("else if (key == 0x{0:X}{1})", x.Key, lengthCondition);
             firstFlag = false;
             using (var c = context.Ssb.ScopeBrace(condition))
             {

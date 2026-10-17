@@ -43,6 +43,7 @@ internal class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<T>(len);
             if (len == 0)
             {
                 value = ImmutableArray<T>.Empty;
@@ -127,7 +128,10 @@ internal class ImmutableDictionaryFormatter<TKey, TValue> : DictionaryFormatterB
 {
     protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override ImmutableDictionary<TKey, TValue> Complete(ImmutableDictionary<TKey, TValue>.Builder intermediateCollection)
@@ -172,7 +176,10 @@ internal class ImmutableSortedDictionaryFormatter<TKey, TValue> : DictionaryForm
 {
     protected override void Add(ImmutableSortedDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override ImmutableSortedDictionary<TKey, TValue> Complete(ImmutableSortedDictionary<TKey, TValue>.Builder intermediateCollection)
@@ -273,7 +280,10 @@ internal class InterfaceImmutableDictionaryFormatter<TKey, TValue> : DictionaryF
 {
     protected override void Add(ImmutableDictionary<TKey, TValue>.Builder collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override IImmutableDictionary<TKey, TValue> Complete(ImmutableDictionary<TKey, TValue>.Builder intermediateCollection)

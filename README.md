@@ -404,7 +404,7 @@ Non-generic collection types such as `IEnumerable`, `IList`, `IDictionary`, `Arr
 
 ## Deserialization security
 
-The default security policy is `TrustedData`. For untrusted input, select `UntrustedData`, which enables collision-resistant collection comparers and limits object-graph depth to 500:
+The default security policy is `TrustedData`. It validates native values such as decimal flags and applies finite depth and size limits, including to stream buffering and LZ4 output. It retains ordinary collection comparers and support for custom and `object` keys. For adversarial input, select `UntrustedData`, which also requires collision-resistant collection comparers:
 
 ```csharp
 var options = TinyhandSerializerOptions.Standard with
@@ -416,7 +416,47 @@ Person? copy = TinyhandSerializer.Deserialize<Person>(bytes, options);
 
 This policy rejects hash-based collections with `object` keys, including `Dictionary<object, ...>`, `HashSet<object>`, `ILookup<object, ...>`, and maps read through `object`, even when their keys happen to be strings. Use supported concrete keys such as `string` or `int`. Object scalars and arrays without nested maps remain supported.
 
-Custom formatters that read nested values should call `options.Security.IncrementDepth(ref reader)` and decrement `reader.Depth` in a `finally` block. Depth and comparer policies do not impose a total input-size limit; bound input sizes in the calling application.
+| Limit | TrustedData | UntrustedData |
+| --- | ---: | ---: |
+| Object-graph depth | 256 | 500 |
+| Input bytes | 64 MiB | 16 MiB |
+| Cumulative LZ4 output | 128 MiB | 64 MiB |
+| Elements per array / pairs per map | 2,097,152 | 65,536 |
+| Cumulative elements (two per map pair) | 4,194,304 | 1,048,576 |
+| Bytes per string / identifier | 16 MiB | 16 MiB |
+| Bytes per binary / extension value | 64 MiB | 16 MiB |
+| Cumulative payload bytes | 128 MiB | 64 MiB |
+| Cumulative collection element storage | Unrestricted | 64 MiB |
+
+`TrustedData` previously omitted these protections. Data exceeding the defaults now throws; applications with larger valid datasets can supply explicit limits:
+
+```csharp
+var limits = TinyhandDeserializationLimits.TrustedData with
+{
+    MaximumCollectionLength = 3_000_000,
+};
+var options = TinyhandSerializerOptions.Standard with
+{
+    Security = TinyhandSecurity.TrustedData.WithLimits(limits),
+};
+```
+
+`WithMaximumObjectGraphDepth` adjusts depth separately. `WithLimits(TinyhandDeserializationLimits.Unrestricted)` explicitly disables size limits; it does not disable value validation or depth/stack checks. `MaximumTotalCollectionBytes` charges element count times in-memory element size before allocating or modifying standard and generated collections, including reused storage. Maps charge key/value pairs; temporary sorting buffers also consume this budget. Binary payloads use the separate payload limits.
+
+`UntrustedData` now enables the following independent checks. Existing data relying on permissive behavior may be rejected:
+
+- `ValidateStringValues`: strict UTF-8, successful full string conversions, and rejection of invalid enum names. Numeric enum values and valid flags remain supported; applications must validate their allowed values.
+- `RejectDuplicateKeys`: reject duplicate unique-map keys and repeated known members of generated objects. Explicit multimaps and unknown object members retain their compatibility semantics.
+- `RejectUnknownUnionTypes`: reject unknown and nil union discriminators. A nil union value remains valid.
+- `RequireCompleteInput`: buffer APIs without a consumed-byte count require one complete value, including inside LZ4 envelopes. `DeserializeExact<T>` / `TryDeserializeExact<T>` provide this behavior explicitly with either policy. Reader and consumed-byte-count APIs retain sequential reading. Stream APIs retain first-value reading, rewinding unused bytes when seekable; a compressed envelope must still contain exactly one value.
+- `CheckAvailableStack`: check the runtime's remaining stack before entering a nested value, in addition to the graph-depth limit.
+- `SortBeforeInsertion`: buffer and sort input for array-backed sorted collections to avoid quadratic shifts on reverse-ordered input. Comparers and equal-key ordering are preserved, and temporary storage is charged to the budget.
+
+Each switch has a corresponding `With...` method for explicit compatibility settings; disabling one removes its protection. Complete-input APIs validate the binary structure before object construction. They do not make schema validation, member setters, constructors, or callbacks transactional. Deserialize into a fresh DTO, validate required members and domain rules, and authorize it before changing shared application state. Serialization hashes and signature-mode bytes do not authenticate data on their own.
+
+Custom formatters should call `reader.ApplySecurity(options.Security)` before reading or allocating and `reader.ReserveCollectionStorage<T>(count)` before allocating or reusing collection storage (use the key/value pair type for maps). Before constructing a nested value, call `options.Security.IncrementDepth(ref reader)` and decrement `reader.Depth` in a `finally` block. Reader copies and sub-readers share cumulative budgets. A raw `new TinyhandReader(span)` has no policy until one is applied. When constructing a reader with explicit security, pass matching options to `Deserialize(ref reader, options)`; applying different finite limits to an active reader throws instead of replacing its budget. Custom formatters must implement schema-specific duplicate/value checks themselves.
+
+These limits are not a total heap-byte or execution-time budget. Collection overhead, referenced objects, constructors, callbacks, and custom formatters can allocate additional memory; choose limits for your schema. `TrustedData` retains ordinary hashing and is not a hash-flooding defense. Bound concurrent requests and stream timeouts in the calling application; the stream overloads also accept cancellation tokens. Built-in deserialization selects schema-declared types, but application-supplied formatters and callbacks run application code and must be trusted.
 
 ## Custom serialization and formatters
 

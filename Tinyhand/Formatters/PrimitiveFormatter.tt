@@ -53,6 +53,9 @@ internal sealed class <#= t.Name #>Formatter : ITinyhandFormatter<<#= t.Simple #
 
     public void Deserialize(ref TinyhandReader reader, ref <#= t.Simple #> value, TinyhandSerializerOptions options)
     {
+<# if(t.Name == "DateTime" || t.Name == "Int128" || t.Name == "UInt128") { #>
+        reader.ApplySecurity(options.Security);
+<# } #>
         value = reader.Read<#= t.Name #>();
     }
 
@@ -83,6 +86,9 @@ internal sealed class Nullable<#= t.Name #>Formatter : ITinyhandFormatter<<#= t.
 
     public void Deserialize(ref TinyhandReader reader, ref <#= t.Simple #>? value, TinyhandSerializerOptions options)
     {
+<# if(t.Name == "DateTime" || t.Name == "Int128" || t.Name == "UInt128") { #>
+        reader.ApplySecurity(options.Security);
+<# } #>
         if (reader.TryReadNil())
         {
         }

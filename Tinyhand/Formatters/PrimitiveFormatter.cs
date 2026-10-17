@@ -1491,6 +1491,7 @@ internal sealed class Int128Formatter : ITinyhandFormatter<Int128>
 
     public void Deserialize(ref TinyhandReader reader, ref Int128 value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = reader.ReadInt128();
     }
 
@@ -1521,6 +1522,7 @@ internal sealed class NullableInt128Formatter : ITinyhandFormatter<Int128?>
 
     public void Deserialize(ref TinyhandReader reader, ref Int128? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -1608,6 +1610,7 @@ internal sealed class UInt128Formatter : ITinyhandFormatter<UInt128>
 
     public void Deserialize(ref TinyhandReader reader, ref UInt128 value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = reader.ReadUInt128();
     }
 
@@ -1638,6 +1641,7 @@ internal sealed class NullableUInt128Formatter : ITinyhandFormatter<UInt128?>
 
     public void Deserialize(ref TinyhandReader reader, ref UInt128? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }

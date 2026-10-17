@@ -35,6 +35,7 @@ internal sealed class NativeGuidFormatter : ITinyhandFormatter<Guid>
 
     public unsafe void Deserialize(ref TinyhandReader reader, ref Guid value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!BitConverter.IsLittleEndian)
         {
             throw new InvalidOperationException("NativeGuidFormatter only allows on little endian env.");
@@ -84,6 +85,7 @@ internal sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
 
     public unsafe void Deserialize(ref TinyhandReader reader, ref Decimal value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!BitConverter.IsLittleEndian)
         {
             throw new InvalidOperationException("NativeDecimalFormatter only allows on little endian env.");

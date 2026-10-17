@@ -42,6 +42,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<string>(len);
             var value = len == 0 ? Array.Empty<string>() : new string[len];
             for (int i = 0; i < value.Length; i++)
             {
@@ -99,6 +100,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<string>(len);
             var array = len == 0 ? Array.Empty<string>() : new string[len];
             for (int i = 0; i < array.Length; i++)
             {
@@ -137,6 +139,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<string>(len);
             var value = new List<string>(len);
             for (int i = 0; i < len; i++)
             {

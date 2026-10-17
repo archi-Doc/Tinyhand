@@ -46,6 +46,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<byte>(len);
             var array = len == 0 ? Array.Empty<byte>() : new byte[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -85,6 +86,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<byte>(len);
             var list = new List<byte>(len);
             for (int i = 0; i < len; i++)
             {
@@ -143,6 +145,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<sbyte>(len);
             var array = len == 0 ? Array.Empty<sbyte>() : new sbyte[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -182,6 +185,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<sbyte>(len);
             var list = new List<sbyte>(len);
             for (int i = 0; i < len; i++)
             {
@@ -240,6 +244,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<ushort>(len);
             var array = len == 0 ? Array.Empty<ushort>() : new ushort[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -279,6 +284,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<ushort>(len);
             var list = new List<ushort>(len);
             for (int i = 0; i < len; i++)
             {
@@ -337,6 +343,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<short>(len);
             var array = len == 0 ? Array.Empty<short>() : new short[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -376,6 +383,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<short>(len);
             var list = new List<short>(len);
             for (int i = 0; i < len; i++)
             {
@@ -434,6 +442,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<uint>(len);
             var array = len == 0 ? Array.Empty<uint>() : new uint[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -473,6 +482,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<uint>(len);
             var list = new List<uint>(len);
             for (int i = 0; i < len; i++)
             {
@@ -531,6 +541,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<int>(len);
             var array = len == 0 ? Array.Empty<int>() : new int[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -570,6 +581,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<int>(len);
             var list = new List<int>(len);
             for (int i = 0; i < len; i++)
             {
@@ -628,6 +640,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<ulong>(len);
             var array = len == 0 ? Array.Empty<ulong>() : new ulong[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -667,6 +680,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<ulong>(len);
             var list = new List<ulong>(len);
             for (int i = 0; i < len; i++)
             {
@@ -725,6 +739,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<long>(len);
             var array = len == 0 ? Array.Empty<long>() : new long[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -764,6 +779,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<long>(len);
             var list = new List<long>(len);
             for (int i = 0; i < len; i++)
             {
@@ -822,6 +838,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<float>(len);
             var array = len == 0 ? Array.Empty<float>() : new float[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -861,6 +878,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<float>(len);
             var list = new List<float>(len);
             for (int i = 0; i < len; i++)
             {
@@ -919,6 +937,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<double>(len);
             var array = len == 0 ? Array.Empty<double>() : new double[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -958,6 +977,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<double>(len);
             var list = new List<double>(len);
             for (int i = 0; i < len; i++)
             {
@@ -1016,6 +1036,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<bool>(len);
             var array = len == 0 ? Array.Empty<bool>() : new bool[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -1055,6 +1076,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<bool>(len);
             var list = new List<bool>(len);
             for (int i = 0; i < len; i++)
             {
@@ -1113,6 +1135,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<char>(len);
             var array = len == 0 ? Array.Empty<char>() : new char[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -1152,6 +1175,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<char>(len);
             var list = new List<char>(len);
             for (int i = 0; i < len; i++)
             {
@@ -1210,6 +1234,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<DateTime>(len);
             var array = len == 0 ? Array.Empty<DateTime>() : new DateTime[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -1249,6 +1274,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<DateTime>(len);
             var list = new List<DateTime>(len);
             for (int i = 0; i < len; i++)
             {
@@ -1307,6 +1333,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<Int128>(len);
             var array = len == 0 ? Array.Empty<Int128>() : new Int128[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -1346,6 +1373,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<Int128>(len);
             var list = new List<Int128>(len);
             for (int i = 0; i < len; i++)
             {
@@ -1404,6 +1432,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<UInt128>(len);
             var array = len == 0 ? Array.Empty<UInt128>() : new UInt128[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -1443,6 +1472,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<UInt128>(len);
             var list = new List<UInt128>(len);
             for (int i = 0; i < len; i++)
             {

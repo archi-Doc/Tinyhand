@@ -344,56 +344,54 @@ public class TinyhandUnion
 
         ssb.AppendLine($"if (reader.TryReadNil()) {{ return; }}");
         ssb.AppendLine("if (reader.ReadMapHeader() != 1) { throw new TinyhandException(\"Invalid Union data was detected.\"); }"); // reader.ReadArrayHeader() != 2 -> reader.ReadMapHeader() != 1
-        ssb.AppendLine($"if (reader.TryReadNil()) {{ reader.ReadNil(); return; }}");
-
-        /*var context = new VisceralTrieInt<TinyhandObject, TinyhandObject>.VisceralTrieContext(
-            static (context, obj, node) =>
+        using (ssb.ScopeSecurityDepth())
+        {
+            using (ssb.ScopeBrace("if (reader.TryReadNil())"))
             {
-                var name = "x" + node.Index;
-                context.Ssb.AppendLine($"var {name} = Unsafe.As<{node.Member.FullName + node.Member.QuestionMarkIfReferenceType}>({context.Ssb.FullObject});");
-                context.Ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
-                context.Ssb.AppendLine($"{context.Ssb.FullObject} = Unsafe.As<{obj.FullName + obj.QuestionMarkIfReferenceType}>({name});");
-                context.Ssb.AppendLine("return;");
-            },
-            ssb,
-            null);
-        context.AddContinueStatement = false;
-
-        this.TrieInt.Generate(context);*/
-
-        if (this.HasStringKey)
-        {
-            ssb.AppendLine("var key = reader.ReadString();");
-        }
-        else
-        {
-            ssb.AppendLine("var key = reader.ReadInt32();");
-        }
-
-        using (var sw = ssb.ScopeBrace("switch (key)"))
-        {
-            var n = 0;
-            foreach (var x in this.StringDictionary)
-            {
-                var keyString = x.Key;
-                var name = "x" + n++;
-                ssb.AppendLine("case " + keyString + ":");
-                ssb.IncrementIndent();
-
-                // ssb.AppendLine($"var {name} = Unsafe.As<{x.Value.FullName + x.Value.QuestionMarkIfReferenceType}>({ssb.FullObject});");
-                ssb.AppendLine($"var {name} = {ssb.FullObject} as {x.Value.FullName};");
-                ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
-                ssb.AppendLine($"{ssb.FullObject} = Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>({name});");
+                ssb.AppendLine("if (options.Security.RejectUnknownUnionTypes) throw new TinyhandException(\"Unknown union discriminator.\");");
+                ssb.AppendLine("reader.ReadNil();");
                 ssb.AppendLine("return;");
-
-                ssb.DecrementIndent();
             }
 
-            ssb.AppendLine("default:");
-            ssb.IncrementIndent();
-            ssb.AppendLine("reader.Skip();");
-            ssb.AppendLine("return;");
-            ssb.DecrementIndent();
+            if (this.HasStringKey)
+            {
+                ssb.AppendLine("var key = reader.ReadString();");
+            }
+            else
+            {
+                ssb.AppendLine("var key = reader.ReadInt32();");
+            }
+
+            using (var sw = ssb.ScopeBrace("switch (key)"))
+            {
+                var n = 0;
+                foreach (var x in this.StringDictionary)
+                {
+                    var keyString = x.Key;
+                    var name = "x" + n++;
+                    ssb.AppendLine("case " + keyString + ":");
+                    ssb.IncrementIndent();
+
+                    ssb.AppendLine($"var {name} = {ssb.FullObject} as {x.Value.FullName};");
+                    ssb.AppendLine($"TinyhandSerializer.DeserializeObject(ref reader, ref {name}, options);");
+                    ssb.AppendLine($"{ssb.FullObject} = Unsafe.As<{this.Object.FullName + this.Object.QuestionMarkIfReferenceType}>({name});");
+                    ssb.AppendLine("return;");
+
+                    ssb.DecrementIndent();
+                }
+
+                ssb.AppendLine("default:");
+                ssb.IncrementIndent();
+                ssb.AppendLine("if (options.Security.RejectUnknownUnionTypes) throw new TinyhandException(\"Unknown union discriminator.\");");
+                ssb.AppendLine("reader.Skip();");
+                ssb.AppendLine("return;");
+                ssb.DecrementIndent();
+            }
+        }
+
+        using (ssb.ScopeBrace("finally"))
+        {
+            ssb.AppendLine("reader.Depth--;");
         }
     }
 }

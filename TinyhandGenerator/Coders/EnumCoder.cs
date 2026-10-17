@@ -97,7 +97,7 @@ public class EnumCoder : ITinyhandCoder
     {
         if (info.EnumAsString)
         {
-            ssb.AppendLine($"{{ Enum.TryParse<{this.enumTypeObject.FullName}>(reader.ReadIdentifierUtf16(), true, out var ev); {ssb.FullObject} = ev; }}"); // ReadString
+            ssb.AppendLine($"{{ if (!Enum.TryParse<{this.enumTypeObject.FullName}>(reader.ReadIdentifierUtf16(), true, out var ev) && options.Security.ValidateStringValues) throw new TinyhandException(\"Invalid enum name.\"); {ssb.FullObject} = ev; }}");
         }
         else
         {

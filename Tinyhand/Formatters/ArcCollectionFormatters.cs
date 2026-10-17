@@ -57,23 +57,28 @@ internal sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<Ord
         var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
         var count = reader.ReadMapHeaderOrEmptyArray();
-        if (value is null)
-        {
-            value = new();
-        }
-        else
-        {
-            value.Clear();
-        }
-
+        reader.ReserveCollectionStorage<KeyValuePair<TKey, TValue>>(count);
         options.Security.IncrementDepth(ref reader);
         try
         {
+            if (value is null)
+            {
+                value = new();
+            }
+            else
+            {
+                value.Clear();
+            }
+
             for (var i = 0; i < count; i++)
             {
                 var key = keyFormatter.Deserialize(ref reader, options);
                 var v = valueFormatter.Deserialize(ref reader, options);
-                value.Add(key!, v!);
+                var (_, added) = value.Add(key!, v!);
+                if (!added && options.Security.RejectDuplicateKeys)
+                {
+                    throw new TinyhandException("Duplicate map key.");
+                }
             }
         }
         finally
@@ -149,18 +154,19 @@ internal sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
         var formatter = options.Resolver.GetFormatter<T>();
 
         var count = reader.ReadArrayHeader();
-        if (value is null)
-        {
-            value = new();
-        }
-        else
-        {
-            value.Clear();
-        }
-
+        reader.ReserveCollectionStorage<T>(count);
         options.Security.IncrementDepth(ref reader);
         try
         {
+            if (value is null)
+            {
+                value = new();
+            }
+            else
+            {
+                value.Clear();
+            }
+
             for (var i = 0; i < count; i++)
             {
                 var v = formatter.Deserialize(ref reader, options);
@@ -244,18 +250,19 @@ internal sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatte
         var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
         var count = reader.ReadMapHeaderOrEmptyArray();
-        if (value is null)
-        {
-            value = new();
-        }
-        else
-        {
-            value.Clear();
-        }
-
+        reader.ReserveCollectionStorage<KeyValuePair<TKey, TValue>>(count);
         options.Security.IncrementDepth(ref reader);
         try
         {
+            if (value is null)
+            {
+                value = new();
+            }
+            else
+            {
+                value.Clear();
+            }
+
             for (var i = 0; i < count; i++)
             {
                 var key = keyFormatter.Deserialize(ref reader, options);
@@ -336,18 +343,19 @@ internal sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMu
         var formatter = options.Resolver.GetFormatter<T>();
 
         var count = reader.ReadArrayHeader();
-        if (value is null)
-        {
-            value = new();
-        }
-        else
-        {
-            value.Clear();
-        }
-
+        reader.ReserveCollectionStorage<T>(count);
         options.Security.IncrementDepth(ref reader);
         try
         {
+            if (value is null)
+            {
+                value = new();
+            }
+            else
+            {
+                value.Clear();
+            }
+
             for (var i = 0; i < count; i++)
             {
                 var v = formatter.Deserialize(ref reader, options);
@@ -431,24 +439,29 @@ internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<U
         var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
         var count = reader.ReadMapHeaderOrEmptyArray();
+        reader.ReserveCollectionStorage<KeyValuePair<TKey, TValue>>(count);
         var comparer = options.Security.GetEqualityComparer<TKey>();
-        if (value is null || (options.Security.HashCollisionResistant && !ReferenceEquals(value.Comparer, comparer)))
-        {
-            value = new(count, comparer, value?.AllowDuplicates ?? false);
-        }
-        else
-        {
-            value.Clear();
-        }
-
         options.Security.IncrementDepth(ref reader);
         try
         {
+            if (value is null || (options.Security.HashCollisionResistant && !ReferenceEquals(value.Comparer, comparer)))
+            {
+                value = new(count, comparer, value?.AllowDuplicates ?? false);
+            }
+            else
+            {
+                value.Clear();
+            }
+
             for (var i = 0; i < count; i++)
             {
                 var key = keyFormatter.Deserialize(ref reader, options);
                 var v = valueFormatter.Deserialize(ref reader, options);
-                value.Add(key!, v!);
+                var (_, added) = value.Add(key!, v!);
+                if (!added && options.Security.RejectDuplicateKeys)
+                {
+                    throw new TinyhandException("Duplicate map key.");
+                }
             }
         }
         finally
@@ -524,19 +537,20 @@ internal sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet
         var formatter = options.Resolver.GetFormatter<T>();
 
         var count = reader.ReadArrayHeader();
+        reader.ReserveCollectionStorage<T>(count);
         var comparer = options.Security.GetEqualityComparer<T>();
-        if (value is null || (options.Security.HashCollisionResistant && !ReferenceEquals(value.Comparer, comparer)))
-        {
-            value = new(count, comparer, value?.AllowDuplicates ?? false);
-        }
-        else
-        {
-            value.Clear();
-        }
-
         options.Security.IncrementDepth(ref reader);
         try
         {
+            if (value is null || (options.Security.HashCollisionResistant && !ReferenceEquals(value.Comparer, comparer)))
+            {
+                value = new(count, comparer, value?.AllowDuplicates ?? false);
+            }
+            else
+            {
+                value.Clear();
+            }
+
             for (var i = 0; i < count; i++)
             {
                 var v = formatter.Deserialize(ref reader, options);
@@ -605,21 +619,45 @@ internal sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            if (value is null)
+            reader.ReserveCollectionStorage<T>(len);
+            var sortEntries = options.Security.SortBeforeInsertion && len > 1;
+            if (sortEntries)
             {
-                value = new OrderedList<T>((int)len);
-            }
-            else
-            {
-                value.Clear();
+                reader.ReserveCollectionStorage<CollectionSortEntry<T>>(len);
             }
 
             options.Security.IncrementDepth(ref reader);
             try
             {
-                for (var i = 0; i < len; i++)
+                if (value is null)
                 {
-                    value.Add(formatter.Deserialize(ref reader, options)!);
+                    value = new OrderedList<T>((int)len);
+                }
+                else
+                {
+                    value.Clear();
+                }
+
+                if (sortEntries)
+                {
+                    var entries = new CollectionSortEntry<T>[len];
+                    for (var i = 0; i < len; i++)
+                    {
+                        entries[i] = new(formatter.Deserialize(ref reader, options)!, i);
+                    }
+
+                    CollectionSortHelper.Sort(entries, static x => x, value.Comparer, true);
+                    foreach (var entry in entries)
+                    {
+                        value.Add(entry.Value);
+                    }
+                }
+                else
+                {
+                    for (var i = 0; i < len; i++)
+                    {
+                        value.Add(formatter.Deserialize(ref reader, options)!);
+                    }
                 }
             }
             finally
@@ -688,18 +726,19 @@ internal sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedLi
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            if (value is null)
-            {
-                value = new UnorderedList<T>((int)len);
-            }
-            else
-            {
-                value.Clear();
-            }
-
+            reader.ReserveCollectionStorage<T>(len);
             options.Security.IncrementDepth(ref reader);
             try
             {
+                if (value is null)
+                {
+                    value = new UnorderedList<T>((int)len);
+                }
+                else
+                {
+                    value.Clear();
+                }
+
                 for (var i = 0; i < len; i++)
                 {
                     value.Add(formatter.Deserialize(ref reader, options)!);
@@ -771,18 +810,19 @@ internal sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unord
             var formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            if (value is null)
-            {
-                value = new UnorderedLinkedList<T>();
-            }
-            else
-            {
-                value.Clear();
-            }
-
+            reader.ReserveCollectionStorage<T>(len);
             options.Security.IncrementDepth(ref reader);
             try
             {
+                if (value is null)
+                {
+                    value = new UnorderedLinkedList<T>();
+                }
+                else
+                {
+                    value.Clear();
+                }
+
                 for (var i = 0; i < len; i++)
                 {
                     value.AddLast(formatter.Deserialize(ref reader, options)!);
@@ -825,6 +865,12 @@ internal sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unord
 internal sealed class OrderedKeyValueListFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, OrderedKeyValueList<TKey, TValue>, OrderedKeyValueList<TKey, TValue>.Enumerator, OrderedKeyValueList<TKey, TValue>>
     where TKey : notnull
 {
+    protected override bool SortOnDeserialize => true;
+
+    protected override bool UseArcSortOrder => true;
+
+    protected override IComparer<TKey> GetSortComparer(OrderedKeyValueList<TKey, TValue> collection) => collection.Comparer;
+
     protected override void Add(OrderedKeyValueList<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
         collection.Add(key, value);

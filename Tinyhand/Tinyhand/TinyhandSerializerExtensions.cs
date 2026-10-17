@@ -136,7 +136,16 @@ public static partial class TinyhandSerializerExtensions
                     if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
                     {
                         var r = reader.CreateSubReader(byteSequence.ToReadOnlySpan());
+                        if (options.Security.RequireCompleteInput)
+                        {
+                            TinyhandSerializer.ValidateSingleValue(ref r);
+                        }
+
                         value.Deserialize(ref r, options);
+                        if (options.Security.RequireCompleteInput)
+                        {
+                            TinyhandSerializer.EnsureEnd(ref r);
+                        }
                     }
                     else
                     {
@@ -163,8 +172,28 @@ public static partial class TinyhandSerializerExtensions
 
     public static bool TryDeserialize(this ITinyhandSerializable value, ReadOnlySpan<byte> data, TinyhandSerializerOptions? options = null)
     {
+        options ??= TinyhandSerializer.DefaultOptions;
         var reader = new TinyhandReader(data);
-        return value.TryDeserialize(ref reader, options);
+        try
+        {
+            reader.ApplySecurity(options.Security);
+            if (options.Security.RequireCompleteInput)
+            {
+                TinyhandSerializer.ValidateSingleValue(ref reader);
+            }
+
+            var success = value.TryDeserialize(ref reader, options);
+            if (success && options.Security.RequireCompleteInput)
+            {
+                TinyhandSerializer.EnsureEnd(ref reader);
+            }
+
+            return success;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /* /// <summary>

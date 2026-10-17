@@ -93,9 +93,22 @@ public class UntrustedCollectionSecurityTest
         sourceSet.Add(1);
         UnorderedMap<long, int>? map = reuse ? new UnorderedMap<long, int>(true) : null;
         UnorderedSet<long>? set = reuse ? new UnorderedSet<long>(true) : null;
-        var reader = new TinyhandReader(TinyhandSerializer.Serialize(sourceMap));
-        Untrusted.Resolver.GetFormatter<UnorderedMap<long, int>>().Deserialize(ref reader, ref map, Untrusted);
-        reader = new TinyhandReader(TinyhandSerializer.Serialize(sourceSet));
+        var mapBytes = TinyhandSerializer.Serialize(sourceMap);
+        if (reuse)
+        {
+            var mapReader = new TinyhandReader(mapBytes);
+            Untrusted.Resolver.GetFormatter<UnorderedMap<long, int>>().Deserialize(ref mapReader, ref map, Untrusted);
+        }
+        else
+        {
+            Assert.Throws<TinyhandException>(() =>
+            {
+                var mapReader = new TinyhandReader(mapBytes);
+                Untrusted.Resolver.GetFormatter<UnorderedMap<long, int>>().Deserialize(ref mapReader, ref map, Untrusted);
+            });
+        }
+
+        var reader = new TinyhandReader(TinyhandSerializer.Serialize(sourceSet));
         Untrusted.Resolver.GetFormatter<UnorderedSet<long>>().Deserialize(ref reader, ref set, Untrusted);
         Assert.Same(Untrusted.Security.GetEqualityComparer<long>(), map!.Comparer);
         Assert.Same(Untrusted.Security.GetEqualityComparer<long>(), set!.Comparer);
@@ -158,25 +171,28 @@ public class UntrustedCollectionSecurityTest
     {
         var bytes = TinyhandSerializer.Serialize(123m);
         BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(2), flags);
-        decimal value = 456m;
-        Assert.Throws<TinyhandException>(() =>
+        foreach (var options in new[] { TinyhandSerializerOptions.Standard, Untrusted })
         {
-            var reader = new TinyhandReader(bytes);
-            NativeDecimalFormatter.Instance.Deserialize(ref reader, ref value, Untrusted);
-        });
-        Assert.Equal(456m, value);
-
-        // TrustedData retains its native-format fast path.
-        var trusted = TinyhandSerializer.Deserialize<decimal>(bytes, TinyhandSerializerOptions.Standard);
-        Assert.Equal(flags, unchecked((uint)decimal.GetBits(trusted)[3]));
+            decimal value = 456m;
+            Assert.Throws<TinyhandException>(() =>
+            {
+                var reader = new TinyhandReader(bytes);
+                NativeDecimalFormatter.Instance.Deserialize(ref reader, ref value, options);
+            });
+            Assert.Equal(456m, value);
+            Assert.Throws<TinyhandException>(() => TinyhandSerializer.Deserialize<decimal>(bytes, options));
+        }
     }
 
-    [Fact]
-    public void ValidDecimalRepresentationsRoundTripExactly()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ValidDecimalRepresentationsRoundTripExactly(bool untrusted)
     {
+        var options = untrusted ? Untrusted : TinyhandSerializerOptions.Standard;
         foreach (var value in new[] { decimal.MinValue, decimal.MaxValue, new decimal(1, 2, 3, true, 28), new decimal(0, 0, 0, true, 28) })
         {
-            var result = TinyhandSerializer.Deserialize<decimal>(TinyhandSerializer.Serialize(value), Untrusted);
+            var result = TinyhandSerializer.Deserialize<decimal>(TinyhandSerializer.Serialize(value), options);
             Assert.Equal(decimal.GetBits(value), decimal.GetBits(result));
         }
     }

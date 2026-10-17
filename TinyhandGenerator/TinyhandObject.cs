@@ -2673,11 +2673,6 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
                 this.GenerateDeserialize_LockPrepare(ssb, info);
             }
 
-            if (this.Kind.IsReferenceType())
-            {
-                ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
-            }
-
             if (this.HasAlternateKey)
             {
                 using (var scopeConvertToString = ssb.ScopeBrace("if (options.HasConvertToStringFlag)"))
@@ -4225,6 +4220,11 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
 
         using (var security = ssb.ScopeSecurityDepth())
         {
+            if (this.Kind.IsReferenceType() && info.GeneratingStaticMethod)
+            {
+                ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
+            }
+
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockMemberName))
             {// LockMemberName
                 this.GenerateDeserialize_LockEnter(ssb, info);
@@ -4266,24 +4266,45 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
             ssb.AppendLine("if (reader.TryReadNil()) throw new TinyhandException(\"Data is Nil, struct can not be null.\");");
         }
 
-        if (this.StringTrieReconstructNumber > 0)
-        {
-            // ssb.AppendLine($"var deserializedFlag = new bool[{this.StringTrieReconstructNumber}];");
-            if (this.StringTrieReconstructNumber <= 64)
-            {
-                ssb.AppendLine("ulong deserializedFlag = 0;");
-            }
-            else
-            {
-                ssb.AppendLine($"Span<ulong> deserializedFlag = stackalloc ulong[{(this.StringTrieReconstructNumber + 63) / 64}];");
-                ssb.AppendLine("deserializedFlag.Clear();");
-            }
-        }
-
         ssb.AppendLine("var numberOfData = reader.ReadMapHeaderOrEmptyArray();");
 
         using (var security = ssb.ScopeSecurityDepth())
         {
+            if (this.StringTrieReconstructNumber > 0)
+            {
+                if (this.StringTrieReconstructNumber <= 64)
+                {
+                    ssb.AppendLine("ulong deserializedFlag = 0;");
+                }
+                else
+                {
+                    var words = (this.StringTrieReconstructNumber + 63) / 64;
+                    var allocation = words <= 16 ? $"stackalloc ulong[{words}]" : $"new ulong[{words}]";
+                    ssb.AppendLine($"Span<ulong> deserializedFlag = {allocation};");
+                    ssb.AppendLine("deserializedFlag.Clear();");
+                }
+            }
+
+            if (this.StringTrie.NodeList.Count > 0)
+            {
+                if (this.StringTrie.NodeList.Count <= 64)
+                {
+                    ssb.AppendLine("ulong seenKeys = 0;");
+                }
+                else
+                {
+                    var words = (this.StringTrie.NodeList.Count + 63) / 64;
+                    var allocation = words <= 16 ? $"stackalloc ulong[{words}]" : $"new ulong[{words}]";
+                    ssb.AppendLine($"Span<ulong> seenKeys = options.Security.RejectDuplicateKeys ? {allocation} : default;");
+                    ssb.AppendLine("seenKeys.Clear();");
+                }
+            }
+
+            if (this.Kind.IsReferenceType() && info.GeneratingStaticMethod)
+            {
+                ssb.AppendLine($"{ssb.FullObject} ??= {this.NewInstanceCode()};");
+            }
+
             if (!string.IsNullOrEmpty(this.ObjectAttribute?.LockMemberName))
             {// LockMemberName
                 this.GenerateDeserialize_LockEnter(ssb, info);
@@ -4296,6 +4317,14 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
                     ssb,
                     (ctx, obj, node) =>
                     {
+                        using (ssb.ScopeBrace("if (options.Security.RejectDuplicateKeys)"))
+                        {
+                            var flag = this.StringTrie.NodeList.Count <= 64 ? "seenKeys" : $"seenKeys[{node.Index / 64}]";
+                            var mask = 1UL << (node.Index % 64);
+                            ssb.AppendLine($"if (({flag} & {mask}UL) != 0) throw new TinyhandException(\"Duplicate object member key.\");");
+                            ssb.AppendLine($"{flag} |= {mask}UL;");
+                        }
+
                         if (node.SubIndex >= 0)
                         {
                             ssb.AppendLine($"{this.GetStringKeyFlag(node.SubIndex)} |= {1UL << (node.SubIndex % 64)}UL;");

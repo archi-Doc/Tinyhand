@@ -199,6 +199,7 @@ public class ListCoder : ITinyhandCoder
             ssb.AppendLine("options.Security.IncrementDepth(ref reader);");
             using (var scopeSecurityTry = ssb.ScopeBrace("try"))
             {
+                ssb.AppendLine($"reader.ReserveCollectionStorage<{this.element.FullNameWithNullable}>(len);");
                 ssb.AppendLine($"var list = new System.Collections.Generic.List<{this.element.FullNameWithNullable}>(len);");
                 using (var c2 = ssb.ScopeBrace("for (int i = 0; i < len; i++)"))
                 {// list[i]

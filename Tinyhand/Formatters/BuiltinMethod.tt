@@ -73,6 +73,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<<#= t.Simple #>>(len);
             var array = len == 0 ? Array.Empty<<#= t.Simple #>>() : new <#= t.Simple #>[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -112,6 +113,7 @@ public static partial class Builtin
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<<#= t.Simple #>>(len);
             var list = new List<<#= t.Simple #>>(len);
             for (int i = 0; i < len; i++)
             {

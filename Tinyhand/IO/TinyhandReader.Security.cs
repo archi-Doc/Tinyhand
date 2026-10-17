@@ -20,7 +20,8 @@ public ref partial struct TinyhandReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ApplySecurity(TinyhandSecurity security)
     {
-        if (ReferenceEquals(security, TinyhandSecurity.TrustedData))
+        this.validateStringValues |= security.ValidateStringValues;
+        if (security.Limits.IsUnrestricted)
         {
             return;
         }
@@ -33,6 +34,17 @@ public ref partial struct TinyhandReader
         {
             this.budget.CheckCompatibleLimits(security.Limits);
         }
+    }
+
+    /// <summary>Charges the logical storage for a collection before allocating or modifying it.</summary>
+    /// <typeparam name="T">The stored element type. For a map, use its key/value pair type.</typeparam>
+    /// <param name="count">The declared element or pair count.</param>
+    /// <remarks>Copies and sub-readers share this cumulative budget. The charge includes reused storage, but not collection overhead or referenced objects.</remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ReserveCollectionStorage<T>(int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        this.budget?.ReserveCollectionStorage((long)count * Unsafe.SizeOf<T>());
     }
 
     // Only internal, non-allocating lookahead may avoid cumulative charges. Public Fork and reader copies cannot.
@@ -79,6 +91,7 @@ public ref partial struct TinyhandReader
         private long remainingElements;
         private long remainingPayloadBytes;
         private long remainingDecompressedBytes;
+        private long remainingCollectionBytes;
 
         internal DeserializationBudget(TinyhandDeserializationLimits limits)
         {
@@ -86,6 +99,7 @@ public ref partial struct TinyhandReader
             this.remainingElements = limits.MaximumTotalElements;
             this.remainingPayloadBytes = limits.MaximumTotalPayloadBytes;
             this.remainingDecompressedBytes = limits.MaximumDecompressedBytes;
+            this.remainingCollectionBytes = limits.MaximumTotalCollectionBytes;
         }
 
         internal DeserializationBudget? Parent { get; private init; }
@@ -107,6 +121,7 @@ public ref partial struct TinyhandReader
             remainingElements = this.remainingElements,
             remainingPayloadBytes = this.remainingPayloadBytes,
             remainingDecompressedBytes = this.remainingDecompressedBytes,
+            remainingCollectionBytes = this.remainingCollectionBytes,
         };
 
         internal void Commit(DeserializationBudget validated)
@@ -114,6 +129,18 @@ public ref partial struct TinyhandReader
             this.remainingElements = Math.Min(this.remainingElements, validated.remainingElements);
             this.remainingPayloadBytes = Math.Min(this.remainingPayloadBytes, validated.remainingPayloadBytes);
             this.remainingDecompressedBytes = Math.Min(this.remainingDecompressedBytes, validated.remainingDecompressedBytes);
+            this.remainingCollectionBytes = Math.Min(this.remainingCollectionBytes, validated.remainingCollectionBytes);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal void ReserveCollectionStorage(long length)
+        {
+            if (length > this.remainingCollectionBytes)
+            {
+                throw new TinyhandException("The collection exceeds the deserialization storage limit.");
+            }
+
+            this.remainingCollectionBytes -= length;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

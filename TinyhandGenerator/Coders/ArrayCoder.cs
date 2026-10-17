@@ -195,6 +195,7 @@ public class ArrayCoder : ITinyhandCoder
             ssb.AppendLine("options.Security.IncrementDepth(ref reader);");
             using (var scopeSecurityTry = ssb.ScopeBrace("try"))
             {
+                ssb.AppendLine($"reader.ReserveCollectionStorage<{this.element.FullNameWithNullable}>(len);");
                 var idx = this.element.FullName.IndexOf('[');
                 if (idx < 0)
                 { // int

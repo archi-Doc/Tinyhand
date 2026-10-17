@@ -18,10 +18,14 @@ public sealed class Struct128Formatter : ITinyhandFormatter<Struct128>
     public static Struct128 DeserializeValue(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
         reader.ApplySecurity(options.Security);
-        if (!reader.TryReadBytes(out var span) ||
-            span.Length < Struct128.Length)
+        if (!reader.TryReadBytes(out var span))
         {
             return default;
+        }
+
+        if (span.Length != Struct128.Length)
+        {
+            throw new TinyhandException("Invalid Struct128 binary length.");
         }
 
         return new(span);
@@ -52,10 +56,14 @@ public sealed class Struct256Formatter : ITinyhandFormatter<Struct256>
     public static Struct256 DeserializeValue(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
         reader.ApplySecurity(options.Security);
-        if (!reader.TryReadBytes(out var span) ||
-            span.Length < Struct256.Length)
+        if (!reader.TryReadBytes(out var span))
         {
             return default;
+        }
+
+        if (span.Length != Struct256.Length)
+        {
+            throw new TinyhandException("Invalid Struct256 binary length.");
         }
 
         return new(span);
@@ -227,10 +235,14 @@ internal sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
     public void Deserialize(ref TinyhandReader reader, ref IPEndPoint? value, TinyhandSerializerOptions options)
     {
         reader.ApplySecurity(options.Security);
-        if (!reader.TryReadBytes(out var span) ||
-            span.Length < 4)
+        if (!reader.TryReadBytes(out var span))
         {
             return;
+        }
+
+        if (span.Length != 8 && span.Length != 20)
+        {
+            throw new TinyhandException("Invalid IPEndPoint binary length.");
         }
 
         var port = BitConverter.ToInt32(span.Slice(span.Length - 4));

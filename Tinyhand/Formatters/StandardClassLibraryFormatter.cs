@@ -241,18 +241,19 @@ internal sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<K
             var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
             var count = reader.ReadMapHeaderOrEmptyArray();
-            if (value is null)
-            {
-                value = new KeyValueList<TKey, TValue>(count);
-            }
-            else
-            {
-                value.Clear();
-            }
-
+            reader.ReserveCollectionStorage<KeyValuePair<TKey, TValue>>(count);
             options.Security.IncrementDepth(ref reader);
             try
             {
+                if (value is null)
+                {
+                    value = new KeyValueList<TKey, TValue>(count);
+                }
+                else
+                {
+                    value.Clear();
+                }
+
                 for (int i = 0; i < count; i++)
                 {
                     value.Add(new(keyFormatter.Deserialize(ref reader, options)!, valueFormatter.Deserialize(ref reader, options)!));
@@ -363,6 +364,7 @@ internal sealed class BitArrayFormatter : ITinyhandFormatter<BitArray>
         if (!reader.TryReadNil())
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<bool>(len);
 
             value = new BitArray(len);
             for (int i = 0; i < len; i++)

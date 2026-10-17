@@ -16,9 +16,19 @@ namespace Tinyhand;
 public partial class TinyhandSecurity
 {
     /// <summary>
-    /// Gets an instance preconfigured with settings that omit all protections. Useful for deserializing fully-trusted and valid msgpack sequences.
+    /// Gets an instance with finite resource limits and native value validation for data from trusted sources.
     /// </summary>
-    public static readonly TinyhandSecurity TrustedData = new TinyhandSecurity();
+    /// <remarks>
+    /// Preserves default collection comparers and support for custom and object keys.
+    /// Use <see cref="UntrustedData"/> when keys may be chosen by an adversary.
+    /// Limits can be adjusted with <see cref="WithLimits"/> and <see cref="WithMaximumObjectGraphDepth"/>.
+    /// </remarks>
+    public static readonly TinyhandSecurity TrustedData = new TinyhandSecurity
+    {
+        ValidateNativeValues = true,
+        MaximumObjectGraphDepth = 256,
+        Limits = TinyhandDeserializationLimits.TrustedData,
+    };
 
     /// <summary>
     /// Gets an instance preconfigured with protections applied with reasonable settings for deserializing untrusted msgpack sequences.
@@ -31,6 +41,12 @@ public partial class TinyhandSecurity
     {
         HashCollisionResistant = true,
         ValidateNativeValues = true,
+        ValidateStringValues = true,
+        RejectDuplicateKeys = true,
+        RejectUnknownUnionTypes = true,
+        RequireCompleteInput = true,
+        CheckAvailableStack = true,
+        SortBeforeInsertion = true,
         MaximumObjectGraphDepth = 500,
         Limits = TinyhandDeserializationLimits.UntrustedData,
     };
@@ -53,6 +69,12 @@ public partial class TinyhandSecurity
 
         this.HashCollisionResistant = copyFrom.HashCollisionResistant;
         this.ValidateNativeValues = copyFrom.ValidateNativeValues;
+        this.ValidateStringValues = copyFrom.ValidateStringValues;
+        this.RejectDuplicateKeys = copyFrom.RejectDuplicateKeys;
+        this.RejectUnknownUnionTypes = copyFrom.RejectUnknownUnionTypes;
+        this.RequireCompleteInput = copyFrom.RequireCompleteInput;
+        this.CheckAvailableStack = copyFrom.CheckAvailableStack;
+        this.SortBeforeInsertion = copyFrom.SortBeforeInsertion;
         this.MaximumObjectGraphDepth = copyFrom.MaximumObjectGraphDepth;
         this.Limits = copyFrom.Limits;
     }
@@ -69,9 +91,121 @@ public partial class TinyhandSecurity
 
     /// <summary>
     /// Gets a value indicating whether native binary values are validated before use.
-    /// Enabled by <see cref="UntrustedData"/> independently of the collection comparer policy.
+    /// Enabled by both built-in policies independently of the collection comparer policy.
     /// </summary>
     public bool ValidateNativeValues { get; private set; }
+
+    /// <summary>Gets a value indicating whether malformed UTF-8 and incomplete or unsuccessful string conversions are rejected.</summary>
+    public bool ValidateStringValues { get; private set; }
+
+    /// <summary>Gets a value indicating whether duplicate keys in dictionaries and duplicate known members in generated objects are rejected.</summary>
+    /// <remarks>Collections explicitly supporting multiple values per key retain their multimap semantics.</remarks>
+    public bool RejectDuplicateKeys { get; private set; }
+
+    /// <summary>Gets a value indicating whether union discriminators not declared by the target schema are rejected.</summary>
+    public bool RejectUnknownUnionTypes { get; private set; }
+
+    /// <summary>Gets a value indicating whether buffer APIs without a consumed-byte count require exactly one value.</summary>
+    /// <remarks>Reader and consumed-byte-count APIs support sequential values. Stream APIs retain first-value reading and rewind seekable streams. Compressed envelopes must contain one complete value.</remarks>
+    public bool RequireCompleteInput { get; private set; }
+
+    /// <summary>Gets a value indicating whether entering a nested value checks the runtime's remaining execution stack in addition to graph depth.</summary>
+    /// <remarks>This guards ordinary formatter recursion; application code must still avoid excessive stack allocations and unchecked recursion.</remarks>
+    public bool CheckAvailableStack { get; private set; }
+
+    /// <summary>Gets a value indicating whether array-backed sorted collections sort buffered input before insertion to avoid quadratic shifting.</summary>
+    /// <remarks>The temporary buffer is charged to the collection storage budget.</remarks>
+    public bool SortBeforeInsertion { get; private set; }
+
+    /// <summary>Copies this policy with buffered sorting before collection insertion enabled or disabled.</summary>
+    /// <param name="sortBeforeInsertion">Whether to sort array-backed ordered collection inputs before inserting them.</param>
+    /// <returns>The updated policy.</returns>
+    public TinyhandSecurity WithSortBeforeInsertion(bool sortBeforeInsertion)
+    {
+        if (this.SortBeforeInsertion == sortBeforeInsertion)
+        {
+            return this;
+        }
+
+        var clone = this.Clone();
+        clone.SortBeforeInsertion = sortBeforeInsertion;
+        return clone;
+    }
+
+    /// <summary>Copies this policy with remaining-stack checks enabled or disabled.</summary>
+    /// <param name="checkAvailableStack">Whether to check remaining execution stack before entering a nested value.</param>
+    /// <returns>The updated policy.</returns>
+    public TinyhandSecurity WithCheckAvailableStack(bool checkAvailableStack)
+    {
+        if (this.CheckAvailableStack == checkAvailableStack)
+        {
+            return this;
+        }
+
+        var clone = this.Clone();
+        clone.CheckAvailableStack = checkAvailableStack;
+        return clone;
+    }
+
+    /// <summary>Copies this policy with complete-input validation enabled or disabled.</summary>
+    /// <param name="requireCompleteInput">Whether a single-value buffer must be consumed completely.</param>
+    /// <returns>The updated policy.</returns>
+    public TinyhandSecurity WithRequireCompleteInput(bool requireCompleteInput)
+    {
+        if (this.RequireCompleteInput == requireCompleteInput)
+        {
+            return this;
+        }
+
+        var clone = this.Clone();
+        clone.RequireCompleteInput = requireCompleteInput;
+        return clone;
+    }
+
+    /// <summary>Copies this policy with strict string validation enabled or disabled.</summary>
+    /// <param name="validateStringValues">Whether to reject invalid UTF-8 and invalid string conversions.</param>
+    /// <returns>The updated policy.</returns>
+    public TinyhandSecurity WithValidateStringValues(bool validateStringValues)
+    {
+        if (this.ValidateStringValues == validateStringValues)
+        {
+            return this;
+        }
+
+        var clone = this.Clone();
+        clone.ValidateStringValues = validateStringValues;
+        return clone;
+    }
+
+    /// <summary>Copies this policy with duplicate-key rejection enabled or disabled.</summary>
+    /// <param name="rejectDuplicateKeys">Whether to reject duplicate dictionary and known object keys.</param>
+    /// <returns>The updated policy.</returns>
+    public TinyhandSecurity WithRejectDuplicateKeys(bool rejectDuplicateKeys)
+    {
+        if (this.RejectDuplicateKeys == rejectDuplicateKeys)
+        {
+            return this;
+        }
+
+        var clone = this.Clone();
+        clone.RejectDuplicateKeys = rejectDuplicateKeys;
+        return clone;
+    }
+
+    /// <summary>Copies this policy with unknown-union rejection enabled or disabled.</summary>
+    /// <param name="rejectUnknownUnionTypes">Whether to reject unknown union discriminators.</param>
+    /// <returns>The updated policy.</returns>
+    public TinyhandSecurity WithRejectUnknownUnionTypes(bool rejectUnknownUnionTypes)
+    {
+        if (this.RejectUnknownUnionTypes == rejectUnknownUnionTypes)
+        {
+            return this;
+        }
+
+        var clone = this.Clone();
+        clone.RejectUnknownUnionTypes = rejectUnknownUnionTypes;
+        return clone;
+    }
 
     /// <summary>
     /// Gets the maximum depth of an object graph that may be deserialized.
@@ -92,6 +226,7 @@ public partial class TinyhandSecurity
     /// <returns>The new instance; or the original if the value is unchanged.</returns>
     public TinyhandSecurity WithMaximumObjectGraphDepth(int maximumObjectGraphDepth)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(maximumObjectGraphDepth);
         if (this.MaximumObjectGraphDepth == maximumObjectGraphDepth)
         {
             return this;
@@ -197,7 +332,7 @@ public partial class TinyhandSecurity
     /// <remarks>
     /// Callers should decrement <see cref="TinyhandReader.Depth"/> after exiting that edge in the graph.
     /// </remarks>
-    /// <exception cref="InsufficientExecutionStackException">Thrown if <see cref="TinyhandReader.Depth"/> is already at or exceeds <see cref="MaximumObjectGraphDepth"/>.</exception>
+    /// <exception cref="InsufficientExecutionStackException">Thrown if <see cref="TinyhandReader.Depth"/> is already at or exceeds <see cref="MaximumObjectGraphDepth"/>, or the enabled runtime stack check fails.</exception>
     /// <remarks>
     /// Rather than wrap the body of every <see cref="ITinyhandFormatter{T}.Deserialize"/> method,
     /// this should wrap *calls* to these methods. They need not appear in pure "thunk" methods that simply delegate the deserialization to another formatter.
@@ -208,6 +343,11 @@ public partial class TinyhandSecurity
         if (reader.Depth >= this.MaximumObjectGraphDepth)
         {
             throw new InsufficientExecutionStackException($"This msgpack sequence has an object graph that exceeds the maximum depth allowed of {this.MaximumObjectGraphDepth}.");
+        }
+
+        if (this.CheckAvailableStack)
+        {
+            RuntimeHelpers.EnsureSufficientExecutionStack();
         }
 
         reader.Depth++;

@@ -140,7 +140,10 @@ public class RuntimeAuditTest
             TinyhandSerializer.Serialize(destination, value);
         }));
         var expectedAllocation = TestHelper.MeasureAllocation(() => GC.KeepAlive(new List<byte>(value)));
-        Assert.Equal(expectedAllocation, TestHelper.MeasureAllocation(() => GC.KeepAlive(TinyhandSerializer.Deserialize<List<byte>>(encoded))));
+        // Each default deserialization also creates one shared security budget.
+        byte[] scalar = [0];
+        var securityAllocation = TestHelper.MeasureAllocation(() => TinyhandSerializer.Deserialize<int>(scalar));
+        Assert.Equal(expectedAllocation + securityAllocation, TestHelper.MeasureAllocation(() => GC.KeepAlive(TinyhandSerializer.Deserialize<List<byte>>(encoded))));
     }
 
     [Fact]

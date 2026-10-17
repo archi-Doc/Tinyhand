@@ -15,6 +15,11 @@ internal abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEn
     where TDictionary : IEnumerable<KeyValuePair<TKey, TValue>>
     where TEnumerator : IEnumerator<KeyValuePair<TKey, TValue>>
 {
+    // Array-backed sorted maps must not shift their existing contents for every adversarial input key.
+    protected virtual bool SortOnDeserialize => false;
+
+    protected virtual bool UseArcSortOrder => false;
+
     public void Serialize(ref TinyhandWriter writer, TDictionary? value, TinyhandSerializerOptions options)
     {
         if (value == null)
@@ -92,17 +97,42 @@ internal abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEn
             var valueFormatter = resolver.GetFormatter<TValue>();
 
             var len = reader.ReadMapHeaderOrEmptyArray();
+            reader.ReserveCollectionStorage<KeyValuePair<TKey, TValue>>(len);
+            var sortEntries = this.SortOnDeserialize && options.Security.SortBeforeInsertion && len > 1;
+            if (sortEntries)
+            {
+                reader.ReserveCollectionStorage<CollectionSortEntry<KeyValuePair<TKey, TValue>>>(len);
+            }
 
             TIntermediate dict;
             options.Security.IncrementDepth(ref reader);
             try
             {
                 dict = this.Create(value, len, options);
-                for (int i = 0; i < len; i++)
+                if (sortEntries)
                 {
-                    var key = keyFormatter.Deserialize(ref reader, options);
-                    var v = valueFormatter.Deserialize(ref reader, options);
-                    this.Add(dict, i, key!, v!, options);
+                    var entries = new CollectionSortEntry<KeyValuePair<TKey, TValue>>[len];
+                    for (var i = 0; i < len; i++)
+                    {
+                        var key = keyFormatter.Deserialize(ref reader, options);
+                        var v = valueFormatter.Deserialize(ref reader, options);
+                        entries[i] = new(new(key!, v!), i);
+                    }
+
+                    CollectionSortHelper.Sort(entries, static x => x.Key, this.GetSortComparer(dict), this.UseArcSortOrder);
+                    for (var i = 0; i < len; i++)
+                    {
+                        this.Add(dict, i, entries[i].Value.Key, entries[i].Value.Value, options);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < len; i++)
+                    {
+                        var key = keyFormatter.Deserialize(ref reader, options);
+                        var v = valueFormatter.Deserialize(ref reader, options);
+                        this.Add(dict, i, key!, v!, options);
+                    }
                 }
             }
             finally
@@ -193,6 +223,8 @@ internal abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEn
     protected abstract TEnumerator GetSourceEnumerator(TDictionary source);
 
     // abstraction for deserialize
+    protected virtual IComparer<TKey> GetSortComparer(TIntermediate collection) => Comparer<TKey>.Default;
+
     // A reused instance must be emptied: the result has the deserialized entries only (an initializer's entries must not survive).
     protected abstract TIntermediate Create(TDictionary? reuse, int count, TinyhandSerializerOptions options);
 
@@ -224,7 +256,10 @@ internal sealed class DictionaryFormatter<TKey, TValue> : DictionaryFormatterBas
 {
     protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override Dictionary<TKey, TValue> Complete(Dictionary<TKey, TValue> intermediateCollection)
@@ -270,7 +305,10 @@ internal sealed class GenericDictionaryFormatter<TKey, TValue, TDictionary> : Di
 
     protected override void Add(TDictionary collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override TDictionary Create(TDictionary? reuse, int count, TinyhandSerializerOptions options)
@@ -301,7 +339,10 @@ internal sealed class InterfaceDictionaryFormatter<TKey, TValue> : DictionaryFor
 {
     protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override Dictionary<TKey, TValue> Create(IDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
@@ -325,9 +366,16 @@ internal sealed class InterfaceDictionaryFormatter<TKey, TValue> : DictionaryFor
 internal sealed class SortedListFormatter<TKey, TValue> : DictionaryFormatterBase<TKey, TValue, SortedList<TKey, TValue>>
     where TKey : notnull
 {
+    protected override bool SortOnDeserialize => true;
+
+    protected override IComparer<TKey> GetSortComparer(SortedList<TKey, TValue> collection) => collection.Comparer;
+
     protected override void Add(SortedList<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override SortedList<TKey, TValue> Create(SortedList<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
@@ -350,7 +398,10 @@ internal sealed class SortedDictionaryFormatter<TKey, TValue> : DictionaryFormat
 {
     protected override void Add(SortedDictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override SortedDictionary<TKey, TValue> Complete(SortedDictionary<TKey, TValue> intermediateCollection)
@@ -383,7 +434,10 @@ internal sealed class ReadOnlyDictionaryFormatter<TKey, TValue> : DictionaryForm
 {
     protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override ReadOnlyDictionary<TKey, TValue> Complete(Dictionary<TKey, TValue> intermediateCollection)
@@ -402,7 +456,10 @@ internal sealed class InterfaceReadOnlyDictionaryFormatter<TKey, TValue> : Dicti
 {
     protected override void Add(Dictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override IReadOnlyDictionary<TKey, TValue> Complete(Dictionary<TKey, TValue> intermediateCollection)
@@ -423,7 +480,10 @@ internal sealed class ConcurrentDictionaryFormatter<TKey, TValue> : DictionaryFo
 
     protected override void Add(ConcurrentDictionary<TKey, TValue> collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
     {
-        collection.TryAdd(key, value);
+        if (!collection.TryAdd(key, value) && options.Security.RejectDuplicateKeys)
+        {
+            throw new TinyhandException("Duplicate map key.");
+        }
     }
 
     protected override ConcurrentDictionary<TKey, TValue> Create(ConcurrentDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)

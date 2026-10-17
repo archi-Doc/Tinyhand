@@ -57,6 +57,7 @@ internal sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
             var iLength = reader.ReadInt32();
             var jLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<T>(maxLen);
             if (iLength < 0 || jLength < 0 || (long)iLength * jLength != maxLen)
             {
                 throw new TinyhandException("Invalid T[,] format");
@@ -177,6 +178,7 @@ internal sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,
             var jLength = reader.ReadInt32();
             var kLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<T>(maxLen);
             if (iLength < 0 || jLength < 0 || kLength < 0 || (Int128)iLength * jLength * kLength != maxLen)
             {// Int128 cannot overflow, so a product that wraps around cannot match the element count.
                 throw new TinyhandException("Invalid T[,,] format");
@@ -315,6 +317,7 @@ internal sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,
             var kLength = reader.ReadInt32();
             var lLength = reader.ReadInt32();
             var maxLen = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<T>(maxLen);
             if (iLength < 0 || jLength < 0 || kLength < 0 || lLength < 0 || (Int128)iLength * jLength * kLength * lLength != maxLen)
             {// Int128 cannot overflow, so a product that wraps around cannot match the element count.
                 throw new TinyhandException("Invalid T[,,,] format");

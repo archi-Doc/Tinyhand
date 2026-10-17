@@ -49,23 +49,34 @@ internal sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hasht
         {
             ITinyhandFormatter<T> valueFormatter = options.Resolver.GetFormatter<T>();
             var count = reader.ReadMapHeaderOrEmptyArray();
-            if (value is null)
-            {
-                value = new();
-            }
-            else
-            {
-                value.Clear();
-            }
-
+            reader.ReserveCollectionStorage<KeyValuePair<string, T>>(count);
             options.Security.IncrementDepth(ref reader);
             try
             {
+                if (value is null)
+                {
+                    value = new();
+                }
+                else
+                {
+                    value.Clear();
+                }
+
                 for (var i = 0; i < count; i++)
                 {
                     var key = reader.ReadString() ?? string.Empty;
                     var v = valueFormatter.Deserialize(ref reader, options) ?? valueFormatter.Reconstruct(options);
-                    value.AddOrUpdate(key, v);
+                    if (options.Security.RejectDuplicateKeys)
+                    {
+                        if (!value.TryAdd(key, v))
+                        {
+                            throw new TinyhandException("Duplicate map key.");
+                        }
+                    }
+                    else
+                    {
+                        value.AddOrUpdate(key, v);
+                    }
                 }
             }
             finally
@@ -132,6 +143,7 @@ internal sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<T>(len);
             options.Security.IncrementDepth(ref reader);
             try
             {
@@ -259,6 +271,7 @@ internal sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<char>(len);
             var array = new char[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -307,6 +320,7 @@ internal sealed class CharReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyM
         else
         {
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<char>(len);
             var array = new char[len];
             var span = array.AsSpan();
             for (var i = 0; i < span.Length; i++)
@@ -543,6 +557,7 @@ internal sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<T>(len);
             options.Security.IncrementDepth(ref reader);
             try
             {
@@ -673,6 +688,7 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
             ITinyhandFormatter<TElement> formatter = options.Resolver.GetFormatter<TElement>();
 
             var len = reader.ReadArrayHeader();
+            reader.ReserveCollectionStorage<TElement>(len);
 
             TIntermediate list;
             options.Security.IncrementDepth(ref reader);

@@ -689,7 +689,40 @@ public partial class SampleCallback : ITinyhandSerializationCallback
 
 `object` 経由でシリアライズするコレクションは、内部の値にもプリミティブのエンコードを使用します。内部の整数は整数型を保持するため、従来の実行時 formatter 選択と出力バイト列が変わる場合があります。データから復元される整数型は、引き続きエンコードされたバイト列で決まります。
 
-`Security = TinyhandSecurity.UntrustedData`（または `HashCollisionResistant` が有効）の場合、標準のセキュリティ設定ではハッシュコレクションの `object` キーを拒否します。`Dictionary<object, ...>`、`HashSet<object>`、`ILookup<object, ...>`、および `object` 経由で復元するマップが対象です。実際のキーが文字列でも拒否されるため、`Dictionary<string, ...>` など対応する具体的なキー型を指定してください。`object` に格納したスカラー値や、マップを含まない配列は引き続き扱えます。`TrustedData` の動作は変わりません。
+`Security = TinyhandSecurity.UntrustedData`（または `HashCollisionResistant` が有効）の場合、標準のセキュリティ設定ではハッシュコレクションの `object` キーを拒否します。`Dictionary<object, ...>`、`HashSet<object>`、`ILookup<object, ...>`、および `object` 経由で復元するマップが対象です。実際のキーが文字列でも拒否されるため、`Dictionary<string, ...>` など対応する具体的なキー型を指定してください。`object` に格納したスカラー値や、マップを含まない配列は引き続き扱えます。`TrustedData` は通常の比較器とカスタム型・`object` キーの互換性を維持します。
+
+既定の `TrustedData` にも、深度・サイズの上限と decimal 内部表現などの検証が適用されます。従来の無制限設定からの変更のため、上限を超える既存データは例外になります。`UntrustedData` には以下の厳密な入力検証とコレクションの記憶量制限も適用されます。
+
+| 上限 | TrustedData | UntrustedData |
+| --- | ---: | ---: |
+| オブジェクトの深度 | 256 | 500 |
+| 入力サイズ（Stream のバッファリングを含む） | 64 MiB | 16 MiB |
+| LZ4展開量の累計 | 128 MiB | 64 MiB |
+| 配列要素数／マップの組数 | 2,097,152 | 65,536 |
+| 要素数の累計（マップは1組を2要素として計上） | 4,194,304 | 1,048,576 |
+| 文字列・識別子ごとのバイト数 | 16 MiB | 16 MiB |
+| バイナリ・拡張値ごとのバイト数 | 64 MiB | 16 MiB |
+| ペイロードの累計バイト数 | 128 MiB | 64 MiB |
+| コレクション要素の累計記憶量 | 無制限 | 64 MiB |
+
+より大きい正常データには `TinyhandDeserializationLimits.TrustedData with { MaximumCollectionLength = 3_000_000 }` のように必要な値を変更し、`TinyhandSecurity.TrustedData.WithLimits(limits)` を指定してください。深度は `WithMaximumObjectGraphDepth` で別途変更できます。`WithLimits(TinyhandDeserializationLimits.Unrestricted)` はサイズ制限のみを解除し、深度制限とネイティブ値の検証は維持します。
+
+`MaximumTotalCollectionBytes` は、要素数とメモリ上の要素サイズの積を、標準・生成コレクションの確保や変更より前に計上します。既存領域の再利用も対象です。マップはキーと値の組、ソート用一時バッファも計上します。バイナリの内容は別のペイロード制限で扱います。
+
+`UntrustedData` は次の検証を既定で有効にします。従来の寛容な動作に依存するデータは拒否される場合があります。
+
+- `ValidateStringValues`：不正UTF-8、失敗した文字列変換、未消費文字の残る変換、不正な列挙名を拒否します。数値形式の列挙値や有効なFlagsは引き続き扱うため、業務上の許可値は別途検証してください。
+- `RejectDuplicateKeys`：一意なキーを持つマップの重複と、生成オブジェクトの既知メンバーの重複を拒否します。明示的なmultimapや未知メンバーの読み飛ばしは互換動作を維持します。
+- `RejectUnknownUnionTypes`：未知またはnilのUnion判別子を拒否します。Union値全体がnilである場合は引き続き有効です。
+- `RequireCompleteInput`：消費バイト数を返さないバッファAPIは、ちょうど1個の値を要求し、LZ4内部の余剰データも拒否します。`DeserializeExact<T>` / `TryDeserializeExact<T>` で同じ動作を明示できます。Reader・消費バイト数付きAPIは連続値の読み取りを維持します。Streamは従来どおり最初の値を読み、シーク可能な場合に未消費分を巻き戻します。1個の圧縮領域には1個の値だけを認めます。
+- `CheckAvailableStack`：深度上限に加えて、ネストした値へ入る前に実行時のスタック残量を検査します。
+- `SortBeforeInsertion`：配列を内部に持つソート済みコレクションでは、入力を一時領域でソートしてから挿入し、逆順入力による二乗回の要素移動を防ぎます。比較器と同一キー内の順序を維持し、一時領域も予算へ計上します。
+
+各設定には対応する `With...` メソッドがあり、互換性が必要な場合に個別に無効化できます。無効化した項目の保護は失われます。完全入力を要求するAPIはオブジェクト構築前にバイナリ構造を検証しますが、スキーマ検証、setter、コンストラクタ、コールバックはトランザクションではありません。新規の受信用DTOに読み込み、必須項目・業務ルールの検証と認可を完了してから共有状態へ反映してください。シリアライズ結果のハッシュや署名モードのバイト列だけでは、データの真正性は保証されません。
+
+カスタム formatter は読み取り・確保前に `reader.ApplySecurity(options.Security)` を呼び、コレクションの確保・再利用前に `reader.ReserveCollectionStorage<T>(count)`（マップではキーと値の組型）を呼んでください。ネストした値の構築前に `IncrementDepth(ref reader)`、対応する `finally` 内で `reader.Depth--` を実行します。Reader のコピーと SubReader は累積予算を共有します。セキュリティ設定を省略した `new TinyhandReader(span)` には、明示的に適用するまで制限はありません。設定付きで Reader を構築した場合は、`Deserialize(ref reader, options)` にも同じ制限の options を渡してください。使用中の Reader に異なる有限制限を適用すると、予算の置き換えを防ぐため例外になります。カスタム formatter 固有の重複・値の検証は実装側の責任です。
+
+これらはヒープ全体の使用量や実行時間の上限ではありません。コレクションの管理領域、参照先のオブジェクト、コンストラクタ、コールバック、カスタム formatter は追加のメモリを確保するため、スキーマに合わせて上限を設定してください。`TrustedData` はハッシュ衝突攻撃への防御を有効にしません。受信のタイムアウトや同時処理数も呼び出し側で制限してください。Stream のデシリアライズにはキャンセルトークン付きのオーバーロードもあります。組み込みのデシリアライズはスキーマで定義された型を選択しますが、アプリケーション提供のformatterやコールバックはアプリケーションコードを実行するため、信頼できる実装が必要です。
 
 非ジェネリックのコレクション型（`IEnumerable`、`ICollection`、`IList`、`IDictionary`、`ArrayList`、`Hashtable`）はシリアライズ対象の型として指定できません。`IEnumerable<T>`、`ICollection<T>`、`IList<T>`、`IDictionary<TKey, TValue>` などのジェネリックインターフェイス、または対応するジェネリックコレクションの具体型を使用してください。
 

@@ -194,7 +194,13 @@ public static partial class TinyhandSerializer
         var st = reader.ReadStringIfPresent();
         if (st is not null)
         {
-            T.TryParse(st, out value, out _);
+            var success = T.TryParse(st, out var parsed, out var consumed);
+            if (reader.ValidateStringValues && (!success || consumed != st.Length))
+            {
+                throw new TinyhandException("The string-convertible value is invalid or contains trailing characters.");
+            }
+
+            value = parsed;
         }
         else
         {
@@ -210,7 +216,13 @@ public static partial class TinyhandSerializer
         var st = reader.ReadStringIfPresent();
         if (st is not null)
         {
-            T.TryParse(st, out value!, out _);
+            var success = T.TryParse(st, out var parsed, out var consumed);
+            if (reader.ValidateStringValues && (!success || consumed != st.Length))
+            {
+                throw new TinyhandException("The string-convertible value is invalid or contains trailing characters.");
+            }
+
+            value = parsed!;
         }
         else
         {
@@ -226,12 +238,23 @@ public static partial class TinyhandSerializer
     public static T? DeserializeObject<T>(ReadOnlySpan<byte> data)
         where T : ITinyhandSerializable<T>
     {
-        var reader = new TinyhandReader(data, DefaultOptions.Security);
+        var options = DefaultOptions;
+        var reader = new TinyhandReader(data, options.Security);
 
         try
         {
             var value = default(T);
-            T.Deserialize(ref reader, ref value, DefaultOptions);
+            if (options.Security.RequireCompleteInput)
+            {
+                ValidateSingleValue(ref reader);
+            }
+
+            T.Deserialize(ref reader, ref value, options);
+            if (options.Security.RequireCompleteInput)
+            {
+                EnsureEnd(ref reader);
+            }
+
             return value;
         }
         catch (Exception ex)
@@ -243,11 +266,21 @@ public static partial class TinyhandSerializer
     public static void DeserializeObject<T>(ReadOnlySpan<byte> data, ref T? value)
         where T : ITinyhandSerializable<T>
     {
-        var reader = new TinyhandReader(data, DefaultOptions.Security);
+        var options = DefaultOptions;
+        var reader = new TinyhandReader(data, options.Security);
 
         try
         {
-            T.Deserialize(ref reader, ref value, DefaultOptions);
+            if (options.Security.RequireCompleteInput)
+            {
+                ValidateSingleValue(ref reader);
+            }
+
+            T.Deserialize(ref reader, ref value, options);
+            if (options.Security.RequireCompleteInput)
+            {
+                EnsureEnd(ref reader);
+            }
         }
         catch (Exception ex)
         {
@@ -305,12 +338,23 @@ public static partial class TinyhandSerializer
     public static bool TryDeserializeObject<T>(ReadOnlySpan<byte> data, [MaybeNullWhen(false)] out T value)
         where T : ITinyhandSerializable<T>
     {
+        var options = DefaultOptions;
         var reader = new TinyhandReader(data);
         try
         {
-            reader.ApplySecurity(DefaultOptions.Security);
+            reader.ApplySecurity(options.Security);
+            if (options.Security.RequireCompleteInput)
+            {
+                ValidateSingleValue(ref reader);
+            }
+
             value = default;
-            T.Deserialize(ref reader, ref value, DefaultOptions);
+            T.Deserialize(ref reader, ref value, options);
+            if (options.Security.RequireCompleteInput)
+            {
+                EnsureEnd(ref reader);
+            }
+
             return value is not null;
         }
         catch
@@ -680,6 +724,12 @@ public static partial class TinyhandSerializer
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? Deserialize<T>(ReadOnlySpan<byte> buffer, TinyhandSerializerOptions? options = null)
     {
+        options ??= DefaultOptions;
+        if (options.Security.RequireCompleteInput)
+        {
+            return DeserializeExact<T>(buffer, options);
+        }
+
         var reader = new TinyhandReader(buffer);
         return Deserialize<T>(ref reader, options);
     }
@@ -717,7 +767,7 @@ public static partial class TinyhandSerializer
     public static T? Deserialize<T>(ReadOnlySpan<byte> buffer)
     {
         var options = DefaultOptions;
-        if (options.HasLz4CompressFlag)
+        if (options.HasLz4CompressFlag || options.Security.RequireCompleteInput)
         {
             return Deserialize<T>(buffer, options);
         }
@@ -800,6 +850,11 @@ public static partial class TinyhandSerializer
                     if (TryDecompress(ref reader, byteSequence))
                     {
                         var r = reader.CreateSubReader(byteSequence.ToReadOnlySpan());
+                        if (options.Security.RequireCompleteInput)
+                        {
+                            return DeserializeSingleValue<T>(ref r, options);
+                        }
+
                         return options.Resolver.GetFormatter<T>().Deserialize(ref r, options);
                     }
                     else

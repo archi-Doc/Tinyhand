@@ -14,10 +14,12 @@ namespace XUnitTest.Tests;
 
 public class DeserializationLimitsTest
 {
+    private static readonly TinyhandSecurity UnrestrictedSecurity = TinyhandSecurity.TrustedData.WithLimits(TinyhandDeserializationLimits.Unrestricted);
+
     [Fact]
-    public void DefaultsAreFiniteOnlyForUntrustedData()
+    public void BothPresetsHaveFiniteLimits()
     {
-        Assert.Equal(int.MaxValue, TinyhandSecurity.TrustedData.Limits.MaximumInputBytes);
+        Assert.Equal(64 * 1024 * 1024, TinyhandSecurity.TrustedData.Limits.MaximumInputBytes);
         Assert.Equal(65_536, TinyhandSecurity.UntrustedData.Limits.MaximumCollectionLength);
         Assert.Throws<ArgumentOutOfRangeException>(() => new TinyhandDeserializationLimits { MaximumTotalElements = -1 });
         var policy = TinyhandSecurity.UntrustedData.WithMaximumObjectGraphDepth(4);
@@ -25,15 +27,15 @@ public class DeserializationLimitsTest
     }
 
     [Fact]
-    public void TrustedReaderDoesNotAllocateSecurityState()
+    public void ExplicitlyUnrestrictedReaderDoesNotAllocateSecurityState()
     {
         byte[] data = [0x92, 0xa1, 65, 1];
-        ReadTrusted(data); // Warm static initialization and the read path.
+        ReadUnrestricted(data); // Warm static initialization and the read path.
         long before = GC.GetAllocatedBytesForCurrentThread();
         int sum = 0;
         for (int i = 0; i < 1_000; i++)
         {
-            sum += ReadTrusted(data);
+            sum += ReadUnrestricted(data);
         }
 
         long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
@@ -124,7 +126,7 @@ public class DeserializationLimitsTest
         var replacement = policyKind switch
         {
             0 => first.WithMaximumObjectGraphDepth(4), // The same Limits reference.
-            1 => TinyhandSecurity.TrustedData,
+            1 => UnrestrictedSecurity,
             2 => first.WithLimits(TinyhandDeserializationLimits.Unrestricted),
             _ => TinyhandSecurity.TrustedData.WithLimits(limits with { }), // Equal limits in another record.
         };
@@ -282,9 +284,9 @@ public class DeserializationLimitsTest
     private static TinyhandSerializerOptions Options(TinyhandDeserializationLimits limits)
         => TinyhandSerializerOptions.Standard with { Security = TinyhandSecurity.UntrustedData.WithLimits(limits) };
 
-    private static int ReadTrusted(byte[] data)
+    private static int ReadUnrestricted(byte[] data)
     {
-        var reader = new TinyhandReader(data, TinyhandSecurity.TrustedData);
+        var reader = new TinyhandReader(data, UnrestrictedSecurity);
         return reader.ReadArrayHeader() + reader.ReadStringSpan().Length + reader.ReadInt32();
     }
 
@@ -320,7 +322,7 @@ public class DeserializationLimitsTest
         var reader = new TinyhandReader(data, security);
         var copy = subReader ? reader.CreateSubReader(data) : reader.Fork();
         reader.ReadArrayHeader();
-        copy.ApplySecurity(TinyhandSecurity.TrustedData);
+        copy.ApplySecurity(UnrestrictedSecurity);
         copy.ReadArrayHeader();
     }
 

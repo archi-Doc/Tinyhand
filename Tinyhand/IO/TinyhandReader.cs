@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using Arc;
 using Arc.Collections;
 
@@ -24,6 +25,7 @@ public ref partial struct TinyhandReader
     private int remaining;
     private int length;
     private DeserializationBudget? budget;
+    private bool validateStringValues;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandReader"/> struct over a span.
@@ -36,6 +38,7 @@ public ref partial struct TinyhandReader
         this.remaining = span.Length;
         this.length = span.Length;
         this.budget = null;
+        this.validateStringValues = false;
         this.Depth = 0;
     }
 
@@ -60,6 +63,7 @@ public ref partial struct TinyhandReader
         this.remaining = span.Length;
         this.length = span.Length;
         this.budget = null;
+        this.validateStringValues = false;
         this.Depth = 0;
     }
 
@@ -78,7 +82,10 @@ public ref partial struct TinyhandReader
     {
         Depth = this.Depth,
         budget = this.budget,
+        validateStringValues = this.validateStringValues,
     };
+
+    internal bool ValidateStringValues => this.validateStringValues;
 
     /// <summary>
     /// Creates a new <see cref="TinyhandReader"/> at this reader's current position.
@@ -228,8 +235,9 @@ public ref partial struct TinyhandReader
 
             if ((code & 0xe0) == MessagePackCode.MinFixStr)
             {
+                this.Advance(1);
                 this.ReservePayload(code & 0x1f, true);
-                if (!this.TryAdvance(1 + (code & 0x1f)))
+                if (!this.TrySkipPayload(code & 0x1f, true))
                 {
                     return false;
                 }
@@ -276,7 +284,7 @@ public ref partial struct TinyhandReader
                 case MessagePackCode.Str8:
                 case MessagePackCode.Str16:
                 case MessagePackCode.Str32:
-                    success = this.TryGetStringLengthInBytes(out int length) && this.TryAdvance(length);
+                    success = this.TryGetStringLengthInBytes(out int length) && this.TrySkipPayload(length, true);
                     break;
                 case MessagePackCode.Bin8:
                 case MessagePackCode.Bin16:
@@ -292,7 +300,7 @@ public ref partial struct TinyhandReader
                 case MessagePackCode.Ext16:
                 case MessagePackCode.Ext32:
                     success = this.TryReadExtensionFormatHeader(out var header) &&
-                        header.Length <= int.MaxValue && this.TryAdvance((int)header.Length);
+                        header.Length <= int.MaxValue && this.TrySkipPayload((int)header.Length, header.TypeCode == MessagePackExtensionCodes.Identifier);
                     break;
                 default:
                     throw ThrowInvalidCode(code, MessagePackType.Unknown);
@@ -879,6 +887,7 @@ public ref partial struct TinyhandReader
         ThrowInsufficientBufferUnless((uint)length <= (uint)this.remaining);
 
         span = this.ReadRaw(length);
+        this.ValidateStringPayload(span);
         return true;
     }
 
@@ -904,6 +913,7 @@ public ref partial struct TinyhandReader
 
         var byteLength = this.GetStringLengthInBytes();
         var span = this.ReadRaw(byteLength);
+        this.ValidateStringPayload(span);
         var value = Encoding.UTF8.GetString(span);
         return value;
     }
@@ -947,6 +957,11 @@ public ref partial struct TinyhandReader
 
         // Protect against corrupted or mischievious data that may lead to allocating way too much memory.
         ThrowInsufficientBufferUnless(this.remaining >= header.Length);
+
+        if (header.TypeCode == MessagePackExtensionCodes.Identifier)
+        {
+            this.ValidateStringPayload(MemoryMarshal.CreateReadOnlySpan(ref this.b, (int)header.Length));
+        }
 
         return header;
     }
@@ -1048,7 +1063,9 @@ public ref partial struct TinyhandReader
 
         int length = this.GetStringLengthInBytes();
         ThrowInsufficientBufferUnless((uint)length <= (uint)this.remaining);
-        return this.ReadRaw(length);
+        var span = this.ReadRaw(length);
+        this.ValidateStringPayload(span);
+        return span;
     }
 
     /// <summary>
@@ -1068,7 +1085,9 @@ public ref partial struct TinyhandReader
             }
 
             this.ReservePayload(length, true);
-            return this.ReadRaw(length);
+            var span = this.ReadRaw(length);
+            this.ValidateStringPayload(span);
+            return span;
         }
 
         this.TryReadStringSpan(out var result);
@@ -1093,6 +1112,7 @@ public ref partial struct TinyhandReader
 
             this.ReservePayload(length, true);
             var span = this.ReadRaw(length);
+            this.ValidateStringPayload(span);
             return Encoding.UTF8.GetString(span);
         }
 
@@ -1122,7 +1142,13 @@ public ref partial struct TinyhandReader
         try
         {
             var written = Encoding.UTF8.GetChars(utf8, buffer);
-            T.TryParse(buffer.Slice(0, written), out instance, out _);
+            var success = T.TryParse(buffer.Slice(0, written), out var parsed, out var consumed);
+            if (this.validateStringValues && (!success || consumed != written))
+            {
+                throw new TinyhandException("The string-convertible value is invalid or contains trailing characters.");
+            }
+
+            instance = parsed;
         }
         finally
         {
@@ -1193,6 +1219,30 @@ public ref partial struct TinyhandReader
             string.Format("Unexpected msgpack code {0} ({1}) encountered.", code, MessagePackCode.ToFormatName(code)),
             MessagePackCode.ToMessagePackType(code),
             expected);
+    }
+
+    private readonly void ValidateStringPayload(scoped ReadOnlySpan<byte> span)
+    {
+        if (this.validateStringValues && !Utf8.IsValid(span))
+        {
+            throw new TinyhandException("The string or identifier contains invalid UTF-8.");
+        }
+    }
+
+    private bool TrySkipPayload(int length, bool text)
+    {
+        if ((uint)length > (uint)this.remaining)
+        {
+            return false;
+        }
+
+        if (text)
+        {
+            this.ValidateStringPayload(MemoryMarshal.CreateReadOnlySpan(ref this.b, length));
+        }
+
+        this.Advance(length);
+        return true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1370,6 +1420,7 @@ public ref partial struct TinyhandReader
         }
 
         // In OldSpec mode, Bin didn't exist, so Str was used. Str8 didn't exist either.
+        // Binary APIs preserve these raw bytes; exact-input preflight may separately validate String wire tokens.
         switch (code)
         {
             case MessagePackCode.Bin8:
@@ -1875,6 +1926,7 @@ public ref partial struct TinyhandReader
                 if (code == MessagePackCode.FixExt16)
                 {
                     ThrowInsufficientBufferUnless(this.TryRead(out byte extCode));
+                    this.ReservePayload(16, false);
                     if (extCode == MessagePackExtensionCodes.Int128)
                     {
                         ThrowInsufficientBufferUnless(this.TryReadBigEndian(out Int128 int128Result));
@@ -1939,6 +1991,7 @@ public ref partial struct TinyhandReader
                 if (code == MessagePackCode.FixExt16)
                 {
                     ThrowInsufficientBufferUnless(this.TryRead(out byte extCode));
+                    this.ReservePayload(16, false);
                     if (extCode == MessagePackExtensionCodes.Int128)
                     {
                         ThrowInsufficientBufferUnless(this.TryReadBigEndian(out Int128 int128Result));

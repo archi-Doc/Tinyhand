@@ -1814,17 +1814,36 @@ Done:
     public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
     {
         var reader = new TinyhandReader(byteArray, options.Security);
+        if (options.Security.RequireCompleteInput)
+        {
+            TinyhandSerializer.ValidateSingleValue(ref reader);
+        }
+
         var byteSequence = new ByteSequence();
         try
         {
             if (TinyhandSerializer.TryDecompress(ref reader, byteSequence))
             {
                 var r = reader.CreateSubReader(byteSequence.ToReadOnlySpan());
+                if (options.Security.RequireCompleteInput)
+                {
+                    TinyhandSerializer.ValidateSingleValue(ref r);
+                }
+
                 FromReaderToElement(ref r, out element, options);
+                if (options.Security.RequireCompleteInput)
+                {
+                    TinyhandSerializer.EnsureEnd(ref r);
+                }
             }
             else
             {
                 FromReaderToElement(ref reader, out element, options);
+            }
+
+            if (options.Security.RequireCompleteInput)
+            {
+                TinyhandSerializer.EnsureEnd(ref reader);
             }
         }
         finally
@@ -1903,6 +1922,7 @@ Done:
                     options.Security.IncrementDepth(ref reader);
                     try
                     {
+                        reader.ReserveCollectionStorage<Element>(length);
                         group = new Group(length);
                         for (int i = 0; i < length; i++)
                         {
@@ -1924,6 +1944,7 @@ Done:
                     options.Security.IncrementDepth(ref reader);
                     try
                     {
+                        reader.ReserveCollectionStorage<KeyValuePair<Element, Element>>(length);
                         group = new Group(length);
                         for (int i = 0; i < length; i++)
                         {

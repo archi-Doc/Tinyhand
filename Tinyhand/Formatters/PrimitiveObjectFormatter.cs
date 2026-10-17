@@ -268,6 +268,7 @@ internal sealed class PrimitiveObjectFormatter : ITinyhandFormatter<object>
             case MessagePackType.Array:
                 {
                     var length = reader.ReadArrayHeader();
+                    reader.ReserveCollectionStorage<object>(length);
                     if (length == 0)
                     {
                         value = Array.Empty<object>();
@@ -385,6 +386,7 @@ internal sealed class PrimitiveObjectFormatter : ITinyhandFormatter<object>
     private static object DeserializeMap(ref TinyhandReader reader, int length, TinyhandSerializerOptions options)
     {
         ITinyhandFormatter<object> objectFormatter = options.Resolver.GetFormatter<object>();
+        reader.ReserveCollectionStorage<KeyValuePair<object, object>>(length);
         var dictionary = new Dictionary<object, object>(length, options.Security.GetEqualityComparer<object>());
         for (int i = 0; i < length; i++)
         {
