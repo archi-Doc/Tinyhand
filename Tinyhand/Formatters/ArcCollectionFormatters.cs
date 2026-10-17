@@ -47,6 +47,7 @@ internal sealed class OrderedMapFormatter<TKey, TValue> : ITinyhandFormatter<Ord
 
     public void Deserialize(ref TinyhandReader reader, ref OrderedMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             return;
@@ -139,6 +140,7 @@ internal sealed class OrderedSetFormatter<T> : ITinyhandFormatter<OrderedSet<T>>
 
     public void Deserialize(ref TinyhandReader reader, ref OrderedSet<T>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             return;
@@ -232,6 +234,7 @@ internal sealed class OrderedMultiMapFormatter<TKey, TValue> : ITinyhandFormatte
 
     public void Deserialize(ref TinyhandReader reader, ref OrderedMultiMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             return;
@@ -324,6 +327,7 @@ internal sealed class OrderedMultiSetFormatter<T> : ITinyhandFormatter<OrderedMu
 
     public void Deserialize(ref TinyhandReader reader, ref OrderedMultiSet<T>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             return;
@@ -417,6 +421,7 @@ internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<U
 
     public void Deserialize(ref TinyhandReader reader, ref UnorderedMap<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             return;
@@ -426,9 +431,10 @@ internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<U
         var valueFormatter = options.Resolver.GetFormatter<TValue>();
 
         var count = reader.ReadMapHeaderOrEmptyArray();
-        if (value is null)
+        var comparer = options.Security.GetEqualityComparer<TKey>();
+        if (value is null || (options.Security.HashCollisionResistant && !ReferenceEquals(value.Comparer, comparer)))
         {
-            value = new();
+            value = new(count, comparer, value?.AllowDuplicates ?? false);
         }
         else
         {
@@ -453,7 +459,7 @@ internal sealed class UnorderedMapFormatter<TKey, TValue> : ITinyhandFormatter<U
 
     public UnorderedMap<TKey, TValue> Reconstruct(TinyhandSerializerOptions options)
     {
-        return new();
+        return new(0, options.Security.GetEqualityComparer<TKey>());
     }
 
     [return: NotNullIfNotNull(nameof(value))]
@@ -509,6 +515,7 @@ internal sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet
 
     public void Deserialize(ref TinyhandReader reader, ref UnorderedSet<T>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             return;
@@ -517,9 +524,10 @@ internal sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet
         var formatter = options.Resolver.GetFormatter<T>();
 
         var count = reader.ReadArrayHeader();
-        if (value is null)
+        var comparer = options.Security.GetEqualityComparer<T>();
+        if (value is null || (options.Security.HashCollisionResistant && !ReferenceEquals(value.Comparer, comparer)))
         {
-            value = new();
+            value = new(count, comparer, value?.AllowDuplicates ?? false);
         }
         else
         {
@@ -543,7 +551,7 @@ internal sealed class UnorderedSetFormatter<T> : ITinyhandFormatter<UnorderedSet
 
     public UnorderedSet<T> Reconstruct(TinyhandSerializerOptions options)
     {
-        return new();
+        return new(0, options.Security.GetEqualityComparer<T>(), false);
     }
 
     [return: NotNullIfNotNull(nameof(value))]
@@ -588,6 +596,7 @@ internal sealed class OrderedListFormatter<T> : ITinyhandFormatter<OrderedList<T
 
     public void Deserialize(ref TinyhandReader reader, ref OrderedList<T>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -670,6 +679,7 @@ internal sealed class UnorderedListFormatter<T> : ITinyhandFormatter<UnorderedLi
 
     public void Deserialize(ref TinyhandReader reader, ref UnorderedList<T>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -752,6 +762,7 @@ internal sealed class UnorderedLinkedListFormatter<T> : ITinyhandFormatter<Unord
 
     public void Deserialize(ref TinyhandReader reader, ref UnorderedLinkedList<T>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }

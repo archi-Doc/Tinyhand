@@ -56,6 +56,7 @@ internal sealed class DateTimeOffsetFormatter : ITinyhandFormatter<DateTimeOffse
 
     public void Deserialize(ref TinyhandReader reader, ref DateTimeOffset value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         var count = reader.ReadArrayHeader();
         if (count != 2)
         {
@@ -98,6 +99,7 @@ internal sealed class UriFormatter : ITinyhandFormatter<Uri>
 
     public void Deserialize(ref TinyhandReader reader, ref Uri? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -137,6 +139,7 @@ internal sealed class VersionFormatter : ITinyhandFormatter<Version>
 
     public void Deserialize(ref TinyhandReader reader, ref Version? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -167,6 +170,7 @@ internal sealed class KeyValuePairFormatter<TKey, TValue> : ITinyhandFormatter<K
 
     public void Deserialize(ref TinyhandReader reader, ref KeyValuePair<TKey, TValue> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         var count = reader.ReadArrayHeader();
         if (count != 2)
         {
@@ -226,6 +230,7 @@ internal sealed class KeyValueListFormatter<TKey, TValue> : ITinyhandFormatter<K
 
     public void Deserialize(ref TinyhandReader reader, ref KeyValueList<TKey, TValue>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             return;
@@ -310,6 +315,7 @@ internal sealed class StringBuilderFormatter : ITinyhandFormatter<StringBuilder>
 
     public void Deserialize(ref TinyhandReader reader, ref StringBuilder? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             value = new StringBuilder(reader.ReadString());
@@ -353,6 +359,7 @@ internal sealed class BitArrayFormatter : ITinyhandFormatter<BitArray>
 
     public void Deserialize(ref TinyhandReader reader, ref BitArray? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var len = reader.ReadArrayHeader();
@@ -389,6 +396,7 @@ internal sealed class BigIntegerFormatter : ITinyhandFormatter<System.Numerics.B
 
     public void Deserialize(ref TinyhandReader reader, ref System.Numerics.BigInteger value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         reader.TryReadBytes(out var span);
         value = new System.Numerics.BigInteger(span);
     }
@@ -419,6 +427,7 @@ internal sealed class ComplexFormatter : ITinyhandFormatter<System.Numerics.Comp
 
     public void Deserialize(ref TinyhandReader reader, ref System.Numerics.Complex value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         var count = reader.ReadArrayHeader();
         if (count != 2)
         {

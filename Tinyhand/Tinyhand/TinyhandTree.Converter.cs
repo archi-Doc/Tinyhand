@@ -75,14 +75,23 @@ public static partial class TinyhandTreeConverter
     /// <param name="writer">TinyhandRawWriter.</param>
     /// <param name="options">The options, or <see langword="null"/> to use <see cref="TinyhandSerializerOptions.ConvertToString"/>.</param>
     /// <param name="omitTopLevelBracket"><see langword="true"/> to omit the top level bracket.</param>
+    /// <remarks>
+    /// Applies the input-size and LZ4 output-size limits in the security policy. The iterative text renderer
+    /// does not apply object-graph depth, collection, or payload limits to the rendered content.
+    /// Use <see cref="FromBinaryToElement"/> when those additional deserialization limits are required.
+    /// </remarks>
     public static void FromBinaryToUtf8(ReadOnlySpan<byte> span, ref TinyhandRawWriter writer, TinyhandSerializerOptions? options, bool omitTopLevelBracket = false)
     {
         options ??= TinyhandSerializerOptions.ConvertToString;
+        if (!options.Security.Limits.IsUnrestricted)
+        {
+            options.Security.Limits.CheckInputLength(span.Length);
+        }
 
         // The decompression buffer is only created when the data can actually be an LZ4 block array.
         if (MayBeCompressed(span))
         {
-            var reader = new TinyhandReader(span);
+            var reader = new TinyhandReader(span, options.Security);
             var byteSequence = new ByteSequence();
             try
             {
@@ -1804,7 +1813,7 @@ Done:
     /// <param name="options">The serialization options.</param>
     public static void FromBinaryToElement(byte[] byteArray, out Element element, TinyhandSerializerOptions options)
     {
-        var reader = new TinyhandReader(byteArray);
+        var reader = new TinyhandReader(byteArray, options.Security);
         var byteSequence = new ByteSequence();
         try
         {
@@ -1832,6 +1841,7 @@ Done:
     /// <param name="options">The serialization options.</param>
     public static void FromReaderToElement(ref TinyhandReader reader, out Element element, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         element = FromReaderToElement_Core(ref reader, options);
     }
 

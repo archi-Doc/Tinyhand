@@ -127,6 +127,7 @@ public static partial class TinyhandSerializerExtensions
         options = options ?? TinyhandSerializer.DefaultOptions;
         try
         {
+            reader.ApplySecurity(options.Security);
             if (options.HasLz4CompressFlag)
             {
                 var byteSequence = new ByteSequence();

@@ -95,6 +95,15 @@ internal sealed class NativeDecimalFormatter : ITinyhandFormatter<Decimal>
             throw new TinyhandException("Invalid decimal Size.");
         }
 
+        if (options?.Security.ValidateNativeValues == true)
+        {
+            var flags = MemoryMarshal.Read<uint>(span);
+            if ((flags & 0x7f00ffffU) != 0 || ((flags >> 16) & 0xffU) > 28)
+            {
+                throw new TinyhandException("Invalid decimal flags.");
+            }
+        }
+
         span.CopyTo(MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref value, 1)));
     }
 

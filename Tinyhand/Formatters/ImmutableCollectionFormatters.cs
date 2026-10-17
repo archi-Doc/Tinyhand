@@ -36,6 +36,7 @@ internal class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>
 
     public void Deserialize(ref TinyhandReader reader, ref ImmutableArray<T> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -49,21 +50,21 @@ internal class ImmutableArrayFormatter<T> : ITinyhandFormatter<ImmutableArray<T>
             }
 
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
-            ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(len);
             options.Security.IncrementDepth(ref reader);
             try
             {
+                ImmutableArray<T>.Builder builder = ImmutableArray.CreateBuilder<T>(len);
                 for (int i = 0; i < len; i++)
                 {
                     builder.Add(formatter.Deserialize(ref reader, options)!);
                 }
+
+                value = builder.MoveToImmutable();
             }
             finally
             {
                 reader.Depth--;
             }
-
-            value = builder.MoveToImmutable();
         }
     }
 

@@ -2614,6 +2614,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
+            ssb.AppendLine("reader.ApplySecurity(options.Security);");
             if (this.HasAlternateKey)
             {
                 using (var scopeConvertToString = ssb.ScopeBrace("if (options.HasConvertToStringFlag)"))
@@ -2649,6 +2650,7 @@ this.Body.CoderResolver.IsCoderOrFormatterAvailable(this.TypeObjectWithNullable)
         using (var m = ssb.ScopeBrace(methodCode))
         using (var v = ssb.ScopeObject(objectCode))
         {
+            ssb.AppendLine("reader.ApplySecurity(options.Security);");
             if (this.Union != null)
             {
                 this.Union.GenerateFormatter_Deserialize(ssb, info);

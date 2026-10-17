@@ -23,17 +23,29 @@ public ref partial struct TinyhandReader
     private ref byte b;
     private int remaining;
     private int length;
+    private DeserializationBudget? budget;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TinyhandReader"/> struct over a span.
     /// </summary>
     /// <param name="span">The input buffer; it must remain valid while reading.</param>
     public TinyhandReader(ReadOnlySpan<byte> span)
-        : this()
     {
+        // Initialize fields directly to avoid whole-struct clearing on the hot read path.
         this.b = ref MemoryMarshal.GetReference(span);
         this.remaining = span.Length;
         this.length = span.Length;
+        this.budget = null;
+        this.Depth = 0;
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="TinyhandReader"/> struct with size limits.</summary>
+    /// <param name="span">The input buffer.</param>
+    /// <param name="security">The security policy.</param>
+    public TinyhandReader(ReadOnlySpan<byte> span, TinyhandSecurity security)
+        : this(span)
+    {
+        this.ApplySecurity(security);
     }
 
     /// <summary>
@@ -41,13 +53,14 @@ public ref partial struct TinyhandReader
     /// </summary>
     /// <param name="writer">The writer whose buffer remains valid while reading.</param>
     public TinyhandReader(TinyhandWriter writer)
-        : this()
     {
         // The writer is a copy: committing its pending bytes here would make the caller's writer commit them again.
         var span = writer.PeekWrittenSpan();
         this.b = ref MemoryMarshal.GetReference(span);
         this.remaining = span.Length;
         this.length = span.Length;
+        this.budget = null;
+        this.Depth = 0;
     }
 
     /// <summary>
@@ -64,6 +77,7 @@ public ref partial struct TinyhandReader
     public TinyhandReader CreateSubReader(ReadOnlySpan<byte> span) => new TinyhandReader(span)
     {
         Depth = this.Depth,
+        budget = this.budget,
     };
 
     /// <summary>
@@ -199,6 +213,7 @@ public ref partial struct TinyhandReader
             if ((code & 0xf0) == MessagePackCode.MinFixArray)
             {
                 this.Advance(1);
+                this.ReserveCollection(code & 0x0f, false);
                 pending += code & 0x0f;
                 continue;
             }
@@ -206,12 +221,14 @@ public ref partial struct TinyhandReader
             if ((code & 0xf0) == MessagePackCode.MinFixMap)
             {
                 this.Advance(1);
+                this.ReserveCollection(code & 0x0f, true);
                 pending += (code & 0x0f) * 2;
                 continue;
             }
 
             if ((code & 0xe0) == MessagePackCode.MinFixStr)
             {
+                this.ReservePayload(code & 0x1f, true);
                 if (!this.TryAdvance(1 + (code & 0x1f)))
                 {
                     return false;
@@ -392,40 +409,12 @@ public ref partial struct TinyhandReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryReadArrayHeader(out int count)
     {
-        count = -1;
-        if (!this.TryRead(out byte code))
+        if (!this.TryReadArrayHeaderCore(out count))
         {
             return false;
         }
 
-        switch (code)
-        {
-            case MessagePackCode.Array16:
-                if (!this.TryReadBigEndian(out short shortValue))
-                {
-                    return false;
-                }
-
-                count = unchecked((ushort)shortValue);
-                break;
-            case MessagePackCode.Array32:
-                if (!this.TryReadBigEndian(out int intValue))
-                {
-                    return false;
-                }
-
-                count = intValue;
-                return count >= 0;
-            default:
-                if (code >= MessagePackCode.MinFixArray && code <= MessagePackCode.MaxFixArray)
-                {
-                    count = code & 0xF;
-                    break;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Array);
-        }
-
+        this.ReserveCollection(count, false);
         return true;
     }
 
@@ -494,40 +483,12 @@ public ref partial struct TinyhandReader
     /// </remarks>
     public bool TryReadMapHeader(out int count)
     {
-        count = -1;
-        if (!this.TryRead(out byte code))
+        if (!this.TryReadMapHeaderCore(out count))
         {
             return false;
         }
 
-        switch (code)
-        {
-            case MessagePackCode.Map16:
-                if (!this.TryReadBigEndian(out short shortValue))
-                {
-                    return false;
-                }
-
-                count = unchecked((ushort)shortValue);
-                break;
-            case MessagePackCode.Map32:
-                if (!this.TryReadBigEndian(out int intValue))
-                {
-                    return false;
-                }
-
-                count = intValue;
-                return count >= 0;
-            default:
-                if (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap)
-                {
-                    count = (byte)(code & 0xF);
-                    break;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Map);
-        }
-
+        this.ReserveCollection(count, true);
         return true;
     }
 
@@ -547,77 +508,12 @@ public ref partial struct TinyhandReader
     /// </remarks>
     public bool TryReadMapHeaderOrEmptyArray(out int count)
     {
-        count = -1;
-        if (!this.TryRead(out byte code))
+        if (!this.TryReadMapHeaderOrEmptyArrayCore(out count))
         {
             return false;
         }
 
-        short shortValue;
-        int intValue;
-        switch (code)
-        {
-            case MessagePackCode.Map16:
-                if (!this.TryReadBigEndian(out shortValue))
-                {
-                    return false;
-                }
-
-                count = unchecked((ushort)shortValue);
-                break;
-
-            case MessagePackCode.Map32:
-                if (!this.TryReadBigEndian(out intValue))
-                {
-                    return false;
-                }
-
-                count = intValue;
-                return count >= 0;
-
-            case MessagePackCode.Array16:
-                if (!this.TryReadBigEndian(out shortValue))
-                {
-                    return false;
-                }
-
-                count = unchecked((ushort)shortValue);
-                if (count != 0)
-                {// Map expected
-                    throw ThrowInvalidCode(code, MessagePackType.Map);
-                }
-
-                break;
-
-            case MessagePackCode.Array32:
-                if (!this.TryReadBigEndian(out intValue))
-                {
-                    return false;
-                }
-
-                count = intValue;
-                if (count != 0)
-                {// Map expected
-                    throw ThrowInvalidCode(code, MessagePackType.Map);
-                }
-
-                break;
-
-            default:
-                if (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap)
-                {
-                    count = code & 0xF;
-                    break;
-                }
-                else if (code == MessagePackCode.MinFixArray)
-                {
-                    count = 0;
-                    break;
-                }
-
-                throw ThrowInvalidCode(code, MessagePackType.Map);
-        }
-
+        this.ReserveCollection(count, true);
         return true;
     }
 
@@ -1134,6 +1030,7 @@ public ref partial struct TinyhandReader
         }
 
         extensionHeader = new ExtensionHeader(typeCode, length);
+        this.ReservePayload(length, typeCode == MessagePackExtensionCodes.Identifier);
         return true;
     }
 
@@ -1170,6 +1067,7 @@ public ref partial struct TinyhandReader
                 throw ThrowInvalidCode(code, MessagePackType.Extension);
             }
 
+            this.ReservePayload(length, true);
             return this.ReadRaw(length);
         }
 
@@ -1193,6 +1091,7 @@ public ref partial struct TinyhandReader
                 throw ThrowInvalidCode(code, MessagePackType.Extension);
             }
 
+            this.ReservePayload(length, true);
             var span = this.ReadRaw(length);
             return Encoding.UTF8.GetString(span);
         }
@@ -1296,7 +1195,173 @@ public ref partial struct TinyhandReader
             expected);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryReadArrayHeaderCore(out int count)
+    {
+        count = -1;
+        if (!this.TryRead(out byte code))
+        {
+            return false;
+        }
+
+        switch (code)
+        {
+            case MessagePackCode.Array16:
+                if (!this.TryReadBigEndian(out short shortValue))
+                {
+                    return false;
+                }
+
+                count = unchecked((ushort)shortValue);
+                break;
+            case MessagePackCode.Array32:
+                if (!this.TryReadBigEndian(out int intValue))
+                {
+                    return false;
+                }
+
+                count = intValue;
+                return count >= 0;
+            default:
+                if (code >= MessagePackCode.MinFixArray && code <= MessagePackCode.MaxFixArray)
+                {
+                    count = code & 0xF;
+                    break;
+                }
+
+                throw ThrowInvalidCode(code, MessagePackType.Array);
+        }
+
+        return true;
+    }
+
+    private bool TryReadMapHeaderCore(out int count)
+    {
+        count = -1;
+        if (!this.TryRead(out byte code))
+        {
+            return false;
+        }
+
+        switch (code)
+        {
+            case MessagePackCode.Map16:
+                if (!this.TryReadBigEndian(out short shortValue))
+                {
+                    return false;
+                }
+
+                count = unchecked((ushort)shortValue);
+                break;
+            case MessagePackCode.Map32:
+                if (!this.TryReadBigEndian(out int intValue))
+                {
+                    return false;
+                }
+
+                count = intValue;
+                return count >= 0;
+            default:
+                if (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap)
+                {
+                    count = (byte)(code & 0xF);
+                    break;
+                }
+
+                throw ThrowInvalidCode(code, MessagePackType.Map);
+        }
+
+        return true;
+    }
+
+    private bool TryReadMapHeaderOrEmptyArrayCore(out int count)
+    {
+        count = -1;
+        if (!this.TryRead(out byte code))
+        {
+            return false;
+        }
+
+        short shortValue;
+        int intValue;
+        switch (code)
+        {
+            case MessagePackCode.Map16:
+                if (!this.TryReadBigEndian(out shortValue))
+                {
+                    return false;
+                }
+
+                count = unchecked((ushort)shortValue);
+                break;
+
+            case MessagePackCode.Map32:
+                if (!this.TryReadBigEndian(out intValue))
+                {
+                    return false;
+                }
+
+                count = intValue;
+                return count >= 0;
+
+            case MessagePackCode.Array16:
+                if (!this.TryReadBigEndian(out shortValue))
+                {
+                    return false;
+                }
+
+                count = unchecked((ushort)shortValue);
+                if (count != 0)
+                {// Map expected
+                    throw ThrowInvalidCode(code, MessagePackType.Map);
+                }
+
+                break;
+
+            case MessagePackCode.Array32:
+                if (!this.TryReadBigEndian(out intValue))
+                {
+                    return false;
+                }
+
+                count = intValue;
+                if (count != 0)
+                {// Map expected
+                    throw ThrowInvalidCode(code, MessagePackType.Map);
+                }
+
+                break;
+
+            default:
+                if (code >= MessagePackCode.MinFixMap && code <= MessagePackCode.MaxFixMap)
+                {
+                    count = code & 0xF;
+                    break;
+                }
+                else if (code == MessagePackCode.MinFixArray)
+                {
+                    count = 0;
+                    break;
+                }
+
+                throw ThrowInvalidCode(code, MessagePackType.Map);
+        }
+
+        return true;
+    }
+
     private bool TryReadBinHeader(out int length)
+    {
+        if (!this.TryReadBinHeaderCore(out length))
+        {
+            return false;
+        }
+
+        this.ReservePayload(length, false);
+        return true;
+    }
+
+    private bool TryReadBinHeaderCore(out int length)
     {
         if (!this.TryRead(out byte code))
         {
@@ -1354,6 +1419,18 @@ public ref partial struct TinyhandReader
     /// <returns><c>true</c> if there were enough bytes to read the length of the next string; <c>false</c> otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryGetStringLengthInBytes(out int length)
+    {
+        if (!this.TryGetStringLengthInBytesCore(out length))
+        {
+            return false;
+        }
+
+        this.ReservePayload(length, true);
+        return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryGetStringLengthInBytesCore(out int length)
     {
         if (!this.TryRead(out byte code))
         {

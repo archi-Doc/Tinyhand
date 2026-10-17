@@ -45,6 +45,7 @@ internal sealed class TupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t #>><#
 
     public void Deserialize(ref TinyhandReader reader, ref <#= t #>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();

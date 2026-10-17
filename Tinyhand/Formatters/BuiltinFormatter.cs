@@ -163,6 +163,7 @@ internal sealed class StringFormatter : ITinyhandFormatter<string>
 
     public void Deserialize(ref TinyhandReader reader, ref string? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = reader.ReadString(); // Always consume the value, even when an existing value is passed (same as the generated code).
     }
 
@@ -187,7 +188,11 @@ internal sealed class StringArrayFormatter : ITinyhandFormatter<string[]>
 
     public void Serialize(ref TinyhandWriter writer, string[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeStringArray(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref string[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref string[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeStringArray(ref reader);
+    }
 
     public string[] Reconstruct(TinyhandSerializerOptions options)
     {
@@ -207,7 +212,11 @@ internal sealed class StringListFormatter : ITinyhandFormatter<List<string>>
 
     public void Serialize(ref TinyhandWriter writer, List<string>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeStringList(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<string>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeStringList(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<string>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeStringList(ref reader);
+    }
 
     public List<string> Reconstruct(TinyhandSerializerOptions options)
     {
@@ -232,6 +241,7 @@ internal sealed class ByteArrayFormatter : ITinyhandFormatter<byte[]>
 
     public void Deserialize(ref TinyhandReader reader, ref byte[]? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadBytes(out var span))
         {
             value = span.ToArray();
@@ -268,6 +278,7 @@ internal sealed class ByteListFormatter : ITinyhandFormatter<List<byte>>
 
     public void Deserialize(ref TinyhandReader reader, ref List<byte>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadBytes(out var span))
         {
             value = new List<byte>(span.Length);

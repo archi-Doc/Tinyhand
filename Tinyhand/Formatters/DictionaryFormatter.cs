@@ -81,6 +81,7 @@ internal abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEn
 
     public void Deserialize(ref TinyhandReader reader, ref TDictionary? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -92,10 +93,11 @@ internal abstract class DictionaryFormatterBase<TKey, TValue, TIntermediate, TEn
 
             var len = reader.ReadMapHeaderOrEmptyArray();
 
-            TIntermediate dict = this.Create(value, len, options);
+            TIntermediate dict;
             options.Security.IncrementDepth(ref reader);
             try
             {
+                dict = this.Create(value, len, options);
                 for (int i = 0; i < len; i++)
                 {
                     var key = keyFormatter.Deserialize(ref reader, options);
@@ -233,7 +235,7 @@ internal sealed class DictionaryFormatter<TKey, TValue> : DictionaryFormatterBas
     protected override Dictionary<TKey, TValue> Create(Dictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
         var comparer = options.Security.GetEqualityComparer<TKey>(); // Rejects unsupported keys of untrusted data, even when reusing.
-        if (reuse is not null)
+        if (reuse is not null && (!options.Security.HashCollisionResistant || ReferenceEquals(reuse.Comparer, comparer)))
         {
             reuse.Clear();
             return reuse;
@@ -258,10 +260,12 @@ internal sealed class GenericDictionaryFormatter<TKey, TValue, TDictionary> : Di
     where TDictionary : IDictionary<TKey, TValue>, new()
 {
     private readonly Func<int, IEqualityComparer<TKey>, TDictionary> factory;
+    private readonly bool supportsComparer;
 
-    public GenericDictionaryFormatter(Func<int, IEqualityComparer<TKey>, TDictionary> factory)
+    public GenericDictionaryFormatter(Func<int, IEqualityComparer<TKey>, TDictionary> factory, bool supportsComparer = true)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        this.supportsComparer = supportsComparer;
     }
 
     protected override void Add(TDictionary collection, int index, TKey key, TValue value, TinyhandSerializerOptions options)
@@ -271,8 +275,18 @@ internal sealed class GenericDictionaryFormatter<TKey, TValue, TDictionary> : Di
 
     protected override TDictionary Create(TDictionary? reuse, int count, TinyhandSerializerOptions options)
     {
+        if (options.Security.HashCollisionResistant && !this.supportsComparer)
+        {
+            throw new TinyhandException($"{typeof(TDictionary).FullName} does not have a comparer-aware factory for untrusted data.");
+        }
+
         var comparer = options.Security.GetEqualityComparer<TKey>(); // Rejects unsupported keys of untrusted data, even when reusing.
-        if (reuse is not null)
+        // Arbitrary IDictionary implementations do not expose their comparer. Recreate them
+        // through the registered comparer-aware factory when their policy cannot be verified.
+#pragma warning disable CS8714 // This runtime type check does not add a notnull constraint to arbitrary IDictionary keys.
+        if (reuse is not null && (!options.Security.HashCollisionResistant ||
+            (reuse is Dictionary<TKey, TValue> dictionary && ReferenceEquals(dictionary.Comparer, comparer))))
+#pragma warning restore CS8714
         {
             reuse.Clear();
             return reuse;
@@ -293,7 +307,7 @@ internal sealed class InterfaceDictionaryFormatter<TKey, TValue> : DictionaryFor
     protected override Dictionary<TKey, TValue> Create(IDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
         var comparer = options.Security.GetEqualityComparer<TKey>(); // Rejects unsupported keys of untrusted data, even when reusing.
-        if (reuse is Dictionary<TKey, TValue> dictionary)
+        if (reuse is Dictionary<TKey, TValue> dictionary && (!options.Security.HashCollisionResistant || ReferenceEquals(dictionary.Comparer, comparer)))
         {
             dictionary.Clear();
             return dictionary;
@@ -415,7 +429,7 @@ internal sealed class ConcurrentDictionaryFormatter<TKey, TValue> : DictionaryFo
     protected override ConcurrentDictionary<TKey, TValue> Create(ConcurrentDictionary<TKey, TValue>? reuse, int count, TinyhandSerializerOptions options)
     {
         var comparer = options.Security.GetEqualityComparer<TKey>(); // Rejects unsupported keys of untrusted data, even when reusing.
-        if (reuse is not null)
+        if (reuse is not null && (!options.Security.HashCollisionResistant || ReferenceEquals(reuse.Comparer, comparer)))
         {
             reuse.Clear();
             return reuse;

@@ -24,6 +24,7 @@ internal sealed class ValueTupleFormatter<T1> : ITinyhandFormatter<ValueTuple<T1
 
     public void Deserialize(ref TinyhandReader reader, ref ValueTuple<T1> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");
@@ -77,6 +78,7 @@ internal sealed class ValueTupleFormatter<T1, T2> : ITinyhandFormatter<ValueTupl
 
     public void Deserialize(ref TinyhandReader reader, ref ValueTuple<T1, T2> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");
@@ -133,6 +135,7 @@ internal sealed class ValueTupleFormatter<T1, T2, T3> : ITinyhandFormatter<Value
 
     public void Deserialize(ref TinyhandReader reader, ref ValueTuple<T1, T2, T3> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");
@@ -192,6 +195,7 @@ internal sealed class ValueTupleFormatter<T1, T2, T3, T4> : ITinyhandFormatter<V
 
     public void Deserialize(ref TinyhandReader reader, ref ValueTuple<T1, T2, T3, T4> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");
@@ -254,6 +258,7 @@ internal sealed class ValueTupleFormatter<T1, T2, T3, T4, T5> : ITinyhandFormatt
 
     public void Deserialize(ref TinyhandReader reader, ref ValueTuple<T1, T2, T3, T4, T5> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");
@@ -319,6 +324,7 @@ internal sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6> : ITinyhandFor
 
     public void Deserialize(ref TinyhandReader reader, ref ValueTuple<T1, T2, T3, T4, T5, T6> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");
@@ -387,6 +393,7 @@ internal sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7> : ITinyhan
 
     public void Deserialize(ref TinyhandReader reader, ref ValueTuple<T1, T2, T3, T4, T5, T6, T7> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");
@@ -459,6 +466,7 @@ internal sealed class ValueTupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : I
 
     public void Deserialize(ref TinyhandReader reader, ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");

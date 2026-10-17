@@ -166,6 +166,7 @@ internal sealed class PrimitiveObjectFormatter : ITinyhandFormatter<object>
 
     public void Deserialize(ref TinyhandReader reader, ref object? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         MessagePackType type = reader.NextMessagePackType;
         IFormatterResolver resolver = options.Resolver;
         switch (type)
@@ -274,10 +275,11 @@ internal sealed class PrimitiveObjectFormatter : ITinyhandFormatter<object>
                     }
 
                     ITinyhandFormatter<object> objectFormatter = resolver.GetFormatter<object>();
-                    var array = new object[length];
+                    object[] array;
                     options.Security.IncrementDepth(ref reader);
                     try
                     {
+                        array = new object[length];
                         for (int i = 0; i < length; i++)
                         {
                             array[i] = objectFormatter.Deserialize(ref reader, options)!;

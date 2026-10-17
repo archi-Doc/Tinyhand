@@ -30,6 +30,7 @@ internal sealed class TupleFormatter<T1> : ITinyhandFormatter<Tuple<T1>>
 
     public void Deserialize(ref TinyhandReader reader, ref Tuple<T1>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
@@ -91,6 +92,7 @@ internal sealed class TupleFormatter<T1, T2> : ITinyhandFormatter<Tuple<T1, T2>>
 
     public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
@@ -155,6 +157,7 @@ internal sealed class TupleFormatter<T1, T2, T3> : ITinyhandFormatter<Tuple<T1, 
 
     public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
@@ -222,6 +225,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4> : ITinyhandFormatter<Tuple<
 
     public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
@@ -292,6 +296,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5> : ITinyhandFormatter<Tu
 
     public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4, T5>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
@@ -365,6 +370,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6> : ITinyhandFormatte
 
     public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4, T5, T6>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
@@ -441,6 +447,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7> : ITinyhandForm
 
     public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4, T5, T6, T7>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();
@@ -521,6 +528,7 @@ internal sealed class TupleFormatter<T1, T2, T3, T4, T5, T6, T7, TRest> : ITinyh
 
     public void Deserialize(ref TinyhandReader reader, ref Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadNil())
         {
             var count = reader.ReadArrayHeader();

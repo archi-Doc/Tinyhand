@@ -185,25 +185,26 @@ public class ArrayCoder : ITinyhandCoder
     {
         using (var m = ssb.ScopeBrace($"internal static {this.element.FullNameWithNullable}[]? DeserializeArray_{this.block!.SerialNumber:0000}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
         {
+            ssb.AppendLine("reader.ApplySecurity(options.Security);");
             if (this.elementCoder == null)
             {// use option.Resolver.GetFormatter<T>()
                 ssb.AppendLine($"var formatter = options.Resolver.GetFormatter<{this.element.FullName}>();");
             }
 
             ssb.AppendLine("var len = reader.ReadArrayHeader();");
-            var idx = this.element.FullName.IndexOf('[');
-            if (idx < 0)
-            { // int
-                ssb.AppendLine($"var array = len == 0 ? global::System.Array.Empty<{this.element.FullNameWithNullable}>() : new {this.element.FullNameWithNullable}[len];");
-            }
-            else
-            { // int[][]
-                ssb.AppendLine($"var array = len == 0 ? global::System.Array.Empty<{this.element.FullNameWithNullable}>() : new {this.element.FullNameWithNullable.Substring(0, idx)}[len]{this.element.FullNameWithNullable.Substring(idx)};");
-            }
-
             ssb.AppendLine("options.Security.IncrementDepth(ref reader);");
             using (var scopeSecurityTry = ssb.ScopeBrace("try"))
             {
+                var idx = this.element.FullName.IndexOf('[');
+                if (idx < 0)
+                { // int
+                    ssb.AppendLine($"var array = len == 0 ? global::System.Array.Empty<{this.element.FullNameWithNullable}>() : new {this.element.FullNameWithNullable}[len];");
+                }
+                else
+                { // int[][]
+                    ssb.AppendLine($"var array = len == 0 ? global::System.Array.Empty<{this.element.FullNameWithNullable}>() : new {this.element.FullNameWithNullable.Substring(0, idx)}[len]{this.element.FullNameWithNullable.Substring(idx)};");
+                }
+
                 using (var c2 = ssb.ScopeBrace("for (int i = 0; i < array.Length; i++)"))
                 {
                     // ssb.AppendLine("#nullable disable");
@@ -242,14 +243,14 @@ public class ArrayCoder : ITinyhandCoder
 
                     // ssb.AppendLine("#nullable restore");
                 }
+
+                ssb.AppendLine("return array;");
             }
 
             using (var scopeSecurityFinally = ssb.ScopeBrace("finally"))
             {
                 ssb.AppendLine("reader.Depth--;");
             }
-
-            ssb.AppendLine($"return array;");
         }
     }
 

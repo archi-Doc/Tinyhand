@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Arc;
 using Arc.Collections;
@@ -188,6 +189,8 @@ public static partial class TinyhandSerializer
     public static void ReadStringConvertibleOrDeserializeObject<T>(ref TinyhandReader reader, scoped ref T? value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>, IStringConvertible<T>
     {
+        options ??= DefaultOptions;
+        reader.ApplySecurity(options.Security);
         var st = reader.ReadStringIfPresent();
         if (st is not null)
         {
@@ -202,6 +205,8 @@ public static partial class TinyhandSerializer
     public static void ReadStringConvertibleOrDeserializeAndReconstructObject<T>(ref TinyhandReader reader, scoped ref T value, TinyhandSerializerOptions? options = null)
         where T : ITinyhandSerializable<T>, ITinyhandReconstructable<T>, IStringConvertible<T>
     {
+        options ??= DefaultOptions;
+        reader.ApplySecurity(options.Security);
         var st = reader.ReadStringIfPresent();
         if (st is not null)
         {
@@ -221,7 +226,7 @@ public static partial class TinyhandSerializer
     public static T? DeserializeObject<T>(ReadOnlySpan<byte> data)
         where T : ITinyhandSerializable<T>
     {
-        var reader = new TinyhandReader(data);
+        var reader = new TinyhandReader(data, DefaultOptions.Security);
 
         try
         {
@@ -238,7 +243,7 @@ public static partial class TinyhandSerializer
     public static void DeserializeObject<T>(ReadOnlySpan<byte> data, ref T? value)
         where T : ITinyhandSerializable<T>
     {
-        var reader = new TinyhandReader(data);
+        var reader = new TinyhandReader(data, DefaultOptions.Security);
 
         try
         {
@@ -254,6 +259,7 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerializable<T>
     {
         options = options ?? DefaultOptions;
+        reader.ApplySecurity(options.Security);
         T.Deserialize(ref reader, ref value, options);
     }
 
@@ -261,6 +267,7 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerializable<T>, ITinyhandReconstructable<T>
     {
         options = options ?? DefaultOptions;
+        reader.ApplySecurity(options.Security);
         T.Deserialize(ref reader, ref value, options);
         if (value is null)
         {
@@ -273,6 +280,7 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerializable<T>
     {
         options = options ?? DefaultOptions;
+        reader.ApplySecurity(options.Security);
         var value = default(T);
         T.Deserialize(ref reader, ref value, options);
         return value;
@@ -282,6 +290,7 @@ public static partial class TinyhandSerializer
         where T : ITinyhandSerializable<T>, ITinyhandReconstructable<T>
     {
         options = options ?? DefaultOptions;
+        reader.ApplySecurity(options.Security);
         var value = default(T);
         T.Deserialize(ref reader, ref value, options);
         if (value == null)
@@ -299,6 +308,7 @@ public static partial class TinyhandSerializer
         var reader = new TinyhandReader(data);
         try
         {
+            reader.ApplySecurity(DefaultOptions.Security);
             value = default;
             T.Deserialize(ref reader, ref value, DefaultOptions);
             return value is not null;
@@ -316,6 +326,7 @@ public static partial class TinyhandSerializer
         options = options ?? DefaultOptions;
         try
         {
+            reader.ApplySecurity(options.Security);
             T.Deserialize(ref reader, ref value, options);
             return value is not null;
         }
@@ -715,6 +726,7 @@ public static partial class TinyhandSerializer
 
         try
         {
+            reader.ApplySecurity(options.Security);
             return options.Resolver.GetFormatter<T>().Deserialize(ref reader, options);
         }
         catch (Exception ex)
@@ -779,6 +791,7 @@ public static partial class TinyhandSerializer
 
         try
         {
+            reader.ApplySecurity(options.Security);
             if (options.HasLz4CompressFlag)
             {
                 var byteSequence = new ByteSequence();
@@ -829,7 +842,25 @@ public static partial class TinyhandSerializer
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
     public static T? Deserialize<T>(Stream stream, TinyhandSerializerOptions? options = null)
+        => Deserialize<T>(stream, options, CancellationToken.None);
+
+    /// <summary>Deserializes a buffered stream with cancellation and the selected input-size limit.</summary>
+    /// <typeparam name="T">The value type.</typeparam>
+    /// <param name="stream">The input stream.</param>
+    /// <param name="options">The deserialization options.</param>
+    /// <param name="cancellationToken">Cancellation checked between synchronous reads.</param>
+    /// <returns>The deserialized value.</returns>
+    public static T? Deserialize<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
     {
+        options ??= DefaultOptions;
+        cancellationToken.ThrowIfCancellationRequested();
+        var limits = options.Security.Limits;
+        var limited = !limits.IsUnrestricted;
+        if (limited && stream.CanSeek)
+        {
+            limits.CheckInputLength(stream.Length - stream.Position);
+        }
+
         if (TryDeserializeFromMemoryStream(stream, options, out T? result))
         {
             return result;
@@ -839,15 +870,32 @@ public static partial class TinyhandSerializer
         try
         {
             int bytesRead;
+            long inputLength = 0;
             do
             {
-                var span = byteSequence.GetSpan(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
+                cancellationToken.ThrowIfCancellationRequested();
+                var hint = limited ? (int)Math.Min(MaxHintSize, (long)limits.MaximumInputBytes - inputLength + 1) : stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0;
+                var span = byteSequence.GetSpan(hint);
+                if (limited)
+                {
+                    span = span.Slice(0, hint);
+                }
+
                 bytesRead = stream.Read(span);
                 byteSequence.Advance(bytesRead);
+                if (limited)
+                {
+                    inputLength += bytesRead;
+                    limits.CheckInputLength(inputLength);
+                }
             }
             while (bytesRead > 0);
 
             return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -871,8 +919,26 @@ public static partial class TinyhandSerializer
     /// <param name="options">The options. Use <c>null</c> to use default options.</param>
     /// <returns>The deserialized value.</returns>
     /// <exception cref="TinyhandException">Thrown when any error occurs during deserialization.</exception>
-    public static async ValueTask<T?> DeserializeAsync<T>(Stream stream, TinyhandSerializerOptions? options = null)
+    public static ValueTask<T?> DeserializeAsync<T>(Stream stream, TinyhandSerializerOptions? options = null)
+        => DeserializeAsync<T>(stream, options, CancellationToken.None);
+
+    /// <summary>Deserializes a buffered stream with cancellation and the selected input-size limit.</summary>
+    /// <typeparam name="T">The value type.</typeparam>
+    /// <param name="stream">The input stream.</param>
+    /// <param name="options">The deserialization options.</param>
+    /// <param name="cancellationToken">Cancellation passed to asynchronous stream reads.</param>
+    /// <returns>The deserialized value.</returns>
+    public static async ValueTask<T?> DeserializeAsync<T>(Stream stream, TinyhandSerializerOptions? options, CancellationToken cancellationToken)
     {
+        options ??= DefaultOptions;
+        cancellationToken.ThrowIfCancellationRequested();
+        var limits = options.Security.Limits;
+        var limited = !limits.IsUnrestricted;
+        if (limited && stream.CanSeek)
+        {
+            limits.CheckInputLength(stream.Length - stream.Position);
+        }
+
         if (TryDeserializeFromMemoryStream(stream, options, out T? result))
         {
             return result;
@@ -882,15 +948,32 @@ public static partial class TinyhandSerializer
         try
         {
             int bytesRead;
+            long inputLength = 0;
             do
             {
-                var memory = byteSequence.GetMemory(stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0);
-                bytesRead = await stream.ReadAsync(memory).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                var hint = limited ? (int)Math.Min(MaxHintSize, (long)limits.MaximumInputBytes - inputLength + 1) : stream.CanSeek ? (int)Math.Min(MaxHintSize, stream.Length - stream.Position) : 0;
+                var memory = byteSequence.GetMemory(hint);
+                if (limited)
+                {
+                    memory = memory.Slice(0, hint);
+                }
+
+                bytesRead = await stream.ReadAsync(memory, cancellationToken).ConfigureAwait(false);
                 byteSequence.Advance(bytesRead);
+                if (limited)
+                {
+                    inputLength += bytesRead;
+                    limits.CheckInputLength(inputLength);
+                }
             }
             while (bytesRead > 0);
 
             return DeserializeFromSequenceAndRewindStreamIfPossible<T>(stream, options, byteSequence);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -914,15 +997,15 @@ public static partial class TinyhandSerializer
             return false;
         }
 
-        var peekReader = reader.Fork();
+        var peekReader = reader.ForkForValidation();
         var arrayLength = peekReader.ReadArrayHeader();
         if (arrayLength != 0 && peekReader.NextMessagePackType == MessagePackType.Extension)
         {
             ExtensionHeader header = peekReader.ReadExtensionFormatHeader();
             if (header.TypeCode == Tinyhand.MessagePackExtensionCodes.Lz4BlockArray)
             {
-                // switch peekReader as original reader.
-                reader = peekReader;
+                // Commit successful lookahead once, preserving the budget shared by reader copies.
+                reader = peekReader.CompleteValidation();
 
                 // Read from [Ext(98:int,int...), bin,bin,bin...]
                 var sequenceCount = arrayLength - 1;
@@ -947,7 +1030,7 @@ public static partial class TinyhandSerializer
 
                     // The blocks are validated and their lengths are summed first, so that the data is decoded into one contiguous span
                     // (a buffer made of several segments would be copied once more to be read as a span).
-                    var blockReader = reader.Fork();
+                    var blockReader = reader.ForkForValidation();
                     long totalLength = 0;
                     for (int i = 0; i < sequenceCount; i++)
                     {
@@ -972,6 +1055,7 @@ public static partial class TinyhandSerializer
                         throw new TinyhandException("Invalid LZ4 block length.");
                     }
 
+                    reader.ReserveDecompressedBytes(totalLength);
                     if (totalLength > 0)
                     {
                         var destination = writer.GetSpan((int)totalLength);

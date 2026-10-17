@@ -661,7 +661,7 @@ public sealed class StaticRegistrationGenerator : IIncrementalGenerator
                     var capacityConstructor = named.InstanceConstructors.Any(x => x.DeclaredAccessibility == Accessibility.Public && x.Parameters.Length == 2 &&
                         x.Parameters[0].Type.SpecialType == SpecialType.System_Int32 && SymbolEqualityComparer.Default.Equals(x.Parameters[1].Type, comparer));
                     var constructor = capacityConstructor ? $"new {name}(count, comparer)" : $"new {name}()";
-                    this.registrations.Add((type, $"{Resolver}.RegisterDictionary<{Name(key)}, {Name(value)}, {name}>(static (count, comparer) => {constructor});"));
+                    this.registrations.Add((type, $"{Resolver}.RegisterDictionary<{Name(key)}, {Name(value)}, {name}>(static (count, comparer) => {constructor}, supportsComparer: {(capacityConstructor ? "true" : "false")});"));
                 }
                 else if (named.AllInterfaces.FirstOrDefault(x => MetadataName(x) == "System.Collections.Generic.ICollection`1") is { } collection)
                 {

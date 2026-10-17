@@ -36,6 +36,12 @@ internal sealed class Utf16HashtableFormatter<T> : ITinyhandFormatter<Utf16Hasht
 
     public void Deserialize(ref TinyhandReader reader, ref Utf16Hashtable<T>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
+        if (options.Security.HashCollisionResistant)
+        {
+            throw new TinyhandException("Utf16Hashtable does not support hash collision resistant deserialization. Use Dictionary<string, T> for untrusted data.");
+        }
+
         if (reader.TryReadNil())
         {
         }
@@ -117,6 +123,7 @@ internal sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
 
     public void Deserialize(ref TinyhandReader reader, ref T[]? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -125,10 +132,10 @@ internal sealed class ArrayFormatter<T> : ITinyhandFormatter<T[]>
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            value = len == 0 ? Array.Empty<T>() : new T[len];
             options.Security.IncrementDepth(ref reader);
             try
             {
+                value = len == 0 ? Array.Empty<T>() : new T[len];
                 for (int i = 0; i < value.Length; i++)
                 {
                     value[i] = formatter.Deserialize(ref reader, options) ?? formatter.Reconstruct(options);
@@ -183,6 +190,7 @@ internal sealed class ByteMemoryFormatter : ITinyhandFormatter<Memory<byte>>
 
     public void Deserialize(ref TinyhandReader reader, ref Memory<byte> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = new Memory<byte>(reader.ReadBytesToArray());
     }
 
@@ -210,6 +218,7 @@ internal sealed class ByteReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyM
 
     public void Deserialize(ref TinyhandReader reader, ref ReadOnlyMemory<byte> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = new ReadOnlyMemory<byte>(reader.ReadBytesToArray());
     }
 
@@ -242,6 +251,7 @@ internal sealed class CharMemoryFormatter : ITinyhandFormatter<Memory<char>>
 
     public void Deserialize(ref TinyhandReader reader, ref Memory<char> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             value = Memory<char>.Empty;
@@ -289,6 +299,7 @@ internal sealed class CharReadOnlyMemoryFormatter : ITinyhandFormatter<ReadOnlyM
 
     public void Deserialize(ref TinyhandReader reader, ref ReadOnlyMemory<char> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             value = ReadOnlyMemory<char>.Empty;
@@ -335,6 +346,7 @@ internal sealed class ByteReadOnlySequenceFormatter : ITinyhandFormatter<ReadOnl
 
     public void Deserialize(ref TinyhandReader reader, ref ReadOnlySequence<byte> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = new ReadOnlySequence<byte>(reader.ReadBytesToArray());
     }
 
@@ -368,6 +380,7 @@ internal sealed class ByteArraySegmentFormatter : ITinyhandFormatter<ArraySegmen
 
     public void Deserialize(ref TinyhandReader reader, ref ArraySegment<byte> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = new ArraySegment<byte>(reader.ReadBytesToArray());
     }
 
@@ -521,6 +534,7 @@ internal sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
 
     public void Deserialize(ref TinyhandReader reader, ref List<T>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -529,18 +543,18 @@ internal sealed class ListFormatter<T> : ITinyhandFormatter<List<T>>
             ITinyhandFormatter<T> formatter = options.Resolver.GetFormatter<T>();
 
             var len = reader.ReadArrayHeader();
-            if (value is null)
-            {
-                value = new List<T>((int)len);
-            }
-            else
-            {
-                value.Clear();
-            }
-
             options.Security.IncrementDepth(ref reader);
             try
             {
+                if (value is null)
+                {
+                    value = new List<T>((int)len);
+                }
+                else
+                {
+                    value.Clear();
+                }
+
                 for (int i = 0; i < len; i++)
                 {
                     value.Add(formatter.Deserialize(ref reader, options)!);
@@ -650,6 +664,7 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
 
     public void Deserialize(ref TinyhandReader reader, ref TCollection? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -659,10 +674,11 @@ internal abstract class CollectionFormatterBase<TElement, TIntermediate, TEnumer
 
             var len = reader.ReadArrayHeader();
 
-            TIntermediate list = this.Create(len, options);
+            TIntermediate list;
             options.Security.IncrementDepth(ref reader);
             try
             {
+                list = this.Create(len, options);
                 for (int i = 0; i < len; i++)
                 {
                     this.Add(list, i, formatter.Deserialize(ref reader, options)!, options);
@@ -796,7 +812,17 @@ internal sealed class GenericCollectionFormatter<TElement, TCollection> : Collec
 {
     protected override TCollection Create(int count, TinyhandSerializerOptions options)
     {
-        return new TCollection();
+        var collection = new TCollection();
+        if (options.Security.HashCollisionResistant && collection is ISet<TElement> && collection is not SortedSet<TElement>)
+        {
+            var comparer = options.Security.GetEqualityComparer<TElement>();
+            if (collection is not HashSet<TElement> set || !ReferenceEquals(set.Comparer, comparer))
+            {
+                throw new TinyhandException($"{typeof(TCollection).FullName} does not expose a hash collision resistant comparer. Use a supported set type for untrusted data.");
+            }
+        }
+
+        return collection;
     }
 
     protected override void Add(TCollection collection, int index, TElement value, TinyhandSerializerOptions options)
@@ -1011,6 +1037,7 @@ internal sealed class InterfaceGroupingFormatter<TKey, TElement> : ITinyhandForm
 
     public void Deserialize(ref TinyhandReader reader, ref IGrouping<TKey, TElement>? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }

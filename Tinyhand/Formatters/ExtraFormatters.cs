@@ -17,6 +17,7 @@ public sealed class Struct128Formatter : ITinyhandFormatter<Struct128>
 
     public static Struct128 DeserializeValue(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadBytes(out var span) ||
             span.Length < Struct128.Length)
         {
@@ -50,6 +51,7 @@ public sealed class Struct256Formatter : ITinyhandFormatter<Struct256>
 
     public static Struct256 DeserializeValue(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadBytes(out var span) ||
             span.Length < Struct256.Length)
         {
@@ -92,6 +94,7 @@ internal sealed class RentMemoryFormatter : ITinyhandFormatter<BytePool.RentedMe
 
     public void Deserialize(ref TinyhandReader reader, ref BytePool.RentedMemory value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = reader.ReadBytesToRentMemory();
     }
 
@@ -126,6 +129,7 @@ internal sealed class RentReadOnlyMemoryFormatter : ITinyhandFormatter<BytePool.
 
     public void Deserialize(ref TinyhandReader reader, ref BytePool.RentedReadOnlyMemory value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = reader.ReadBytesToRentMemory().ReadOnly;
     }
 
@@ -173,6 +177,7 @@ internal sealed class IPAddressFormatter : ITinyhandFormatter<IPAddress>
 
     public void Deserialize(ref TinyhandReader reader, ref IPAddress? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadBytes(out var span))
         {
             return;
@@ -221,6 +226,7 @@ internal sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
 
     public void Deserialize(ref TinyhandReader reader, ref IPEndPoint? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (!reader.TryReadBytes(out var span) ||
             span.Length < 4)
         {
@@ -261,6 +267,7 @@ internal sealed class IPEndPointFormatter : ITinyhandFormatter<IPEndPoint>
 
     public DateTime[]? Deserialize(ref TinyhandReader reader, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
             return null;

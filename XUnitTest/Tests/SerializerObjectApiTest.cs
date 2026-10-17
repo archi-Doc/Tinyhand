@@ -185,7 +185,7 @@ public class SerializerObjectApiTest
         await TinyhandSerializer.SerializeAsync(stream, c);
         stream.Position = 0;
 
-        var c2 = await TinyhandSerializer.DeserializeAsync<ObjectApiClass>(stream);
+        var c2 = await TinyhandSerializer.DeserializeAsync<ObjectApiClass>(stream, null, TestContext.Current.CancellationToken);
         c2.Is(c);
 
         // The bytes are the same as the synchronous path.
@@ -201,7 +201,7 @@ public class SerializerObjectApiTest
         await TinyhandSerializer.SerializeAsync(stream, c, TinyhandSerializerOptions.Lz4);
         stream.Position = 0;
 
-        var c2 = await TinyhandSerializer.DeserializeAsync<ObjectApiClass>(stream, TinyhandSerializerOptions.Lz4);
+        var c2 = await TinyhandSerializer.DeserializeAsync<ObjectApiClass>(stream, TinyhandSerializerOptions.Lz4, TestContext.Current.CancellationToken);
         c2.Is(c);
     }
 
@@ -214,6 +214,6 @@ public class SerializerObjectApiTest
         TinyhandSerializer.Serialize(stream, c);
         stream.Position = 0;
 
-        TinyhandSerializer.Deserialize<ObjectApiClass>(stream).Is(c);
+        TinyhandSerializer.Deserialize<ObjectApiClass>(stream, null, TestContext.Current.CancellationToken).Is(c);
     }
 }

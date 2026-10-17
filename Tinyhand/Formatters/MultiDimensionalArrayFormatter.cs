@@ -40,6 +40,7 @@ internal sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
 
     public void Deserialize(ref TinyhandReader reader, ref T[,]? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -61,13 +62,12 @@ internal sealed class TwoDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,]>
                 throw new TinyhandException("Invalid T[,] format");
             }
 
-            value = new T[iLength, jLength];
-
             var i = 0;
             var j = -1;
             options.Security.IncrementDepth(ref reader);
             try
             {
+                value = new T[iLength, jLength];
                 for (int loop = 0; loop < maxLen; loop++)
                 {
                     if (j < jLength - 1)
@@ -159,6 +159,7 @@ internal sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,
 
     public void Deserialize(ref TinyhandReader reader, ref T[,,]? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -181,14 +182,13 @@ internal sealed class ThreeDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,
                 throw new TinyhandException("Invalid T[,,] format");
             }
 
-            value = new T[iLength, jLength, kLength];
-
             var i = 0;
             var j = 0;
             var k = -1;
             options.Security.IncrementDepth(ref reader);
             try
             {
+                value = new T[iLength, jLength, kLength];
                 for (int loop = 0; loop < maxLen; loop++)
                 {
                     if (k < kLength - 1)
@@ -296,6 +296,7 @@ internal sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,
 
     public void Deserialize(ref TinyhandReader reader, ref T[,,,]? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -319,8 +320,6 @@ internal sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,
                 throw new TinyhandException("Invalid T[,,,] format");
             }
 
-            value = new T[iLength, jLength, kLength, lLength];
-
             var i = 0;
             var j = 0;
             var k = 0;
@@ -328,6 +327,7 @@ internal sealed class FourDimensionalArrayFormatter<T> : ITinyhandFormatter<T[,,
             options.Security.IncrementDepth(ref reader);
             try
             {
+                value = new T[iLength, jLength, kLength, lLength];
                 for (int loop = 0; loop < maxLen; loop++)
                 {
                     if (l < lLength - 1)

@@ -769,17 +769,14 @@ _last_literals:
                             goto _output_error; // Error : last 5 bytes must be literals
                         }
 
+                        while (dst_p < dst_COPYLENGTH)
                         {
-                            do
-                            {
-                                *(uint*)dst_p = *(uint*)xxx_ref;
-                                dst_p += 4;
-                                xxx_ref += 4;
-                                *(uint*)dst_p = *(uint*)xxx_ref;
-                                dst_p += 4;
-                                xxx_ref += 4;
-                            }
-                            while (dst_p < dst_COPYLENGTH);
+                            *(uint*)dst_p = *(uint*)xxx_ref;
+                            dst_p += 4;
+                            xxx_ref += 4;
+                            *(uint*)dst_p = *(uint*)xxx_ref;
+                            dst_p += 4;
+                            xxx_ref += 4;
                         }
 
                         while (dst_p < dst_cpy)

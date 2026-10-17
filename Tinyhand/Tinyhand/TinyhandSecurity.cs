@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Tinyhand.IO;
 
 #pragma warning disable SA1202 // Elements should be ordered by access
@@ -10,9 +11,9 @@ using Tinyhand.IO;
 namespace Tinyhand;
 
 /// <summary>
-/// Configures depth limits and collection comparer policies for deserialization.
+/// Configures depth and size limits, collection comparer policies, and native value validation for deserialization.
 /// </summary>
-public class TinyhandSecurity
+public partial class TinyhandSecurity
 {
     /// <summary>
     /// Gets an instance preconfigured with settings that omit all protections. Useful for deserializing fully-trusted and valid msgpack sequences.
@@ -29,7 +30,9 @@ public class TinyhandSecurity
     public static readonly TinyhandSecurity UntrustedData = new TinyhandSecurity
     {
         HashCollisionResistant = true,
+        ValidateNativeValues = true,
         MaximumObjectGraphDepth = 500,
+        Limits = TinyhandDeserializationLimits.UntrustedData,
     };
 
     private TinyhandSecurity()
@@ -49,7 +52,9 @@ public class TinyhandSecurity
         }
 
         this.HashCollisionResistant = copyFrom.HashCollisionResistant;
+        this.ValidateNativeValues = copyFrom.ValidateNativeValues;
         this.MaximumObjectGraphDepth = copyFrom.MaximumObjectGraphDepth;
+        this.Limits = copyFrom.Limits;
     }
 
     /// <summary>
@@ -61,6 +66,12 @@ public class TinyhandSecurity
     /// The value is <c>false</c> for <see cref="TrustedData"/> and <c>true</c> for <see cref="UntrustedData"/>.
     /// </value>
     public bool HashCollisionResistant { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether native binary values are validated before use.
+    /// Enabled by <see cref="UntrustedData"/> independently of the collection comparer policy.
+    /// </summary>
+    public bool ValidateNativeValues { get; private set; }
 
     /// <summary>
     /// Gets the maximum depth of an object graph that may be deserialized.
@@ -227,14 +238,14 @@ public class TinyhandSecurity
     {
         internal static new readonly UInt64EqualityComparer Instance = new UInt64EqualityComparer();
 
-        public override int GetHashCode(ulong value) => HashCode.Combine((uint)(value >> 32), unchecked((uint)value));
+        public override int GetHashCode(ulong value) => SipHash.Hash(value);
     }
 
     private class Int64EqualityComparer : CollisionResistantHasher<long>
     {
         internal static new readonly Int64EqualityComparer Instance = new Int64EqualityComparer();
 
-        public override int GetHashCode(long value) => HashCode.Combine((int)(value >> 32), unchecked((int)value));
+        public override int GetHashCode(long value) => SipHash.Hash(unchecked((ulong)value));
     }
 
     private class SingleEqualityComparer : CollisionResistantHasher<float>
@@ -268,7 +279,7 @@ public class TinyhandSecurity
             // Special check for 0.0 so that the hash of 0.0 and -0.0 will equal.
             if (value == 0.0)
             {
-                return HashCode.Combine(0);
+                return SipHash.Hash(0);
             }
 
             // Standardize on the binary representation of NaN prior to hashing.
@@ -277,8 +288,7 @@ public class TinyhandSecurity
                 value = double.NaN;
             }
 
-            var l = BitConverter.DoubleToInt64Bits(value);
-            return HashCode.Combine((int)(l >> 32), unchecked((int)l));
+            return SipHash.Hash(unchecked((ulong)BitConverter.DoubleToInt64Bits(value)));
         }
     }
 
@@ -288,14 +298,8 @@ public class TinyhandSecurity
 
         public override unsafe int GetHashCode(Guid value)
         {
-            var hash = default(HashCode);
-            int* pGuid = (int*)&value;
-            for (int i = 0; i < sizeof(Guid) / sizeof(int); i++)
-            {
-                hash.Add(pGuid[i]);
-            }
-
-            return hash.ToHashCode();
+            // Guid has no padding; read both words without requiring 8-byte alignment.
+            return SipHash.Hash(Unsafe.ReadUnaligned<ulong>(&value), Unsafe.ReadUnaligned<ulong>((byte*)&value + sizeof(ulong)));
         }
     }
 
@@ -314,13 +318,13 @@ public class TinyhandSecurity
         internal static new readonly DateTimeEqualityComparer Instance = new DateTimeEqualityComparer();
 
         // DateTime.Equals ignores Kind, so the hash must ignore it as well.
-        public override int GetHashCode(DateTime value) => HashCode.Combine((int)(value.Ticks >> 32), unchecked((int)value.Ticks));
+        public override int GetHashCode(DateTime value) => SipHash.Hash((ulong)value.Ticks);
     }
 
     private class DateTimeOffsetEqualityComparer : CollisionResistantHasher<DateTimeOffset>
     {
         internal static new readonly DateTimeOffsetEqualityComparer Instance = new DateTimeOffsetEqualityComparer();
 
-        public override int GetHashCode(DateTimeOffset value) => HashCode.Combine((int)(value.UtcTicks >> 32), unchecked((int)value.UtcTicks));
+        public override int GetHashCode(DateTimeOffset value) => SipHash.Hash((ulong)value.UtcTicks);
     }
 }

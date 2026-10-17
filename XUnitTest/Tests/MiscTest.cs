@@ -170,7 +170,7 @@ public class TinyhandSerializerStreamTest
         TinyhandSerializer.Serialize(ms, value);
 
         ms.Position = 0;
-        var value2 = TinyhandSerializer.Deserialize<KeyValuePair<int, string>>(ms);
+        var value2 = TinyhandSerializer.Deserialize<KeyValuePair<int, string>>(ms, null, TestContext.Current.CancellationToken);
         value2.Is(value);
     }
 

@@ -139,7 +139,11 @@ internal sealed class Int8ArrayFormatter : ITinyhandFormatter<sbyte[]>
 
     public void Serialize(ref TinyhandWriter writer, sbyte[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt8Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref sbyte[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt8Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref sbyte[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt8Array(ref reader);
+    }
 
     public sbyte[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<sbyte>();
 
@@ -172,7 +176,11 @@ internal sealed class Int8ListFormatter : ITinyhandFormatter<List<sbyte>>
 
     public void Serialize(ref TinyhandWriter writer, List<sbyte>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt8List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<sbyte>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt8List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<sbyte>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt8List(ref reader);
+    }
 
     public List<sbyte> Reconstruct(TinyhandSerializerOptions options) => new List<sbyte>();
 
@@ -248,7 +256,11 @@ internal sealed class UInt16ArrayFormatter : ITinyhandFormatter<ushort[]>
 
     public void Serialize(ref TinyhandWriter writer, ushort[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt16Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref ushort[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt16Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref ushort[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeUInt16Array(ref reader);
+    }
 
     public ushort[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<ushort>();
 
@@ -281,7 +293,11 @@ internal sealed class UInt16ListFormatter : ITinyhandFormatter<List<ushort>>
 
     public void Serialize(ref TinyhandWriter writer, List<ushort>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt16List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<ushort>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt16List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<ushort>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeUInt16List(ref reader);
+    }
 
     public List<ushort> Reconstruct(TinyhandSerializerOptions options) => new List<ushort>();
 
@@ -357,7 +373,11 @@ internal sealed class Int16ArrayFormatter : ITinyhandFormatter<short[]>
 
     public void Serialize(ref TinyhandWriter writer, short[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt16Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref short[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt16Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref short[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt16Array(ref reader);
+    }
 
     public short[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<short>();
 
@@ -390,7 +410,11 @@ internal sealed class Int16ListFormatter : ITinyhandFormatter<List<short>>
 
     public void Serialize(ref TinyhandWriter writer, List<short>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt16List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<short>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt16List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<short>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt16List(ref reader);
+    }
 
     public List<short> Reconstruct(TinyhandSerializerOptions options) => new List<short>();
 
@@ -466,7 +490,11 @@ internal sealed class UInt32ArrayFormatter : ITinyhandFormatter<uint[]>
 
     public void Serialize(ref TinyhandWriter writer, uint[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt32Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref uint[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt32Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref uint[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeUInt32Array(ref reader);
+    }
 
     public uint[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<uint>();
 
@@ -499,7 +527,11 @@ internal sealed class UInt32ListFormatter : ITinyhandFormatter<List<uint>>
 
     public void Serialize(ref TinyhandWriter writer, List<uint>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt32List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<uint>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt32List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<uint>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeUInt32List(ref reader);
+    }
 
     public List<uint> Reconstruct(TinyhandSerializerOptions options) => new List<uint>();
 
@@ -575,7 +607,11 @@ internal sealed class Int32ArrayFormatter : ITinyhandFormatter<int[]>
 
     public void Serialize(ref TinyhandWriter writer, int[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt32Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref int[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref int[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt32Array(ref reader);
+    }
 
     public int[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<int>();
 
@@ -608,7 +644,11 @@ internal sealed class Int32ListFormatter : ITinyhandFormatter<List<int>>
 
     public void Serialize(ref TinyhandWriter writer, List<int>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt32List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<int>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt32List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<int>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt32List(ref reader);
+    }
 
     public List<int> Reconstruct(TinyhandSerializerOptions options) => new List<int>();
 
@@ -684,7 +724,11 @@ internal sealed class UInt64ArrayFormatter : ITinyhandFormatter<ulong[]>
 
     public void Serialize(ref TinyhandWriter writer, ulong[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt64Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref ulong[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt64Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref ulong[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeUInt64Array(ref reader);
+    }
 
     public ulong[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<ulong>();
 
@@ -717,7 +761,11 @@ internal sealed class UInt64ListFormatter : ITinyhandFormatter<List<ulong>>
 
     public void Serialize(ref TinyhandWriter writer, List<ulong>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt64List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<ulong>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt64List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<ulong>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeUInt64List(ref reader);
+    }
 
     public List<ulong> Reconstruct(TinyhandSerializerOptions options) => new List<ulong>();
 
@@ -793,7 +841,11 @@ internal sealed class Int64ArrayFormatter : ITinyhandFormatter<long[]>
 
     public void Serialize(ref TinyhandWriter writer, long[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt64Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref long[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt64Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref long[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt64Array(ref reader);
+    }
 
     public long[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<long>();
 
@@ -826,7 +878,11 @@ internal sealed class Int64ListFormatter : ITinyhandFormatter<List<long>>
 
     public void Serialize(ref TinyhandWriter writer, List<long>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt64List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<long>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt64List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<long>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt64List(ref reader);
+    }
 
     public List<long> Reconstruct(TinyhandSerializerOptions options) => new List<long>();
 
@@ -902,7 +958,11 @@ internal sealed class SingleArrayFormatter : ITinyhandFormatter<float[]>
 
     public void Serialize(ref TinyhandWriter writer, float[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeSingleArray(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref float[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeSingleArray(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref float[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeSingleArray(ref reader);
+    }
 
     public float[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<float>();
 
@@ -935,7 +995,11 @@ internal sealed class SingleListFormatter : ITinyhandFormatter<List<float>>
 
     public void Serialize(ref TinyhandWriter writer, List<float>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeSingleList(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<float>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeSingleList(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<float>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeSingleList(ref reader);
+    }
 
     public List<float> Reconstruct(TinyhandSerializerOptions options) => new List<float>();
 
@@ -1011,7 +1075,11 @@ internal sealed class DoubleArrayFormatter : ITinyhandFormatter<double[]>
 
     public void Serialize(ref TinyhandWriter writer, double[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDoubleArray(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref double[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeDoubleArray(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref double[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeDoubleArray(ref reader);
+    }
 
     public double[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<double>();
 
@@ -1044,7 +1112,11 @@ internal sealed class DoubleListFormatter : ITinyhandFormatter<List<double>>
 
     public void Serialize(ref TinyhandWriter writer, List<double>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDoubleList(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<double>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeDoubleList(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<double>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeDoubleList(ref reader);
+    }
 
     public List<double> Reconstruct(TinyhandSerializerOptions options) => new List<double>();
 
@@ -1120,7 +1192,11 @@ internal sealed class BooleanArrayFormatter : ITinyhandFormatter<bool[]>
 
     public void Serialize(ref TinyhandWriter writer, bool[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeBooleanArray(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref bool[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeBooleanArray(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref bool[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeBooleanArray(ref reader);
+    }
 
     public bool[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<bool>();
 
@@ -1153,7 +1229,11 @@ internal sealed class BooleanListFormatter : ITinyhandFormatter<List<bool>>
 
     public void Serialize(ref TinyhandWriter writer, List<bool>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeBooleanList(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<bool>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeBooleanList(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<bool>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeBooleanList(ref reader);
+    }
 
     public List<bool> Reconstruct(TinyhandSerializerOptions options) => new List<bool>();
 
@@ -1229,7 +1309,11 @@ internal sealed class CharArrayFormatter : ITinyhandFormatter<char[]>
 
     public void Serialize(ref TinyhandWriter writer, char[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeCharArray(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref char[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeCharArray(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref char[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeCharArray(ref reader);
+    }
 
     public char[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<char>();
 
@@ -1262,7 +1346,11 @@ internal sealed class CharListFormatter : ITinyhandFormatter<List<char>>
 
     public void Serialize(ref TinyhandWriter writer, List<char>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeCharList(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<char>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeCharList(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<char>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeCharList(ref reader);
+    }
 
     public List<char> Reconstruct(TinyhandSerializerOptions options) => new List<char>();
 
@@ -1284,6 +1372,7 @@ internal sealed class DateTimeFormatter : ITinyhandFormatter<DateTime>
 
     public void Deserialize(ref TinyhandReader reader, ref DateTime value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         value = reader.ReadDateTime();
     }
 
@@ -1314,6 +1403,7 @@ internal sealed class NullableDateTimeFormatter : ITinyhandFormatter<DateTime?>
 
     public void Deserialize(ref TinyhandReader reader, ref DateTime? value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.TryReadNil())
         {
         }
@@ -1338,7 +1428,11 @@ internal sealed class DateTimeArrayFormatter : ITinyhandFormatter<DateTime[]>
 
     public void Serialize(ref TinyhandWriter writer, DateTime[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDateTimeArray(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref DateTime[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeDateTimeArray(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref DateTime[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeDateTimeArray(ref reader);
+    }
 
     public DateTime[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<DateTime>();
 
@@ -1371,7 +1465,11 @@ internal sealed class DateTimeListFormatter : ITinyhandFormatter<List<DateTime>>
 
     public void Serialize(ref TinyhandWriter writer, List<DateTime>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeDateTimeList(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<DateTime>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeDateTimeList(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<DateTime>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeDateTimeList(ref reader);
+    }
 
     public List<DateTime> Reconstruct(TinyhandSerializerOptions options) => new List<DateTime>();
 
@@ -1447,7 +1545,11 @@ internal sealed class Int128ArrayFormatter : ITinyhandFormatter<Int128[]>
 
     public void Serialize(ref TinyhandWriter writer, Int128[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt128Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref Int128[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt128Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref Int128[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt128Array(ref reader);
+    }
 
     public Int128[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<Int128>();
 
@@ -1480,7 +1582,11 @@ internal sealed class Int128ListFormatter : ITinyhandFormatter<List<Int128>>
 
     public void Serialize(ref TinyhandWriter writer, List<Int128>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeInt128List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<Int128>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeInt128List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<Int128>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeInt128List(ref reader);
+    }
 
     public List<Int128> Reconstruct(TinyhandSerializerOptions options) => new List<Int128>();
 
@@ -1556,7 +1662,11 @@ internal sealed class UInt128ArrayFormatter : ITinyhandFormatter<UInt128[]>
 
     public void Serialize(ref TinyhandWriter writer, UInt128[]? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt128Array(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref UInt128[]? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt128Array(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref UInt128[]? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeUInt128Array(ref reader);
+    }
 
     public UInt128[] Reconstruct(TinyhandSerializerOptions options) => Array.Empty<UInt128>();
 
@@ -1589,7 +1699,11 @@ internal sealed class UInt128ListFormatter : ITinyhandFormatter<List<UInt128>>
 
     public void Serialize(ref TinyhandWriter writer, List<UInt128>? value, TinyhandSerializerOptions options) => Tinyhand.Formatters.Builtin.SerializeUInt128List(ref writer, value);
 
-    public void Deserialize(ref TinyhandReader reader, ref List<UInt128>? value, TinyhandSerializerOptions options) => value = Tinyhand.Formatters.Builtin.DeserializeUInt128List(ref reader);
+    public void Deserialize(ref TinyhandReader reader, ref List<UInt128>? value, TinyhandSerializerOptions options)
+    {
+        reader.ApplySecurity(options.Security);
+        value = Tinyhand.Formatters.Builtin.DeserializeUInt128List(ref reader);
+    }
 
     public List<UInt128> Reconstruct(TinyhandSerializerOptions options) => new List<UInt128>();
 

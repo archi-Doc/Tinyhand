@@ -189,16 +189,17 @@ public class ListCoder : ITinyhandCoder
     {
         using (var m = ssb.ScopeBrace($"internal static System.Collections.Generic.List<{this.element.FullNameWithNullable}>? DeserializeList_{this.block!.SerialNumber:0000}(ref TinyhandReader reader, TinyhandSerializerOptions options)"))
         {
+            ssb.AppendLine("reader.ApplySecurity(options.Security);");
             if (this.elementCoder == null)
             {// use option.Resolver.GetFormatter<T>()
                 ssb.AppendLine($"var formatter = options.Resolver.GetFormatter<{this.element.FullName}>();");
             }
 
             ssb.AppendLine("var len = reader.ReadArrayHeader();");
-            ssb.AppendLine($"var list = new System.Collections.Generic.List<{this.element.FullNameWithNullable}>(len);");
             ssb.AppendLine("options.Security.IncrementDepth(ref reader);");
             using (var scopeSecurityTry = ssb.ScopeBrace("try"))
             {
+                ssb.AppendLine($"var list = new System.Collections.Generic.List<{this.element.FullNameWithNullable}>(len);");
                 using (var c2 = ssb.ScopeBrace("for (int i = 0; i < len; i++)"))
                 {// list[i]
                     if (this.elementCoder == null)
@@ -240,14 +241,14 @@ public class ListCoder : ITinyhandCoder
                         }
                     }
                 }
+
+                ssb.AppendLine("return list;");
             }
 
             using (var scopeSecurityFinally = ssb.ScopeBrace("finally"))
             {
                 ssb.AppendLine("reader.Depth--;");
             }
-
-            ssb.AppendLine($"return list;");
         }
     }
 

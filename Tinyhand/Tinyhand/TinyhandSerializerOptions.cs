@@ -15,6 +15,7 @@ public static class TinyhandSerializerOptionsExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T DeserializeAndReconstruct<T>(this TinyhandSerializerOptions options, ref TinyhandReader reader)
     {
+        reader.ApplySecurity(options.Security);
         ITinyhandFormatter<T>? formatter;
 
         formatter = options.Resolver.TryGetFormatter<T>();
@@ -29,6 +30,7 @@ public static class TinyhandSerializerOptionsExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void DeserializeAndReconstruct<T>(this TinyhandSerializerOptions options, ref TinyhandReader reader, ref T value)
     {
+        reader.ApplySecurity(options.Security);
         ITinyhandFormatter<T>? formatter;
 
         formatter = options.Resolver.TryGetFormatter<T>();

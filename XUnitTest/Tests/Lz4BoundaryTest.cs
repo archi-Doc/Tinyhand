@@ -15,6 +15,32 @@ public class Lz4BoundaryTest
     [Theory]
     [InlineData(32)]
     [InlineData(64)]
+    public unsafe void ShortMatchNearOutputEndDoesNotOverwriteGuardBytes(int bits)
+    {
+        var decode = typeof(LZ4Codec).GetMethod($"LZ4_uncompress_{bits}", BindingFlags.Static | BindingFlags.NonPublic)!.CreateDelegate<Decoder>();
+        byte[] input = [0x10, (byte)'x', 1, 0, 0x50, 1, 2, 3, 4, 5];
+        const int outputLength = 10;
+        // Keep the guard inside the actual allocation so a regression cannot corrupt the test process.
+        var output = new byte[outputLength + 16];
+        Array.Fill(output, (byte)0xcc);
+        fixed (byte* source = input)
+        {
+            fixed (byte* target = output)
+            {
+                Assert.Equal(input.Length, decode(source, input.Length, target, outputLength));
+            }
+        }
+
+        Assert.Equal(new byte[] { (byte)'x', (byte)'x', (byte)'x', (byte)'x', (byte)'x', 1, 2, 3, 4, 5 }, output.AsSpan(0, outputLength).ToArray());
+        foreach (var value in output.AsSpan(outputLength))
+        {
+            Assert.Equal((byte)0xcc, value);
+        }
+    }
+
+    [Theory]
+    [InlineData(32)]
+    [InlineData(64)]
     public unsafe void BothDecoderImplementationsRespectInputBoundaries(int bits)
     {
         // Exercise both implementations even on a 64-bit test host.

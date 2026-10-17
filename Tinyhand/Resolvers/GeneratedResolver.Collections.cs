@@ -274,11 +274,15 @@ public sealed partial class GeneratedResolver
 
     public static void RegisterDictionary<TKey, TValue, TDictionary>(Func<int, IEqualityComparer<TKey>, TDictionary> factory)
         where TDictionary : IDictionary<TKey, TValue>, new()
+        => RegisterDictionary<TKey, TValue, TDictionary>(factory, supportsComparer: true);
+
+    public static void RegisterDictionary<TKey, TValue, TDictionary>(Func<int, IEqualityComparer<TKey>, TDictionary> factory, bool supportsComparer)
+        where TDictionary : IDictionary<TKey, TValue>, new()
     {
         ArgumentNullException.ThrowIfNull(factory);
         if (FormatterCache<TDictionary>.Formatter is null)
         {
-            System.Threading.Interlocked.CompareExchange(ref FormatterCache<TDictionary>.Formatter, new GenericDictionaryFormatter<TKey, TValue, TDictionary>(factory), null);
+            System.Threading.Interlocked.CompareExchange(ref FormatterCache<TDictionary>.Formatter, new GenericDictionaryFormatter<TKey, TValue, TDictionary>(factory, supportsComparer), null);
             TinyhandTypeIdentifier.Register<TDictionary>();
         }
     }

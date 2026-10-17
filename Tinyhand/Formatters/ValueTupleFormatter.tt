@@ -39,6 +39,7 @@ internal sealed class ValueTupleFormatter<<#= ts #>> : ITinyhandFormatter<<#= t 
 
     public void Deserialize(ref TinyhandReader reader, ref <#= t #> value, TinyhandSerializerOptions options)
     {
+        reader.ApplySecurity(options.Security);
         if (reader.IsNil)
         {
             throw new TinyhandException("Data is Nil, ValueTuple can not be null.");
